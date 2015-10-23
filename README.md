@@ -631,21 +631,13 @@ code (not live, anymore).
 On  May 15,  2008, Biddy  v1.0  was  released containing  also bddview
 v0.95 (Tcl/Tk BDD viewer) and Bdd Scout v0.90 (demo application).
 
-On Jul  15, 2009,  updated version of  Biddy v1.0 was  released, which
-includes support for debian packaging.
+In 2009, 2010, and 2012 an updated version of Biddy v1.0 was  released
+which added support for debian packaging, support for  RPM  packaging,
+fix error in Biddy_E and Biddy_A,  and  fix  and  improve  details  of
+documentation, packaging, and Tcl/Tk GUI.
 
-On Jul 22,  2010, another updated version of  Biddy v1.0 was released,
-which includes support for RPM packaging.
-
-On May 21,  2012, another updated version of  Biddy v1.0 was released,
-which fixed error in Biddy_E and Biddy_A.
-
-Afterwards, some repackaging releases appears which fix and improve
-details of documentation, packaging, and Tcl/Tk GUI, but not change
-the Biddy library itself.
-
-In 2012, a research paper about Biddy library appears in Journal
-of Software (doi:10.4304/jsw.7.6.1358-1366)
+In 2012, a research paper about Biddy library appears in
+Journal of Software (doi:10.4304/jsw.7.6.1358-1366)
 http://ojs.academypublisher.com/index.php/jsw/article/view/jsw070613581366/
 
 In 2013, Biddy  v1.1  was released. Biddy_Edge became a pointer instead
