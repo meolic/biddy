@@ -218,6 +218,7 @@ EXAMPLES OF NODE MANAGEMENT WITH BIDDY
 
 The first example is a straightforward calculation.
 
+```
 \code
 f1 = op(...);
 f2 = op(...);
@@ -232,6 +233,7 @@ result = op(g1,g2,...);
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_Clean(); /* tmp result are not needed, anymore */
 \endcode
+```
 
 If garbage collection is needed also after the calculation of g1, you must
 add the following code after the calculation of g1:
