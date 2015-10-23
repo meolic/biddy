@@ -107,8 +107,8 @@ IMPORTANT:
 You should define UNIX, MACOSX, or WINDOWS.
 You should define USE_BIDDY iff you are using Biddy via dynamic library.
 
-\code
 ```
+\code
 #define UNIX
 #define USE_BIDDY
 #include "/path/to/biddy.h"
@@ -155,8 +155,8 @@ int main() {
 
   Biddy_Exit();
 }
-```
 \endcode
+```
 
 NODE MANAGEMENT WITH BIDDY (FORMULAE TAGGING)
 ---------------------------------------------
@@ -238,14 +238,17 @@ Biddy_Clean(); /* tmp result are not needed, anymore */
 If garbage collection is needed also after the calculation of g1, you must
 add the following code after the calculation of g1:
 
+```
 \code
 Biddy_AddTmpFormula(g1,2); /* g1 is preserved for next two cleanings */
 Biddy_Clean(); /* g1 remains preserved for one additional cleaning */
 \endcode
+```
 
 To trigger reordering in the first example, you should add calls to
 Biddy_PurgeAndReorder to get the following code:
 
+```
 \code
 f1 = op(...);
 f2 = op(...);
@@ -263,9 +266,11 @@ result = op(g1,g2,...);
 Biddy_AddPersistentFormula("result",result); /* result is permanently preserved */
 Biddy_PurgeAndReorder(result); /* keep only preserved formulae (result), perform reordering on result */
 \endcode
+```
 
 The second example is an iterative calculation:
 
+```
 \code
 f = op(...);
 result = op(f,...);
@@ -279,10 +284,12 @@ while (!finish) {
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_Clean(); /* tmp results are not needed, anymore */
 \endcode
+```
 
 If garbage collection is needed also after the calculation of g, you must
 use the following code:
 
+```
 \code
 f = op(...);
 result = op(f,...);
@@ -298,9 +305,11 @@ while (!finish) {
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_Clean(); /* tmp results are not needed, anymore */
 \endcode
+```
 
 To trigger reordering in the second example, you should change code in the following way:
 
+```
 \code
 f = op(...);
 result = op(f,...);
@@ -317,10 +326,12 @@ while (!finish) {
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_PurgeAndReorder(result); /* keep only preserved formulae (result), perform reordering on result */
 \endcode
+```
 
 The third example is an outline of an implementation of model checking where
 we are trying to benefit from regularly reordering:
 
+```
 \code
 sup = Prepare(...);
 Biddy_AddPersistentFormula("sup",sup) /* sup is permanently preserved */
@@ -338,10 +349,12 @@ Biddy_AddPersistentFormula("result",result); /* final result is permanently pres
 Biddy_DeleteFormula("sup");
 Biddy_ClearAll(); /* optional, if you really need to immediately remove sup */
 \endcode
+```
 
 The fourth example is an outline of an implementation of bisimulation
 where we are trying to benefit from regularly reordering:
 
+```
 \code
 init = AND(init_p,init_q)
 Biddy_AddPersistentFormula("init",init) /* init is permanently preserved */
@@ -359,10 +372,12 @@ if (AND(init,eq)!=0) return false; else return true;
 Biddy_DeleteFormula("init");
 Biddy_ClearAll(); /* optional, if you really need to immediately remove init */
 \endcode
+```
 
 The fifth example is an outline of an implementation of parallel composition
 where we are trying to benefit from intensive GC:
 
+```
 \code
 sacc = snew = AND(init_1,init_2,...,init_N);
 for (i=1;i<=N;i++) di[i] = 0;
@@ -411,6 +426,7 @@ result = OR(tr1,tr2);
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_ClearAll(); /* optional, tmp result are not needed, anymore */
 \endcode
+```
 
 IMPLEMENTATION DETAILS OF MEMORY MANAGEMENT (FORMULAE COUNTER)
 --------------------------------------------------------------
