@@ -1,0 +1,146 @@
+----------------------------------------------------------
+Biddy is based on BDD package written in Pascal in 1992.
+That BDD package was later rewritten in C and become an
+integral part of EST package, a prototype tool for formal
+verification of concurrent systems.
+
+In June 2007, BDD package in EST has been renamed to become
+Biddy v0.9. Afterwards, it was completely reorganized and
+Biddy v0.99 was built as a standalone module. Biddy v1.0a
+was the first one, which was also distributed separately
+from EST.
+
+Biddy is used by:
+- Bdd Scout (http://lms.uni-mb.si/biddy/)
+- EST 1st Edition (http://lms.uni-mb.si/EST/)
+- EST 2nd Edition (http://lms.uni-mb.si/EST/)
+----------------------------------------------------------
+
+Biddy v0.9, was integrated into EST 1st Edition v1.4
+released on Jun 13, 2007 and EST 2nd Edition v4.5 released
+on Jun 11, 2007.
+
+Changes v0.99 versus v0.9
+- integrated into EST 1st Edition, 1.5 (Jul 19, 2007)
+- integrated into EST 2nd Edition, 5.0 (Oct 18, 2007)
+- Biddy is now a minimalistic set of functions
+- relop, output and many other functions has been removed
+- all removed functions has been added to EST project
+- Biddy_Boolean, Biddy_String, Biddy_Variable, Biddy_UserFunction, and
+  Biddy_Edge are now the only exported data types
+- biddy_termTrue, biddy_termFalse, and biddy_termNull are now
+  the only exported variables
+- variable table is used instead of symbol tree
+- makefiles simplified
+- macro Biddy_Cmp renamed to Biddy_isEqv
+- macros Biddy_isTerminal and Biddy_isNull added
+
+Changes v1.0 versus v0.99
+- Biddy is now distributed as a separate package
+- version v1.0a released on May 15, 2008
+- version v1.0b released on Jun 4, 2008
+- version v1.0 released on Jun 18, 2008
+- version v1.0 updated several times in 2009, 2010, and 2012
+- version v1.0 last update on May 21, 2012
+- field "new" in struct BiddyNode renamed to "list"
+- calculating the depth of a BDD fixed
+- source code cleaned, now even g++ compiles it without warnings
+- makefiles and documentation improved and cleaned
+- added Makefiles for Mac OS X
+- packaging files changed
+- added support for debian and rpm packaging
+- fixed error in Biddy_E and Biddy_A (2012 and later, only)
+
+Changes v1.1 versus v1.0
+- released on Apr 05, 2013 (updated on Apr 29, 2013)
+- Biddy_UserFunction renamed to Biddy_VoidFunction
+- biddy_termTrue, biddy_termFalse, and biddy_termNull renamed to
+  biddy_one, biddy_zero, and biddy_null, respectively
+- blocklist renamed to blocktable
+- added (but not used) List of fortified nodes
+- Biddy_Variable and biddyCount are now only 16 bit long
+- Biddy_Edge is now just a pointer instead of structure
+- BiddyNode optimized, it is 24B (instead of 36B) on 32 bit systems
+  and 48B (instead of 64B ) on 64 bit systems
+- some code optimized for new representation of Biddy_Edge
+- fixed counters, use unsigned int or unsigned long int instead of int
+- improved implementation of Biddy_ITE
+
+Changes v1.2 versus v1.1
+- released on May 28, 2014
+- formulae table added
+- implemented list of fortified nodes
+- implemented variable swapping
+- implemented sifting algorithm
+- variable table is now fixed size, defined by const Biddy_VARMAX
+- fields order and term removed from BiddyVariable
+- lists of nodes are now per variable to support efficient sifting
+- hash function for node table optimized, constant node is now at [0]
+- fields firstNewNode, lastNewNode, freshNodes, and fortifiedNodes
+  added to BiddyVariable
+- internal global variables biddyFirstNewNode, biddyLastNewNode,
+  biddyFreshNodes, and biddyFortifiedNodes removed
+- Biddy_GetIthVariableName changed
+- Biddy_FindTerminal removed
+- Biddy_GarbageAll, Biddy_NodeTableNumVar, and Biddy_SystemReport added
+- Biddy_Ordering, biddyActiveOrdering, and Biddy_IsSmaller added
+- ITE cache improved
+
+Changes v1.3 versus v1.2
+- released on Apr 23, 2015
+- adapted for 64-bit architectures
+- improved support for Visual Studio
+- added file biddyInOut.c
+- added Biddy_Eval0 (parser for raw format)
+- added Biddy_Eval1 (parser for prefix AND-OR-EXOR-NOT format)
+- added Biddy_Eval2 (parser for infix &|^~>< format)
+- added Biddy_WriteBDD (write raw format)
+- added Biddy_WriteDot (write graphviz/dot format)
+- added Biddy_WriteTable (write truth table)
+
+Changes v1.4 versus v1.3
+- released on Aug 25, 2015
+- Biddy is now using manager (this is a major change, e.g. internal
+  variables are now defined with macros!)
+- added local info table for storing additional info about nodes
+- added numbered variables controled by numnum in BiddyVariableTable
+- constant nodes 0 and 1 are not named terminal nodes in the source code,
+  anymore, and macro Biddy_isTerminal is renamed to Biddy_isConstant
+- variable edges are not called terminal edges in the source code anymore,
+  and function Biddy_FoaTerminal is renamed to Biddy_FoaVariable
+- biddy_null is now hardcoded
+- added functions Biddy_GetConstantZero and Biddy_GetConstantOne
+- added functions Biddy_VariableNumber and Biddy_NodeVarNumber
+- added functions Biddy_ResetVariablesValue and Biddy_SetVariableValue
+- added function Biddy_NodeNumberPlain
+- added function Biddy_Replace
+- added functions Biddy_Constrain (Coudert and Madre's constrain) and
+  Biddy_Simplify (Coudert and Madre's restrict)
+- added CUDD-like macros Biddy_Not, Biddy_NotCond, Biddy_Regular,
+  Biddy_Complement, BiddyT, and BiddyE
+- added CUDD-like functions Biddy_AddVariable, Biddy_AddVariableBelow,
+  Biddy_AddVariableAbove,
+- added CUDD-like function Biddy_Support
+- added CUDD-like functions Biddy_And, Biddy_Or, Biddy_Nand, Biddy_Nor,
+  Biddy_Xor, and Biddy_Xnor
+- added CUDD-like functions Biddy_Leq, Biddy_Intersect, and
+  Biddy_isVariableDependent
+- added CUDD-like functions Biddy_ExistAbstract, Biddy_UnivAbstract,
+  and Biddy_AndAbstract
+- added CUDD-like function Biddy_CountMinterm
+- fixed Biddy_WriteTable
+- source code cleaned and improved
+- documentation fixed and improved
+- comment's style changed to support doxygen
+
+Changes v1.5 versus v1.4
+- not released, yet
+- fixed Biddy_CountMinterm
+- linking simplified, without def files on MS Windows
+- memory management changed (this is a major change), introduced prolonged
+  nodes, removed functions Biddy_Fresh, Biddy_Fortify, and Biddy_IncCounter,
+  added functions Biddy_DeleteFormula, Biddy_Clean, Biddy_Refresh,
+  Biddy_Purge, and Biddy_PurgeAndReorder, function Biddy_GarbageAll renamed
+  to Biddy_ClearAll
+- variable swapping fixed and improved
+- sifting fixed and improved
