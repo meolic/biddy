@@ -108,6 +108,7 @@ You should define UNIX, MACOSX, or WINDOWS.
 You should define USE_BIDDY iff you are using Biddy via dynamic library.
 
 \code
+```
 #define UNIX
 #define USE_BIDDY
 #include "/path/to/biddy.h"
@@ -154,6 +155,7 @@ int main() {
 
   Biddy_Exit();
 }
+```
 \endcode
 
 NODE MANAGEMENT WITH BIDDY (FORMULAE TAGGING)
