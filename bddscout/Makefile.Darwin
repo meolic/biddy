@@ -1,0 +1,71 @@
+# ######################################################################
+# gcc 4, MacOSX 10.5 or later (Darwin)
+# ######################################################################
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 93 $]
+#  Date        [$Date: 2015-09-16 21:45:54 +0200 (sre, 16 sep 2015) $]
+#
+#  Copyright   [This file is part of Bdd Scout package.
+#               Copyright (C) 2008, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Bdd Scout is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Bdd Scout is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+TCLINCLUDE = -I/Library/Frameworks/Tcl.framework/Headers/
+#TCLINCLUDE =
+
+TCLLIB = -framework Tcl
+#TCLLIB =
+
+all: local
+
+# used for local testing (../bin must contain statically linked Biddy library)
+local:
+	@$(MAKE) local -f Makefile \
+	"MAINNAME = libbddscout.dylib" \
+	"EXTNAME1 = libbddscoutIFIP.dylib" \
+	"EXTNAME2 = libbddscoutBRA.dylib" \
+	"EXTNAME3 = libbddscoutBDDTRACES.dylib" \
+	"CC = gcc -O0 -DMACOSX $(TCLINCLUDE)" \
+	"CCEXT = gcc -O0 -DMACOSX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"LN = gcc -dynamiclib -mmacosx-version-min=10.5 -o" \
+	"LNEXT = gcc -dynamiclib -mmacosx-version-min=10.5 -o" \
+	"AR = ar rcs" \
+	"USECONST = const" \
+	"BINDIR = ./bin" \
+	"BIDDYDIR = .." \
+	"BIDDYLIB = ../../bin" \
+	"BIDDYLIBEXT = -L. -lbddscout" \
+	"BDDVIEWDIR = ../bddview" \
+	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"TCLLIB = $(TCLLIB)"
+
+# used for packaging
+package:
+	@$(MAKE) package -f Makefile \
+	"MAINNAME = libbddscout.dylib" \
+	"EXTNAME1 = libbddscoutIFIP.dylib" \
+	"EXTNAME2 = libbddscoutBRA.dylib" \
+	"EXTNAME3 = libbddscoutBDDTRACES.dylib" \
+	"CC = gcc -O2 -DMACOSX $(TCLINCLUDE)" \
+	"CCEXT = gcc -O2 -DMACOSX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"LN = gcc -dynamiclib -mmacosx-version-min=10.5 -o" \
+	"LNEXT = gcc -dynamiclib -mmacosx-version-min=10.5 -o" \
+	"AR = ar rcs" \
+	"USECONST = const" \
+	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"TCLLIB = $(TCLLIB)"

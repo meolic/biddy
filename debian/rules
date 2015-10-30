@@ -1,0 +1,102 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Changed by Robert Meolic (robert.meolic@um.si).
+
+# Some info about shared library versions
+#
+#version=`ls lib*.so.* | awk '{if (match($$0,/[0-9]+\.[0-9]+\.[0-9]+$$/)) print substr($$0,RSTART)}'`
+#major=`ls lib*.so.* | awk '{if (match($$0,/\.so\.[0-9]+$$/)) print substr($$0,RSTART+4)}'`
+#
+# for example:
+# assuming the library is created as libfoo.so.2.0.5
+# version=2.0.5
+# major=2
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+CFLAGS = -Wall
+
+#ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+#	CFLAGS += -O0 -g
+#else
+#	CFLAGS += -O2
+#endif
+
+# Add here commands to configure the package.
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+	touch configure-stamp
+
+# Add here commands to compile the package.
+build: build-arch build-indep
+build-arch: build-stamp
+build-indep: build-stamp
+build-stamp: configure-stamp
+	dh_testdir
+	$(MAKE) dynamic "BINDIR=`pwd`"
+	$(MAKE) clean "BINDIR=`pwd`"
+	$(MAKE) static "BINDIR=`pwd`"
+	touch $@
+
+# Add here commands to clean up after the build process.
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp
+	$(MAKE) clean "BINDIR=`pwd`"
+	dh_clean
+
+# Add here commands to install the package into debian/package/usr
+install: build
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+	$(MAKE) -f Makefile.Linux DESTDIR=$(CURDIR)/debian/libbiddy1/usr install "LIBDIR=lib" "BINDIR=`pwd`"
+	$(MAKE) -f Makefile.Linux DESTDIR=$(CURDIR)/debian/libbiddy1-dev/usr installdev "LIBDIR=lib" "BINDIR=`pwd`"
+
+# Build architecture-independent files here.
+# We have nothing to do by default.
+binary-indep: build install
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs CHANGES
+	dh_installdocs
+#	dh_installexamples
+#	dh_install
+#	dh_installmenu
+#	dh_installdebconf
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_installinit
+#	dh_installcron
+	dh_installinfo
+	dh_installman
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+#	dh_perl
+#	dh_python
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure

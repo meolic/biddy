@@ -1,0 +1,181 @@
+#!/bin/bash
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 91 $]
+#  Date        [$Date: 2015-08-25 23:21:54 +0200 (tor, 25 avg 2015) $]
+#
+#  Copyright   [This file is part of Bdd Scout package.
+#               Copyright (C) 2008, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Biddy is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Biddy is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+# We are using dch -M
+# remove -M if you are not the author of the last changelog entry
+
+# Some help on building deb packages:
+# http://wiki.debian.org/Packaging
+# http://wiki.debian.org/IntroDebianPackaging
+# http://packaging.ubuntu.com/html/
+
+# Some help on using pbuilder
+# https://wiki.ubuntu.com/PbuilderHowto
+# http://wiki.debian.org/PbuilderTricks
+
+# We are using pdebuild which uses pbuilder. Initialize pbuilder as follows:
+# 1. install pbuilder
+# 2. sudo pbuilder create
+# 3. sudo pbuilder update
+
+# We are using biddy package from Ubuntu ppa.
+# You can check it on https://launchpad.net/~meolic/+archive/ubuntu/biddy
+# To add this ppa to your pbuilder environment, do the following:
+# sudo pbuilder --login --save-after-login
+# apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9018C2C6
+# exit
+# To get the latest biddy library, do the following:
+# sudo pbuilder update --override-config  --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu trusty main"
+# Alternatively, you can adapt /etc/pbuilderrc (set at least BINDMOUNTS and OTHERMIRROR)
+
+#Create 64-bit package after creation of 32-bit package.
+# 0. You need dpkg-dev, fakeroot, debhelper, build-essential, pbuilder
+# 1. You need source package, e.g.:
+#      foo_*.debian.tar.gz
+#      foo_*.dsc
+#      foo_*_source.changes
+#      foo_*.orig.tar.gz
+# 2. Extract the package into a directory called foo_* and cd into it:
+#      dpkg-source -x foo_*.dsc
+#      cd foo_*
+# 3. Use pbuilder (you need local repository for extra dependencies,
+#    result will be in /var/cache/pbuilder/result/):
+#      pdebuild
+# 4. If you do not have pbuilder, instal all dependencies and then
+#    (result will be in ../):
+#      dpkg-buildpackage -rfakeroot -b
+
+# DO NOT USE (= 1.X) FOR libbiddy1 AND libbiddy1-dev IN control FILE
+# FOR ME, THE PACKAGE IS CORRECTLY BUILDED ONLY IF I USE (>= 1.X)
+
+VERSION=`sed "" VERSION`
+NAME="bddscout"
+OS=`uname | sed "s/_.*//;s/[0-9]//g"`
+DIST=$(lsb_release --short --codename)
+
+if [ $# != 1 ]
+then
+  echo "Usage: ./package-deb RELEASE_NUMBER"
+  exit 0
+else
+  RELEASE=$1
+fi
+
+if [ ! -d "../distribution-bddscout/version-$VERSION" ]
+then
+  echo "CREATE TGZ PACKAGE FIRST!"
+  exit 0
+fi
+
+if [ -e "../distribution-bddscout/version-$VERSION/release-$RELEASE" ]
+then
+  echo "CANNOT CHANGE AN EXISTING RELEASE!"
+  exit 0
+fi
+
+echo ""
+echo "************************"
+echo "CREATING NEW RELEASE ..."
+echo "************************"
+echo ""
+
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE"
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian/source"
+cp debian/compat "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/control "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/copyright "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/bddscout.dirs "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/bddscout-ifip.dirs "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/bddscout-ifip-data.dirs "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/bddscout-bra.dirs "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/bddscout-bddtraces.dirs "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/bddscout-bddtraces-data.dirs "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/rules "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+cp debian/source/format "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian/source"
+
+cp VERSION README README.Linux CHANGES "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp bddscout.h bddscout.c bddscoutMain.c bddscout.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp bddscoutDecls.h bddscoutStubInit.c bddscoutStubLib.c "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp pkgIndex.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp bddscoutIFIP.c bddscoutIFIP.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp pkgExtensionIFIP.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp bddscoutBRA.c bddscoutBRA.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp pkgExtensionBRA.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp bddscoutBDDTRACES.c bddscoutBDDTRACES.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp pkgExtensionBDDTRACES.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp Makefile Makefile.Linux "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp example.bdd example.bf "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp ../bddview/bddview.tcl ../bddview/example.bddview "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/cath
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/ex
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/hachtel
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/plasco
+cp IFIP/README IFIP/*.txt "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP
+cp IFIP/cath/* "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/cath
+cp IFIP/ex/* "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/ex
+cp IFIP/hachtel/* "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/hachtel
+cp IFIP/plasco/* "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/plasco
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/BDDTRACES
+cp BDDTRACES/* "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/BDDTRACES
+
+pushd "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp "../../changelog.deb" "debian/changelog"
+# change distribution name if needed
+dch -M -v "$VERSION-$RELEASE" -D trusty
+cp "debian/changelog" "../../changelog.deb"
+cd ..
+tar -czf "$NAME-$VERSION.tar.gz" "$NAME-$VERSION"
+mv "$NAME-$VERSION.tar.gz" "$NAME"_"$VERSION.orig.tar.gz"
+cd "$NAME-$VERSION"
+
+echo ""
+echo "**************************"
+echo "GENERATING SOURCE PACKAGES"
+echo "**************************"
+echo ""
+# change key if you are not Robert Meolic
+debuild -S -sa -kD22F409B
+mkdir `pwd`/../source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../source/
+cp `pwd`/../*.gz `pwd`/../source/
+
+echo ""
+echo "*********************"
+echo "GENERATING LIBRARIES "
+echo "*********************"
+echo ""
+pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
+rm -f `pwd`/../*source.changes
+popd
+rm -fr "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+
+echo ""
+echo "*******************"
+echo "PACKAGES COMPLETED!"
+echo "*******************"
+echo ""

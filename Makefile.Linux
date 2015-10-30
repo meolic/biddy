@@ -1,0 +1,84 @@
+# ######################################################################
+# gcc, GNU/Linux
+# ######################################################################
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 104 $]
+#  Date        [$Date: 2015-10-23 17:13:04 +0200 (pet, 23 okt 2015) $]
+#
+#  Copyright   [This file is part of Biddy.
+#               Copyright (C) 2006, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Biddy is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Biddy is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+BIDDYVERSION = `cat VERSION`
+BIDDYMAJORVERSION = `cut -c1 VERSION`
+
+RM = rm -f
+LNS = ln -fs
+MKDIR = mkdir -p
+CP = cp
+GCC = gcc
+
+all: dynamic
+
+dynamic:
+	@$(MAKE) --no-print-directory lib \
+	"CFLAGS = $(CFLAGS)" \
+	"BIDDYVERSION = $(BIDDYVERSION)" \
+	"LIBNAME = libbiddy.so.$(BIDDYVERSION)" \
+	"CC = $(GCC) -fpic -O2 -DUNIX" \
+	"LN = $(GCC) -shared -Wl,-soname,libbiddy.so.$(BIDDYMAJORVERSION) -o"
+	$(LNS) libbiddy.so.$(BIDDYVERSION) $(BINDIR)/libbiddy.so.$(BIDDYMAJORVERSION)
+	$(LNS) libbiddy.so.$(BIDDYMAJORVERSION) $(BINDIR)/libbiddy.so
+
+static:
+	@$(MAKE) --no-print-directory lib \
+	"CFLAGS = $(CFLAGS)" \
+	"BIDDYVERSION = $(BIDDYVERSION)" \
+	"LIBNAME = libbiddy.a" \
+	"CC = $(GCC) -fpic -O2 -DUNIX" \
+	"LN = ar rcs"
+
+debug:
+	@$(MAKE) --no-print-directory lib \
+	"CFLAGS = $(CFLAGS)" \
+	"BIDDYVERSION = $(BIDDYVERSION)" \
+	"LIBNAME = libbiddy.a" \
+	"CC = /usr/bin/g++ -fpic -g -O0 -DUNIX" \
+	"LN = ar rcs"
+
+profile:
+	@$(MAKE) --no-print-directory lib \
+	"CFLAGS = $(CFLAGS)" \
+	"BIDDYVERSION = $(BIDDYVERSION)" \
+	"LIBNAME = libbiddy.a" \
+	"CC = $(GCC) -fpic -g -pg -O0 -DUNIX" \
+	"LN = ar rcs"
+
+install:
+	$(MKDIR) $(DESTDIR)/$(LIBDIR)
+	$(MKDIR) $(DESTDIR)/share/biddy
+	$(CP) -d $(BINDIR)/lib*.so.* $(DESTDIR)/$(LIBDIR)
+	$(CP) -d $(BINDIR)/README.md $(DESTDIR)/share/biddy
+
+installdev:
+	$(MKDIR) $(DESTDIR)/$(LIBDIR)
+	$(MKDIR) $(DESTDIR)/include
+	$(CP) -d $(BINDIR)/lib*.so $(DESTDIR)/$(LIBDIR)
+	$(CP) -d $(BINDIR)/lib*.a $(DESTDIR)/$(LIBDIR)
+	$(CP) -d $(BINDIR)/biddy.h $(DESTDIR)/include

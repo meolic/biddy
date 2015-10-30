@@ -1,0 +1,447 @@
+Date: Mon, 18 Sep 89 08:37:10 +0200
+From: prlb.philips.be!imec!claesen@murtoa.cs.mu.oz (Luc Claesen)
+To: "info-hol@clover.ucdavis.edu"@uunet.uu.net
+Cc: CLAESEN@uunet.uu.net
+Subject: Workshop "Applied Formal Methods For Correct VLSI Design"
+Status: RO
+
+               =================================================
+
+                             Advance Program
+
+                    IMEC-IFIP International Workshop on:
+
+               "Applied Formal Methods For Correct VLSI Design"
+
+                           13-16 November 1989.
+
+               Congress Village "Hengelhoef" Houthalen (BELGIUM)
+               =================================================
+
+The aim of the workshop is to bring together all researchers, interested in
+formal hardware design methods that are applicable for correct VLSI design. In
+order to achieve this, invited overview speaches, regular presentations and a
+poster session on recent research achievements, as well as demonstrations of
+CAD-tools making use of formal methods will be organized.
+
+Workshop Organizer:
+
+Luc Claesen
+IMEC vzw,
+Kapeldreef 75,
+B-3030 Leuven (Belgium)
+email: claesen@imec.uucp
+
+Program committee
+
+F.Anceau (Bull)
+D.Borrione (IMAG)
+R.Bryant (Carnegy Mellon Univ.)
+L.Claesen (IMEC)
+E.Clarcke (Carnegy Mellon Univ.)
+H.Eveking (Techn Hochshule Darmstadt)
+M.Gordon (Univ. of Cambridge)
+W.Hunt (Computational Logic Inc.)
+G.Milne (Strathclyde Univ.)
+P.Prinetto (Politecnico di Torino)
+P.Subrahmanyam (AT&T Holmdell)
+
+IFIP WG10.5 representative
+Erik Schutz, MIETEC n.v.
+
+----------------------------------------------------------------------
+
+Monday, 13 November 1989
+
+Session 1 : Guided Synthesis and Correctness Preserving Transformations
+
+"A Formalization of Correctness for Linked Representations of Datapath
+Hardware", D.W. Knapp, M.Winslett, Univ. of Illinois
+
+"A Formal Language Model of Local Microcode Synthesis", M. Mahmood, F.
+Mavaddat, M.I. Elmasry, Univ. of Waterloo, M.H.M. Cheng, Univ. of Victoria
+
+"Using Program Transformation for VLSI Design Automation", P. Gaboury, M.I.
+Elmasry, Univ. of Waterloo
+
+"Synthesis of Controllers from Petri Net Descriptions and Application of
+ELLA", A.Amroun, M.Bolton, Univ. of Bristol
+
+Session 2 : Min-Max block benchmark application.
+
+"A Formal Model for Register Transfer Level Structures And Its Applications in
+Verification and Synthesis.", R. Vemuri, Univ. of Cincinnatti
+
+"Formal System Design - Interactive Synthesis based on Computer-Assisted
+Formal Reasoning", M. Fourman, M. Francis, R. Harris, Abstract Hardware Ltd.
+
+"Verification of Sequential Machines Using Functional Vectors", Olivier
+Coudert, Christian Berthet, J-C Madre, Bull.
+
+"The Formal Proof of the "Min-max" sequential benchmark described in CASCADE
+using the Boyer-Moore Theorem Prover", L.Pierre, Univ. de Provence
+
+Poster Session
+
+"Verifying an SECD chip in HOL", G.Birtwistle, B.Graham, Univ. of Calgary.
+
+"An Algebra of Waveforms", L.Augustin, Stanford Univ.
+
+"Algebraic Approach on Hardware Specification and Derivation", Z.Zhu,
+S.Johnson, Indiana Univ.
+
+"The Definition of Circal", F.Moller, Univ. of Strathclyde
+
+"Efficient Verification of VLSI Circuits Based on Syntax and Denotational
+Semantics", F.Van Aelten, J.Allen, MIT
+
+"On the Correctness of State-Assignments for Concurrent Finite State
+Machines", D.Drusinsky, Sony Corp.
+
+"Transformational Design: A Case Study", Jozef De Man, Bell-Alcatel
+
+"Functional Extraction of Hierarchical Sequential Systems", F.Martinolle,
+GERII, INSAT/DGE,
+Bernard Sousal, J-C Geffroy, EDF/DER
+
+"Verified Synthesis Functions for Negabinary Arithmetic Hardware", Shiu-Kai
+Chin, Syracuse Univ.
+
+"Application of Non-Standard Interpretation: Testability", S.Singh, Univ. of
+Glasgow
+
+"A Method for the Formal Specification of a Class of Instruction Set
+Architectures", W. Bevier, Computational Logic Inc.
+
+"On the Application of Binary Decision Diagrams to Formal Hardware Design",
+M.Fujita, Y.Matsunaga, H.Fujisawa, Fujitsu Labs. Ltd.
+
+"Formally Verified Synthesis of Combinatorial CMOS Circuits", D.Basin,
+G.Brown, M.Leeser, Cornell Univ.
+
+"Toward Formal Verification of VHDL Specifications"
+D.Hemmendinger, Union College, J.Van Tassel, Univ. of Cambridge
+
+"Proving an on-line multiplier with OBJ3 and TACHE: a practical experience",
+A.Salem, D.Borrione, IMAG
+
+"Algebraic Transformations in Systolic Array Synthesis: A Case Study", S.
+Rajopadhey, Univ. of Oregon
+
+"Hardware Verification using Temporal Logic: A Practical View", G.Janssen,
+Techn. Univ. Eindhoven
+
+"Verification of Data Flow Graphs using Temporal Logic", G.de Jong, Techn.
+Univ. Eindhoven
+
+"A New Algorithm for Transistor Netlist Comparison"
+E.Vanden Meersch, CPqD Telebras, Campinas
+
+"Functional Extraction of Hierarchical Sequential Systems.", J-C Geffroy, Inst
+Nat Des Science Appl
+
+"Automatic Generation of Timing Specifications for CMOS VLSI Designs", R
+Tjarnstrom, T Larson, Linkoping Univ.
+
+
+Tuesday, 14 November 1989
+
+Invited Speach
+
+"The formal design and verification of hardware based on the Boyer-Moore
+prover.", Warren Hunt, Computational Logic Inc.
+
+Session 3 : Hardware Verification and Synthesis by the Boyer-Moore Theorem
+Prover
+
+"Formal Verification of Pipelines based on String-Functional Semantics", A
+Bronstein, C. Talcott, Stanford Univ.
+
+"The Formal Proof of Sequential Circuits described in CASCADE using the Boyer-
+Moore Theorem Prover",
+L Pierre, Univ de Provence
+
+"On the Interplay of Synthesis and Verification",
+S. Johnson, R. Wehrmeister, B Bose, Indiana Univ.
+
+"Formal Verification of Module Generators by the Boyer-Moore theorem prover",
+D Verkest, L Claesen, H De Man, IMEC
+
+Session 4 : Formal Design of Regular Structures
+
+"A Method for Automatic Verification of a Class of Systolic Circuits", P
+Abdulla, Uppsala Univ.
+
+"PRESAGE: a tool for the parallelization of nested-loop programs", V. Van
+Dongen, M. Petit, Philips Research Labs
+
+"HIFI: An Object Oriented System for the High Level Specification, Analysis
+and Synthesis of VLSI Networks", A.de Lange, A.van der Hoeven, P.Dewilde,
+E.Deprettere, Delft Univ. of Techn
+
+"Specifying and Developing Regular Heterogeneous Designs", W.Luk, Oxford Univ.
+
+Demo Session 1
+
+"The Boyer-Moore Theorem Prover", W Hunt, B Brock, Computational Logic Inc.
+
+"RLEXT: Register Level EXploration Tool", D. Knapp, Univ. of Illinois
+
+"HIFI", A. de Lange, Technical Univ. Delft
+
+"Maple", F Mavaddat, Univ. of Waterloo
+
+"Implementation of Min-Max using LAMBDA", R Harris, M Fourman, Abstract
+Hardware Ltd.
+
+"PRESAGE", V.Van Dongen, M.Petit, Philips Res Labs, Brussels
+
+
+Wednesday, 15 November 1989
+
+
+Invited Speach
+
+"Symbolic Analysis and Verification of MOS circuits.", Randy Bryant, Carnegy
+Mellon Univ.
+
+Session 5 : Formal Verification and Formalisms
+
+"Formal Verification of Multipliers", H Simonis, ECRC GmbH, FRG
+
+"LOVERT - A Logic Verifier of Register Transfer Level Descriptions",
+A.Bratsch, H.Eveking, H.-J.Faerber, J.Pinder, U.Schellin, Techn Hochschule
+Darmstadt
+
+"Formal Synthesis of Digital Systems", F.Hanna, M.Longley, N.Daeche, Univ. of
+Kent
+
+"Mixed Functional and Temporal Hardware Verification", T Larsson, Linkoping
+Univ
+
+Session 6 : Tautology Checking Benchmarks
+
+"Circuit Verification in CHIP: Benchmark Results", H Simonis, T Le Provost,
+ECRC GmbH
+
+"Benchmarks for Tautology Checking - Experimental Results", J-C Madre, Bull
+
+"Fast Tautology Checking Using Shared Binary Decision Diagram - Benchmark
+Results", S Minato, N Ishiura, S Yajima, Kyoto Univ.,
+
+"Using Tache for proving circuits", C Bayol, J-L Paillet, Univ de Provence
+
+Demo Session 2
+
+"The tautology checker of PRIAM", J-C Madre, Bull
+
+"TACHE", C Bayol, J-L Paillet, Univ de Provence
+
+"The NODEN hardware verification suite.", Clive Pygott, RSRE
+
+"Formal proof of "Min-max" benchmark from CASCADE in Boyer-Moore", L Pierre,
+Univ de Provence
+
+"LOVERT", A.Bartsch, H.Eveking, H.-J. Faerber, J. Pinder, U.Schellin, Techn.
+Hochshule Darmstadt.
+
+"VERTICO". H. Eveking, Techn. Hochshule Darmstadt.
+
+"Fast Tautology Checking Using Shared Binary Decision Diagram", S Minato, N
+Ishiura, S Yajima, Kyoto Univ.
+
+Thursday, 16 November 1989
+
+Session 7 : Formal Timing Analysis
+
+"BEAVER: A Behavioral Formal Verifier", Seung Ho Hwang, Schlumberger, A.R.
+Newton, Univ. of California Berkeley
+
+"Modeling of Circuit Delays in Symbolic Simulation"
+C-J Seger, R. Bryant, Carnegie Mellon Univ.
+
+"A Framework for Timing Verification/Simulation with Varying Delays", J
+Benkoski, M Chew, A. Strojwas, Carnegie Mellon Univ
+
+Session 8 : Hardware Verification with HOL
+
+"Formal Verification of a Cell Library: a case study in technology transfer",
+M Gordon, Cambridge Univ., P Loewenstein, Nat Semiconductor Corp., M Shahaf,
+Nat Semiconductor
+
+"Formal Reasoning about Timing and Function of Basic Memory Devices", J
+Herbert, Cambridge Univ.
+
+"Temporal Abstraction of State Maches Using Higher-Order Logic", P
+Loewenstein, National Semiconductor Corp.
+
+Session 9 : Formal Design of Asynchronous Circuits and Protocol Verification
+
+"Comparison of specification and implementation for asynchronous circuits with
+arbitrary delays",
+E.Cerny, P.Rioux, Univ de Montreal, C.Berthet, Bull
+
+"A Design Validation System For Synchronous Hardware Based on a Process Model:
+A Case Study", G. Gopalakrishnan, Univ. of Calgary
+
+" Designing Delay Insensitive Circuits using "Synchronized Transitions". J.
+Staunstrup, Technical Univ. of Denmark, M.R. Greenstreet, Princeton Univ
+
+"Automatic Verification of Synchronous Circuits using Symbolic Logic
+Simulation and Temporal Logic", S Bose, A. Fisher, Carnegie Mellon Univ.
+
+Demo Session 3
+
+"Tautology Checker for VLSI Applications that Simplifies More and Backtracks
+Less", F Vlach, Univ. of North Texas
+
+"STAT!", J Benkoski, M Chew, A Strojwas, Carnegy Mellon Univ.
+
+"SWIVER", E.Cerny, P.Rioux, C.Berthet, Univ de Montreal
+
+"The HOP system", G. Gopalakrishnan, Univ. of Calgary
+
+"Verification of VLSI Circuits using LP", J. Staunstrup, Technical Univ. of
+Denmark.
+
+"Applications of Finite State Modelling and Analysis in Asynchronous/
+Synchronous Circuit Design", P.A. Subrahmanyam, AT&T Bell Labs, Holmdel
+
+Friday, 17 November 1989
+
+A visit is being organized to the Interuniversity Micro Electronics Center
+IMEC in Leuven (Belgium). This will include an overview of the research
+facilities.
+
+Demonstrations of CAD tools within IMEC will be organized including:
+
+- system synthesis and silicon compilation tools
+- timing verification tools
+- electrical verification tools
+- symbolic layout program
+- parametermized module generation system
+- formal verification tools
+- multiprocessor circuit simulation
+
+
+GENERAL INFORMATION
+
+VENUE
+
+The workshop will be held in the calm, spacious and relaxing atmosphere of the
+Conference Center "Hengelhoef", situated 80 km east of Brussels
+and Antwerp in Houthalen near Genk, Belgium. (address: Domein Hengelhoef,
+Hengelhoefdreef 1, B-3530 Houthalen-Helchteren, telephone: +32-11-380116,
+telex 39345 hengel). The center is situated in the heart of Limburg, in the
+midst of a large park with woods and ponds. It offers a wide
+range of sports accomodations. Further details about tourist information will
+be mailed with the confirmation of your registration.
+
+
+REGISTRATION FEES
+
+The conference fees are:
+     before 14 October 1989
+          Participants from:
+               Companies: 23000 BFr
+               Universities: 18000 BFr
+     after 14 October 1989
+          Participants from:
+               Companies: 25000 BFr
+               Universities: 20000 BFr
+(BFr = Belgian Francs, 1000 BFr ~ 25 US$). Payment of the conference fee
+entitles the registrant the access to all sessions, one copy of the conference
+proceedings, refreshments during breaks, 4 lunches, the conference banquet,
+welcoming reception on Sunday and a free ticket for the subtropic swimming
+pool of the conference village.
+
+ACCOMODATION
+
+Rooms have been reserved at special rates in the Congress Village
+"Hengelhoef". This congress village is available for the conference from
+Sunday evening 12 Nov till Friday morning 17 Nov 1989. The price per night,
+including breakfast and dinners is 2000 BFr. Please pay this in advance
+together with your registration fee.
+
+The available rooms will be assigned to participants in the order of receipt
+of the registration forms. The late registrants that do not get accomodation
+at the Congress Village "Hengelhoef" itself, will be housed in hotels in Genk
+or Hasselt. The costs for this hotel accomodation, will depend on the hotel
+and is not included. A bus service will be provided in the morning and the
+evenings.
+
+It is not possible for conference participants to stay at the Congress Village
+before or after the above mentioned dates. If you intend to arrive earlier, or
+want to stay later, you should indicate your hotel requirements on the
+registration form.
+
+ENQUIRIES
+
+All enquiries for more information should be addressed to the conference
+secretary:
+
+Ms. Annemie Stas
+IMEC
+Kapeldreef 75,
+B-3030 Leuven (Belgium)
+Tel: +32 - 16 - 281201
+Fax: +32 - 16 - 229400
+Telex: 26152
+email: annemie@imec.uucp
+
+
+---cut-here---cut-here---cut-here---cut-here---
+
+
+               REGISTRATION FORM
+(to be returned before 14 October 1989)
+
+Title: ___First Name:_________Surname:__________
+
+Affiliation ____________________________________
+
+Street__________________________________________
+
+City Code________City__________Country__________
+
+Phone_______________Fax_________________________
+
+email:__________________________________________
+
+Accomodation Reservation
+
+Number of accompanying persons:
+Reservation of ____ single room(s)
+Reservation of ____ double room(s)
+Date of arrival ____
+Date of departure ___
+
+I would like to use the special bus:
+o On Sunday 12 Nov at 17.30 from Brussels airport.
+o On Friday 17 Nov to arrive at 10.30 at Brussels
+o On Friday 17 Nov to arrive at 15.30 at Brussels
+
+o I intend to visit the Interuniversity Micro
+  Electronics Center IMEC on Friday 17 Nov.
+
+PAYMENT
+
+Registration fee                         _____
+Accomodation ___ nights at 2000BFr/night _____
+
+o I ENCLOSE a check payable to IMEC-IFIP Workshop
+o I have transfered the money before 14 October
+  1989, to BBL-Naamse Steenweg 203, 3030 Heverlee
+  Belgium, account number 330-0382086-57, with
+  reference "IMEC-IFIP Workshop".
+
+Date: _____      Signature: _________
+
+Return this to the conference secretary Annemie Stas.
+
+
+
+
+
+
+

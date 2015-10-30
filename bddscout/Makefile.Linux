@@ -1,0 +1,144 @@
+# ######################################################################
+# gcc, GNU/Linux, Tcl/Tk
+# ######################################################################
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 104 $]
+#  Date        [$Date: 2015-10-23 17:13:04 +0200 (pet, 23 okt 2015) $]
+#
+#  Copyright   [This file is part of Bdd Scout package.
+#               Copyright (C) 2008, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Bdd Scout is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Bdd Scout is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+# -----------------------------------------------------------------------
+# GENERAL SETTINGS
+# -----------------------------------------------------------------------
+
+CP = cp
+MKDIR = mkdir -p
+GCC = gcc
+
+# -ltk should be written before -ltcl
+# 32-bit tcltk on 64-bit ubuntu is installed in /home/tcltk86
+# 32-bit tcltk is downloaded from https://bitbucket.org/tombert/tcltk/downloads
+
+ifneq (,$(wildcard /usr/bin/tclsh))
+#TCLVERSION := $(shell ls -d1 /usr/include/tcl* | tail -n 1 | sed "s/[^.0-9]//g")
+TCLVERSION := $(shell echo 'puts $$tcl_version' | tclsh)
+TCLINCLUDE = -I/usr/include/tcl$(TCLVERSION)
+TCLLIB = -L/home/tcltk86/lib -ltcl$(TCLVERSION)
+TCLSTUBLIB = -L/home/tcltk86/lib -ltclstub$(TCLVERSION)
+TCLTKLIB = -L/home/tcltk86/lib -ltk$(TCLVERSION) -ltcl$(TCLVERSION)
+endif
+
+# -----------------------------------------------------------------------
+# the type of compiling and linking
+# -----------------------------------------------------------------------
+
+all: local
+
+# -----------------------------------------------------------------------
+# system-wide instalation
+# -----------------------------------------------------------------------
+
+install:
+	$(MKDIR) $(DESTDIR)/bin
+	$(MKDIR) $(DESTDIR)/$(LIBDIR)/bddscout
+	$(MKDIR) $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/bddscout $(DESTDIR)/bin
+	$(CP) $(BINDIR)/bddscout.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/bddview.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/bddscout.so $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/pkgIndex.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/README $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/README.Linux $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/example.bddview $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/example.bdd $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/example.bf $(DESTDIR)/share/bddscout
+
+install_bddscoutIFIP:
+	$(CP) $(BINDIR)/bddscoutIFIP.so $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/bddscoutIFIP.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/pkgExtensionIFIP.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+
+install_IFIP:
+	$(MKDIR) $(DESTDIR)/share/IFIP
+	$(MKDIR) $(DESTDIR)/share/IFIP/cath
+	$(MKDIR) $(DESTDIR)/share/IFIP/ex
+	$(MKDIR) $(DESTDIR)/share/IFIP/hachtel
+	$(MKDIR) $(DESTDIR)/share/IFIP/plasco
+	$(CP) $(BINDIR)/IFIP/README $(BINDIR)/IFIP/*.txt $(DESTDIR)/share/IFIP
+	$(CP) $(BINDIR)/IFIP/cath/* $(DESTDIR)/share/IFIP/cath
+	$(CP) $(BINDIR)/IFIP/ex/* $(DESTDIR)/share/IFIP/ex
+	$(CP) $(BINDIR)/IFIP/hachtel/* $(DESTDIR)/share/IFIP/hachtel
+	$(CP) $(BINDIR)/IFIP/plasco/* $(DESTDIR)/share/IFIP/plasco
+
+install_bddscoutBRA:
+	$(CP) $(BINDIR)/bddscoutBRA.so $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/bddscoutBRA.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/pkgExtensionBRA.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+
+install_bddscoutBDDTRACES:
+	$(CP) $(BINDIR)/bddscoutBDDTRACES.so $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/bddscoutBDDTRACES.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+	$(CP) $(BINDIR)/pkgExtensionBDDTRACES.tcl $(DESTDIR)/$(LIBDIR)/bddscout
+
+install_BDDTRACES:
+	$(MKDIR) $(DESTDIR)/share/BDDTRACES
+	$(CP) $(BINDIR)/BDDTRACES/* $(DESTDIR)/share/BDDTRACES
+
+# used for local testing (../bin must contain statically linked Biddy library)
+local:
+	@$(MAKE) local -f Makefile \
+	"CFLAGS = $(CFLAGS)" \
+	"MAINNAME = bddscout.so" \
+	"EXTNAME1 = bddscoutIFIP.so" \
+	"EXTNAME2 = bddscoutBRA.so" \
+	"EXTNAME3 = bddscoutBDDTRACES.so" \
+	"CC = $(GCC) -Wall -fpic -O0 -g -DUNIX $(TCLINCLUDE)" \
+	"CCEXT = $(GCC) -Wall -fpic -O0 -g -DUNIX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"LN = $(GCC) -shared -o" \
+	"LNEXT = $(GCC) -shared -o" \
+	"AR = ar rcs" \
+	"USECONST = const" \
+	"BINDIR = ./bin" \
+	"BIDDYDIR = .." \
+	"BIDDYLIB = ../../bin" \
+	"BIDDYLIBEXT = ./bddscout.so" \
+	"BDDVIEWDIR = ../bddview" \
+	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"TCLTKLIB = $(TCLTKLIB)" \
+	"TCLSTUBLIB = $(TCLSTUBLIB)"
+
+# used for packaging
+package:
+	@$(MAKE) package -f Makefile \
+	"CFLAGS = $(CFLAGS)" \
+	"MAINNAME = bddscout.so" \
+	"EXTNAME1 = bddscoutIFIP.so" \
+	"EXTNAME2 = bddscoutBRA.so" \
+	"EXTNAME3 = bddscoutBDDTRACES.so" \
+	"CC = $(GCC) -Wall -fpic -O2 -DUNIX $(TCLINCLUDE)" \
+	"CCEXT = $(GCC) -Wall -fpic -O2 -DUNIX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"LN = $(GCC) -shared -o" \
+	"LNEXT = $(GCC) -shared -o" \
+	"AR = ar rcs" \
+	"USECONST = const" \
+	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"TCLTKLIB = $(TCLTKLIB)" \
+	"TCLSTUBLIB = $(TCLSTUBLIB)"

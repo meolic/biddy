@@ -1,0 +1,61 @@
+# ######################################################################
+# gcc, MinGW + MSYS
+# ######################################################################
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 93 $]
+#  Date        [$Date: 2015-09-16 21:45:54 +0200 (sre, 16 sep 2015) $]
+#
+#  Copyright   [This file is part of Biddy.
+#               Copyright (C) 2006, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Biddy is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Biddy is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+MKDIR = mkdir -p
+CP = cp
+RM = rm -f
+
+BIDDYVERSION = `cat ./VERSION`
+
+RM = rm -f
+
+all: dynamic
+
+dynamic:
+	@$(MKDIR) $(BINDIR)
+	@$(MAKE) lib \
+	"CFLAGS = $(CFLAGS)" \
+	"BIDDYVERSION = $(BIDDYVERSION)" \
+	"LIBNAME = biddy.dll" \
+	"CC = C:/MinGW/bin/gcc -O2 -DWINDOWS -DBUILD_BIDDY" \
+	"LN = C:/MinGW/bin/gcc -shared -Wl,--out-implib,biddy.lib -o"
+
+static:
+	@$(MAKE) lib \
+	"CFLAGS = $(CFLAGS)" \
+	"BIDDYVERSION = $(BIDDYVERSION)" \
+	"LIBNAME = libbiddy.a" \
+	"CC = C:/MinGW/bin/gcc -O2 -DWINDOWS" \
+	"LN = C:/MinGW/bin/ar rcs"
+
+debug:
+	@$(MAKE) lib \
+	"CFLAGS = $(CFLAGS)" \
+	"BIDDYVERSION = $(BIDDYVERSION)" \
+	"LIBNAME = libbiddy.a" \
+	"CC = C:/MinGW/bin/gcc -g -O0 -DWINDOWS" \
+	"LN = C:/MinGW/bin/ar rcs"

@@ -1,0 +1,414 @@
+MODULE mutex
+INPUT STATE_VAR_ASSOCIATE_CURR_NEXT_INTERLEAVE
+         v0,         v1,         v2,         v3,         v4,
+           v5,         v6,         v7,         v8,         v9;
+OUTPUT
+        lv_46,      lv_48,      lv_49,      lv_51,      lv_52,
+        lv_54,      lv_55,      lv_57,      lv_59,      lv_60,
+        lv_63,      lv_65,      lv_70,      lv_73,      lv_74,
+        lv_79,     lv_137,     lv_143,     lv_152,     lv_161,
+       lv_170,     lv_179,     lv_188,     lv_195,     lv_236,
+       lv_283;
+STRUCTURE
+   false = new_int_leaf(0);   % 1
+   true = new_int_leaf(1);   % 1
+   trace_verbose_print("Registering quantifiers (curr/next vars)");
+   trace_verbose_print("  Reconstruction 0...");
+   lv_1 = ite(v8, true, false);   % 3
+   lv_2 = ite(v6, lv_1, false);   % 4
+   lv_3 = ite(v4, lv_2, false);   % 5
+   lv_4 = ite(v2, lv_3, false);   % 6
+   lv_5 = ite(v0, lv_4, false);   % 7
+   trace_verbose_print("  Done reconstruction 0.");
+   trace_verbose_print("  Reconstruction 1...");
+   lv_6 = ite(v9, true, false);   % 3
+   lv_7 = ite(v7, lv_6, false);   % 4
+   lv_8 = ite(v5, lv_7, false);   % 5
+   lv_9 = ite(v3, lv_8, false);   % 6
+   lv_10 = ite(v1, lv_9, false);   % 7
+   trace_verbose_print("  Done reconstruction 1.");
+   trace_verbose_print("Registering the INIT function.");
+   trace_verbose_print("  Reconstruction 2...");
+   lv_11 = ite(v8, false, true);   % 3
+   lv_12 = ite(v6, false, lv_11);   % 4
+   lv_13 = ite(v4, lv_12, false);   % 5
+   lv_14 = ite(v0, false, lv_13);   % 6
+   trace_verbose_print("  Done reconstruction 2.");
+   trace_verbose_print("Registering Transition Function");
+   trace_verbose_print("  Reconstruction 3...");
+   lv_15 = ite(v3, false, true);   % 3
+   lv_16 = ite(v1, lv_15, false);   % 4
+   lv_17 = ite(v2, true, false);   % 3
+   lv_18 = ite(v6, true, false);   % 3
+   lv_19 = ite(v4, lv_18, lv_1);   % 5
+   lv_20 = ite(v6, false, true);   % 3
+   lv_21 = ite(v4, lv_20, lv_11);   % 5
+   lv_22 = ite(v3, lv_21, lv_19);   % 9
+   lv_23 = ite(v2, false, lv_22);   % 10
+   lv_24 = ite(v1, lv_23, lv_17);   % 12
+   lv_25 = ite(v0, lv_24, lv_16);   % 15
+   trace_verbose_print("  Done reconstruction 3.");
+   trace_verbose_print("Registering Transition Function");
+   trace_verbose_print("  Reconstruction 4...");
+   lv_26 = ite(v7, true, false);   % 3
+   lv_27 = ite(v5, lv_26, false);   % 4
+   lv_28 = ite(v7, false, true);   % 3
+   lv_29 = ite(v6, lv_28, false);   % 4
+   lv_30 = ite(v5, lv_29, lv_20);   % 6
+   lv_31 = ite(v4, lv_30, lv_27);   % 9
+   lv_32 = ite(v7, lv_1, false);   % 4
+   lv_33 = ite(v5, lv_32, lv_11);   % 6
+   lv_34 = ite(v4, lv_30, lv_33);   % 11
+   lv_35 = ite(v5, false, true);   % 3
+   lv_36 = ite(v4, lv_30, lv_35);   % 8
+   lv_37 = ite(v2, lv_36, lv_34);   % 14
+   lv_38 = ite(v0, lv_37, lv_31);   % 18
+   trace_verbose_print("  Done reconstruction 4.");
+   trace_verbose_print("Registering Transition Function");
+   trace_verbose_print("  Reconstruction 5...");
+   lv_39 = ite(v9, false, true);   % 3
+   lv_40 = ite(v8, lv_6, lv_39);   % 5
+   lv_41 = ite(v4, lv_40, lv_6);   % 6
+   lv_42 = ite(v6, lv_40, lv_39);   % 6
+   lv_43 = ite(v4, lv_42, lv_40);   % 7
+   lv_44 = ite(v2, lv_40, lv_43);   % 8
+   lv_45 = ite(v0, lv_44, lv_41);   % 10
+   trace_verbose_print("  Done reconstruction 5.");
+   trace_verbose_print("Registering Invariant");
+   trace_verbose_print("Done inital registeration.");
+   trace_verbose_print("Ordering and clustering partitions...");
+   lv_46 = vars_curr_to_next(lv_5);   % 7
+   are_equal(lv_25, false);   % 0
+   are_equal(lv_25, true);   % 0
+   lv_47 = support_vars(lv_25);   % 9
+   lv_48 = exists(lv_10, lv_47);   % 7
+   lv_49 = exists(lv_5, lv_47);   % 4
+   are_equal(lv_38, false);   % 0
+   are_equal(lv_38, true);   % 0
+   lv_50 = support_vars(lv_38);   % 9
+   lv_51 = exists(lv_10, lv_50);   % 7
+   lv_52 = exists(lv_5, lv_50);   % 4
+   are_equal(lv_45, false);   % 0
+   are_equal(lv_45, true);   % 0
+   lv_53 = support_vars(lv_45);   % 8
+   lv_54 = exists(lv_10, lv_53);   % 7
+   lv_55 = exists(lv_5, lv_53);   % 3
+   trace_verbose_print("  Initial merging...");
+   lv_56 = and(lv_25, lv_45);   % 19
+   lv_57 = and(lv_38, lv_45);   % 23
+   lv_58 = support_vars(lv_56);   % 10
+   lv_59 = exists(lv_10, lv_58);   % 7
+   lv_60 = exists(lv_5, lv_58);   % 5
+   lv_61 = and(lv_56, lv_38);   % 31
+   lv_62 = support_vars(lv_61);   % 12
+   lv_63 = exists(lv_10, lv_62);   % 7
+   lv_64 = exists(lv_5, lv_62);   % 7
+   trace_verbose_print("  Done initializing partitions...");
+   trace_verbose_print("  Ordering/Clustering for Image computationd...");
+   trace_verbose_print("    Ordering partitions...");
+   lv_65 = and(true, lv_64);   % 7
+   lv_66 = and(v0, true);   % 3
+   lv_67 = and(v2, lv_66);   % 4
+   lv_68 = and(v4, lv_67);   % 5
+   lv_69 = and(v6, lv_68);   % 6
+   lv_70 = and(v8, lv_69);   % 7
+   trace_verbose_print("    Done ordering partitions...");
+   trace_verbose_print("    Clustering partitions...");
+   trace_verbose_print("    Done clustering partitions.");
+   are_equal(lv_61, false);   % 0
+   are_equal(lv_61, true);   % 0
+   lv_71 = support_vars(lv_61);   % 12
+   lv_72 = exists(lv_10, lv_71);   % 7
+   lv_73 = exists(lv_5, lv_71);   % 7
+   trace_verbose_print("  Initial merging...");
+   trace_verbose_print("  Done initializing partitions...");
+   trace_verbose_print("  Ordering/Clustering for PreImage computation...");
+   trace_verbose_print("    Ordering partitions...");
+   lv_74 = and(true, lv_72);   % 7
+   lv_75 = and(v1, true);   % 3
+   lv_76 = and(v3, lv_75);   % 4
+   lv_77 = and(v5, lv_76);   % 5
+   lv_78 = and(v7, lv_77);   % 6
+   lv_79 = and(v9, lv_78);   % 7
+   trace_verbose_print("    Done ordering partitions...");
+   trace_verbose_print("    Clustering partitions...");
+   trace_verbose_print("    Done clustering partitions.");
+   lv_80 = and(true, lv_61);   % 31
+   lv_81 = restrict(lv_80, true);   % 31
+   trace_verbose_print("Done ordering and clustering partitions.");
+   check_point_for_force_reordering(0);
+   trace_verbose_print("Compute reachable...");
+   are_equal(lv_14, false);   % 0
+   lv_82 = and(lv_14, true);   % 6
+   lv_83 = rel_prod(lv_5, lv_81, lv_82);   % 6
+   lv_84 = vars_next_to_curr(lv_83);   % 6
+   lv_85 = or(lv_14, lv_84);   % 8
+   lv_86 = not(lv_14);   % 6
+   lv_87 = and(lv_85, lv_86);   % 6
+   are_equal(lv_87, false);   % 0
+   lv_88 = and(lv_87, true);   % 6
+   lv_89 = rel_prod(lv_5, lv_81, lv_88);   % 6
+   lv_90 = vars_next_to_curr(lv_89);   % 6
+   lv_91 = or(lv_85, lv_90);   % 7
+   lv_92 = not(lv_85);   % 8
+   lv_93 = and(lv_91, lv_92);   % 6
+   are_equal(lv_93, false);   % 0
+   lv_94 = and(lv_93, true);   % 6
+   lv_95 = rel_prod(lv_5, lv_81, lv_94);   % 5
+   lv_96 = vars_next_to_curr(lv_95);   % 5
+   lv_97 = or(lv_91, lv_96);   % 7
+   lv_98 = not(lv_91);   % 7
+   lv_99 = and(lv_97, lv_98);   % 5
+   are_equal(lv_99, false);   % 0
+   lv_100 = and(lv_99, true);   % 5
+   lv_101 = rel_prod(lv_5, lv_81, lv_100);   % 7
+   lv_102 = vars_next_to_curr(lv_101);   % 7
+   lv_103 = or(lv_97, lv_102);   % 11
+   lv_104 = not(lv_97);   % 7
+   lv_105 = and(lv_103, lv_104);   % 7
+   are_equal(lv_105, false);   % 0
+   lv_106 = and(lv_105, true);   % 7
+   lv_107 = rel_prod(lv_5, lv_81, lv_106);   % 7
+   lv_108 = vars_next_to_curr(lv_107);   % 7
+   lv_109 = or(lv_103, lv_108);   % 10
+   lv_110 = not(lv_103);   % 11
+   lv_111 = and(lv_109, lv_110);   % 7
+   are_equal(lv_111, false);   % 0
+   lv_112 = and(lv_111, true);   % 7
+   lv_113 = rel_prod(lv_5, lv_81, lv_112);   % 6
+   lv_114 = vars_next_to_curr(lv_113);   % 6
+   lv_115 = or(lv_109, lv_114);   % 10
+   lv_116 = not(lv_109);   % 10
+   lv_117 = and(lv_115, lv_116);   % 1
+   are_equal(lv_117, false);   % 1
+   trace_verbose_print("Done compute reachable.");
+   trace_verbose_print("Compute fair states...");
+   trace_verbose_print("  Compute EG...");
+   lv_118 = and(true, true);   % 1
+   lv_119 = and(lv_118, true);   % 1
+   lv_120 = vars_curr_to_next(lv_119);   % 1
+   lv_121 = rel_prod(lv_10, lv_81, lv_120);   % 1
+   lv_122 = and(lv_121, lv_115);   % 10
+   lv_123 = and(lv_118, lv_122);   % 10
+   are_equal(lv_123, true);   % 0
+   lv_124 = and(lv_123, true);   % 10
+   lv_125 = and(lv_124, true);   % 10
+   lv_126 = vars_curr_to_next(lv_125);   % 10
+   lv_127 = rel_prod(lv_10, lv_81, lv_126);   % 10
+   lv_128 = and(lv_127, lv_115);   % 10
+   lv_129 = and(lv_124, lv_128);   % 10
+   are_equal(lv_129, lv_123);   % 1
+   trace_verbose_print("  Done Computing EG.");
+   trace_verbose_print("Done computing fair states.");
+   trace_verbose_print("Checking spec...");
+   trace_verbose_print("  Reconstruction 6...");
+   lv_130 = ite(v0, lv_17, false);   % 4
+   trace_verbose_print("  Done reconstruction 6.");
+   trace_verbose_print("  Reconstruction 7...");
+   lv_131 = ite(v4, lv_18, false);   % 4
+   trace_verbose_print("  Done reconstruction 7.");
+   lv_132 = and(lv_130, lv_131);   % 6
+   lv_133 = and(lv_132, lv_129);   % 1
+   lv_134 = and(lv_133, lv_115);   % 1
+   are_equal(true, lv_132);   % 0
+   trace_verbose_print("    Compute EU...");
+   are_equal(lv_134, false);   % 1
+   trace_verbose_print("    Done computing EU.");
+   lv_135 = not(lv_134);   % 1
+   lv_136 = and(true, lv_135);   % 1
+   lv_137 = and(lv_14, lv_136);   % 6
+   trace_verbose_print("  Reconstruction 8...");
+   lv_138 = ite(v2, false, lv_13);   % 6
+   lv_139 = ite(v0, false, lv_138);   % 7
+   trace_verbose_print("  Done reconstruction 8.");
+   are_equal(lv_139, false);   % 0
+   lv_140 = and(lv_130, lv_131);   % 6
+   trace_verbose_print("    Explaining EU...");
+   lv_141 = and(lv_140, lv_129);   % 1
+   are_equal(lv_139, false);   % 0
+   lv_142 = and(lv_139, true);   % 7
+   lv_143 = and(lv_142, lv_141);   % 1
+   are_equal(false, false);   % 1
+   lv_144 = and(true, lv_142);   % 7
+   lv_145 = rel_prod(lv_5, lv_81, lv_144);   % 6
+   lv_146 = vars_next_to_curr(lv_145);   % 6
+   lv_147 = or(lv_139, lv_146);   % 9
+   lv_148 = not(lv_139);   % 7
+   lv_149 = and(lv_147, lv_148);   % 6
+   lv_150 = and(true, lv_147);   % 9
+   are_equal(lv_149, false);   % 0
+   lv_151 = and(lv_149, true);   % 6
+   lv_152 = and(lv_151, lv_141);   % 1
+   are_equal(false, false);   % 1
+   lv_153 = and(true, lv_151);   % 6
+   lv_154 = rel_prod(lv_5, lv_81, lv_153);   % 6
+   lv_155 = vars_next_to_curr(lv_154);   % 6
+   lv_156 = or(lv_150, lv_155);   % 8
+   lv_157 = not(lv_150);   % 9
+   lv_158 = and(lv_156, lv_157);   % 6
+   lv_159 = and(true, lv_156);   % 8
+   are_equal(lv_158, false);   % 0
+   lv_160 = and(lv_158, true);   % 6
+   lv_161 = and(lv_160, lv_141);   % 1
+   are_equal(false, false);   % 1
+   lv_162 = and(true, lv_160);   % 6
+   lv_163 = rel_prod(lv_5, lv_81, lv_162);   % 5
+   lv_164 = vars_next_to_curr(lv_163);   % 5
+   lv_165 = or(lv_159, lv_164);   % 8
+   lv_166 = not(lv_159);   % 8
+   lv_167 = and(lv_165, lv_166);   % 5
+   lv_168 = and(true, lv_165);   % 8
+   are_equal(lv_167, false);   % 0
+   lv_169 = and(lv_167, true);   % 5
+   lv_170 = and(lv_169, lv_141);   % 1
+   are_equal(false, false);   % 1
+   lv_171 = and(true, lv_169);   % 5
+   lv_172 = rel_prod(lv_5, lv_81, lv_171);   % 7
+   lv_173 = vars_next_to_curr(lv_172);   % 7
+   lv_174 = or(lv_168, lv_173);   % 12
+   lv_175 = not(lv_168);   % 8
+   lv_176 = and(lv_174, lv_175);   % 7
+   lv_177 = and(true, lv_174);   % 12
+   are_equal(lv_176, false);   % 0
+   lv_178 = and(lv_176, true);   % 7
+   lv_179 = and(lv_178, lv_141);   % 1
+   are_equal(false, false);   % 1
+   lv_180 = and(true, lv_178);   % 7
+   lv_181 = rel_prod(lv_5, lv_81, lv_180);   % 7
+   lv_182 = vars_next_to_curr(lv_181);   % 7
+   lv_183 = or(lv_177, lv_182);   % 11
+   lv_184 = not(lv_177);   % 12
+   lv_185 = and(lv_183, lv_184);   % 7
+   lv_186 = and(true, lv_183);   % 11
+   are_equal(lv_185, false);   % 0
+   lv_187 = and(lv_185, true);   % 7
+   lv_188 = and(lv_187, lv_141);   % 1
+   are_equal(false, false);   % 1
+   lv_189 = and(true, lv_187);   % 7
+   lv_190 = rel_prod(lv_5, lv_81, lv_189);   % 6
+   lv_191 = vars_next_to_curr(lv_190);   % 6
+   lv_192 = or(lv_186, lv_191);   % 11
+   lv_193 = not(lv_186);   % 11
+   lv_194 = and(lv_192, lv_193);   % 1
+   lv_195 = and(true, lv_192);   % 11
+   are_equal(lv_194, false);   % 1
+   trace_verbose_print("Checking spec...");
+   lv_196 = not(lv_130);   % 4
+   trace_verbose_print("  Compute EG...");
+   are_equal(lv_196, false);   % 0
+   lv_197 = and(lv_196, true);   % 4
+   lv_198 = and(lv_197, lv_129);   % 9
+   lv_199 = and(lv_198, true);   % 9
+   lv_200 = vars_curr_to_next(lv_199);   % 9
+   lv_201 = rel_prod(lv_10, lv_81, lv_200);   % 10
+   lv_202 = and(lv_201, lv_115);   % 11
+   lv_203 = and(lv_197, lv_202);   % 10
+   are_equal(lv_203, lv_196);   % 0
+   lv_204 = and(lv_203, true);   % 10
+   lv_205 = and(lv_204, lv_129);   % 10
+   lv_206 = and(lv_205, true);   % 10
+   lv_207 = vars_curr_to_next(lv_206);   % 10
+   lv_208 = rel_prod(lv_10, lv_81, lv_207);   % 8
+   lv_209 = and(lv_208, lv_115);   % 6
+   lv_210 = and(lv_204, lv_209);   % 5
+   are_equal(lv_210, lv_203);   % 0
+   lv_211 = and(lv_210, true);   % 5
+   lv_212 = and(lv_211, lv_129);   % 5
+   lv_213 = and(lv_212, true);   % 5
+   lv_214 = vars_curr_to_next(lv_213);   % 5
+   lv_215 = rel_prod(lv_10, lv_81, lv_214);   % 7
+   lv_216 = and(lv_215, lv_115);   % 6
+   lv_217 = and(lv_211, lv_216);   % 1
+   are_equal(lv_217, lv_210);   % 0
+   lv_218 = and(lv_217, true);   % 1
+   lv_219 = and(lv_218, lv_129);   % 1
+   lv_220 = and(lv_219, true);   % 1
+   lv_221 = vars_curr_to_next(lv_220);   % 1
+   lv_222 = rel_prod(lv_10, lv_81, lv_221);   % 1
+   lv_223 = and(lv_222, lv_115);   % 1
+   lv_224 = and(lv_218, lv_223);   % 1
+   are_equal(lv_224, lv_217);   % 1
+   trace_verbose_print("  Done Computing EG.");
+   lv_225 = not(lv_224);   % 1
+   trace_verbose_print("  Reconstruction 9...");
+   lv_226 = ite(v2, false, true);   % 3
+   lv_227 = ite(v0, lv_226, false);   % 4
+   trace_verbose_print("  Done reconstruction 9.");
+   lv_228 = not(lv_227);   % 4
+   lv_229 = or(lv_228, lv_225);   % 1
+   lv_230 = not(lv_229);   % 1
+   lv_231 = and(lv_230, lv_129);   % 1
+   lv_232 = and(lv_231, lv_115);   % 1
+   are_equal(true, lv_230);   % 0
+   trace_verbose_print("    Compute EU...");
+   are_equal(lv_232, false);   % 1
+   trace_verbose_print("    Done computing EU.");
+   lv_233 = not(lv_232);   % 1
+   lv_234 = not(lv_233);   % 1
+   lv_235 = and(true, lv_234);   % 1
+   lv_236 = and(lv_14, lv_235);   % 1
+   are_equal(false, false);   % 1
+   trace_verbose_print("Checking spec...");
+   lv_237 = not(lv_131);   % 4
+   trace_verbose_print("  Compute EG...");
+   are_equal(lv_237, false);   % 0
+   lv_238 = and(lv_237, true);   % 4
+   lv_239 = and(lv_238, lv_129);   % 11
+   lv_240 = and(lv_239, true);   % 11
+   lv_241 = vars_curr_to_next(lv_240);   % 11
+   lv_242 = rel_prod(lv_10, lv_81, lv_241);   % 10
+   lv_243 = and(lv_242, lv_115);   % 10
+   lv_244 = and(lv_238, lv_243);   % 11
+   are_equal(lv_244, lv_237);   % 0
+   lv_245 = and(lv_244, true);   % 11
+   lv_246 = and(lv_245, lv_129);   % 11
+   lv_247 = and(lv_246, true);   % 11
+   lv_248 = vars_curr_to_next(lv_247);   % 11
+   lv_249 = rel_prod(lv_10, lv_81, lv_248);   % 12
+   lv_250 = and(lv_249, lv_115);   % 9
+   lv_251 = and(lv_245, lv_250);   % 10
+   are_equal(lv_251, lv_244);   % 0
+   lv_252 = and(lv_251, true);   % 10
+   lv_253 = and(lv_252, lv_129);   % 10
+   lv_254 = and(lv_253, true);   % 10
+   lv_255 = vars_curr_to_next(lv_254);   % 10
+   lv_256 = rel_prod(lv_10, lv_81, lv_255);   % 12
+   lv_257 = and(lv_256, lv_115);   % 10
+   lv_258 = and(lv_252, lv_257);   % 6
+   are_equal(lv_258, lv_251);   % 0
+   lv_259 = and(lv_258, true);   % 6
+   lv_260 = and(lv_259, lv_129);   % 6
+   lv_261 = and(lv_260, true);   % 6
+   lv_262 = vars_curr_to_next(lv_261);   % 6
+   lv_263 = rel_prod(lv_10, lv_81, lv_262);   % 7
+   lv_264 = and(lv_263, lv_115);   % 1
+   lv_265 = and(lv_259, lv_264);   % 1
+   are_equal(lv_265, lv_258);   % 0
+   lv_266 = and(lv_265, true);   % 1
+   lv_267 = and(lv_266, lv_129);   % 1
+   lv_268 = and(lv_267, true);   % 1
+   lv_269 = vars_curr_to_next(lv_268);   % 1
+   lv_270 = rel_prod(lv_10, lv_81, lv_269);   % 1
+   lv_271 = and(lv_270, lv_115);   % 1
+   lv_272 = and(lv_266, lv_271);   % 1
+   are_equal(lv_272, lv_265);   % 1
+   trace_verbose_print("  Done Computing EG.");
+   lv_273 = not(lv_272);   % 1
+   trace_verbose_print("  Reconstruction 10...");
+   lv_274 = ite(v4, false, true);   % 3
+   trace_verbose_print("  Done reconstruction 10.");
+   lv_275 = not(lv_274);   % 3
+   lv_276 = or(lv_275, lv_273);   % 1
+   lv_277 = not(lv_276);   % 1
+   lv_278 = and(lv_277, lv_129);   % 1
+   lv_279 = and(lv_278, lv_115);   % 1
+   are_equal(true, lv_277);   % 0
+   trace_verbose_print("    Compute EU...");
+   are_equal(lv_279, false);   % 1
+   trace_verbose_print("    Done computing EU.");
+   lv_280 = not(lv_279);   % 1
+   lv_281 = not(lv_280);   % 1
+   lv_282 = and(true, lv_281);   % 1
+   lv_283 = and(lv_14, lv_282);   % 1
+   are_equal(false, false);   % 1
+ENDMODULE

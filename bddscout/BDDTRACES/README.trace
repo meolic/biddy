@@ -1,0 +1,163 @@
+*************************************************************************
+  Trace file format for BDD Trace Driver
+
+                                        Bwolen Yang
+                                        School of Computer Science
+                                        Carnegie Mellon University 
+                                        bwolen@cs.cmu.edu
+
+					Created:       3/98
+                                        Last Modified: 8/98
+*************************************************************************
+DESCRIPTION
+-----------
+   The BDD trace file used is divided into three sections:
+      input: This section specifies the list of input variables.      
+
+      output: This section specifies the list of output variables.
+             (i.e., variables whose result should be kept.)
+
+      structure: This section specifies all BDD operations.
+
+
+   In of the "structure" section, local variables can be used to store
+   temporary results.  Each local variable can only be assigned to once.
+   A local variable comes to existence at its definition point and is
+   automatically destroyed after its last reference.
+
+
+   The statements in of the "structure" section are BDD operations.
+   A special statement called
+              trace_verbose_print("msg")
+   is supported to output the message "msg" when the BDD trace driver
+   is invoked with the verbose flag (-v).
+
+
+   At the end of each statement, we can optionally add debugging
+   information in the form of
+              % <number>
+   where <number> must be non-negative integers. Negative integers
+   will be simply ignore.  For non-negative integers, there are two
+   interpretations of <number> depending on the type of operation.
+
+      1. For the operation are_equal(), the <number> indicates what the 
+         results of the comparison is expected to be.  If the <number> 
+         is 0, then the result of this comparison must be FALSE (i.e.,
+	 not equal).  If <number> is positive integer, the result must
+	 be TRUE.  If the computed result does not match, then a bug has
+	 been  detected and the "BDD trace driver" terminates.  Note
+	 that if this information is present, the "BDD trace driver"
+	 will always check the result to ensure the correctness of the 
+	 computation so far.
+
+      2. For all other types of BDD operations, the <number> represents
+         the result BDD's graph size.  The result graph size is computed
+	 based on BDD without any edge values; (i.e., no complement
+	 edges, or other graph compressing optimizations.)  This
+	 information will be used to check for correctness only if
+	 the debugging flag (-d) is set to the appropriate levels.
+	 Please see the description of -d flag in the "README" file.
+
+
+
+Grammar
+-------
+
+   <module>: MODULE <module name> <input> <output> <structure>
+
+   <input>:  INPUT [CURR_NEXT_ASSOCIATE_EVEN_ODD_INPUT_VARS] <variable list>
+
+           /* This specifies the list of input variables.
+            * If CURR_NEXT_ASSOCIATE_EVEN_ODD_INPUT_VARS is present,
+            * all even variables are current state variables and
+            * all odd variables are next state variables.
+            */
+            
+   <output>: OUTPUT <variable list>
+
+   <structure>: STRUCTURE <stmts>
+
+   <stmts>: <stmt> 
+        | <stmts> <stmt>
+
+   <stmt>:  trace_verbose_print(<msg>);
+       |  are_equal(<var 1>, <var 2>); <debug info>
+       |  check_point_for_force_reordering(<reorder alg number>)
+       |  <var 1> = <var 2>;
+       |  <var> = <BDD op>(<arg 1>, <arg 2> ...); <debug info>
+       
+   <debug info>: % <integer>
+               |
+      
+   <msg>: <double-quoted string>
+
+   <reorder alg number>: <integer>
+
+Prototype
+---------
+
+  Word-Level Functions:
+    Recursive APPLY operators:
+      <bdd> = apply_equal(<bdd 1>, <bdd 2>);
+      <bdd> = apply_gt(<bdd 1>, <bdd 2>);
+      <bdd> = apply_lt(<bdd 1>, <bdd 2>);
+      <bdd> = plus(<bdd 1>, <bdd 2>);
+      <bdd> = minus(<bdd 1>, <bdd 2>);
+      <bdd> = times(<bdd 1>, <bdd 2>);
+      <bdd> = div(<bdd 1>, <bdd 2>);
+      <bdd> = mod(<bdd 1>, <bdd 2>);
+      <bdd> = union(<bdd 1>, <bdd 2>);
+      <bdd> = in_set(<bdd 1>, <bdd 2>);
+
+    Others
+      <bdd> = ite(<predicate>, <then>, <else>);
+      <bdd> = get_leaf(<table>, <cube>);
+      <var for int range> = integer_range(<var>);
+
+  Bit-Level Functions
+    Combinational circuit functions
+      <bdd> = and(<bdd 1>, <bdd 2>, ...);
+      <bdd> = or(<bdd 1>, <bdd 2>, ...);
+      <bdd> = xor(<bdd 1>, <bdd 2>, ...);
+      <bdd> = nand(<bdd 1>, <bdd 2>, ...);
+      <bdd> = nor(<bdd 1>, <bdd 2>, ...);
+      <bdd> = xnor(<bdd 1>, <bdd 2>, ...);
+      <bdd> = not(<bdd 1>);
+
+    Verification functions
+      are_equal(<bdd 1>, <bdd 2>);  % equality check
+      <bdd> = exists(<quanification set variable>, <function>);
+      <bdd> = forall(<quanification set variable>, <function>);
+      <bdd> = rel_prod(<quanification set variable>,
+                       <function 1>, <function 2>);
+      <bdd> = restrict(<function>, <care set>);
+      <bdd> = vars_curr_to_next(<function>);
+      <bdd> = vars_next_to_curr(<function>);
+      <map id> = register_vars_to_fns_map(<var 1>, <func 1>,
+                                          <var 2>, <func 2>,
+					  ...);
+      free_vars_to_fns_map(<map id>);					  
+      <bdd> = compose(<function>, <map id>);
+
+  Variable Sets
+      <var set> = support_vars(<bdd>)
+      <bdd> = varset_to_bdd(<var set>)
+      <var set> = varset_diff(<var-set 1>, <var-set 2>)
+
+  Miscellaneous
+      <bdd> = new_int_leaf(<integer>);
+      <bdd> = new_floating_leaf(<floating point number>);
+      <bdd> = new_floating_str(<string>);
+      group_vars(<var 1>, <var 2>, ....);
+      check_point_for_force_reordering(<alg number>);
+      trace_verbose_print(<string>);
+      <add> = bdd_convert_to_add(<bdd>);
+      <intger> = graph_size(<bdd>);
+
+
+Acknowledgement
+---------------
+   This package is based on the front end of ACV (arithmetic circuit
+   verifier).  ACV is written by Yirng-An Chen (yachen@cs.cmu.edu) from
+   Carnegie Mellon University. 
+

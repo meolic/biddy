@@ -1,0 +1,120 @@
+#!/bin/bash
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 88 $]
+#  Date        [$Date: 2015-08-21 21:06:26 +0200 (pet, 21 avg 2015) $]
+#
+#  Copyright   [This file is part of Bdd Scout package.
+#               Copyright (C) 2008, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Bdd Scout is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Bdd Scout is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+# use CFLAGS="-m32" to produce 32-bit libs
+# use CFLAGS="-m64" to produce 64-bit libs
+# leave empty for system default
+CFLAGS+=""
+
+NAME="bddscout"
+VERSION=`sed "s|\.|-|g" VERSION`
+OS=`uname | sed "s/_.*//;s/[0-9]//g"`
+
+if [ $OS = "Linux" ] ; then
+  osbiddylibext="./bddscout.so"
+fi
+
+if [ $OS = "SunOS" ] ; then
+  osbiddylibext="./bddscout.so"
+fi
+
+if [ $OS = "Darwin" ] ; then
+  osbiddylibext="-L. -lbddscout"
+fi
+
+if [ $OS = "MINGW" ] ; then
+  osbiddylibext="-L. -lbddscout"
+fi
+
+rm -f "$NAME-bin-$VERSION-$OS.zip"
+rm -f "$NAME-$VERSION-$OS.zip"
+
+rm -fr ./$NAME-$VERSION
+
+echo "*** Building Biddy ..."
+cd ..
+make static "CFLAGS = $CFLAGS" "BINDIR = ./bddscout/$NAME-$VERSION"
+make clean "BINDIR = ./bddscout/$NAME-$VERSION"
+cp biddy.h ./bddscout/$NAME-$VERSION
+cp CHANGES ./bddscout/$NAME-$VERSION/CHANGES_biddy
+echo "*** Biddy OK."
+
+echo "*** Preparing bddview ..."
+cd bddview
+cp bddview.tcl ../bddscout/$NAME-$VERSION
+cp CHANGES ../bddscout/$NAME-$VERSION/CHANGES_bddview
+cp example.bddview ../bddscout/$NAME-$VERSION
+echo "*** bddview OK."
+
+echo "*** Building BDD Scout ..."
+cd ../bddscout
+cp bddscout.h ./$NAME-$VERSION
+cp bddscout.c ./$NAME-$VERSION
+cp bddscoutMain.c ./$NAME-$VERSION
+cp bddscout.tcl ./$NAME-$VERSION
+cp bddscoutDecls.h ./$NAME-$VERSION
+cp bddscoutStubInit.c ./$NAME-$VERSION
+cp bddscoutStubLib.c ./$NAME-$VERSION
+cp pkgIndex.tcl ./$NAME-$VERSION
+cp bddscoutIFIP.c ./$NAME-$VERSION
+cp bddscoutIFIP.tcl ./$NAME-$VERSION
+cp pkgExtensionIFIP.tcl ./$NAME-$VERSION
+cp bddscoutBRA.c ./$NAME-$VERSION
+cp bddscoutBRA.tcl ./$NAME-$VERSION
+cp pkgExtensionBRA.tcl ./$NAME-$VERSION
+cp bddscoutBDDTRACES.c ./$NAME-$VERSION
+cp bddscoutBDDTRACES.tcl ./$NAME-$VERSION
+cp pkgExtensionBDDTRACES.tcl ./$NAME-$VERSION
+cp Makefile ./$NAME-$VERSION
+cp Makefile.$OS ./$NAME-$VERSION
+cp CHANGES ./$NAME-$VERSION/CHANGES_bddscout
+cp example.bf ./$NAME-$VERSION
+cp example.bdd ./$NAME-$VERSION
+
+cd ./$NAME-$VERSION
+make package -f Makefile.$OS "CFLAGS = $CFLAGS" "BIDDYDIR = ." "BIDDYLIB = ." "BIDDYLIBEXT = $osbiddylibext" "BINDIR = ."
+make clean "BINDIR = ."
+rm -f ./biddy.h
+rm -f ./libbiddy.a
+
+cd ..
+cp COPYING ./$NAME-$VERSION
+cp README ./$NAME-$VERSION
+cp README.$OS ./$NAME-$VERSION
+echo "*** BDD Scout OK."
+
+echo "Creating $NAME-$VERSION-$OS.zip ..."
+zip -o "$NAME-$VERSION-$OS.zip" ./$NAME-$VERSION/*
+zip -o "$NAME-$VERSION-$OS.zip" IFIP/* -x .svn
+zip -o "$NAME-$VERSION-$OS.zip" IFIP/*/* -x .svn
+zip -o "$NAME-$VERSION-$OS.zip" BDDTRACES/* -x .svn
+
+rm -fr ./$NAME-$VERSION
+
+echo ""
+echo "*******************"
+echo "PACKAGES COMPLETED!"
+echo "*******************"
+echo ""

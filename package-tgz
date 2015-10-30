@@ -1,0 +1,88 @@
+#!/bin/bash
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 88 $]
+#  Date        [$Date: 2015-08-21 21:06:26 +0200 (pet, 21 avg 2015) $]
+#
+#  Copyright   [This file is part of Biddy.
+#               Copyright (C) 2006, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Biddy is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Biddy is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+VERSION=`sed "" VERSION`
+MAJORVERSION=`cut -c1 VERSION`
+NAME="libbiddy$MAJORVERSION"
+OS=`uname | sed "s/_.*//;s/[0-9]//g"`
+
+mkdir -p "distribution"
+
+if [ -e "distribution/version-$VERSION" ]
+then
+  echo "CANNOT CHANGE AN EXISTING VERSION!"
+  exit 0
+fi
+
+echo ""
+echo "************************"
+echo "CREATING NEW VERSION ..."
+echo "************************"
+echo ""
+
+mkdir "distribution/version-$VERSION"
+mkdir "distribution/version-$VERSION/$NAME-$VERSION"
+
+cp VERSION CHANGES COPYING "distribution/version-$VERSION/$NAME-$VERSION"
+cp README.md "distribution/version-$VERSION/$NAME-$VERSION"
+cp biddy.h biddyInt.h biddyMain.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/$NAME-$VERSION"
+cp Makefile Makefile.Linux "distribution/version-$VERSION/$NAME-$VERSION"
+
+mkdir "distribution/version-$VERSION/$NAME-$VERSION"/debian
+mkdir "distribution/version-$VERSION/$NAME-$VERSION"/debian/source
+cp debian/c* "distribution/version-$VERSION/$NAME-$VERSION"/debian
+cp debian/r* "distribution/version-$VERSION/$NAME-$VERSION"/debian
+cp debian/*.dirs "distribution/version-$VERSION/$NAME-$VERSION"/debian
+cp debian/source/* "distribution/version-$VERSION/$NAME-$VERSION"/debian/source
+
+pushd "distribution/version-$VERSION/$NAME-$VERSION"
+# change distribution name if needed
+dch -M --create --package "$NAME" -v "$VERSION" -D trusty
+cp "debian/changelog" "../changelog.deb"
+popd
+
+mkdir "distribution/version-$VERSION/$NAME-$VERSION"/rpm
+mkdir "distribution/version-$VERSION/$NAME-$VERSION"/rpm/SPECS
+sed -e "s/THISVERSION/$VERSION/g" -e "s/THISRELEASE/0/g" \
+    "rpm/SPECS/biddy.spec" \
+    > "distribution/version-$VERSION/$NAME-$VERSION/rpm/SPECS/biddy.spec"
+
+pushd "distribution/version-$VERSION"
+echo "* `LC_ALL=en_GB date +"%a %b %d %Y"` - meolic" > changelog.rpm
+echo "- Initial release." >> changelog.rpm
+vi changelog.rpm
+popd
+
+pushd "distribution/version-$VERSION"
+tar -czf "$NAME-$VERSION.tar.gz" "$NAME-$VERSION"
+mv "$NAME-$VERSION.tar.gz" "$NAME"_"$VERSION.initial.tar.gz"
+rm -fr "$NAME-$VERSION"
+popd
+
+echo ""
+echo "**********************"
+echo "TGZ PACKAGE COMPLETED!"
+echo "**********************"
+echo ""

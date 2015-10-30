@@ -1,0 +1,31 @@
+-------------------------------------------------------
+bddview is a part of EST 2nd Edition package since v5.0
+bddview is a part of BDD Scout package since v0.90
+bddview is a part of Biddy package since Nov 14, 2014
+-------------------------------------------------------
+
+bddview, version 0.9
+- released on Oct 18, 2007
+
+Changes in 0.95
+- released on May 15, 2008
+- images for toolbar icons are now embedded in tcl file
+- new BDD can be loaded, which replaces the previous one
+- BDD can be saved in bddview format
+- other improvements and bug fixes
+
+Changes in 0.96
+- released on Jun 4, 2008
+- graph info changed (avg depth removed due to ambiguity)
+- graph info shows correct data for node number and depth
+- example.bddview changed
+
+Changes in 0.97
+- released on Jun 18, 2008
+- Print to File (postscript) implemented
+- new toolbar icons
+- fixed, cleaned, commented
+
+Changes in 0.98
+- released on Apr 05, 2013
+- enabled mouse wheel

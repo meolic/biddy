@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 104 $]
+#  Date        [$Date: 2015-10-23 17:13:04 +0200 (pet, 23 okt 2015) $]
+#
+#  Copyright   [This file is part of Biddy.
+#               Copyright (C) 2006, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Biddy is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Biddy is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+VERSION=`sed "s|\.|-|g" VERSION`
+
+rm -f "biddy-source-$VERSION.zip"
+
+cd ..
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/* -x .svn -x .git -x biddy/*.zip -x biddy/bin/ -x biddy/logo/ -x biddy/doxygen/ -x biddy/biddy-studio/ -x biddy/doc/ -x biddy/test/ -x biddy/distribution/ x biddy/distribution-bddscout/
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/* -x bddscout/*.zip -x biddy/bddscout/bin/ 
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/debian/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/debian/*/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/rpm/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/rpm/*/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/IFIP/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/IFIP/*/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/BDDTRACES/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddview/* -x bddview/*.zip
+cd biddy
+
+echo ""
+echo "*******************"
+echo "PACKAGES COMPLETED!"
+echo "*******************"
+echo ""

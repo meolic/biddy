@@ -5,8 +5,8 @@ of Maribor, Slovenia.
 
 Homepage: http://biddy.meolic.com/
 
-AN OVERVIEW
------------
+1. AN OVERVIEW
+--------------
 
 Biddy is free software released under GPL.
 
@@ -14,21 +14,22 @@ Biddy uses ROBDDs with complement  edges as described in "K. S. Brace,
 R.L.   Rudell,  R.  E.   Bryant.  Efficient  Implementation  of a  BDD
 Package. 27. ACM/IEEE DAC, pages 40-45, 1990."
 
-Biddy includes automatic garbage collection by formulae counter and
-sifting algorithm.
+Biddy includes automatic garbage collection with a formulae counter,
+node management with formulae tagging, and variable swapping.
+Sifting algorithm is implemented.
 
 Biddy is optimized for efficiency, but it is  mainly oriented towards
 readable and  comprehensible source  code in C.
 
 Biddy  is  currently  used  in  the following  projects:
-1. BDD Scout, demo project
-2. Efficient Symbolic Tools (EST), http://est.meolic.com/
+- BDD Scout, demo project
+- Efficient Symbolic Tools (EST), http://est.meolic.com/
 
-SOURCE CODE
------------
+2. SOURCE CODE
+--------------
 
-The short name of Biddy package is 'biddy'. This name should be placed
-in front of  all filenames and external identifiers.  It may appear in
+The short name of Biddy package is 'biddy'. This name is placed in front
+of  all filenames and external identifiers.  It may appear in
 all  lowercase,  or with  its  first  letter  capitalized, written  as
 'biddy' and 'Biddy', respectively.
 
@@ -43,10 +44,11 @@ There are two types of C functions.
   etc.). These functions are the same for different type of decision diagrams
   (BDD, ZDD, etc.). Functions, which add or delete nodes or those which needs
   info about variables (e.g. name) are not general functions.
+  Exported general functions have prefix Biddy_.
 - Managed functions, which operates on a global properties of a BDD system
   (e.g. node table, variable table, formula table, various caches, etc.)
   or consider a BDD as a Boolean function (e.g. Boolean operations, counting
-  minterms, etc.). The functions need info stored in a manager.
+  minterms, etc.). These functions need info stored in a manager.
   Exported managed functions have prefix Biddy_Managed_.
 
 Biddy consists of the following files:
@@ -59,7 +61,6 @@ Biddy consists of the following files:
 - Makefile.Linux (Makefile definitions for GNU/Linux)
 - Makefile.MINGW (Makefile definitions for MS Windows)
 - Makefile.Darwin (Makefile definitions for MacOS)
-- biddy.def (symbol definitions for MS Windows)
 - biddy.h (header)
 - biddyInt.h (header)
 - biddyMain.c (main functions)
@@ -71,12 +72,12 @@ Biddy consists of the following files:
 - package-tgz (script used to build distribution)
 - package-deb (script used to build distribution)
 - package-rpm (script used to build distribution)
-- debian/* (file used when creating deb package)
+- debian/* (files used when creating deb package)
 - rpm/* (files used when creating rpm package)
 
 There are  two C headers,  external and internal. The  external header
-file,  named  'biddy.h', defines  features  visible  from outside  the
-package. The internal header file, named 'biddyInt.h' defines features
+file,  named  biddy.h, defines  features  visible  from outside  the
+package. The internal header file, named biddyInt.h defines features
 used in multiple files inside the package, but not outside.
 
 There  are two  aditional packages  included into  Biddy distribution:
@@ -87,8 +88,17 @@ bddview is  a pure Tcl/Tk  script for visualization of  BDDs.
 BDD Scout is a demo  application demonstrating the capability of Biddy
 and bddview.
 
-USING BIDDY LIBRARY
--------------------
+To compile Biddy library, you can use:
+
+~~~
+biddy> make dynamic "BINDIR = ./bin"
+biddy> make clean "BINDIR = ./bin"
+~~~
+
+More details about building are given in Section 4.
+
+3. USING BIDDY LIBRARY
+----------------------
 
 Precompiled packages include dynamically linked library
 (i.e. *.so on GNU/Linux, *.dll on MS Windows, *.dylib on Mac OS X),
@@ -99,9 +109,9 @@ Biddy is capable of all the typical operations regarding
 Boolean functions and BDDs.
 
 The following code is an example of usage.
-Please note, that functions for guiding memory management (i.e. garbage
-collection) are not shown. Moreover, Biddy has a manager but its usage is
-optional and it is also not shown in the given example.
+Please note, that functions for node management are not shown. Moreover,
+Biddy has a manager but its usage is optional and it is also not shown in
+the given example.
 
 IMPORTANT:
 You should define UNIX, MACOSX, or WINDOWS.
@@ -158,17 +168,13 @@ int main() {
 \endcode
 ```
 
-NODE MANAGEMENT WITH BIDDY (FORMULAE TAGGING)
----------------------------------------------
-
-Garbage collection is automatically triggered if nodes from all reserved
-blocks of nodes are used. Garbage collection will remove as many
-obsolete nodes as possible.
+### 3.1 NODE MANAGEMENT WITH FORMULAE TAGGING
 
 Biddy includes powerful node management based on formulae tagging.
 There are seven user functions to maintain nodes.
 
-Biddy_AddFormula(name,bdd,count)
+### Biddy_AddFormula(name,bdd,count)
+
 Nodes of the given BDD will be preserved for the given number of cleanings.
 If (name != NULL) then formula is accessible by its name. If formula with
 a given name already exists it is overwritten. If (count == 0) then
@@ -178,7 +184,8 @@ formulae management. Macro Biddy_AddTmpFormula(bdd,count) is defined as
 Biddy_AddFormula(NULL,bdd,count) and macro Biddy_AddPersistentFormula(name,bdd)
 is defined as Biddy_AddFormula(name,bdd,0).
 
-Biddy_DeleteFormula(name)
+### Biddy_DeleteFormula(name)
+
 Nodes of the given formula are tagged as not needed.
 Formula is not accessible by its name anymore.
 Regular cleaning with Biddy_Clean is not considered this tag.
@@ -186,35 +193,39 @@ Obsolete nodes from preserved formulae can be immediately removed
 in explicite call to Biddy_ClearAll (this is the only way to remove
 obsolete nodes from permanently preserved formulae).
 
-Biddy_Clean()
+### Biddy_Clean()
+
 Performs cleaning.
 Discard all nodes which were not preserved or which are not preserved
 anymore. Obsolete nodes are not immediately removed, they will be removed
 during the first garbage collection. Use Biddy_Purge or Biddy_PurgeAndReorder
 to immediately remove all nodes which are not preserved.
 
-Biddy_Purge()
+### Biddy_Purge()
+
 Immediately remove all nodes which were not preserved or which are not
 preserved anymore. Call to Biddy_Result does not count as cleaning and thus all
 preserved formulae remains preserved for the same number of cleanings. 
 
-Biddy_PurgeAndReorder(bdd)
+### Biddy_PurgeAndReorder(bdd)
+
 The same as Biddy_Purge but also trigger reordering on function
 (if BDD is given) or global reordering (if NULL is given).
 
-Biddy_Refresh(bdd)
+### Biddy_Refresh(bdd)
+
 All obsolete nodes become fresh nodes. This is an external variant of
 internal function BiddyRefresh. It is needed to implement user caches.
 
-Biddy_ClearAll()
+### Biddy_ClearAll()
+
 Immediately remove all nodes except the permanently preserved ones
 which were not made obsolete by Biddy_DeleteFormula.
 Please note, that regularly use of Biddy_Clean will trigger automatic garbage
 collection, thus Biddy_ClearAll is needed only if you need more extensive
 cleaning, e.g. to remove all obsolete nodes after a call to Biddy_DeleteFormula.
 
-EXAMPLES OF NODE MANAGEMENT WITH BIDDY
---------------------------------------
+### 3.2. EXAMPLES OF NODE MANAGEMENT WITH BIDDY
 
 The first example is a straightforward calculation.
 
@@ -428,8 +439,11 @@ Biddy_ClearAll(); /* optional, tmp result are not needed, anymore */
 \endcode
 ```
 
-IMPLEMENTATION DETAILS OF MEMORY MANAGEMENT (FORMULAE COUNTER)
---------------------------------------------------------------
+### 3.3 GARBAGE COLLECTION WITH A FORMULAE COUNTER
+
+Garbage collection is automatically triggered if nodes from all reserved
+blocks of nodes are used. Garbage collection will remove as many
+obsolete nodes as possible.
 
 Biddy does not use reference counter.
 We call the implemented algorithm "GC with a formulae counter".
@@ -461,17 +475,17 @@ All successors of a fresh node are fresh, prolonged, or fortified nodes.
 
 There are four internal functions to maintain nodes.
 
-BiddyFortiy (all nodes become fortified nodes)
-BiddyRefresh (all obsolete nodes become fresh nodes)
-BiddyProlong (all obsolete and fresh nodes become prolonged nodes)
-BiddyIncCounter (all prolonged nodes become fresh nodes, all fresh nodes become obsolete nodes)
+- __BiddyFortiy__ (all nodes become fortified nodes)
+- __BiddyRefresh__ (all obsolete nodes become fresh nodes)
+- __BiddyProlong__ (all obsolete and fresh nodes become prolonged nodes)
+- __BiddyIncCounter__ (all prolonged nodes become fresh nodes, all fresh nodes become obsolete nodes)
 
 There are four functions which can be used by an expert user.
 
-Biddy_Garbage (explicite garbage collection, remove all obsolete nodes)
-Biddy_SwapWithLower (explicite swap of two variables, it removes all obsolete and fresh nodes)
-Biddy_SwapWithHigher (explicite swap of two variables, it removes all obsolete and fresh nodes)
-Biddy_Sifting (explicite sifting, it removes all obsolete and fresh nodes)
+- __Biddy_Garbage__ (explicite garbage collection, remove all obsolete nodes)
+- __Biddy_SwapWithLower__ (explicite swap of two variables, it removes all obsolete and fresh nodes)
+- __Biddy_SwapWithHigher__ (explicite swap of two variables, it removes all obsolete and fresh nodes)
+- __Biddy_Sifting__ (explicite sifting, it removes all obsolete and fresh nodes)
 
 These four functions will keep all nodes preserved by Biddy_AddFormula
 they will not change the class of any node. Please note, that Biddy_Garbage
@@ -479,11 +493,10 @@ can be started in any time whilst Biddy_SwapWithLower, Biddy_SwapWithHigher,
 and Biddy_Sifting will break an ongoing calculation (because they remove
 fresh nodes).
 
-MORE DETAILS OF MEMORY MANAGEMENT (NODE CHAINING)
--------------------------------------------------
+### 3.4 MORE DETAILS OF MEMORY MANAGEMENT (NODE CHAINING)
 
-Biddy relies on a common hash table for all variables but support
-chaining of nodes to form different lists (adding an extra pointer to
+Biddy relies on a single hash table for all variables. However, it supports
+chaining of nodes to form different lists (ather is an extra pointer in
 each node). This facility is used to improve efficiency of garbage
 collection and sifting.
 
@@ -491,8 +504,8 @@ Please node, that node chaining is not determined or limited by
 using formulae tagging or GC with a formulae counter, it is 
 an independent mechanism.
 
-BUILDING PACKAGES
------------------
+4. BUILDING PACKAGES
+--------------------
 
 ### Compiling Biddy library
 
@@ -511,9 +524,6 @@ biddy> make debug "BINDIR = ./bin"
 
 ### Creating Biddy library as a zip package
 
-You install it by extracting libraries to the appropriate directory
-(may be local, e.g. user's home directory).
-
 ~~~
 biddy> ./package-bin
 ~~~
@@ -531,6 +541,9 @@ use of -x! You also   need   file   7zsd_All_x64.sfx  that   you   should
 download  as part of "7z SFX Tools" from http://7zsfx.info/en/ and put
 in the directory containing 7z.exe.
 
+You install the resulting package by extracting libraries to the
+appropriate directory (may be local, e.g. user's home directory).
+
 When using this package on GNU/Linux, you have to tell bash about the library:
 
 ~~~
@@ -539,11 +552,11 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
 
 ### Create create zip file with source code of complete Biddy project
 
-If available, source code of bddview and BDD Scout will be included, too.
-
 ~~~
 biddy> ./package-source
 ~~~
+
+If available, source code of bddview and BDD Scout will be included, too.
 
 ### Creating packages for GNU/Linux
 
@@ -595,8 +608,8 @@ bddscout-bddtrace-data). They are tested on Ubuntu system.
 bddscout-ifip, bddscout-bddtrace, bddscout-ifip-data, and
 bddscout-bddtrace-data). They are tested on openSUSE system.
 
-HISTORY
--------
+5. HISTORY
+----------
 
 Biddy is based on a BDD package written in Pascal in 1992 as a student
 project.  At that time, it was a great work and the paper about it won
@@ -660,8 +673,8 @@ Also in 2015, Biddy  v1.4  was released. Biddy got a manager. Many CUDD-like
 functions have been added. Comment's style changed to support doxygen which
 allows producing HTML and PDF documentation.
 
-PUBLICATIONS
-------------
+6. PUBLICATIONS
+---------------
 
 If you find our work useful, please, cite us.
 

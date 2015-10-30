@@ -1,0 +1,95 @@
+#!/bin/bash
+
+#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Revision    [$Revision: 78 $]
+#  Date        [$Date: 2015-04-20 23:07:29 +0200 (pon, 20 apr 2015) $]
+#
+#  Copyright   [This file is part of Biddy.
+#               Copyright (C) 2006, 2015 UM-FERI
+#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#
+#               Biddy is free software; you can redistribute it and/or modify
+#               it under the terms of the GNU General Public License as
+#               published by the Free Software Foundation; either version 2
+#               of the License, or (at your option) any later version.
+#
+#               Biddy is distributed in the hope that it will be useful,
+#               but WITHOUT ANY WARRANTY; without even the implied warranty of
+#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#               GNU General Public License for more details.
+#
+#               You should have received a copy of the GNU General Public
+#               License along with this program; if not, write to the Free
+#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#               Boston, MA 02110-1301 USA.]
+
+# Some help on building rpm packages:
+# http://www.rpm-based.org/how-to-create-rpm-package
+# http://www.rpm.org/max-rpm/
+# http://kmymoney2.sourceforge.net/phb/rpm-example.html
+# http://dries.ulyssis.org/apt/packages/gnunet/gnunet-spec.html
+
+VERSION=`sed "" VERSION`
+MAJORVERSION=`cut -c1 VERSION`
+NAME="libbiddy$MAJORVERSION"
+OS=`uname | sed "s/_.*//;s/[0-9]//g"`
+
+if [ $# != 1 ]
+then
+  echo "Usage: ./package-rpm RELEASE_NUMBER"
+  exit 0
+else
+  RELEASE=$1
+fi
+
+if [ ! -d "distribution/version-$VERSION" ]
+then
+  echo "CREATE TGZ PACKAGE FIRST!"
+  exit 0
+fi
+
+if [ ! -d "distribution/version-$VERSION/release-$RELEASE" ]
+then
+  echo "CREATE DEBIAN PACKAGE FIRST!"
+  exit 0
+fi
+
+echo ""
+echo "************************"
+echo "CREATING NEW RELEASE ..."
+echo "************************"
+echo ""
+
+mkdir "distribution/version-$VERSION/release-$RELEASE/rpm"
+mkdir "distribution/version-$VERSION/release-$RELEASE/rpm/BUILD"
+mkdir "distribution/version-$VERSION/release-$RELEASE/rpm/RPMS"
+mkdir "distribution/version-$VERSION/release-$RELEASE/rpm/SOURCES"
+mkdir "distribution/version-$VERSION/release-$RELEASE/rpm/SPECS"
+mkdir "distribution/version-$VERSION/release-$RELEASE/rpm/SRPMS"
+
+pushd "distribution/version-$VERSION/release-$RELEASE"
+cp "$NAME"_"$VERSION.orig.tar.gz" "rpm/SOURCES/$NAME-$VERSION.tar.gz"
+sed -e "s/THISVERSION/$VERSION/g" -e "s/THISRELEASE/$RELEASE/g" \
+    "../../../rpm/SPECS/biddy.spec" \
+    > "rpm/SPECS/biddy.spec"
+mv ../changelog.rpm ../changelog.rpm.old
+echo "* `LC_ALL=en_GB date +"%a %b %d %Y"` - meolic" > ../changelog.rpm
+echo "- " >> "../changelog.rpm"
+cat ../changelog.rpm.old >> ../changelog.rpm
+rm ../changelog.rpm.old
+vi "../changelog.rpm"
+cat "../changelog.rpm" >> "rpm/SPECS/biddy.spec"
+cd rpm
+echo "%_topdir	`pwd`" > ~/.rpmmacros
+cd SPECS
+rpmbuild -bb biddy.spec
+cd ../..
+cp rpm/RPMS/*/*.rpm .
+rm -fr rpm
+popd
+
+echo ""
+echo "*******************"
+echo "PACKAGES COMPLETED!"
+echo "*******************"
+echo ""

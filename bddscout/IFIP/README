@@ -1,0 +1,13 @@
+All files inside of IFIP/ have been given into public domain by
+their authors.
+
+These  files have  been used  on IMEC-IFIP  International  Workshop on
+Applied Formal Methods For  Correct VLSI Design in Houthalen, Belgium,
+November 1989. Every file contains a pair of circuits which have to be
+compared. A reader will find more information about these files in the
+following paper:
+
+D. Verkest  and L. Claesen.  "Special benchmark  session on tauthology
+checking".   In  IMEC-IFIP International  Workshop  on Applied  Formal
+Methods  For  Correct  VLSI  Design  (L.   Claesen,  ed.),  Houthalen,
+Belgium, pp. 568-569, November 1989.
