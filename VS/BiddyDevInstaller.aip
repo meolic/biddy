@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DOCUMENT Type="Advanced Installer" CreateVersion="12.6.1" version="12.6.1" Modules="architect" RootPath="." Language="en" Id="{A761ACA8-4A63-45F4-966A-C9B06F2160B7}">
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
+    <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
+    <ROW Property="ALLUSERS" Value="1" MultiBuildValue="DefaultBuild:"/>
+    <ROW Property="ARPCONTACT" Value="robert.meolic@um.si"/>
+    <ROW Property="ARPURLINFOABOUT" Value="biddy.meolic.com"/>
+    <ROW Property="Manufacturer" Value="University of Maribor"/>
+    <ROW Property="ProductCode" Value="1033:{543EED6C-BC43-4A3D-A241-C02F4A692D92} " Type="16"/>
+    <ROW Property="ProductLanguage" Value="1033"/>
+    <ROW Property="ProductName" Value="Biddy"/>
+    <ROW Property="ProductVersion" Value="1.5" Type="32"/>
+    <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
+    <ROW Property="UpgradeCode" Value="{9114E74E-3ADB-4DCA-B313-21788E423B75}"/>
+    <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsType9XDisplay" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT" MultiBuildValue="DefaultBuild:Windows 9x/ME/NT/2000/XP/Vista/Windows 7/Windows 8 x86/Windows 8.1 x86/Windows 10 x86" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT40" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT40Display" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT50" MultiBuildValue="DefaultBuild:Windows 2000" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT50Display" MultiBuildValue="DefaultBuild:Windows 2000" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64" MultiBuildValue="DefaultBuild:Windows XP x64, Windows XP x64 Service Pack 1, Windows XP x64 Service Pack 2, Windows Vista x64, Windows Vista x64 Service Pack 1, Windows Vista x64 Service Pack 2" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64Display" MultiBuildValue="DefaultBuild:Windows XP x64, Windows Vista x64" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNTDisplay" MultiBuildValue="DefaultBuild:32 bit Operating Systems" ValueLocId="-"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
+    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
+    <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
+    <ROW Component="ProductName" ComponentId="{6464F8C5-53FF-4E5F-81FB-CF292E1DE284}" Directory_="APPDIR" Attributes="4" KeyPath="ProductName"/>
+    <ROW Component="biddy" ComponentId="{96F18731-EA29-4BFD-9959-E46948DB0E86}" Directory_="APPDIR" Attributes="0" KeyPath="COPYING" Type="0"/>
+    <ROW Component="biddy.dll" ComponentId="{30023817-D053-42A6-A8BC-129E0CDDAC7D}" Directory_="APPDIR" Attributes="256" KeyPath="biddy.dll"/>
+    <ROW Component="mpir.dll" ComponentId="{04FE92A4-B29C-42F1-8CA7-D4A4D24AE90C}" Directory_="APPDIR" Attributes="256" KeyPath="mpir.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
+    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="ProductName biddy biddy.dll mpir.dll"/>
+    <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
+    <ROW File="CHANGES" Component_="biddy" FileName="CHANGES" Attributes="0" SourcePath="..\CHANGES" SelfReg="false" NextFile="COPYING"/>
+    <ROW File="COPYING" Component_="biddy" FileName="COPYING" Attributes="0" SourcePath="..\COPYING" SelfReg="false" NextFile="mpir.dll"/>
+    <ROW File="biddy.dll" Component_="biddy.dll" FileName="biddy.dll" Attributes="0" SourcePath="x64\biddy.dll" SelfReg="false" NextFile="biddy.h"/>
+    <ROW File="biddy.h" Component_="biddy" FileName="biddy.h" Attributes="0" SourcePath="..\biddy.h" SelfReg="false" NextFile="CHANGES"/>
+    <ROW File="biddydll.lib" Component_="biddy" FileName="biddydll.lib" Attributes="0" SourcePath="x64\biddydll.lib" SelfReg="false"/>
+    <ROW File="mpir.dll" Component_="mpir.dll" FileName="mpir.dll" Attributes="0" SourcePath="..\..\..\..\..\Users\Robert\Documents\mpir-dll-2.7.2\mpir.dll" SelfReg="false" NextFile="mpir.lib"/>
+    <ROW File="mpir.lib" Component_="biddy" FileName="mpir.lib" Attributes="0" SourcePath="..\..\..\..\..\Users\Robert\Documents\mpir-dll-2.7.2\mpir.lib" SelfReg="false" NextFile="biddydll.lib"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="biddy-dev-1-5-Win" Languages="en" InstallationType="4" UseLargeSchema="true" MsiPackageType="x64"/>
+    <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
+    <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
+    <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
+    <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
+    <ROW Fragment="FolderDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\FolderDlg.aip"/>
+    <ROW Fragment="MaintenanceTypeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\MaintenanceTypeDlg.aip"/>
+    <ROW Fragment="MaintenanceWelcomeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\MaintenanceWelcomeDlg.aip"/>
+    <ROW Fragment="SequenceDialogs.aip" Path="&lt;AI_THEMES&gt;classic\fragments\SequenceDialogs.aip"/>
+    <ROW Fragment="Sequences.aip" Path="&lt;AI_FRAGS&gt;Sequences.aip"/>
+    <ROW Fragment="StaticUIStrings.aip" Path="&lt;AI_FRAGS&gt;StaticUIStrings.aip"/>
+    <ROW Fragment="UI.aip" Path="&lt;AI_THEMES&gt;classic\fragments\UI.aip"/>
+    <ROW Fragment="Validation.aip" Path="&lt;AI_FRAGS&gt;Validation.aip"/>
+    <ROW Fragment="VerifyRemoveDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\VerifyRemoveDlg.aip"/>
+    <ROW Fragment="VerifyRepairDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\VerifyRepairDlg.aip"/>
+    <ROW Fragment="WelcomeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\WelcomeDlg.aip"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
+    <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
+    <ROW Dialog_="AdminWelcomeDlg" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="300" MsiKey="AdminWelcomeDlg#Bitmap"/>
+    <ROW Dialog_="AdminWelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="Welcome to the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.AdminWelcomeDlg#Title" MsiKey="AdminWelcomeDlg#Title"/>
+    <ROW Dialog_="AdminWelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="The [Wizard] will create a server image of [ProductName], at a specified network location.  Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.AdminWelcomeDlg#Description" MsiKey="AdminWelcomeDlg#Description"/>
+    <ROW Dialog_="ExitDialog" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="300" MsiKey="ExitDialog#Bitmap"/>
+    <ROW Dialog_="ExitDialog" Control="ViewReadmeCheckBox" Type="CheckBox" X="135" Y="160" Width="10" Height="10" Attributes="2" Property="VIEWREADME" Order="500" MsiKey="ExitDialog#ViewReadmeCheckBox" Options="1"/>
+    <ROW Dialog_="ExitDialog" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="Biddy x64 Edition (development edition)" TextStyle="VerdanaBold13" Order="600" TextLocId="Control.Text.ExitDialog#Title" MsiKey="ExitDialog#Title"/>
+    <ROW Dialog_="ExitDialog" Control="LaunchProdCheckBox" Type="CheckBox" X="135" Y="178" Width="10" Height="10" Attributes="2" Property="RUNAPPLICATION" Order="700" MsiKey="ExitDialog#LaunchProdCheckBox" Options="1"/>
+    <ROW Dialog_="ExitDialog" Control="Description" Type="Text" X="135" Y="86" Width="220" Height="20" Attributes="196611" Text="Click the &quot;Finish&quot; button to exit the [Wizard]." Order="800" TextLocId="Control.Text.ExitDialog#Description" MsiKey="ExitDialog#Description"/>
+    <ROW Dialog_="ExitDialog" Control="BottomLine" Type="Line" X="0" Y="234" Width="372" Height="0" Attributes="1" Order="900" MsiKey="ExitDialog#BottomLine"/>
+    <ROW Dialog_="ExitDialog" Control="Text_2" Type="Text" X="135" Y="54" Width="220" Height="16" Attributes="65539" Property="TEXT_1_PROP_1_2_2" Text="Version [ProductVersion]" TextStyle="VerdanaBold13" Order="1000"/>
+    <ROW Dialog_="ExitDialog" Control="Text_1" Type="Text" X="135" Y="106" Width="220" Height="20" Attributes="65539" Property="TEXT_1_PROP_2" Text="Thanks to Advanced Installer for granting us a free licence for producing this Biddy installer." Order="1100"/>
+    <ROW Dialog_="ExitDialog" Control="Hyperlink_1" Type="Hyperlink" X="135" Y="130" Width="220" Height="12" Attributes="65539" Property="HYPERLINK_1_PROP" Text="&lt;a href=&quot;http://www.advancedinstaller.com/&quot;&gt;http://www.advancedinstaller.com/&lt;/a&gt;" Order="1200"/>
+    <ROW Dialog_="FatalError" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="300" MsiKey="FatalError#Bitmap"/>
+    <ROW Dialog_="FatalError" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="The [ProductName] [Wizard] ended prematurely" TextStyle="VerdanaBold13" Order="800" TextLocId="Control.Text.FatalError#Title" MsiKey="FatalError#Title"/>
+    <ROW Dialog_="FolderDlg" Control="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Attributes="196611" Text="Please, enter EMPTY OR NON-EXISTING target folder." Order="1200" TextLocId="Control.Text.FolderDlg#Description" MsiKey="FolderDlg#Description"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="300" MsiKey="MaintenanceWelcomeDlg#Bitmap"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="Welcome to the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.MaintenanceWelcomeDlg#Title" MsiKey="MaintenanceWelcomeDlg#Title"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="The [Wizard] will allow you to change the way [ProductName] features are installed on your computer or even to remove [ProductName] from your computer.  Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.MaintenanceWelcomeDlg#Description" MsiKey="MaintenanceWelcomeDlg#Description"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="300" MsiKey="PatchWelcomeDlg#Bitmap"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="Welcome to the [ProductName] Patch [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.PatchWelcomeDlg#Title" MsiKey="PatchWelcomeDlg#Title"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="The [Wizard] will install the Patch for [ProductName] on your computer. Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the Patch [Wizard]." Order="600" TextLocId="Control.Text.PatchWelcomeDlg#Description" MsiKey="PatchWelcomeDlg#Description"/>
+    <ROW Dialog_="PrepareDlg" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="200" MsiKey="PrepareDlg#Bitmap"/>
+    <ROW Dialog_="PrepareDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="Biddy x64 Edition (development version)" TextStyle="VerdanaBold13" Order="300" TextLocId="Control.Text.PrepareDlg#Title" MsiKey="PrepareDlg#Title"/>
+    <ROW Dialog_="PrepareDlg" Control="Text_2" Type="Text" X="135" Y="54" Width="220" Height="16" Attributes="65539" Property="TEXT_1_PROP_1_2" Text="Version [ProductVersion]" TextStyle="VerdanaBold13" Order="1000"/>
+    <ROW Dialog_="ProgressDlg" Control="Text" Type="Text" X="35" Y="65" Width="300" Height="30" Attributes="196611" Text="Please wait while the [Wizard] [Progress2] [ProductName]." Order="1000" TextLocId="Control.Text.ProgressDlg#Text" MsiKey="ProgressDlg#Text"/>
+    <ROW Dialog_="ResumeDlg" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="300" MsiKey="ResumeDlg#Bitmap"/>
+    <ROW Dialog_="ResumeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="Resuming the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.ResumeDlg#Title" MsiKey="ResumeDlg#Title"/>
+    <ROW Dialog_="ResumeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="The [Wizard] will complete the installation of [ProductName] on your computer.  Click &quot;Install&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.ResumeDlg#Description" MsiKey="ResumeDlg#Description"/>
+    <ROW Dialog_="UserExit" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="300" MsiKey="UserExit#Bitmap"/>
+    <ROW Dialog_="UserExit" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="The [ProductName] [Wizard] was interrupted" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.UserExit#Title" MsiKey="UserExit#Title"/>
+    <ROW Dialog_="WelcomeDlg" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" Attributes="1048577" Text="[DialogBitmap]" Order="300" MsiKey="WelcomeDlg#Bitmap"/>
+    <ROW Dialog_="WelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="36" Attributes="196611" Text="Biddy x64 Edition (development version)" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.WelcomeDlg#Title" MsiKey="WelcomeDlg#Title"/>
+    <ROW Dialog_="WelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="Biddy is a multi-platform academic Binary Decision Digrams package." Order="600" TextLocId="Control.Text.WelcomeDlg#Description" MsiKey="WelcomeDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_2" Type="Text" X="135" Y="54" Width="220" Height="16" Attributes="65539" Property="TEXT_1_PROP_1_2_1" Text="Version [ProductVersion]" TextStyle="VerdanaBold13" Order="800"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_1" Type="Text" X="135" Y="110" Width="220" Height="10" Attributes="65539" Property="TEXT_2_PROP" Text="This is free software. See GNU GPL (Version 2)." TextStyle="DlgFont8" Order="900"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_4" Type="Text" X="135" Y="132" Width="220" Height="30" Attributes="65539" Property="TEXT_4_PROP" Text="NOTE: No registry entry will be changed and no file will be created outside the target folder. You can uninstall this software by simply deleting the target folder." TextStyle="DlgFont8" Order="1000"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_5" Type="Text" X="135" Y="180" Width="220" Height="10" Attributes="65539" Property="TEXT_5_PROP" Text="Robert Meolic (robert.meolic@um.si)" TextStyle="DlgFont8" Order="1100"/>
+    <ATTRIBUTE name="DeletedRows" value="ExitDialog#LaunchProdText@ExitDialog#ViewReadmeText"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlConditionComponent">
+    <ATTRIBUTE name="DeletedRows" value="ExitDialog#LaunchProdText#Hide#((NOT AI_INSTALL) AND (NOT AI_PATCH)) OR ((CTRLS &lt;&gt; 2) AND (CTRLS &lt;&gt; 3))@ExitDialog#ViewReadmeText#Hide#((NOT AI_INSTALL) AND (NOT AI_PATCH)) OR ((CTRLS &lt;&gt; 1) AND (CTRLS &lt;&gt; 3))"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlEventComponent">
+    <ROW Dialog_="WelcomeDlg" Control_="Next" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="FolderDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_INSTALL" Ordering="201"/>
+    <ROW Dialog_="FolderDlg" Control_="Back" Event="NewDialog" Argument="WelcomeDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control_="Next" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="99"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_MAINT" Ordering="198"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="CustomizeDlg" Condition="AI_MAINT" Ordering="202"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_INSTALL" Ordering="197"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="201"/>
+    <ROW Dialog_="CustomizeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_MAINT" Ordering="101"/>
+    <ROW Dialog_="CustomizeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="1"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="ChangeButton" Event="NewDialog" Argument="CustomizeDlg" Condition="AI_MAINT" Ordering="501"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceWelcomeDlg" Condition="AI_MAINT" Ordering="1"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="RemoveButton" Event="NewDialog" Argument="VerifyRemoveDlg" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="601"/>
+    <ROW Dialog_="VerifyRemoveDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="1"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="RepairButton" Event="NewDialog" Argument="VerifyRepairDlg" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="601"/>
+    <ROW Dialog_="VerifyRepairDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="1"/>
+    <ROW Dialog_="VerifyRepairDlg" Control_="Repair" Event="EndDialog" Argument="Return" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="399" Options="1"/>
+    <ROW Dialog_="VerifyRemoveDlg" Control_="Remove" Event="EndDialog" Argument="Return" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="299" Options="1"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_PATCH" Ordering="201"/>
+    <ROW Dialog_="ResumeDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_RESUME" Ordering="299"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_PATCH" Ordering="199"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="PatchWelcomeDlg" Condition="AI_PATCH" Ordering="203"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
+    <ROW Action="AI_DOWNGRADE" Type="19" Target="4010"/>
+    <ROW Action="AI_DpiContentScale" Type="1" Source="aicustact.dll" Target="DpiContentScale"/>
+    <ROW Action="AI_InstallModeCheck" Type="1" Source="aicustact.dll" Target="UpdateInstallMode" WithoutSeq="true"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
+    <ROW Action="AI_RESTORE_LOCATION" Type="65" Source="aicustact.dll" Target="RestoreLocation"/>
+    <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>
+    <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
+    <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
+    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[WindowsVolume]\Users\[LogonUser]\biddy"/>
+    <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
+    <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
+    <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
+    <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
+    <ROW Action="AI_STORE_LOCATION" Condition="(Not Installed) OR REINSTALL" Sequence="1501"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Condition="AI_UPGRADE=&quot;No&quot; AND (Not Installed)" Sequence="1399"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="51"/>
+    <ATTRIBUTE name="RegisterProduct" value="false"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
+    <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="52"/>
+    <ROW Action="AI_DpiContentScale" Sequence="51"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
+    <ROW Condition="( Version9X OR ( NOT VersionNT64 ) OR ( VersionNT64 AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT64Display]." DescriptionLocId="AI.LaunchCondition.NoSpecificNT64" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="( Version9X OR VersionNT64 )" Description="[ProductName] cannot be installed on [WindowsTypeNTDisplay]." DescriptionLocId="AI.LaunchCondition.NoNT" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(VersionNT &lt;&gt; 400)" Description="[ProductName] cannot be installed on [WindowsTypeNT40Display]." DescriptionLocId="AI.LaunchCondition.NoNT40" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(VersionNT &lt;&gt; 500)" Description="[ProductName] cannot be installed on [WindowsTypeNT50Display]." DescriptionLocId="AI.LaunchCondition.NoNT50" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsType9XDisplay]." DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
+    <ROW Registry="ProductName" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="+" Component_="ProductName"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
+    <ATTRIBUTE name="UsedTheme" value="classic"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiUpgradeComponent">
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="0.0.1" VersionMax="[|ProductVersion]" Attributes="257" ActionProperty="OLDPRODUCTS"/>
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
+  </COMPONENT>
+</DOCUMENT>

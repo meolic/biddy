@@ -112,6 +112,13 @@ OUTPUT
       lv_1785,    lv_1794,    lv_1795,    lv_1827,    lv_1837,
       lv_1840,    lv_1841,    lv_1895,    lv_2578;
 STRUCTURE
+   trace_verbose_print("START OF COMMENT");
+   trace_verbose_print("this is sample-trace from free software called bdd-trace-driver-0.9 (Bwolen Yang)");
+   trace_verbose_print("original file has been obtained from http://www.cs.cmu.edu/~bwolen/software/");
+   trace_verbose_print("original file uses strange ordering of arguments to function exists()");
+   trace_verbose_print("we have changed the role of arguments to function exists() and recalculated the resulting BDDs sizes");
+   trace_verbose_print("robert.meolic@um.si, 2015");
+   trace_verbose_print("END OF COMMENT");
    false = new_int_leaf(0);   % 1
    true = new_int_leaf(1);   % 1
    trace_verbose_print("Registering quantifiers (curr/next vars)");
@@ -1158,408 +1165,408 @@ STRUCTURE
    are_equal(lv_222, false);   % 0
    are_equal(lv_222, true);   % 0
    lv_811 = support_vars(lv_222);   % 40
-   lv_812 = exists(lv_112, lv_811);   % 22
-   lv_813 = exists(lv_56, lv_811);   % 20
+   lv_812 = exists(lv_112, lv_811);   % 40
+   lv_813 = exists(lv_56, lv_811);   % 38
    are_equal(lv_228, false);   % 0
    are_equal(lv_228, true);   % 0
    lv_814 = support_vars(lv_228);   % 8
-   lv_815 = exists(lv_112, lv_814);   % 7
-   lv_816 = exists(lv_56, lv_814);   % 3
+   lv_815 = exists(lv_112, lv_814);   % 57
+   lv_816 = exists(lv_56, lv_814);   % 53
    are_equal(lv_236, false);   % 0
    are_equal(lv_236, true);   % 0
    lv_817 = support_vars(lv_236);   % 8
-   lv_818 = exists(lv_112, lv_817);   % 7
-   lv_819 = exists(lv_56, lv_817);   % 3
+   lv_818 = exists(lv_112, lv_817);   % 57
+   lv_819 = exists(lv_56, lv_817);   % 53
    are_equal(lv_244, false);   % 0
    are_equal(lv_244, true);   % 0
    lv_820 = support_vars(lv_244);   % 8
-   lv_821 = exists(lv_112, lv_820);   % 7
-   lv_822 = exists(lv_56, lv_820);   % 3
+   lv_821 = exists(lv_112, lv_820);   % 57
+   lv_822 = exists(lv_56, lv_820);   % 53
    are_equal(lv_254, false);   % 0
    are_equal(lv_254, true);   % 0
    lv_823 = support_vars(lv_254);   % 8
-   lv_824 = exists(lv_112, lv_823);   % 7
-   lv_825 = exists(lv_56, lv_823);   % 3
+   lv_824 = exists(lv_112, lv_823);   % 57
+   lv_825 = exists(lv_56, lv_823);   % 53
    are_equal(lv_264, false);   % 0
    are_equal(lv_264, true);   % 0
    lv_826 = support_vars(lv_264);   % 8
-   lv_827 = exists(lv_112, lv_826);   % 7
-   lv_828 = exists(lv_56, lv_826);   % 3
+   lv_827 = exists(lv_112, lv_826);   % 57
+   lv_828 = exists(lv_56, lv_826);   % 53
    are_equal(lv_274, false);   % 0
    are_equal(lv_274, true);   % 0
    lv_829 = support_vars(lv_274);   % 8
-   lv_830 = exists(lv_112, lv_829);   % 7
-   lv_831 = exists(lv_56, lv_829);   % 3
+   lv_830 = exists(lv_112, lv_829);   % 57
+   lv_831 = exists(lv_56, lv_829);   % 53
    are_equal(lv_282, false);   % 0
    are_equal(lv_282, true);   % 0
    lv_832 = support_vars(lv_282);   % 8
-   lv_833 = exists(lv_112, lv_832);   % 7
-   lv_834 = exists(lv_56, lv_832);   % 3
+   lv_833 = exists(lv_112, lv_832);   % 57
+   lv_834 = exists(lv_56, lv_832);   % 53
    are_equal(lv_292, false);   % 0
    are_equal(lv_292, true);   % 0
    lv_835 = support_vars(lv_292);   % 8
-   lv_836 = exists(lv_112, lv_835);   % 7
-   lv_837 = exists(lv_56, lv_835);   % 3
+   lv_836 = exists(lv_112, lv_835);   % 57
+   lv_837 = exists(lv_56, lv_835);   % 53
    are_equal(lv_300, false);   % 0
    are_equal(lv_300, true);   % 0
    lv_838 = support_vars(lv_300);   % 8
-   lv_839 = exists(lv_112, lv_838);   % 7
-   lv_840 = exists(lv_56, lv_838);   % 3
+   lv_839 = exists(lv_112, lv_838);   % 57
+   lv_840 = exists(lv_56, lv_838);   % 53
    are_equal(lv_309, false);   % 0
    are_equal(lv_309, true);   % 0
    lv_841 = support_vars(lv_309);   % 8
-   lv_842 = exists(lv_112, lv_841);   % 7
-   lv_843 = exists(lv_56, lv_841);   % 3
+   lv_842 = exists(lv_112, lv_841);   % 57
+   lv_843 = exists(lv_56, lv_841);   % 53
    are_equal(lv_320, false);   % 0
    are_equal(lv_320, true);   % 0
    lv_844 = support_vars(lv_320);   % 8
-   lv_845 = exists(lv_112, lv_844);   % 7
-   lv_846 = exists(lv_56, lv_844);   % 3
+   lv_845 = exists(lv_112, lv_844);   % 57
+   lv_846 = exists(lv_56, lv_844);   % 53
    are_equal(lv_329, false);   % 0
    are_equal(lv_329, true);   % 0
    lv_847 = support_vars(lv_329);   % 8
-   lv_848 = exists(lv_112, lv_847);   % 7
-   lv_849 = exists(lv_56, lv_847);   % 3
+   lv_848 = exists(lv_112, lv_847);   % 57
+   lv_849 = exists(lv_56, lv_847);   % 53
    are_equal(lv_337, false);   % 0
    are_equal(lv_337, true);   % 0
    lv_850 = support_vars(lv_337);   % 8
-   lv_851 = exists(lv_112, lv_850);   % 7
-   lv_852 = exists(lv_56, lv_850);   % 3
+   lv_851 = exists(lv_112, lv_850);   % 57
+   lv_852 = exists(lv_56, lv_850);   % 53
    are_equal(lv_347, false);   % 0
    are_equal(lv_347, true);   % 0
    lv_853 = support_vars(lv_347);   % 8
-   lv_854 = exists(lv_112, lv_853);   % 7
-   lv_855 = exists(lv_56, lv_853);   % 3
+   lv_854 = exists(lv_112, lv_853);   % 57
+   lv_855 = exists(lv_56, lv_853);   % 53
    are_equal(lv_357, false);   % 0
    are_equal(lv_357, true);   % 0
    lv_856 = support_vars(lv_357);   % 8
-   lv_857 = exists(lv_112, lv_856);   % 7
-   lv_858 = exists(lv_56, lv_856);   % 3
+   lv_857 = exists(lv_112, lv_856);   % 57
+   lv_858 = exists(lv_56, lv_856);   % 53
    are_equal(lv_364, false);   % 0
    are_equal(lv_364, true);   % 0
    lv_859 = support_vars(lv_364);   % 7
-   lv_860 = exists(lv_112, lv_859);   % 6
-   lv_861 = exists(lv_56, lv_859);   % 3
+   lv_860 = exists(lv_112, lv_859);   % 57
+   lv_861 = exists(lv_56, lv_859);   % 54
    are_equal(lv_371, false);   % 0
    are_equal(lv_371, true);   % 0
    lv_862 = support_vars(lv_371);   % 7
-   lv_863 = exists(lv_112, lv_862);   % 6
-   lv_864 = exists(lv_56, lv_862);   % 3
+   lv_863 = exists(lv_112, lv_862);   % 57
+   lv_864 = exists(lv_56, lv_862);   % 54
    are_equal(lv_376, false);   % 0
    are_equal(lv_376, true);   % 0
    lv_865 = support_vars(lv_376);   % 7
-   lv_866 = exists(lv_112, lv_865);   % 6
-   lv_867 = exists(lv_56, lv_865);   % 3
+   lv_866 = exists(lv_112, lv_865);   % 57
+   lv_867 = exists(lv_56, lv_865);   % 54
    are_equal(lv_380, false);   % 0
    are_equal(lv_380, true);   % 0
    lv_868 = support_vars(lv_380);   % 6
-   lv_869 = exists(lv_112, lv_868);   % 4
-   lv_870 = exists(lv_56, lv_868);   % 4
+   lv_869 = exists(lv_112, lv_868);   % 56
+   lv_870 = exists(lv_56, lv_868);   % 56
    are_equal(lv_380, false);   % 0
    are_equal(lv_380, true);   % 0
    lv_871 = support_vars(lv_380);   % 6
-   lv_872 = exists(lv_112, lv_871);   % 4
-   lv_873 = exists(lv_56, lv_871);   % 4
+   lv_872 = exists(lv_112, lv_871);   % 56
+   lv_873 = exists(lv_56, lv_871);   % 56
    are_equal(lv_384, false);   % 0
    are_equal(lv_384, true);   % 0
    lv_874 = support_vars(lv_384);   % 6
-   lv_875 = exists(lv_112, lv_874);   % 4
-   lv_876 = exists(lv_56, lv_874);   % 4
+   lv_875 = exists(lv_112, lv_874);   % 56
+   lv_876 = exists(lv_56, lv_874);   % 56
    are_equal(lv_384, false);   % 0
    are_equal(lv_384, true);   % 0
    lv_877 = support_vars(lv_384);   % 6
-   lv_878 = exists(lv_112, lv_877);   % 4
-   lv_879 = exists(lv_56, lv_877);   % 4
+   lv_878 = exists(lv_112, lv_877);   % 56
+   lv_879 = exists(lv_56, lv_877);   % 56
    are_equal(lv_388, false);   % 0
    are_equal(lv_388, true);   % 0
    lv_880 = support_vars(lv_388);   % 6
-   lv_881 = exists(lv_112, lv_880);   % 4
-   lv_882 = exists(lv_56, lv_880);   % 4
+   lv_881 = exists(lv_112, lv_880);   % 56
+   lv_882 = exists(lv_56, lv_880);   % 56
    are_equal(lv_388, false);   % 0
    are_equal(lv_388, true);   % 0
    lv_883 = support_vars(lv_388);   % 6
-   lv_884 = exists(lv_112, lv_883);   % 4
-   lv_885 = exists(lv_56, lv_883);   % 4
+   lv_884 = exists(lv_112, lv_883);   % 56
+   lv_885 = exists(lv_56, lv_883);   % 56
    are_equal(lv_444, false);   % 0
    are_equal(lv_444, true);   % 0
    lv_886 = support_vars(lv_444);   % 40
-   lv_887 = exists(lv_112, lv_886);   % 22
-   lv_888 = exists(lv_56, lv_886);   % 20
+   lv_887 = exists(lv_112, lv_886);   % 40
+   lv_888 = exists(lv_56, lv_886);   % 38
    are_equal(lv_450, false);   % 0
    are_equal(lv_450, true);   % 0
    lv_889 = support_vars(lv_450);   % 8
-   lv_890 = exists(lv_112, lv_889);   % 7
-   lv_891 = exists(lv_56, lv_889);   % 3
+   lv_890 = exists(lv_112, lv_889);   % 57
+   lv_891 = exists(lv_56, lv_889);   % 53
    are_equal(lv_458, false);   % 0
    are_equal(lv_458, true);   % 0
    lv_892 = support_vars(lv_458);   % 8
-   lv_893 = exists(lv_112, lv_892);   % 7
-   lv_894 = exists(lv_56, lv_892);   % 3
+   lv_893 = exists(lv_112, lv_892);   % 57
+   lv_894 = exists(lv_56, lv_892);   % 53
    are_equal(lv_466, false);   % 0
    are_equal(lv_466, true);   % 0
    lv_895 = support_vars(lv_466);   % 8
-   lv_896 = exists(lv_112, lv_895);   % 7
-   lv_897 = exists(lv_56, lv_895);   % 3
+   lv_896 = exists(lv_112, lv_895);   % 57
+   lv_897 = exists(lv_56, lv_895);   % 53
    are_equal(lv_476, false);   % 0
    are_equal(lv_476, true);   % 0
    lv_898 = support_vars(lv_476);   % 8
-   lv_899 = exists(lv_112, lv_898);   % 7
-   lv_900 = exists(lv_56, lv_898);   % 3
+   lv_899 = exists(lv_112, lv_898);   % 57
+   lv_900 = exists(lv_56, lv_898);   % 53
    are_equal(lv_486, false);   % 0
    are_equal(lv_486, true);   % 0
    lv_901 = support_vars(lv_486);   % 8
-   lv_902 = exists(lv_112, lv_901);   % 7
-   lv_903 = exists(lv_56, lv_901);   % 3
+   lv_902 = exists(lv_112, lv_901);   % 57
+   lv_903 = exists(lv_56, lv_901);   % 53
    are_equal(lv_494, false);   % 0
    are_equal(lv_494, true);   % 0
    lv_904 = support_vars(lv_494);   % 8
-   lv_905 = exists(lv_112, lv_904);   % 7
-   lv_906 = exists(lv_56, lv_904);   % 3
+   lv_905 = exists(lv_112, lv_904);   % 57
+   lv_906 = exists(lv_56, lv_904);   % 53
    are_equal(lv_502, false);   % 0
    are_equal(lv_502, true);   % 0
    lv_907 = support_vars(lv_502);   % 8
-   lv_908 = exists(lv_112, lv_907);   % 7
-   lv_909 = exists(lv_56, lv_907);   % 3
+   lv_908 = exists(lv_112, lv_907);   % 57
+   lv_909 = exists(lv_56, lv_907);   % 53
    are_equal(lv_512, false);   % 0
    are_equal(lv_512, true);   % 0
    lv_910 = support_vars(lv_512);   % 8
-   lv_911 = exists(lv_112, lv_910);   % 7
-   lv_912 = exists(lv_56, lv_910);   % 3
+   lv_911 = exists(lv_112, lv_910);   % 57
+   lv_912 = exists(lv_56, lv_910);   % 53
    are_equal(lv_520, false);   % 0
    are_equal(lv_520, true);   % 0
    lv_913 = support_vars(lv_520);   % 8
-   lv_914 = exists(lv_112, lv_913);   % 7
-   lv_915 = exists(lv_56, lv_913);   % 3
+   lv_914 = exists(lv_112, lv_913);   % 57
+   lv_915 = exists(lv_56, lv_913);   % 53
    are_equal(lv_529, false);   % 0
    are_equal(lv_529, true);   % 0
    lv_916 = support_vars(lv_529);   % 8
-   lv_917 = exists(lv_112, lv_916);   % 7
-   lv_918 = exists(lv_56, lv_916);   % 3
+   lv_917 = exists(lv_112, lv_916);   % 57
+   lv_918 = exists(lv_56, lv_916);   % 53
    are_equal(lv_540, false);   % 0
    are_equal(lv_540, true);   % 0
    lv_919 = support_vars(lv_540);   % 8
-   lv_920 = exists(lv_112, lv_919);   % 7
-   lv_921 = exists(lv_56, lv_919);   % 3
+   lv_920 = exists(lv_112, lv_919);   % 57
+   lv_921 = exists(lv_56, lv_919);   % 53
    are_equal(lv_549, false);   % 0
    are_equal(lv_549, true);   % 0
    lv_922 = support_vars(lv_549);   % 8
-   lv_923 = exists(lv_112, lv_922);   % 7
-   lv_924 = exists(lv_56, lv_922);   % 3
+   lv_923 = exists(lv_112, lv_922);   % 57
+   lv_924 = exists(lv_56, lv_922);   % 53
    are_equal(lv_557, false);   % 0
    are_equal(lv_557, true);   % 0
    lv_925 = support_vars(lv_557);   % 8
-   lv_926 = exists(lv_112, lv_925);   % 7
-   lv_927 = exists(lv_56, lv_925);   % 3
+   lv_926 = exists(lv_112, lv_925);   % 57
+   lv_927 = exists(lv_56, lv_925);   % 53
    are_equal(lv_567, false);   % 0
    are_equal(lv_567, true);   % 0
    lv_928 = support_vars(lv_567);   % 8
-   lv_929 = exists(lv_112, lv_928);   % 7
-   lv_930 = exists(lv_56, lv_928);   % 3
+   lv_929 = exists(lv_112, lv_928);   % 57
+   lv_930 = exists(lv_56, lv_928);   % 53
    are_equal(lv_575, false);   % 0
    are_equal(lv_575, true);   % 0
    lv_931 = support_vars(lv_575);   % 8
-   lv_932 = exists(lv_112, lv_931);   % 7
-   lv_933 = exists(lv_56, lv_931);   % 3
+   lv_932 = exists(lv_112, lv_931);   % 57
+   lv_933 = exists(lv_56, lv_931);   % 53
    are_equal(lv_581, false);   % 0
    are_equal(lv_581, true);   % 0
    lv_934 = support_vars(lv_581);   % 7
-   lv_935 = exists(lv_112, lv_934);   % 6
-   lv_936 = exists(lv_56, lv_934);   % 3
+   lv_935 = exists(lv_112, lv_934);   % 57
+   lv_936 = exists(lv_56, lv_934);   % 54
    are_equal(lv_588, false);   % 0
    are_equal(lv_588, true);   % 0
    lv_937 = support_vars(lv_588);   % 7
-   lv_938 = exists(lv_112, lv_937);   % 6
-   lv_939 = exists(lv_56, lv_937);   % 3
+   lv_938 = exists(lv_112, lv_937);   % 57
+   lv_939 = exists(lv_56, lv_937);   % 54
    are_equal(lv_593, false);   % 0
    are_equal(lv_593, true);   % 0
    lv_940 = support_vars(lv_593);   % 7
-   lv_941 = exists(lv_112, lv_940);   % 6
-   lv_942 = exists(lv_56, lv_940);   % 3
+   lv_941 = exists(lv_112, lv_940);   % 57
+   lv_942 = exists(lv_56, lv_940);   % 54
    are_equal(lv_595, false);   % 0
    are_equal(lv_595, true);   % 0
    lv_943 = support_vars(lv_595);   % 6
-   lv_944 = exists(lv_112, lv_943);   % 4
-   lv_945 = exists(lv_56, lv_943);   % 4
+   lv_944 = exists(lv_112, lv_943);   % 56
+   lv_945 = exists(lv_56, lv_943);   % 56
    are_equal(lv_595, false);   % 0
    are_equal(lv_595, true);   % 0
    lv_946 = support_vars(lv_595);   % 6
-   lv_947 = exists(lv_112, lv_946);   % 4
-   lv_948 = exists(lv_56, lv_946);   % 4
+   lv_947 = exists(lv_112, lv_946);   % 56
+   lv_948 = exists(lv_56, lv_946);   % 56
    are_equal(lv_597, false);   % 0
    are_equal(lv_597, true);   % 0
    lv_949 = support_vars(lv_597);   % 6
-   lv_950 = exists(lv_112, lv_949);   % 4
-   lv_951 = exists(lv_56, lv_949);   % 4
+   lv_950 = exists(lv_112, lv_949);   % 56
+   lv_951 = exists(lv_56, lv_949);   % 56
    are_equal(lv_597, false);   % 0
    are_equal(lv_597, true);   % 0
    lv_952 = support_vars(lv_597);   % 6
-   lv_953 = exists(lv_112, lv_952);   % 4
-   lv_954 = exists(lv_56, lv_952);   % 4
+   lv_953 = exists(lv_112, lv_952);   % 56
+   lv_954 = exists(lv_56, lv_952);   % 56
    are_equal(lv_599, false);   % 0
    are_equal(lv_599, true);   % 0
    lv_955 = support_vars(lv_599);   % 6
-   lv_956 = exists(lv_112, lv_955);   % 4
-   lv_957 = exists(lv_56, lv_955);   % 4
+   lv_956 = exists(lv_112, lv_955);   % 56
+   lv_957 = exists(lv_56, lv_955);   % 56
    are_equal(lv_599, false);   % 0
    are_equal(lv_599, true);   % 0
    lv_958 = support_vars(lv_599);   % 6
-   lv_959 = exists(lv_112, lv_958);   % 4
-   lv_960 = exists(lv_56, lv_958);   % 4
+   lv_959 = exists(lv_112, lv_958);   % 56
+   lv_960 = exists(lv_56, lv_958);   % 56
    are_equal(lv_654, false);   % 0
    are_equal(lv_654, true);   % 0
    lv_961 = support_vars(lv_654);   % 40
-   lv_962 = exists(lv_112, lv_961);   % 22
-   lv_963 = exists(lv_56, lv_961);   % 20
+   lv_962 = exists(lv_112, lv_961);   % 40
+   lv_963 = exists(lv_56, lv_961);   % 38
    are_equal(lv_660, false);   % 0
    are_equal(lv_660, true);   % 0
    lv_964 = support_vars(lv_660);   % 8
-   lv_965 = exists(lv_112, lv_964);   % 7
-   lv_966 = exists(lv_56, lv_964);   % 3
+   lv_965 = exists(lv_112, lv_964);   % 57
+   lv_966 = exists(lv_56, lv_964);   % 53
    are_equal(lv_668, false);   % 0
    are_equal(lv_668, true);   % 0
    lv_967 = support_vars(lv_668);   % 8
-   lv_968 = exists(lv_112, lv_967);   % 7
-   lv_969 = exists(lv_56, lv_967);   % 3
+   lv_968 = exists(lv_112, lv_967);   % 57
+   lv_969 = exists(lv_56, lv_967);   % 53
    are_equal(lv_676, false);   % 0
    are_equal(lv_676, true);   % 0
    lv_970 = support_vars(lv_676);   % 8
-   lv_971 = exists(lv_112, lv_970);   % 7
-   lv_972 = exists(lv_56, lv_970);   % 3
+   lv_971 = exists(lv_112, lv_970);   % 57
+   lv_972 = exists(lv_56, lv_970);   % 53
    are_equal(lv_686, false);   % 0
    are_equal(lv_686, true);   % 0
    lv_973 = support_vars(lv_686);   % 8
-   lv_974 = exists(lv_112, lv_973);   % 7
-   lv_975 = exists(lv_56, lv_973);   % 3
+   lv_974 = exists(lv_112, lv_973);   % 57
+   lv_975 = exists(lv_56, lv_973);   % 53
    are_equal(lv_696, false);   % 0
    are_equal(lv_696, true);   % 0
    lv_976 = support_vars(lv_696);   % 8
-   lv_977 = exists(lv_112, lv_976);   % 7
-   lv_978 = exists(lv_56, lv_976);   % 3
+   lv_977 = exists(lv_112, lv_976);   % 57
+   lv_978 = exists(lv_56, lv_976);   % 53
    are_equal(lv_704, false);   % 0
    are_equal(lv_704, true);   % 0
    lv_979 = support_vars(lv_704);   % 8
-   lv_980 = exists(lv_112, lv_979);   % 7
-   lv_981 = exists(lv_56, lv_979);   % 3
+   lv_980 = exists(lv_112, lv_979);   % 57
+   lv_981 = exists(lv_56, lv_979);   % 53
    are_equal(lv_712, false);   % 0
    are_equal(lv_712, true);   % 0
    lv_982 = support_vars(lv_712);   % 8
-   lv_983 = exists(lv_112, lv_982);   % 7
-   lv_984 = exists(lv_56, lv_982);   % 3
+   lv_983 = exists(lv_112, lv_982);   % 57
+   lv_984 = exists(lv_56, lv_982);   % 53
    are_equal(lv_722, false);   % 0
    are_equal(lv_722, true);   % 0
    lv_985 = support_vars(lv_722);   % 8
-   lv_986 = exists(lv_112, lv_985);   % 7
-   lv_987 = exists(lv_56, lv_985);   % 3
+   lv_986 = exists(lv_112, lv_985);   % 57
+   lv_987 = exists(lv_56, lv_985);   % 53
    are_equal(lv_730, false);   % 0
    are_equal(lv_730, true);   % 0
    lv_988 = support_vars(lv_730);   % 8
-   lv_989 = exists(lv_112, lv_988);   % 7
-   lv_990 = exists(lv_56, lv_988);   % 3
+   lv_989 = exists(lv_112, lv_988);   % 57
+   lv_990 = exists(lv_56, lv_988);   % 53
    are_equal(lv_739, false);   % 0
    are_equal(lv_739, true);   % 0
    lv_991 = support_vars(lv_739);   % 8
-   lv_992 = exists(lv_112, lv_991);   % 7
-   lv_993 = exists(lv_56, lv_991);   % 3
+   lv_992 = exists(lv_112, lv_991);   % 57
+   lv_993 = exists(lv_56, lv_991);   % 53
    are_equal(lv_750, false);   % 0
    are_equal(lv_750, true);   % 0
    lv_994 = support_vars(lv_750);   % 8
-   lv_995 = exists(lv_112, lv_994);   % 7
-   lv_996 = exists(lv_56, lv_994);   % 3
+   lv_995 = exists(lv_112, lv_994);   % 57
+   lv_996 = exists(lv_56, lv_994);   % 53
    are_equal(lv_759, false);   % 0
    are_equal(lv_759, true);   % 0
    lv_997 = support_vars(lv_759);   % 8
-   lv_998 = exists(lv_112, lv_997);   % 7
-   lv_999 = exists(lv_56, lv_997);   % 3
+   lv_998 = exists(lv_112, lv_997);   % 57
+   lv_999 = exists(lv_56, lv_997);   % 53
    are_equal(lv_767, false);   % 0
    are_equal(lv_767, true);   % 0
    lv_1000 = support_vars(lv_767);   % 8
-   lv_1001 = exists(lv_112, lv_1000);   % 7
-   lv_1002 = exists(lv_56, lv_1000);   % 3
+   lv_1001 = exists(lv_112, lv_1000);   % 57
+   lv_1002 = exists(lv_56, lv_1000);   % 53
    are_equal(lv_777, false);   % 0
    are_equal(lv_777, true);   % 0
    lv_1003 = support_vars(lv_777);   % 8
-   lv_1004 = exists(lv_112, lv_1003);   % 7
-   lv_1005 = exists(lv_56, lv_1003);   % 3
+   lv_1004 = exists(lv_112, lv_1003);   % 57
+   lv_1005 = exists(lv_56, lv_1003);   % 53
    are_equal(lv_785, false);   % 0
    are_equal(lv_785, true);   % 0
    lv_1006 = support_vars(lv_785);   % 8
-   lv_1007 = exists(lv_112, lv_1006);   % 7
-   lv_1008 = exists(lv_56, lv_1006);   % 3
+   lv_1007 = exists(lv_112, lv_1006);   % 57
+   lv_1008 = exists(lv_56, lv_1006);   % 53
    are_equal(lv_791, false);   % 0
    are_equal(lv_791, true);   % 0
    lv_1009 = support_vars(lv_791);   % 7
-   lv_1010 = exists(lv_112, lv_1009);   % 6
-   lv_1011 = exists(lv_56, lv_1009);   % 3
+   lv_1010 = exists(lv_112, lv_1009);   % 57
+   lv_1011 = exists(lv_56, lv_1009);   % 54
    are_equal(lv_798, false);   % 0
    are_equal(lv_798, true);   % 0
    lv_1012 = support_vars(lv_798);   % 7
-   lv_1013 = exists(lv_112, lv_1012);   % 6
-   lv_1014 = exists(lv_56, lv_1012);   % 3
+   lv_1013 = exists(lv_112, lv_1012);   % 57
+   lv_1014 = exists(lv_56, lv_1012);   % 54
    are_equal(lv_803, false);   % 0
    are_equal(lv_803, true);   % 0
    lv_1015 = support_vars(lv_803);   % 7
-   lv_1016 = exists(lv_112, lv_1015);   % 6
-   lv_1017 = exists(lv_56, lv_1015);   % 3
+   lv_1016 = exists(lv_112, lv_1015);   % 57
+   lv_1017 = exists(lv_56, lv_1015);   % 54
    are_equal(lv_804, false);   % 0
    are_equal(lv_804, true);   % 0
    lv_1018 = support_vars(lv_804);   % 6
-   lv_1019 = exists(lv_112, lv_1018);   % 4
-   lv_1020 = exists(lv_56, lv_1018);   % 4
+   lv_1019 = exists(lv_112, lv_1018);   % 56
+   lv_1020 = exists(lv_56, lv_1018);   % 56
    are_equal(lv_804, false);   % 0
    are_equal(lv_804, true);   % 0
    lv_1021 = support_vars(lv_804);   % 6
-   lv_1022 = exists(lv_112, lv_1021);   % 4
-   lv_1023 = exists(lv_56, lv_1021);   % 4
+   lv_1022 = exists(lv_112, lv_1021);   % 56
+   lv_1023 = exists(lv_56, lv_1021);   % 56
    are_equal(lv_805, false);   % 0
    are_equal(lv_805, true);   % 0
    lv_1024 = support_vars(lv_805);   % 6
-   lv_1025 = exists(lv_112, lv_1024);   % 4
-   lv_1026 = exists(lv_56, lv_1024);   % 4
+   lv_1025 = exists(lv_112, lv_1024);   % 56
+   lv_1026 = exists(lv_56, lv_1024);   % 56
    are_equal(lv_805, false);   % 0
    are_equal(lv_805, true);   % 0
    lv_1027 = support_vars(lv_805);   % 6
-   lv_1028 = exists(lv_112, lv_1027);   % 4
-   lv_1029 = exists(lv_56, lv_1027);   % 4
+   lv_1028 = exists(lv_112, lv_1027);   % 56
+   lv_1029 = exists(lv_56, lv_1027);   % 56
    are_equal(lv_806, false);   % 0
    are_equal(lv_806, true);   % 0
    lv_1030 = support_vars(lv_806);   % 6
-   lv_1031 = exists(lv_112, lv_1030);   % 4
-   lv_1032 = exists(lv_56, lv_1030);   % 4
+   lv_1031 = exists(lv_112, lv_1030);   % 56
+   lv_1032 = exists(lv_56, lv_1030);   % 56
    are_equal(lv_806, false);   % 0
    are_equal(lv_806, true);   % 0
    lv_1033 = support_vars(lv_806);   % 6
-   lv_1034 = exists(lv_112, lv_1033);   % 4
-   lv_1035 = exists(lv_56, lv_1033);   % 4
+   lv_1034 = exists(lv_112, lv_1033);   % 56
+   lv_1035 = exists(lv_56, lv_1033);   % 56
    are_equal(lv_807, false);   % 0
    are_equal(lv_807, true);   % 0
    lv_1036 = support_vars(lv_807);   % 6
-   lv_1037 = exists(lv_112, lv_1036);   % 4
-   lv_1038 = exists(lv_56, lv_1036);   % 4
+   lv_1037 = exists(lv_112, lv_1036);   % 56
+   lv_1038 = exists(lv_56, lv_1036);   % 56
    are_equal(lv_807, false);   % 0
    are_equal(lv_807, true);   % 0
    lv_1039 = support_vars(lv_807);   % 6
-   lv_1040 = exists(lv_112, lv_1039);   % 4
-   lv_1041 = exists(lv_56, lv_1039);   % 4
+   lv_1040 = exists(lv_112, lv_1039);   % 56
+   lv_1041 = exists(lv_56, lv_1039);   % 56
    are_equal(lv_808, false);   % 0
    are_equal(lv_808, true);   % 0
    lv_1042 = support_vars(lv_808);   % 6
-   lv_1043 = exists(lv_112, lv_1042);   % 4
-   lv_1044 = exists(lv_56, lv_1042);   % 4
+   lv_1043 = exists(lv_112, lv_1042);   % 56
+   lv_1044 = exists(lv_56, lv_1042);   % 56
    are_equal(lv_808, false);   % 0
    are_equal(lv_808, true);   % 0
    lv_1045 = support_vars(lv_808);   % 6
-   lv_1046 = exists(lv_112, lv_1045);   % 4
-   lv_1047 = exists(lv_56, lv_1045);   % 4
+   lv_1046 = exists(lv_112, lv_1045);   % 56
+   lv_1047 = exists(lv_56, lv_1045);   % 56
    are_equal(lv_809, false);   % 0
    are_equal(lv_809, true);   % 0
    lv_1048 = support_vars(lv_809);   % 6
-   lv_1049 = exists(lv_112, lv_1048);   % 4
-   lv_1050 = exists(lv_56, lv_1048);   % 4
+   lv_1049 = exists(lv_112, lv_1048);   % 56
+   lv_1050 = exists(lv_56, lv_1048);   % 56
    are_equal(lv_809, false);   % 0
    are_equal(lv_809, true);   % 0
    lv_1051 = support_vars(lv_809);   % 6
-   lv_1052 = exists(lv_112, lv_1051);   % 4
-   lv_1053 = exists(lv_56, lv_1051);   % 4
+   lv_1052 = exists(lv_112, lv_1051);   % 56
+   lv_1053 = exists(lv_56, lv_1051);   % 56
    trace_verbose_print("  Initial merging...");
    lv_1054 = and(lv_380, lv_380);   % 6
    lv_1055 = and(lv_595, lv_380);   % 5
@@ -1569,8 +1576,8 @@ STRUCTURE
    lv_1059 = and(lv_807, lv_380);   % 7
    lv_1060 = and(lv_807, lv_380);   % 7
    lv_1061 = support_vars(lv_1055);   % 5
-   lv_1062 = exists(lv_112, lv_1061);   % 3
-   lv_1063 = exists(lv_56, lv_1061);   % 4
+   lv_1062 = exists(lv_112, lv_1061);   % 56
+   lv_1063 = exists(lv_56, lv_1061);   % 57
    lv_1064 = and(lv_380, lv_1055);   % 5
    lv_1065 = and(lv_595, lv_1055);   % 5
    lv_1066 = and(lv_804, lv_1055);   % 6
@@ -1578,38 +1585,38 @@ STRUCTURE
    lv_1068 = and(lv_807, lv_1055);   % 6
    lv_1069 = and(lv_807, lv_1055);   % 6
    lv_1070 = support_vars(lv_1064);   % 5
-   lv_1071 = exists(lv_112, lv_1070);   % 3
-   lv_1072 = exists(lv_56, lv_1070);   % 4
+   lv_1071 = exists(lv_112, lv_1070);   % 56
+   lv_1072 = exists(lv_56, lv_1070);   % 57
    lv_1073 = and(lv_595, lv_1064);   % 5
    lv_1074 = and(lv_804, lv_1064);   % 6
    lv_1075 = and(lv_804, lv_1064);   % 6
    lv_1076 = and(lv_807, lv_1064);   % 6
    lv_1077 = and(lv_807, lv_1064);   % 6
    lv_1078 = support_vars(lv_1073);   % 5
-   lv_1079 = exists(lv_112, lv_1078);   % 3
-   lv_1080 = exists(lv_56, lv_1078);   % 4
+   lv_1079 = exists(lv_112, lv_1078);   % 56
+   lv_1080 = exists(lv_56, lv_1078);   % 57
    lv_1081 = and(lv_804, lv_1073);   % 6
    lv_1082 = and(lv_804, lv_1073);   % 6
    lv_1083 = and(lv_807, lv_1073);   % 6
    lv_1084 = and(lv_807, lv_1073);   % 6
    lv_1085 = support_vars(lv_1081);   % 6
-   lv_1086 = exists(lv_112, lv_1085);   % 4
-   lv_1087 = exists(lv_56, lv_1085);   % 4
+   lv_1086 = exists(lv_112, lv_1085);   % 56
+   lv_1087 = exists(lv_56, lv_1085);   % 56
    lv_1088 = and(lv_804, lv_1081);   % 6
    lv_1089 = and(lv_807, lv_1081);   % 4
    lv_1090 = and(lv_807, lv_1081);   % 4
    lv_1091 = support_vars(lv_1089);   % 4
-   lv_1092 = exists(lv_112, lv_1091);   % 1
-   lv_1093 = exists(lv_56, lv_1091);   % 4
+   lv_1092 = exists(lv_112, lv_1091);   % 56
+   lv_1093 = exists(lv_56, lv_1091);   % 58
    lv_1094 = and(lv_804, lv_1089);   % 4
    lv_1095 = and(lv_807, lv_1089);   % 4
    lv_1096 = support_vars(lv_1094);   % 4
-   lv_1097 = exists(lv_112, lv_1096);   % 1
-   lv_1098 = exists(lv_56, lv_1096);   % 4
+   lv_1097 = exists(lv_112, lv_1096);   % 56
+   lv_1098 = exists(lv_56, lv_1096);   % 58
    lv_1099 = and(lv_807, lv_1094);   % 4
    lv_1100 = support_vars(lv_1099);   % 4
-   lv_1101 = exists(lv_112, lv_1100);   % 1
-   lv_1102 = exists(lv_56, lv_1100);   % 4
+   lv_1101 = exists(lv_112, lv_1100);   % 56
+   lv_1102 = exists(lv_56, lv_1100);   % 58
    lv_1103 = and(lv_384, lv_384);   % 6
    lv_1104 = and(lv_597, lv_384);   % 5
    lv_1105 = and(lv_597, lv_384);   % 5
@@ -1618,8 +1625,8 @@ STRUCTURE
    lv_1108 = and(lv_808, lv_384);   % 7
    lv_1109 = and(lv_808, lv_384);   % 7
    lv_1110 = support_vars(lv_1104);   % 5
-   lv_1111 = exists(lv_112, lv_1110);   % 3
-   lv_1112 = exists(lv_56, lv_1110);   % 4
+   lv_1111 = exists(lv_112, lv_1110);   % 56
+   lv_1112 = exists(lv_56, lv_1110);   % 57
    lv_1113 = and(lv_384, lv_1104);   % 5
    lv_1114 = and(lv_597, lv_1104);   % 5
    lv_1115 = and(lv_805, lv_1104);   % 6
@@ -1627,38 +1634,38 @@ STRUCTURE
    lv_1117 = and(lv_808, lv_1104);   % 6
    lv_1118 = and(lv_808, lv_1104);   % 6
    lv_1119 = support_vars(lv_1113);   % 5
-   lv_1120 = exists(lv_112, lv_1119);   % 3
-   lv_1121 = exists(lv_56, lv_1119);   % 4
+   lv_1120 = exists(lv_112, lv_1119);   % 56
+   lv_1121 = exists(lv_56, lv_1119);   % 57
    lv_1122 = and(lv_597, lv_1113);   % 5
    lv_1123 = and(lv_805, lv_1113);   % 6
    lv_1124 = and(lv_805, lv_1113);   % 6
    lv_1125 = and(lv_808, lv_1113);   % 6
    lv_1126 = and(lv_808, lv_1113);   % 6
    lv_1127 = support_vars(lv_1122);   % 5
-   lv_1128 = exists(lv_112, lv_1127);   % 3
-   lv_1129 = exists(lv_56, lv_1127);   % 4
+   lv_1128 = exists(lv_112, lv_1127);   % 56
+   lv_1129 = exists(lv_56, lv_1127);   % 57
    lv_1130 = and(lv_805, lv_1122);   % 6
    lv_1131 = and(lv_805, lv_1122);   % 6
    lv_1132 = and(lv_808, lv_1122);   % 6
    lv_1133 = and(lv_808, lv_1122);   % 6
    lv_1134 = support_vars(lv_1130);   % 6
-   lv_1135 = exists(lv_112, lv_1134);   % 4
-   lv_1136 = exists(lv_56, lv_1134);   % 4
+   lv_1135 = exists(lv_112, lv_1134);   % 56
+   lv_1136 = exists(lv_56, lv_1134);   % 56
    lv_1137 = and(lv_805, lv_1130);   % 6
    lv_1138 = and(lv_808, lv_1130);   % 4
    lv_1139 = and(lv_808, lv_1130);   % 4
    lv_1140 = support_vars(lv_1138);   % 4
-   lv_1141 = exists(lv_112, lv_1140);   % 1
-   lv_1142 = exists(lv_56, lv_1140);   % 4
+   lv_1141 = exists(lv_112, lv_1140);   % 56
+   lv_1142 = exists(lv_56, lv_1140);   % 58
    lv_1143 = and(lv_805, lv_1138);   % 4
    lv_1144 = and(lv_808, lv_1138);   % 4
    lv_1145 = support_vars(lv_1143);   % 4
-   lv_1146 = exists(lv_112, lv_1145);   % 1
-   lv_1147 = exists(lv_56, lv_1145);   % 4
+   lv_1146 = exists(lv_112, lv_1145);   % 56
+   lv_1147 = exists(lv_56, lv_1145);   % 58
    lv_1148 = and(lv_808, lv_1143);   % 4
    lv_1149 = support_vars(lv_1148);   % 4
-   lv_1150 = exists(lv_112, lv_1149);   % 1
-   lv_1151 = exists(lv_56, lv_1149);   % 4
+   lv_1150 = exists(lv_112, lv_1149);   % 56
+   lv_1151 = exists(lv_56, lv_1149);   % 58
    lv_1152 = and(lv_388, lv_388);   % 6
    lv_1153 = and(lv_599, lv_388);   % 5
    lv_1154 = and(lv_599, lv_388);   % 5
@@ -1667,8 +1674,8 @@ STRUCTURE
    lv_1157 = and(lv_809, lv_388);   % 7
    lv_1158 = and(lv_809, lv_388);   % 7
    lv_1159 = support_vars(lv_1153);   % 5
-   lv_1160 = exists(lv_112, lv_1159);   % 3
-   lv_1161 = exists(lv_56, lv_1159);   % 4
+   lv_1160 = exists(lv_112, lv_1159);   % 56
+   lv_1161 = exists(lv_56, lv_1159);   % 57
    lv_1162 = and(lv_388, lv_1153);   % 5
    lv_1163 = and(lv_599, lv_1153);   % 5
    lv_1164 = and(lv_806, lv_1153);   % 6
@@ -1676,285 +1683,285 @@ STRUCTURE
    lv_1166 = and(lv_809, lv_1153);   % 6
    lv_1167 = and(lv_809, lv_1153);   % 6
    lv_1168 = support_vars(lv_1162);   % 5
-   lv_1169 = exists(lv_112, lv_1168);   % 3
-   lv_1170 = exists(lv_56, lv_1168);   % 4
+   lv_1169 = exists(lv_112, lv_1168);   % 56
+   lv_1170 = exists(lv_56, lv_1168);   % 57
    lv_1171 = and(lv_599, lv_1162);   % 5
    lv_1172 = and(lv_806, lv_1162);   % 6
    lv_1173 = and(lv_806, lv_1162);   % 6
    lv_1174 = and(lv_809, lv_1162);   % 6
    lv_1175 = and(lv_809, lv_1162);   % 6
    lv_1176 = support_vars(lv_1171);   % 5
-   lv_1177 = exists(lv_112, lv_1176);   % 3
-   lv_1178 = exists(lv_56, lv_1176);   % 4
+   lv_1177 = exists(lv_112, lv_1176);   % 56
+   lv_1178 = exists(lv_56, lv_1176);   % 57
    lv_1179 = and(lv_806, lv_1171);   % 6
    lv_1180 = and(lv_806, lv_1171);   % 6
    lv_1181 = and(lv_809, lv_1171);   % 6
    lv_1182 = and(lv_809, lv_1171);   % 6
    lv_1183 = support_vars(lv_1179);   % 6
-   lv_1184 = exists(lv_112, lv_1183);   % 4
-   lv_1185 = exists(lv_56, lv_1183);   % 4
+   lv_1184 = exists(lv_112, lv_1183);   % 56
+   lv_1185 = exists(lv_56, lv_1183);   % 56
    lv_1186 = and(lv_806, lv_1179);   % 6
    lv_1187 = and(lv_809, lv_1179);   % 4
    lv_1188 = and(lv_809, lv_1179);   % 4
    lv_1189 = support_vars(lv_1187);   % 4
-   lv_1190 = exists(lv_112, lv_1189);   % 1
-   lv_1191 = exists(lv_56, lv_1189);   % 4
+   lv_1190 = exists(lv_112, lv_1189);   % 56
+   lv_1191 = exists(lv_56, lv_1189);   % 58
    lv_1192 = and(lv_806, lv_1187);   % 4
    lv_1193 = and(lv_809, lv_1187);   % 4
    lv_1194 = support_vars(lv_1192);   % 4
-   lv_1195 = exists(lv_112, lv_1194);   % 1
-   lv_1196 = exists(lv_56, lv_1194);   % 4
+   lv_1195 = exists(lv_112, lv_1194);   % 56
+   lv_1196 = exists(lv_56, lv_1194);   % 58
    lv_1197 = and(lv_809, lv_1192);   % 4
    lv_1198 = support_vars(lv_1197);   % 4
-   lv_1199 = exists(lv_112, lv_1198);   % 1
-   lv_1200 = exists(lv_56, lv_1198);   % 4
+   lv_1199 = exists(lv_112, lv_1198);   % 56
+   lv_1200 = exists(lv_56, lv_1198);   % 58
    lv_1201 = and(lv_244, lv_228);   % 17
    lv_1202 = support_vars(lv_1201);   % 10
-   lv_1203 = exists(lv_112, lv_1202);   % 8
-   lv_1204 = exists(lv_56, lv_1202);   % 4
+   lv_1203 = exists(lv_112, lv_1202);   % 56
+   lv_1204 = exists(lv_56, lv_1202);   % 52
    lv_1205 = and(lv_222, lv_1201);   % 69
    lv_1206 = support_vars(lv_1205);   % 40
-   lv_1207 = exists(lv_112, lv_1206);   % 22
-   lv_1208 = exists(lv_56, lv_1206);   % 20
+   lv_1207 = exists(lv_112, lv_1206);   % 40
+   lv_1208 = exists(lv_56, lv_1206);   % 38
    lv_1209 = and(lv_254, lv_236);   % 17
    lv_1210 = support_vars(lv_1209);   % 10
-   lv_1211 = exists(lv_112, lv_1210);   % 8
-   lv_1212 = exists(lv_56, lv_1210);   % 4
+   lv_1211 = exists(lv_112, lv_1210);   % 56
+   lv_1212 = exists(lv_56, lv_1210);   % 52
    lv_1213 = and(lv_309, lv_292);   % 22
    lv_1214 = support_vars(lv_1213);   % 10
-   lv_1215 = exists(lv_112, lv_1214);   % 8
-   lv_1216 = exists(lv_56, lv_1214);   % 4
+   lv_1215 = exists(lv_112, lv_1214);   % 56
+   lv_1216 = exists(lv_56, lv_1214);   % 52
    lv_1217 = and(lv_1205, lv_1213);   % 105
    lv_1218 = support_vars(lv_1217);   % 40
-   lv_1219 = exists(lv_112, lv_1218);   % 22
-   lv_1220 = exists(lv_56, lv_1218);   % 20
+   lv_1219 = exists(lv_112, lv_1218);   % 40
+   lv_1220 = exists(lv_56, lv_1218);   % 38
    lv_1221 = and(lv_347, lv_364);   % 23
    lv_1222 = and(lv_696, lv_364);   % 18
    lv_1223 = support_vars(lv_1222);   % 10
-   lv_1224 = exists(lv_112, lv_1223);   % 8
-   lv_1225 = exists(lv_56, lv_1223);   % 4
+   lv_1224 = exists(lv_112, lv_1223);   % 56
+   lv_1225 = exists(lv_56, lv_1223);   % 52
    lv_1226 = and(lv_654, lv_1222);   % 150
    lv_1227 = support_vars(lv_1226);   % 42
-   lv_1228 = exists(lv_112, lv_1227);   % 23
-   lv_1229 = exists(lv_56, lv_1227);   % 21
+   lv_1228 = exists(lv_112, lv_1227);   % 39
+   lv_1229 = exists(lv_56, lv_1227);   % 37
    lv_1230 = and(lv_357, lv_371);   % 16
    lv_1231 = and(lv_376, lv_371);   % 17
    lv_1232 = support_vars(lv_1230);   % 10
-   lv_1233 = exists(lv_112, lv_1232);   % 8
-   lv_1234 = exists(lv_56, lv_1232);   % 4
+   lv_1233 = exists(lv_112, lv_1232);   % 56
+   lv_1234 = exists(lv_56, lv_1232);   % 52
    lv_1235 = and(lv_1209, lv_376);   % 42
    lv_1236 = and(lv_347, lv_376);   % 22
    lv_1237 = and(lv_1230, lv_376);   % 38
    lv_1238 = support_vars(lv_1236);   % 10
-   lv_1239 = exists(lv_112, lv_1238);   % 8
-   lv_1240 = exists(lv_56, lv_1238);   % 4
+   lv_1239 = exists(lv_112, lv_1238);   % 56
+   lv_1240 = exists(lv_56, lv_1238);   % 52
    lv_1241 = and(lv_466, lv_450);   % 17
    lv_1242 = support_vars(lv_1241);   % 10
-   lv_1243 = exists(lv_112, lv_1242);   % 8
-   lv_1244 = exists(lv_56, lv_1242);   % 4
+   lv_1243 = exists(lv_112, lv_1242);   % 56
+   lv_1244 = exists(lv_56, lv_1242);   % 52
    lv_1245 = and(lv_444, lv_1241);   % 69
    lv_1246 = support_vars(lv_1245);   % 40
-   lv_1247 = exists(lv_112, lv_1246);   % 22
-   lv_1248 = exists(lv_56, lv_1246);   % 20
+   lv_1247 = exists(lv_112, lv_1246);   % 40
+   lv_1248 = exists(lv_56, lv_1246);   % 38
    lv_1249 = and(lv_476, lv_458);   % 17
    lv_1250 = support_vars(lv_1249);   % 10
-   lv_1251 = exists(lv_112, lv_1250);   % 8
-   lv_1252 = exists(lv_56, lv_1250);   % 4
+   lv_1251 = exists(lv_112, lv_1250);   % 56
+   lv_1252 = exists(lv_56, lv_1250);   % 52
    lv_1253 = and(lv_529, lv_512);   % 22
    lv_1254 = support_vars(lv_1253);   % 10
-   lv_1255 = exists(lv_112, lv_1254);   % 8
-   lv_1256 = exists(lv_56, lv_1254);   % 4
+   lv_1255 = exists(lv_112, lv_1254);   % 56
+   lv_1256 = exists(lv_56, lv_1254);   % 52
    lv_1257 = and(lv_1245, lv_1253);   % 105
    lv_1258 = support_vars(lv_1257);   % 40
-   lv_1259 = exists(lv_112, lv_1258);   % 22
-   lv_1260 = exists(lv_56, lv_1258);   % 20
+   lv_1259 = exists(lv_112, lv_1258);   % 40
+   lv_1260 = exists(lv_56, lv_1258);   % 38
    lv_1261 = and(lv_264, lv_581);   % 17
    lv_1262 = and(lv_567, lv_581);   % 16
    lv_1263 = support_vars(lv_1262);   % 10
-   lv_1264 = exists(lv_112, lv_1263);   % 8
-   lv_1265 = exists(lv_56, lv_1263);   % 4
+   lv_1264 = exists(lv_112, lv_1263);   % 56
+   lv_1265 = exists(lv_56, lv_1263);   % 52
    lv_1266 = and(lv_575, lv_588);   % 16
    lv_1267 = and(lv_593, lv_588);   % 17
    lv_1268 = support_vars(lv_1266);   % 10
-   lv_1269 = exists(lv_112, lv_1268);   % 8
-   lv_1270 = exists(lv_56, lv_1268);   % 4
+   lv_1269 = exists(lv_112, lv_1268);   % 56
+   lv_1270 = exists(lv_56, lv_1268);   % 52
    lv_1271 = and(lv_1249, lv_593);   % 42
    lv_1272 = and(lv_1262, lv_593);   % 36
    lv_1273 = and(lv_1266, lv_593);   % 38
    lv_1274 = support_vars(lv_1272);   % 12
-   lv_1275 = exists(lv_112, lv_1274);   % 9
-   lv_1276 = exists(lv_56, lv_1274);   % 5
+   lv_1275 = exists(lv_112, lv_1274);   % 55
+   lv_1276 = exists(lv_56, lv_1274);   % 51
    lv_1277 = and(lv_1257, lv_1272);   % 229
    lv_1278 = support_vars(lv_1277);   % 41
-   lv_1279 = exists(lv_112, lv_1278);   % 23
-   lv_1280 = exists(lv_56, lv_1278);   % 20
+   lv_1279 = exists(lv_112, lv_1278);   % 40
+   lv_1280 = exists(lv_56, lv_1278);   % 37
    lv_1281 = and(lv_676, lv_660);   % 17
    lv_1282 = support_vars(lv_1281);   % 10
-   lv_1283 = exists(lv_112, lv_1282);   % 8
-   lv_1284 = exists(lv_56, lv_1282);   % 4
+   lv_1283 = exists(lv_112, lv_1282);   % 56
+   lv_1284 = exists(lv_56, lv_1282);   % 52
    lv_1285 = and(lv_686, lv_668);   % 17
    lv_1286 = support_vars(lv_1285);   % 10
-   lv_1287 = exists(lv_112, lv_1286);   % 8
-   lv_1288 = exists(lv_56, lv_1286);   % 4
+   lv_1287 = exists(lv_112, lv_1286);   % 56
+   lv_1288 = exists(lv_56, lv_1286);   % 52
    lv_1289 = and(lv_739, lv_722);   % 22
    lv_1290 = support_vars(lv_1289);   % 10
-   lv_1291 = exists(lv_112, lv_1290);   % 8
-   lv_1292 = exists(lv_56, lv_1290);   % 4
+   lv_1291 = exists(lv_112, lv_1290);   % 56
+   lv_1292 = exists(lv_56, lv_1290);   % 52
    lv_1293 = and(lv_1289, lv_730);   % 32
    lv_1294 = support_vars(lv_1293);   % 12
-   lv_1295 = exists(lv_112, lv_1294);   % 9
-   lv_1296 = exists(lv_56, lv_1294);   % 5
+   lv_1295 = exists(lv_112, lv_1294);   % 55
+   lv_1296 = exists(lv_56, lv_1294);   % 51
    lv_1297 = and(lv_486, lv_791);   % 18
    lv_1298 = and(lv_777, lv_791);   % 16
    lv_1299 = support_vars(lv_1298);   % 10
-   lv_1300 = exists(lv_112, lv_1299);   % 8
-   lv_1301 = exists(lv_56, lv_1299);   % 4
+   lv_1300 = exists(lv_112, lv_1299);   % 56
+   lv_1301 = exists(lv_56, lv_1299);   % 52
    lv_1302 = and(lv_785, lv_798);   % 16
    lv_1303 = and(lv_803, lv_798);   % 17
    lv_1304 = support_vars(lv_1302);   % 10
-   lv_1305 = exists(lv_112, lv_1304);   % 8
-   lv_1306 = exists(lv_56, lv_1304);   % 4
+   lv_1305 = exists(lv_112, lv_1304);   % 56
+   lv_1306 = exists(lv_56, lv_1304);   % 52
    lv_1307 = and(lv_1285, lv_803);   % 42
    lv_1308 = and(lv_1298, lv_803);   % 36
    lv_1309 = and(lv_1302, lv_803);   % 38
    lv_1310 = support_vars(lv_1308);   % 12
-   lv_1311 = exists(lv_112, lv_1310);   % 9
-   lv_1312 = exists(lv_56, lv_1310);   % 5
+   lv_1311 = exists(lv_112, lv_1310);   % 55
+   lv_1312 = exists(lv_56, lv_1310);   % 51
    lv_1313 = and(lv_1209, lv_264);   % 33
    lv_1314 = and(lv_282, lv_264);   % 29
    lv_1315 = and(lv_300, lv_264);   % 17
    lv_1316 = support_vars(lv_1315);   % 11
-   lv_1317 = exists(lv_112, lv_1316);   % 9
-   lv_1318 = exists(lv_56, lv_1316);   % 4
+   lv_1317 = exists(lv_112, lv_1316);   % 56
+   lv_1318 = exists(lv_56, lv_1316);   % 51
    lv_1319 = and(lv_282, lv_274);   % 26
    lv_1320 = and(lv_1266, lv_274);   % 22
    lv_1321 = support_vars(lv_1320);   % 13
-   lv_1322 = exists(lv_112, lv_1321);   % 10
-   lv_1323 = exists(lv_56, lv_1321);   % 5
+   lv_1322 = exists(lv_112, lv_1321);   % 55
+   lv_1323 = exists(lv_56, lv_1321);   % 50
    lv_1324 = and(lv_1209, lv_282);   % 38
    lv_1325 = and(lv_1315, lv_282);   % 34
    lv_1326 = and(lv_1320, lv_282);   % 36
    lv_1327 = support_vars(lv_1325);   % 14
-   lv_1328 = exists(lv_112, lv_1327);   % 11
-   lv_1329 = exists(lv_56, lv_1327);   % 5
+   lv_1328 = exists(lv_112, lv_1327);   % 55
+   lv_1329 = exists(lv_56, lv_1327);   % 49
    lv_1330 = and(lv_1217, lv_1325);   % 229
    lv_1331 = support_vars(lv_1330);   % 40
-   lv_1332 = exists(lv_112, lv_1331);   % 22
-   lv_1333 = exists(lv_56, lv_1331);   % 20
+   lv_1332 = exists(lv_112, lv_1331);   % 40
+   lv_1333 = exists(lv_56, lv_1331);   % 38
    lv_1334 = and(lv_329, lv_320);   % 35
    lv_1335 = and(lv_337, lv_320);   % 21
    lv_1336 = and(lv_1236, lv_320);   % 46
    lv_1337 = support_vars(lv_1335);   % 11
-   lv_1338 = exists(lv_112, lv_1337);   % 9
-   lv_1339 = exists(lv_56, lv_1337);   % 4
+   lv_1338 = exists(lv_112, lv_1337);   % 56
+   lv_1339 = exists(lv_56, lv_1337);   % 51
    lv_1340 = and(lv_1209, lv_329);   % 25
    lv_1341 = and(lv_1335, lv_329);   % 43
    lv_1342 = and(lv_1230, lv_329);   % 32
    lv_1343 = support_vars(lv_1340);   % 13
-   lv_1344 = exists(lv_112, lv_1343);   % 10
-   lv_1345 = exists(lv_56, lv_1343);   % 5
+   lv_1344 = exists(lv_112, lv_1343);   % 55
+   lv_1345 = exists(lv_56, lv_1343);   % 50
    lv_1346 = and(lv_1302, lv_1099);   % 22
    lv_1347 = support_vars(lv_1346);   % 11
-   lv_1348 = exists(lv_112, lv_1347);   % 8
-   lv_1349 = exists(lv_56, lv_1347);   % 5
+   lv_1348 = exists(lv_112, lv_1347);   % 55
+   lv_1349 = exists(lv_56, lv_1347);   % 52
    lv_1350 = and(lv_1230, lv_1197);   % 22
    lv_1351 = support_vars(lv_1350);   % 11
-   lv_1352 = exists(lv_112, lv_1351);   % 8
-   lv_1353 = exists(lv_56, lv_1351);   % 5
+   lv_1352 = exists(lv_112, lv_1351);   % 55
+   lv_1353 = exists(lv_56, lv_1351);   % 52
    lv_1354 = and(lv_1249, lv_486);   % 33
    lv_1355 = and(lv_502, lv_486);   % 29
    lv_1356 = and(lv_520, lv_486);   % 17
    lv_1357 = and(lv_1308, lv_486);   % 45
    lv_1358 = support_vars(lv_1356);   % 11
-   lv_1359 = exists(lv_112, lv_1358);   % 9
-   lv_1360 = exists(lv_56, lv_1358);   % 4
+   lv_1359 = exists(lv_112, lv_1358);   % 56
+   lv_1360 = exists(lv_56, lv_1358);   % 51
    lv_1361 = and(lv_1346, lv_494);   % 33
    lv_1362 = and(lv_502, lv_494);   % 26
    lv_1363 = and(lv_1281, lv_494);   % 26
    lv_1364 = support_vars(lv_1362);   % 11
-   lv_1365 = exists(lv_112, lv_1364);   % 9
-   lv_1366 = exists(lv_56, lv_1364);   % 4
+   lv_1365 = exists(lv_112, lv_1364);   % 56
+   lv_1366 = exists(lv_56, lv_1364);   % 51
    lv_1367 = and(lv_549, lv_540);   % 35
    lv_1368 = and(lv_557, lv_540);   % 21
    lv_1369 = support_vars(lv_1368);   % 11
-   lv_1370 = exists(lv_112, lv_1369);   % 9
-   lv_1371 = exists(lv_56, lv_1369);   % 4
+   lv_1370 = exists(lv_112, lv_1369);   % 56
+   lv_1371 = exists(lv_56, lv_1369);   % 51
    lv_1372 = and(lv_1320, lv_549);   % 38
    lv_1373 = and(lv_1249, lv_549);   % 25
    lv_1374 = and(lv_1368, lv_549);   % 43
    lv_1375 = support_vars(lv_1373);   % 13
-   lv_1376 = exists(lv_112, lv_1375);   % 10
-   lv_1377 = exists(lv_56, lv_1375);   % 5
+   lv_1376 = exists(lv_112, lv_1375);   % 55
+   lv_1377 = exists(lv_56, lv_1375);   % 50
    lv_1378 = and(lv_1285, lv_1281);   % 43
    lv_1379 = support_vars(lv_1378);   % 14
-   lv_1380 = exists(lv_112, lv_1379);   % 10
-   lv_1381 = exists(lv_56, lv_1379);   % 6
+   lv_1380 = exists(lv_112, lv_1379);   % 54
+   lv_1381 = exists(lv_56, lv_1379);   % 50
    lv_1382 = and(lv_1226, lv_1378);   % 211
    lv_1383 = support_vars(lv_1382);   % 42
-   lv_1384 = exists(lv_112, lv_1383);   % 23
-   lv_1385 = exists(lv_56, lv_1383);   % 21
+   lv_1384 = exists(lv_112, lv_1383);   % 39
+   lv_1385 = exists(lv_56, lv_1383);   % 37
    lv_1386 = and(lv_1350, lv_704);   % 31
    lv_1387 = and(lv_712, lv_704);   % 28
    lv_1388 = and(lv_1293, lv_704);   % 68
    lv_1389 = support_vars(lv_1387);   % 11
-   lv_1390 = exists(lv_112, lv_1389);   % 9
-   lv_1391 = exists(lv_56, lv_1389);   % 4
+   lv_1390 = exists(lv_112, lv_1389);   % 56
+   lv_1391 = exists(lv_56, lv_1389);   % 51
    lv_1392 = and(lv_1293, lv_750);   % 86
    lv_1393 = and(lv_759, lv_750);   % 35
    lv_1394 = and(lv_767, lv_750);   % 21
    lv_1395 = and(lv_1308, lv_750);   % 60
    lv_1396 = support_vars(lv_1394);   % 11
-   lv_1397 = exists(lv_112, lv_1396);   % 9
-   lv_1398 = exists(lv_56, lv_1396);   % 4
+   lv_1397 = exists(lv_112, lv_1396);   % 56
+   lv_1398 = exists(lv_56, lv_1396);   % 51
    lv_1399 = and(lv_1346, lv_759);   % 38
    lv_1400 = and(lv_1293, lv_759);   % 86
    lv_1401 = and(lv_1394, lv_759);   % 43
    lv_1402 = support_vars(lv_1399);   % 14
-   lv_1403 = exists(lv_112, lv_1402);   % 10
-   lv_1404 = exists(lv_56, lv_1402);   % 6
+   lv_1403 = exists(lv_112, lv_1402);   % 54
+   lv_1404 = exists(lv_56, lv_1402);   % 50
    trace_verbose_print("  Done initializing partitions...");
    trace_verbose_print("  Ordering/Clustering for Image computationd...");
    trace_verbose_print("    Ordering partitions...");
-   lv_1405 = and(true, lv_1323);   % 5
-   lv_1406 = and(lv_1405, lv_1333);   % 22
-   lv_1407 = and(lv_1406, lv_1339);   % 22
-   lv_1408 = and(lv_1407, lv_1345);   % 22
-   lv_1409 = and(lv_1408, lv_1240);   % 22
-   lv_1410 = and(lv_1409, lv_1151);   % 23
-   lv_1411 = and(lv_1410, lv_1353);   % 23
-   lv_1412 = and(lv_1411, lv_1360);   % 25
-   lv_1413 = and(lv_1412, lv_1366);   % 27
-   lv_1414 = and(lv_1413, lv_1371);   % 29
-   lv_1415 = and(lv_1414, lv_1377);   % 32
-   lv_1416 = and(lv_1415, lv_1280);   % 38
-   lv_1417 = and(lv_1416, lv_1385);   % 56
-   lv_1418 = and(lv_1417, lv_1391);   % 56
-   lv_1419 = and(lv_1418, lv_1296);   % 56
-   lv_1420 = and(lv_1419, lv_1398);   % 56
-   lv_1421 = and(lv_1420, lv_1404);   % 56
-   lv_1422 = and(lv_1421, lv_1312);   % 56
+   lv_1405 = and(true, lv_1323);   % 50
+   lv_1406 = and(lv_1405, lv_1333);   % 54
+   lv_1407 = and(lv_1406, lv_1339);   % 56
+   lv_1408 = and(lv_1407, lv_1345);   % 56
+   lv_1409 = and(lv_1408, lv_1240);   % 56
+   lv_1410 = and(lv_1409, lv_1151);   % 58
+   lv_1411 = and(lv_1410, lv_1353);   % 58
+   lv_1412 = and(lv_1411, lv_1360);   % 58
+   lv_1413 = and(lv_1412, lv_1366);   % 58
+   lv_1414 = and(lv_1413, lv_1371);   % 58
+   lv_1415 = and(lv_1414, lv_1377);   % 58
+   lv_1416 = and(lv_1415, lv_1280);   % 58
+   lv_1417 = and(lv_1416, lv_1385);   % 58
+   lv_1418 = and(lv_1417, lv_1391);   % 58
+   lv_1419 = and(lv_1418, lv_1296);   % 58
+   lv_1420 = and(lv_1419, lv_1398);   % 58
+   lv_1421 = and(lv_1420, lv_1404);   % 58
+   lv_1422 = and(lv_1421, lv_1312);   % 58
    lv_1423 = and(v20, true);   % 3
    lv_1424 = and(v22, lv_1423);   % 4
    lv_1425 = and(v44, true);   % 3
    lv_1426 = and(v102, true);   % 3
    lv_1427 = and(v104, lv_1426);   % 4
-   lv_1428 = and(true, lv_1323);   % 5
-   lv_1429 = and(lv_1428, lv_1333);   % 22
-   lv_1430 = and(lv_1429, lv_1312);   % 25
-   lv_1431 = and(lv_1430, lv_1345);   % 25
-   lv_1432 = and(lv_1431, lv_1240);   % 25
-   lv_1433 = and(lv_1432, lv_1151);   % 26
-   lv_1434 = and(lv_1433, lv_1353);   % 26
-   lv_1435 = and(lv_1434, lv_1360);   % 28
-   lv_1436 = and(lv_1435, lv_1366);   % 30
-   lv_1437 = and(lv_1436, lv_1371);   % 32
-   lv_1438 = and(lv_1437, lv_1377);   % 35
-   lv_1439 = and(lv_1438, lv_1280);   % 41
-   lv_1440 = and(lv_1439, lv_1385);   % 56
-   lv_1441 = and(lv_1440, lv_1391);   % 56
-   lv_1442 = and(lv_1441, lv_1296);   % 56
-   lv_1443 = and(lv_1442, lv_1398);   % 56
-   lv_1444 = and(lv_1443, lv_1404);   % 56
+   lv_1428 = and(true, lv_1323);   % 50
+   lv_1429 = and(lv_1428, lv_1333);   % 54
+   lv_1430 = and(lv_1429, lv_1312);   % 56
+   lv_1431 = and(lv_1430, lv_1345);   % 56
+   lv_1432 = and(lv_1431, lv_1240);   % 56
+   lv_1433 = and(lv_1432, lv_1151);   % 58
+   lv_1434 = and(lv_1433, lv_1353);   % 58
+   lv_1435 = and(lv_1434, lv_1360);   % 58
+   lv_1436 = and(lv_1435, lv_1366);   % 58
+   lv_1437 = and(lv_1436, lv_1371);   % 58
+   lv_1438 = and(lv_1437, lv_1377);   % 58
+   lv_1439 = and(lv_1438, lv_1280);   % 58
+   lv_1440 = and(lv_1439, lv_1385);   % 58
+   lv_1441 = and(lv_1440, lv_1391);   % 58
+   lv_1442 = and(lv_1441, lv_1296);   % 58
+   lv_1443 = and(lv_1442, lv_1398);   % 58
+   lv_1444 = and(lv_1443, lv_1404);   % 58
    lv_1445 = and(v14, true);   % 3
    lv_1446 = and(v18, lv_1445);   % 4
    lv_1447 = and(v20, lv_1446);   % 5
@@ -1962,22 +1969,22 @@ STRUCTURE
    lv_1449 = and(v44, true);   % 3
    lv_1450 = and(v102, true);   % 3
    lv_1451 = and(v104, lv_1450);   % 4
-   lv_1452 = and(true, lv_1323);   % 5
-   lv_1453 = and(lv_1452, lv_1333);   % 22
-   lv_1454 = and(lv_1453, lv_1312);   % 25
-   lv_1455 = and(lv_1454, lv_1345);   % 25
-   lv_1456 = and(lv_1455, lv_1240);   % 25
-   lv_1457 = and(lv_1456, lv_1151);   % 26
-   lv_1458 = and(lv_1457, lv_1353);   % 26
-   lv_1459 = and(lv_1458, lv_1404);   % 29
-   lv_1460 = and(lv_1459, lv_1366);   % 31
-   lv_1461 = and(lv_1460, lv_1371);   % 33
-   lv_1462 = and(lv_1461, lv_1377);   % 36
-   lv_1463 = and(lv_1462, lv_1280);   % 44
-   lv_1464 = and(lv_1463, lv_1385);   % 56
-   lv_1465 = and(lv_1464, lv_1391);   % 56
-   lv_1466 = and(lv_1465, lv_1296);   % 56
-   lv_1467 = and(lv_1466, lv_1398);   % 56
+   lv_1452 = and(true, lv_1323);   % 50
+   lv_1453 = and(lv_1452, lv_1333);   % 54
+   lv_1454 = and(lv_1453, lv_1312);   % 56
+   lv_1455 = and(lv_1454, lv_1345);   % 56
+   lv_1456 = and(lv_1455, lv_1240);   % 56
+   lv_1457 = and(lv_1456, lv_1151);   % 58
+   lv_1458 = and(lv_1457, lv_1353);   % 58
+   lv_1459 = and(lv_1458, lv_1404);   % 58
+   lv_1460 = and(lv_1459, lv_1366);   % 58
+   lv_1461 = and(lv_1460, lv_1371);   % 58
+   lv_1462 = and(lv_1461, lv_1377);   % 58
+   lv_1463 = and(lv_1462, lv_1280);   % 58
+   lv_1464 = and(lv_1463, lv_1385);   % 58
+   lv_1465 = and(lv_1464, lv_1391);   % 58
+   lv_1466 = and(lv_1465, lv_1296);   % 58
+   lv_1467 = and(lv_1466, lv_1398);   % 58
    lv_1468 = and(v14, true);   % 3
    lv_1469 = and(v18, lv_1468);   % 4
    lv_1470 = and(v20, lv_1469);   % 5
@@ -1986,21 +1993,21 @@ STRUCTURE
    lv_1473 = and(v56, lv_1472);   % 4
    lv_1474 = and(v102, true);   % 3
    lv_1475 = and(v104, lv_1474);   % 4
-   lv_1476 = and(true, lv_1323);   % 5
-   lv_1477 = and(lv_1476, lv_1333);   % 22
-   lv_1478 = and(lv_1477, lv_1312);   % 25
-   lv_1479 = and(lv_1478, lv_1345);   % 25
-   lv_1480 = and(lv_1479, lv_1398);   % 27
-   lv_1481 = and(lv_1480, lv_1151);   % 28
-   lv_1482 = and(lv_1481, lv_1353);   % 28
-   lv_1483 = and(lv_1482, lv_1404);   % 31
-   lv_1484 = and(lv_1483, lv_1366);   % 33
-   lv_1485 = and(lv_1484, lv_1371);   % 35
-   lv_1486 = and(lv_1485, lv_1377);   % 38
-   lv_1487 = and(lv_1486, lv_1280);   % 46
-   lv_1488 = and(lv_1487, lv_1385);   % 56
-   lv_1489 = and(lv_1488, lv_1391);   % 56
-   lv_1490 = and(lv_1489, lv_1296);   % 56
+   lv_1476 = and(true, lv_1323);   % 50
+   lv_1477 = and(lv_1476, lv_1333);   % 54
+   lv_1478 = and(lv_1477, lv_1312);   % 56
+   lv_1479 = and(lv_1478, lv_1345);   % 56
+   lv_1480 = and(lv_1479, lv_1398);   % 56
+   lv_1481 = and(lv_1480, lv_1151);   % 58
+   lv_1482 = and(lv_1481, lv_1353);   % 58
+   lv_1483 = and(lv_1482, lv_1404);   % 58
+   lv_1484 = and(lv_1483, lv_1366);   % 58
+   lv_1485 = and(lv_1484, lv_1371);   % 58
+   lv_1486 = and(lv_1485, lv_1377);   % 58
+   lv_1487 = and(lv_1486, lv_1280);   % 58
+   lv_1488 = and(lv_1487, lv_1385);   % 58
+   lv_1489 = and(lv_1488, lv_1391);   % 58
+   lv_1490 = and(lv_1489, lv_1296);   % 58
    lv_1491 = and(v12, true);   % 3
    lv_1492 = and(v14, lv_1491);   % 4
    lv_1493 = and(v18, lv_1492);   % 5
@@ -2010,20 +2017,20 @@ STRUCTURE
    lv_1497 = and(v56, lv_1496);   % 4
    lv_1498 = and(v102, true);   % 3
    lv_1499 = and(v104, lv_1498);   % 4
-   lv_1500 = and(true, lv_1323);   % 5
-   lv_1501 = and(lv_1500, lv_1333);   % 22
-   lv_1502 = and(lv_1501, lv_1312);   % 25
-   lv_1503 = and(lv_1502, lv_1345);   % 25
-   lv_1504 = and(lv_1503, lv_1398);   % 27
-   lv_1505 = and(lv_1504, lv_1151);   % 28
-   lv_1506 = and(lv_1505, lv_1353);   % 28
-   lv_1507 = and(lv_1506, lv_1404);   % 31
-   lv_1508 = and(lv_1507, lv_1366);   % 33
-   lv_1509 = and(lv_1508, lv_1296);   % 36
-   lv_1510 = and(lv_1509, lv_1377);   % 39
-   lv_1511 = and(lv_1510, lv_1280);   % 49
-   lv_1512 = and(lv_1511, lv_1385);   % 56
-   lv_1513 = and(lv_1512, lv_1391);   % 56
+   lv_1500 = and(true, lv_1323);   % 50
+   lv_1501 = and(lv_1500, lv_1333);   % 54
+   lv_1502 = and(lv_1501, lv_1312);   % 56
+   lv_1503 = and(lv_1502, lv_1345);   % 56
+   lv_1504 = and(lv_1503, lv_1398);   % 56
+   lv_1505 = and(lv_1504, lv_1151);   % 58
+   lv_1506 = and(lv_1505, lv_1353);   % 58
+   lv_1507 = and(lv_1506, lv_1404);   % 58
+   lv_1508 = and(lv_1507, lv_1366);   % 58
+   lv_1509 = and(lv_1508, lv_1296);   % 58
+   lv_1510 = and(lv_1509, lv_1377);   % 58
+   lv_1511 = and(lv_1510, lv_1280);   % 58
+   lv_1512 = and(lv_1511, lv_1385);   % 58
+   lv_1513 = and(lv_1512, lv_1391);   % 58
    lv_1514 = and(v12, true);   % 3
    lv_1515 = and(v14, lv_1514);   % 4
    lv_1516 = and(v18, lv_1515);   % 5
@@ -2036,19 +2043,19 @@ STRUCTURE
    lv_1523 = and(v56, lv_1522);   % 7
    lv_1524 = and(v102, true);   % 3
    lv_1525 = and(v104, lv_1524);   % 4
-   lv_1526 = and(true, lv_1323);   % 5
-   lv_1527 = and(lv_1526, lv_1333);   % 22
-   lv_1528 = and(lv_1527, lv_1312);   % 25
-   lv_1529 = and(lv_1528, lv_1345);   % 25
-   lv_1530 = and(lv_1529, lv_1391);   % 27
-   lv_1531 = and(lv_1530, lv_1151);   % 28
-   lv_1532 = and(lv_1531, lv_1353);   % 28
-   lv_1533 = and(lv_1532, lv_1404);   % 31
-   lv_1534 = and(lv_1533, lv_1366);   % 33
-   lv_1535 = and(lv_1534, lv_1296);   % 36
-   lv_1536 = and(lv_1535, lv_1377);   % 39
-   lv_1537 = and(lv_1536, lv_1280);   % 49
-   lv_1538 = and(lv_1537, lv_1385);   % 56
+   lv_1526 = and(true, lv_1323);   % 50
+   lv_1527 = and(lv_1526, lv_1333);   % 54
+   lv_1528 = and(lv_1527, lv_1312);   % 56
+   lv_1529 = and(lv_1528, lv_1345);   % 56
+   lv_1530 = and(lv_1529, lv_1391);   % 56
+   lv_1531 = and(lv_1530, lv_1151);   % 58
+   lv_1532 = and(lv_1531, lv_1353);   % 58
+   lv_1533 = and(lv_1532, lv_1404);   % 58
+   lv_1534 = and(lv_1533, lv_1366);   % 58
+   lv_1535 = and(lv_1534, lv_1296);   % 58
+   lv_1536 = and(lv_1535, lv_1377);   % 58
+   lv_1537 = and(lv_1536, lv_1280);   % 58
+   lv_1538 = and(lv_1537, lv_1385);   % 58
    lv_1539 = and(v12, true);   % 3
    lv_1540 = and(v14, lv_1539);   % 4
    lv_1541 = and(v18, lv_1540);   % 5
@@ -2062,18 +2069,18 @@ STRUCTURE
    lv_1549 = and(v90, true);   % 3
    lv_1550 = and(v102, lv_1549);   % 4
    lv_1551 = and(v104, lv_1550);   % 5
-   lv_1552 = and(true, lv_1323);   % 5
-   lv_1553 = and(lv_1552, lv_1333);   % 22
-   lv_1554 = and(lv_1553, lv_1312);   % 25
-   lv_1555 = and(lv_1554, lv_1345);   % 25
-   lv_1556 = and(lv_1555, lv_1391);   % 27
-   lv_1557 = and(lv_1556, lv_1151);   % 28
-   lv_1558 = and(lv_1557, lv_1353);   % 28
-   lv_1559 = and(lv_1558, lv_1404);   % 31
-   lv_1560 = and(lv_1559, lv_1385);   % 41
-   lv_1561 = and(lv_1560, lv_1296);   % 41
-   lv_1562 = and(lv_1561, lv_1377);   % 44
-   lv_1563 = and(lv_1562, lv_1280);   % 56
+   lv_1552 = and(true, lv_1323);   % 50
+   lv_1553 = and(lv_1552, lv_1333);   % 54
+   lv_1554 = and(lv_1553, lv_1312);   % 56
+   lv_1555 = and(lv_1554, lv_1345);   % 56
+   lv_1556 = and(lv_1555, lv_1391);   % 56
+   lv_1557 = and(lv_1556, lv_1151);   % 58
+   lv_1558 = and(lv_1557, lv_1353);   % 58
+   lv_1559 = and(lv_1558, lv_1404);   % 58
+   lv_1560 = and(lv_1559, lv_1385);   % 58
+   lv_1561 = and(lv_1560, lv_1296);   % 58
+   lv_1562 = and(lv_1561, lv_1377);   % 58
+   lv_1563 = and(lv_1562, lv_1280);   % 58
    lv_1564 = and(v12, true);   % 3
    lv_1565 = and(v14, lv_1564);   % 4
    lv_1566 = and(v18, lv_1565);   % 5
@@ -2090,17 +2097,17 @@ STRUCTURE
    lv_1577 = and(v58, lv_1576);   % 8
    lv_1578 = and(v62, lv_1577);   % 9
    lv_1579 = and(v64, lv_1578);   % 10
-   lv_1580 = and(true, lv_1323);   % 5
-   lv_1581 = and(lv_1580, lv_1333);   % 22
-   lv_1582 = and(lv_1581, lv_1312);   % 25
-   lv_1583 = and(lv_1582, lv_1345);   % 25
-   lv_1584 = and(lv_1583, lv_1280);   % 41
-   lv_1585 = and(lv_1584, lv_1151);   % 41
-   lv_1586 = and(lv_1585, lv_1353);   % 41
-   lv_1587 = and(lv_1586, lv_1404);   % 44
-   lv_1588 = and(lv_1587, lv_1385);   % 56
-   lv_1589 = and(lv_1588, lv_1296);   % 56
-   lv_1590 = and(lv_1589, lv_1377);   % 56
+   lv_1580 = and(true, lv_1323);   % 50
+   lv_1581 = and(lv_1580, lv_1333);   % 54
+   lv_1582 = and(lv_1581, lv_1312);   % 56
+   lv_1583 = and(lv_1582, lv_1345);   % 56
+   lv_1584 = and(lv_1583, lv_1280);   % 56
+   lv_1585 = and(lv_1584, lv_1151);   % 58
+   lv_1586 = and(lv_1585, lv_1353);   % 58
+   lv_1587 = and(lv_1586, lv_1404);   % 58
+   lv_1588 = and(lv_1587, lv_1385);   % 58
+   lv_1589 = and(lv_1588, lv_1296);   % 58
+   lv_1590 = and(lv_1589, lv_1377);   % 58
    lv_1591 = and(v12, true);   % 3
    lv_1592 = and(v14, lv_1591);   % 4
    lv_1593 = and(v18, lv_1592);   % 5
@@ -2119,14 +2126,14 @@ STRUCTURE
    lv_1606 = and(v102, lv_1605);   % 5
    lv_1607 = and(v104, lv_1606);   % 6
    lv_1608 = and(v106, lv_1607);   % 7
-   lv_1609 = and(true, lv_1323);   % 5
-   lv_1610 = and(lv_1609, lv_1333);   % 22
-   lv_1611 = and(lv_1610, lv_1312);   % 25
-   lv_1612 = and(lv_1611, lv_1345);   % 25
-   lv_1613 = and(lv_1612, lv_1280);   % 41
-   lv_1614 = and(lv_1613, lv_1377);   % 41
-   lv_1615 = and(lv_1614, lv_1353);   % 41
-   lv_1616 = and(lv_1615, lv_1404);   % 44
+   lv_1609 = and(true, lv_1323);   % 50
+   lv_1610 = and(lv_1609, lv_1333);   % 54
+   lv_1611 = and(lv_1610, lv_1312);   % 56
+   lv_1612 = and(lv_1611, lv_1345);   % 56
+   lv_1613 = and(lv_1612, lv_1280);   % 56
+   lv_1614 = and(lv_1613, lv_1377);   % 56
+   lv_1615 = and(lv_1614, lv_1353);   % 56
+   lv_1616 = and(lv_1615, lv_1404);   % 56
    lv_1617 = and(lv_1616, lv_1385);   % 56
    lv_1618 = and(lv_1617, lv_1296);   % 56
    lv_1619 = and(v12, true);   % 3
@@ -2147,15 +2154,15 @@ STRUCTURE
    lv_1634 = and(v102, lv_1633);   % 5
    lv_1635 = and(v104, lv_1634);   % 6
    lv_1636 = and(v106, lv_1635);   % 7
-   lv_1637 = and(true, lv_1323);   % 5
-   lv_1638 = and(lv_1637, lv_1333);   % 22
-   lv_1639 = and(lv_1638, lv_1312);   % 25
-   lv_1640 = and(lv_1639, lv_1345);   % 25
-   lv_1641 = and(lv_1640, lv_1296);   % 28
-   lv_1642 = and(lv_1641, lv_1377);   % 31
-   lv_1643 = and(lv_1642, lv_1353);   % 31
-   lv_1644 = and(lv_1643, lv_1404);   % 34
-   lv_1645 = and(lv_1644, lv_1385);   % 43
+   lv_1637 = and(true, lv_1323);   % 50
+   lv_1638 = and(lv_1637, lv_1333);   % 54
+   lv_1639 = and(lv_1638, lv_1312);   % 56
+   lv_1640 = and(lv_1639, lv_1345);   % 56
+   lv_1641 = and(lv_1640, lv_1296);   % 56
+   lv_1642 = and(lv_1641, lv_1377);   % 56
+   lv_1643 = and(lv_1642, lv_1353);   % 56
+   lv_1644 = and(lv_1643, lv_1404);   % 56
+   lv_1645 = and(lv_1644, lv_1385);   % 56
    lv_1646 = and(v40, true);   % 3
    lv_1647 = and(v42, lv_1646);   % 4
    lv_1648 = and(v74, lv_1647);   % 5
@@ -2176,14 +2183,14 @@ STRUCTURE
    lv_1663 = and(v102, lv_1662);   % 5
    lv_1664 = and(v104, lv_1663);   % 6
    lv_1665 = and(v106, lv_1664);   % 7
-   lv_1666 = and(true, lv_1323);   % 5
-   lv_1667 = and(lv_1666, lv_1333);   % 22
-   lv_1668 = and(lv_1667, lv_1312);   % 25
-   lv_1669 = and(lv_1668, lv_1345);   % 25
-   lv_1670 = and(lv_1669, lv_1296);   % 28
-   lv_1671 = and(lv_1670, lv_1385);   % 40
-   lv_1672 = and(lv_1671, lv_1353);   % 40
-   lv_1673 = and(lv_1672, lv_1404);   % 40
+   lv_1666 = and(true, lv_1323);   % 50
+   lv_1667 = and(lv_1666, lv_1333);   % 54
+   lv_1668 = and(lv_1667, lv_1312);   % 56
+   lv_1669 = and(lv_1668, lv_1345);   % 56
+   lv_1670 = and(lv_1669, lv_1296);   % 56
+   lv_1671 = and(lv_1670, lv_1385);   % 56
+   lv_1672 = and(lv_1671, lv_1353);   % 56
+   lv_1673 = and(lv_1672, lv_1404);   % 56
    lv_1674 = and(v40, true);   % 3
    lv_1675 = and(v42, lv_1674);   % 4
    lv_1676 = and(v46, lv_1675);   % 5
@@ -2200,13 +2207,13 @@ STRUCTURE
    lv_1687 = and(v102, lv_1686);   % 5
    lv_1688 = and(v104, lv_1687);   % 6
    lv_1689 = and(v106, lv_1688);   % 7
-   lv_1690 = and(true, lv_1404);   % 6
-   lv_1691 = and(lv_1690, lv_1333);   % 24
-   lv_1692 = and(lv_1691, lv_1312);   % 26
-   lv_1693 = and(lv_1692, lv_1345);   % 26
-   lv_1694 = and(lv_1693, lv_1296);   % 29
-   lv_1695 = and(lv_1694, lv_1385);   % 38
-   lv_1696 = and(lv_1695, lv_1353);   % 38
+   lv_1690 = and(true, lv_1404);   % 50
+   lv_1691 = and(lv_1690, lv_1333);   % 56
+   lv_1692 = and(lv_1691, lv_1312);   % 56
+   lv_1693 = and(lv_1692, lv_1345);   % 56
+   lv_1694 = and(lv_1693, lv_1296);   % 56
+   lv_1695 = and(lv_1694, lv_1385);   % 56
+   lv_1696 = and(lv_1695, lv_1353);   % 56
    lv_1697 = and(v12, true);   % 3
    lv_1698 = and(v14, lv_1697);   % 4
    lv_1699 = and(v18, lv_1698);   % 5
@@ -2221,12 +2228,12 @@ STRUCTURE
    lv_1708 = and(v102, lv_1707);   % 5
    lv_1709 = and(v104, lv_1708);   % 6
    lv_1710 = and(v106, lv_1709);   % 7
-   lv_1711 = and(true, lv_1404);   % 6
-   lv_1712 = and(lv_1711, lv_1333);   % 24
-   lv_1713 = and(lv_1712, lv_1353);   % 24
-   lv_1714 = and(lv_1713, lv_1345);   % 24
-   lv_1715 = and(lv_1714, lv_1296);   % 27
-   lv_1716 = and(lv_1715, lv_1385);   % 38
+   lv_1711 = and(true, lv_1404);   % 50
+   lv_1712 = and(lv_1711, lv_1333);   % 56
+   lv_1713 = and(lv_1712, lv_1353);   % 56
+   lv_1714 = and(lv_1713, lv_1345);   % 56
+   lv_1715 = and(lv_1714, lv_1296);   % 56
+   lv_1716 = and(lv_1715, lv_1385);   % 56
    lv_1717 = and(v12, true);   % 3
    lv_1718 = and(v14, lv_1717);   % 4
    lv_1719 = and(v18, lv_1718);   % 5
@@ -2243,11 +2250,11 @@ STRUCTURE
    lv_1730 = and(v104, lv_1729);   % 8
    lv_1731 = and(v106, lv_1730);   % 9
    lv_1732 = and(v108, lv_1731);   % 10
-   lv_1733 = and(true, lv_1404);   % 6
-   lv_1734 = and(lv_1733, lv_1385);   % 21
-   lv_1735 = and(lv_1734, lv_1353);   % 23
-   lv_1736 = and(lv_1735, lv_1345);   % 26
-   lv_1737 = and(lv_1736, lv_1296);   % 26
+   lv_1733 = and(true, lv_1404);   % 50
+   lv_1734 = and(lv_1733, lv_1385);   % 50
+   lv_1735 = and(lv_1734, lv_1353);   % 56
+   lv_1736 = and(lv_1735, lv_1345);   % 56
+   lv_1737 = and(lv_1736, lv_1296);   % 56
    lv_1738 = and(v8, true);   % 3
    lv_1739 = and(v80, lv_1738);   % 4
    lv_1740 = and(v84, lv_1739);   % 5
@@ -2265,10 +2272,10 @@ STRUCTURE
    lv_1752 = and(v32, lv_1751);   % 5
    lv_1753 = and(v34, lv_1752);   % 6
    lv_1754 = and(v36, lv_1753);   % 7
-   lv_1755 = and(true, lv_1404);   % 6
-   lv_1756 = and(lv_1755, lv_1385);   % 21
-   lv_1757 = and(lv_1756, lv_1353);   % 23
-   lv_1758 = and(lv_1757, lv_1296);   % 23
+   lv_1755 = and(true, lv_1404);   % 50
+   lv_1756 = and(lv_1755, lv_1385);   % 50
+   lv_1757 = and(lv_1756, lv_1353);   % 56
+   lv_1758 = and(lv_1757, lv_1296);   % 56
    lv_1759 = and(v8, true);   % 3
    lv_1760 = and(v80, lv_1759);   % 4
    lv_1761 = and(v84, lv_1760);   % 5
@@ -2282,9 +2289,9 @@ STRUCTURE
    lv_1769 = and(v6, lv_1768);   % 4
    lv_1770 = and(v10, lv_1769);   % 5
    lv_1771 = and(v38, lv_1770);   % 6
-   lv_1772 = and(true, lv_1404);   % 6
-   lv_1773 = and(lv_1772, lv_1385);   % 21
-   lv_1774 = and(lv_1773, lv_1296);   % 21
+   lv_1772 = and(true, lv_1404);   % 50
+   lv_1773 = and(lv_1772, lv_1385);   % 50
+   lv_1774 = and(lv_1773, lv_1296);   % 55
    lv_1775 = and(v8, true);   % 3
    lv_1776 = and(v80, lv_1775);   % 4
    lv_1777 = and(v84, lv_1776);   % 5
@@ -2294,8 +2301,8 @@ STRUCTURE
    lv_1781 = and(v104, lv_1780);   % 9
    lv_1782 = and(v106, lv_1781);   % 10
    lv_1783 = and(v108, lv_1782);   % 11
-   lv_1784 = and(true, lv_1404);   % 6
-   lv_1785 = and(lv_1784, lv_1296);   % 9
+   lv_1784 = and(true, lv_1404);   % 50
+   lv_1785 = and(lv_1784, lv_1296);   % 55
    lv_1786 = and(v76, true);   % 3
    lv_1787 = and(v78, lv_1786);   % 4
    lv_1788 = and(v82, lv_1787);   % 5
@@ -2305,7 +2312,7 @@ STRUCTURE
    lv_1792 = and(v92, lv_1791);   % 4
    lv_1793 = and(v94, lv_1792);   % 5
    lv_1794 = and(v100, lv_1793);   % 6
-   lv_1795 = and(true, lv_1296);   % 5
+   lv_1795 = and(true, lv_1296);   % 51
    lv_1796 = and(v0, true);   % 3
    lv_1797 = and(v2, lv_1796);   % 4
    lv_1798 = and(v86, lv_1797);   % 5
@@ -2354,13 +2361,13 @@ STRUCTURE
    are_equal(lv_1836, false);   % 0
    are_equal(lv_1836, true);   % 0
    lv_1838 = support_vars(lv_1836);   % 112
-   lv_1839 = exists(lv_112, lv_1838);   % 58
-   lv_1840 = exists(lv_56, lv_1838);   % 56
+   lv_1839 = exists(lv_112, lv_1838);   % 4
+   lv_1840 = exists(lv_56, lv_1838);   % 1
    trace_verbose_print("  Initial merging...");
    trace_verbose_print("  Done initializing partitions...");
    trace_verbose_print("  Ordering/Clustering for PreImage computation...");
    trace_verbose_print("    Ordering partitions...");
-   lv_1841 = and(true, lv_1839);   % 58
+   lv_1841 = and(true, lv_1839);   % 4
    lv_1842 = and(v5, true);   % 3
    lv_1843 = and(v7, lv_1842);   % 4
    lv_1844 = and(v9, lv_1843);   % 5

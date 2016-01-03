@@ -126,8 +126,8 @@ Prototype
 
     Verification functions
       are_equal(<bdd 1>, <bdd 2>);  % equality check
-      <bdd> = exists(<quanification set variable>, <function>);
-      <bdd> = forall(<quanification set variable>, <function>);
+      <bdd> = exists(<function>, <quanification set variable>); /* CHANGED BY robert.meolic@um.si, 2015 */
+      <bdd> = forall(<function>, <quanification set variable>); /* CHANGED BY robert.meolic@um.si, 2015 */
       <bdd> = rel_prod(<quanification set variable>,
                        <function 1>, <function 2>);
       <bdd> = restrict(<function>, <care set>);

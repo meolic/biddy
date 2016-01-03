@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 104 $]
-#  Date        [$Date: 2015-10-23 17:13:04 +0200 (pet, 23 okt 2015) $]
+#  Revision    [$Revision: 133 $]
+#  Date        [$Date: 2016-01-02 10:11:41 +0100 (sob, 02 jan 2016) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2015 UM-FERI
@@ -33,7 +33,8 @@ zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*/*
-zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/* -x bddscout/*.zip -x biddy/bddscout/bin/ 
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/VS/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/* -x biddy/bddscout/*.zip -x biddy/bddscout/bin/ 
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/debian/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/debian/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/rpm/*
@@ -41,7 +42,7 @@ zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/rpm/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/IFIP/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/IFIP/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/BDDTRACES/*
-zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddview/* -x bddview/*.zip
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddview/* -x biddy/bddview/*.zip
 cd biddy
 
 echo ""

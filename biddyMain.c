@@ -14,8 +14,8 @@ manipulation of boolean functions with ROBDDs.
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyMain.c]
-    Revision    [$Revision: 103 $]
-    Date        [$Date: 2015-10-15 14:51:19 +0200 (čet, 15 okt 2015) $]
+    Revision    [$Revision: 131 $]
+    Date        [$Date: 2016-01-02 09:42:28 +0100 (sob, 02 jan 2016) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
@@ -117,9 +117,9 @@ BiddyLocalInfo *biddyLocalInfo /* local info table */
 /* Static function prototypes                                                 */
 /*----------------------------------------------------------------------------*/
 
-static unsigned int nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt, unsigned int biddyNodeTableSize);
+static unsigned int nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt, unsigned int size);
 
-static unsigned int ITEHash(Biddy_Edge a, Biddy_Edge b, Biddy_Edge c, unsigned int biddyIteCacheSize);
+static unsigned int op3Hash(Biddy_Edge a, Biddy_Edge b, Biddy_Edge c, unsigned int size);
 
 static void exchangeEdges(Biddy_Edge *f, Biddy_Edge *g);
 
@@ -129,21 +129,13 @@ static void addNodeTable(Biddy_Manager MNG, unsigned int hash, BiddyNode *node, 
              
 static BiddyNode *findNodeTable(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt, BiddyNode **thesup);
 
-static void addITECache(Biddy_Manager MNG, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c, Biddy_Edge r);
+static void addOp3Cache(Biddy_Manager MNG, BiddyOp3CacheTable cache, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c, Biddy_Edge r);
 
-static Biddy_Boolean findITECache(Biddy_Manager MNG, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c, Biddy_Edge *r);
+static Biddy_Boolean findOp3Cache(Biddy_Manager MNG, BiddyOp3CacheTable cache, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c, Biddy_Edge *r);
 
 static void ITEGarbage(Biddy_Manager MNG);
 
-static void addEACache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Edge r);
-
-static Biddy_Boolean findEACache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Edge *r);
-
 static void EAGarbage(Biddy_Manager MNG);
-
-static void addRCCache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Variable v, Biddy_Edge r);
-
-static Biddy_Boolean findRCCache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Variable v, Biddy_Edge *r);
 
 static void RCGarbage(Biddy_Manager MNG);
 
@@ -196,7 +188,7 @@ extern "C" {
 void
 Biddy_Init()
 {
-  int i,j;
+  unsigned int i,j;
   Biddy_Manager MNG;
 
 #ifdef UNIX
@@ -234,7 +226,7 @@ Biddy_Init()
     exit(1);
   }
   biddyNodeTable.table = NULL;
-  biddyNodeTable.size = HUGE_TABLE;
+  biddyNodeTable.size = BIG_TABLE;
   biddyNodeTable.blocktable = NULL;
   biddyNodeTable.foa = 0;
   biddyNodeTable.compare = 0;
@@ -271,30 +263,66 @@ Biddy_Init()
     exit(1);
   }
   biddyIteCache.table = NULL;
-  biddyIteCache.size = BIG_TABLE;
-  biddyIteCache.search = 0;
-  biddyIteCache.find = 0;
-  biddyIteCache.overwrite = 0;
-  if (!(MNG[8] = (BiddyEACacheTable *)
-        malloc(sizeof(BiddyEACacheTable)))) {
+  biddyIteCache.size = SMALL_TABLE;
+  if (!(biddyIteCache.search = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  if (!(biddyIteCache.find = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  if (!(biddyIteCache.overwrite = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  *(biddyIteCache.search) = 0;
+  *(biddyIteCache.find) = 0;
+  *(biddyIteCache.overwrite) = 0;
+  if (!(MNG[8] = (BiddyOp3CacheTable *)
+        malloc(sizeof(BiddyOp3CacheTable)))) {
     fprintf(stderr,"Biddy_Init (Anonymous manager): Out of memoy!\n");
     exit(1);
   }
   biddyEACache.table = NULL;
   biddyEACache.size = SMALL_TABLE;
-  biddyEACache.search = 0;
-  biddyEACache.find = 0;
-  biddyEACache.overwrite = 0;
-  if (!(MNG[9] = (BiddyRCCacheTable *)
-        malloc(sizeof(BiddyRCCacheTable)))) {
+  if (!(biddyEACache.search = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  if (!(biddyEACache.find = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  if (!(biddyEACache.overwrite = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  *(biddyEACache.search) = 0;
+  *(biddyEACache.find) = 0;
+  *(biddyEACache.overwrite) = 0;
+  if (!(MNG[9] = (BiddyOp3CacheTable *)
+        malloc(sizeof(BiddyOp3CacheTable)))) {
     fprintf(stderr,"Biddy_Init (Anonymous manager): Out of memoy!\n");
     exit(1);
   }
   biddyRCCache.table = NULL;
   biddyRCCache.size = SMALL_TABLE;
-  biddyRCCache.search = 0;
-  biddyRCCache.find = 0;
-  biddyRCCache.overwrite = 0;
+  if (!(biddyRCCache.search = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  if (!(biddyRCCache.find = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  if (!(biddyRCCache.overwrite = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
+    fprintf(stderr, "Biddy_Init (Anonymous manager): Out of memoy!\n");
+    exit(1);
+  }
+  *(biddyRCCache.search) = 0;
+  *(biddyRCCache.find) = 0;
+  *(biddyRCCache.overwrite) = 0;
   if (!(MNG[10] = (BiddyCacheList* *)
         malloc(sizeof(BiddyCacheList*)))) {
     fprintf(stderr,"Biddy_Init (Anonymous manager): Out of memoy!\n");
@@ -349,10 +377,12 @@ Biddy_Init()
                 malloc(biddyVariableTable.size * sizeof(BiddyVariable));
   nullOrdering(biddyOrderingTable);
   biddyVariableTable.table[0].name = strdup("1");
+  biddyVariableTable.table[0].terminal = biddyNull;
   biddyVariableTable.table[0].num = 1;
   for (i=1; i<biddyVariableTable.size; i++) {
     biddyVariableTable.table[i].num = 0;
     biddyVariableTable.table[i].name = NULL;
+    biddyVariableTable.table[i].terminal = biddyNull;
     biddyVariableTable.table[i].selected = FALSE;
     SET_ORDER(biddyOrderingTable,i,0);
     for (j=i+1; j<biddyVariableTable.size; j++) {
@@ -375,6 +405,8 @@ Biddy_Init()
 
   /* INITIALIZATION OF MEMORY MANAGEMENT IN ANONYMOUS MANAGER */
   /* ALLOCATE FIRST CHUNK OF NODES */
+  /* FOR SMALL EXAMPLES USE 65536 */
+  /* FOR NORMAL EXAMPLES USE 524288 */
   biddyBlockSize = 524288; /* this should be multiples of pagesize */
   if (!(biddyFreeNodes = (BiddyNode *)
         malloc((biddyBlockSize) * sizeof(BiddyNode)))) {
@@ -396,7 +428,10 @@ Biddy_Init()
   }
   */
       
-  biddyNodeTable.blocktable = (BiddyNode **) malloc(sizeof(BiddyNode *));
+  if (!(biddyNodeTable.blocktable = (BiddyNode **)malloc(sizeof(BiddyNode *)))) {
+    fprintf(stderr, "Biddy_Init (blocktable): Out of memoy!\n");
+    exit(1);
+  }
   biddyNodeTable.blocktable[0] = biddyFreeNodes;
   biddyNodeTable.table[0] = biddyFreeNodes;
   biddyFreeNodes = &biddyFreeNodes[1];
@@ -420,6 +455,7 @@ Biddy_Init()
   /* INITIALIZATION OF VARIABLE'S VALUES */
   biddyVariableTable.table[0].value = biddyOne;
   for (i=1; i<biddyVariableTable.size; i++) {
+#pragma warning(suppress: 6386)
     biddyVariableTable.table[i].value = biddyZero;
   }
 
@@ -463,7 +499,8 @@ Biddy_Init()
   biddyCacheList = NULL;
 
   /* INITIALIZATION OF DEFAULT ITE CACHE - USED FOR ITE OPERATION */
-  biddyIteCache.search = biddyIteCache.find = biddyIteCache.overwrite = 0;
+#pragma warning(suppress: 6011)
+  *(biddyIteCache.search) = *(biddyIteCache.find) = *(biddyIteCache.overwrite) = 0;
   if (!(biddyIteCache.table = (BiddyOp3Cache *)
   malloc((biddyIteCache.size+1) * sizeof(BiddyOp3Cache)))) {
     fprintf(stderr,"Biddy_Init (ITE CACHE): Out of memoy!\n");
@@ -475,9 +512,9 @@ Biddy_Init()
   Biddy_Managed_AddCache(MNG,ITEGarbage);
 
   /* INITIALIZATION OF DEFAULT EA CACHE - USED FOR QUANTIFICATIONS */
-  biddyEACache.search = biddyEACache.find = biddyEACache.overwrite = 0;
-  if (!(biddyEACache.table = (BiddyEACache *)
-  malloc((biddyEACache.size+1) * sizeof(BiddyEACache)))) {
+  *(biddyEACache.search) = *(biddyEACache.find) = *(biddyEACache.overwrite) = 0;
+  if (!(biddyEACache.table = (BiddyOp3Cache *)
+  malloc((biddyEACache.size+1) * sizeof(BiddyOp3Cache)))) {
     fprintf(stderr,"Biddy_Init (EA CACHE): Out of memoy!\n");
     exit(1);
   }
@@ -487,13 +524,15 @@ Biddy_Init()
   Biddy_Managed_AddCache(MNG,EAGarbage);
 
   /* INITIALIZATION OF DEFAULT RC CACHE - USED FOR RESTRICT AND COMPOSE */
-  biddyRCCache.search = biddyRCCache.find = biddyRCCache.overwrite = 0;
-  if (!(biddyRCCache.table = (BiddyRCCache *)
-  malloc((biddyRCCache.size+1) * sizeof(BiddyRCCache)))) {
+#pragma warning(suppress: 6011)
+  *(biddyRCCache.search) = *(biddyRCCache.find) = *(biddyRCCache.overwrite) = 0;
+  if (!(biddyRCCache.table = (BiddyOp3Cache *)
+  malloc((biddyRCCache.size+1) * sizeof(BiddyOp3Cache)))) {
     fprintf(stderr,"Biddy_Init (RC CACHE): Out of memoy!\n");
     exit(1);
   }
   for (i=0;i<=biddyRCCache.size;i++) {
+#pragma warning(suppress: 6386)
     biddyRCCache.table[i].result = biddyNull;
   }
   Biddy_Managed_AddCache(MNG,RCGarbage);
@@ -515,7 +554,6 @@ Biddy_Init()
   */
 
   /* DEBUGGING WITH GDB AND DDD */
-  /* YOU MAY REPLACE biddyOne WITH biddy_termTrue */
   /* USE "up" TO CHANGE CONTEXT */
   /* use "print sizeof(BiddyNode)" */
   /* use "print sizeof(((BiddyNode *) biddyOne).f)" */
@@ -549,7 +587,7 @@ extern "C" {
 void
 Biddy_Exit()
 {
-  int i;
+  unsigned int i;
   BiddyCacheList *sup1, *sup2;
   Biddy_Manager MNG;
 
@@ -567,68 +605,102 @@ Biddy_Exit()
   /*
   printf("Delete nodes, block table, and node table...\n");
   */
-  for (i=0; i<biddyNodeTable.blocknumber; i++) {
-    free(biddyNodeTable.blocktable[i]);
+  if ((BiddyNodeTable*)(MNG[4])) {
+    for (i = 0; i < biddyNodeTable.blocknumber; i++) {
+      free(biddyNodeTable.blocktable[i]);
+    }
+    free(biddyNodeTable.blocktable);
+    free(biddyNodeTable.table);
+#pragma warning(suppress: 6001)
+    free((BiddyNodeTable*)(MNG[4]));
   }
-  free(biddyNodeTable.blocktable);
-  free(biddyNodeTable.table);
-  free((BiddyNodeTable*)(MNG[4]));
 
   /*
   printf("Delete variable table...\n");
   */
-  free(biddyVariableTable.table);
-  free((BiddyVariableTable*)(MNG[5]));
+  if ((BiddyVariableTable*)(MNG[5])) {
+    free(biddyVariableTable.table);
+#pragma warning(suppress: 6001)
+    free((BiddyVariableTable*)(MNG[5]));
+  }
 
   /*
   printf("Delete formula table...\n");
   */
-  free(biddyFormulaTable.table);
-  free(biddyFormulaTable.deletedName);
-  free((BiddyFormulaTable*)(MNG[6]));
+  if ((BiddyFormulaTable*)(MNG[6])) {
+    free(biddyFormulaTable.table);
+    free(biddyFormulaTable.deletedName);
+#pragma warning(suppress: 6001)
+    free((BiddyFormulaTable*)(MNG[6]));
+  }
 
   /*
   printf("Delete ITE cache...\n");
   */
-  free(biddyIteCache.table);
-  free((BiddyOp3CacheTable*)(MNG[7]));
+  if ((BiddyOp3CacheTable*)(MNG[7])) {
+    free(biddyIteCache.table);
+    free(biddyIteCache.search);
+    free(biddyIteCache.find);
+    free(biddyIteCache.overwrite);
+#pragma warning(suppress: 6001)
+    free((BiddyOp3CacheTable*)(MNG[7]));
+  }
 
   /*
   printf("Delete EA cache...\n");
   */
-  free(biddyEACache.table);
-  free((BiddyEACacheTable*)(MNG[8]));
+  if ((BiddyOp3CacheTable*)(MNG[8])) {
+    free(biddyEACache.table);
+    free(biddyEACache.search);
+    free(biddyEACache.find);
+    free(biddyEACache.overwrite);
+#pragma warning(suppress: 6001)
+    free((BiddyOp3CacheTable*)(MNG[8]));
+  }
 
   /*
   printf("Delete RC cache...\n");
   */
-  free(biddyRCCache.table);
-  free((BiddyRCCacheTable*)(MNG[9]));
+  if ((BiddyOp3CacheTable*)(MNG[9])) {
+    free(biddyRCCache.table);
+    free(biddyRCCache.search);
+    free(biddyRCCache.find);
+    free(biddyRCCache.overwrite);
+#pragma warning(suppress: 6001)
+    free((BiddyOp3CacheTable*)(MNG[9]));
+  }
 
   /*
   printf("Delete cache list...\n");
   */
-  sup1 = biddyCacheList;
-  while (sup1) {
-    sup2 = sup1->next;
-    free(sup1);
-    sup1 = sup2;
+  if ((BiddyCacheList**)(MNG[10])) {
+#pragma warning(suppress: 6001)
+    sup1 = biddyCacheList;
+    while (sup1) {
+      sup2 = sup1->next;
+      free(sup1);
+      sup1 = sup2;
+    }
+#pragma warning(suppress: 6001)
+    free((BiddyCacheList**)(MNG[10]));
   }
-  free((BiddyCacheList**)(MNG[10]));
 
   /*
   printf("Delete blocksize...\n");
   */
+#pragma warning(suppress: 6001)
   free((unsigned int*)(MNG[11]));
 
   /*
   printf("Delete pointer biddyFreeNodes...\n");
   */
+#pragma warning(suppress: 6001)
   free((BiddyNode**)(MNG[12]));
 
   /*
   printf("Delete Ordering table...\n");
   */
+#pragma warning(suppress: 6001)
   free((BiddyOrderingTable*)(MNG[13]));
 
   /*
@@ -1147,7 +1219,10 @@ Biddy_Managed_AddVariable(Biddy_Manager MNG)
 
   biddyVariableTable.numnum++;
 
-  x = (Biddy_String) malloc(15);
+  if (!(x = (Biddy_String)malloc(15))) {
+    fprintf(stderr, "Biddy_Managed_AddVariable: Out of memoy!\n");
+    exit(1);
+  }
   sprintf(x,"%u",biddyVariableTable.numnum);
   f = Biddy_Managed_FoaVariable(MNG,x);
   free(x);
@@ -1318,6 +1393,7 @@ Biddy_Managed_FoaVariable(Biddy_Manager MNG, Biddy_String x)
     biddyVariableTable.table[v].name = strdup(x);
     biddyVariableTable.table[v].lastNewNode = biddyNodeTable.table[0];
     result = Biddy_Managed_FoaNode(MNG,v,biddyZero,biddyOne,FALSE);
+    biddyVariableTable.table[v].terminal = result;
     biddyVariableTable.table[v].firstNewNode = (BiddyNode *) result;
     biddyVariableTable.table[v].freshNodes = (BiddyNode *) result;
     biddyVariableTable.table[v].fortifiedNodes = NULL;
@@ -1373,7 +1449,8 @@ Biddy_Managed_FoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
   Biddy_Edge edge;
   BiddyNode *sup, *sup1;
   Biddy_Boolean complementedResult;
-  int i;
+  unsigned int i;
+  BiddyNode ** tmp;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -1381,7 +1458,7 @@ Biddy_Managed_FoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
 
   /* MINIMIZATION */
 
-  if (Biddy_IsEqv(pf,pt)) return pf;
+  if (pf == pt) return pf;
 
   /* NORMALIZATION - EDGE 'THEN' MAY NOT BE COMPLEMENTED ! */
   if (Biddy_GetMark(pt)) {
@@ -1449,16 +1526,18 @@ Biddy_Managed_FoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
       }
 
       biddyNodeTable.blocknumber++;
-      if (!(biddyNodeTable.blocktable = (BiddyNode **) realloc(biddyNodeTable.blocktable,
+      if (!(tmp = (BiddyNode **) realloc(biddyNodeTable.blocktable,
             biddyNodeTable.blocknumber * sizeof(BiddyNode *))))
       {
         fprintf(stderr,"\nBIDDY (Biddy_Managed_FoaNode): Out of memory error!\n");
         fprintf(stderr,"Currently, there exist %d nodes.\n",biddyNodeTable.num);
         exit(1);
       }
+      biddyNodeTable.blocktable = tmp;
       biddyNodeTable.blocktable[biddyNodeTable.blocknumber-1] = biddyFreeNodes;
 
       for (i=0; i<biddyBlockSize-1; i++) {
+#pragma warning(suppress: 6386)
         biddyFreeNodes[i].list = (void *) &biddyFreeNodes[i+1];
       }
       biddyFreeNodes[biddyBlockSize-1].list = NULL;
@@ -1516,7 +1595,8 @@ extern "C" {
 Biddy_Edge
 Biddy_Managed_ITE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
 {
-  Biddy_Boolean negation,simple;
+  Biddy_Boolean negation;
+  /* Biddy_Boolean simple; */
   Biddy_Edge r, T, E, Fv, Gv, Hv, Fneg_v, Gneg_v, Hneg_v;
   Biddy_Variable v;
 
@@ -1544,59 +1624,60 @@ Biddy_Managed_ITE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
   mm = nn;
   */
 
-  /* DEBUGGING */
-  /**/
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_ITE): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
   if (!g) {
     fprintf(stdout,"ERROR (Biddy_Managed_ITE): g = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
   if (!h) {
     fprintf(stdout,"ERROR (Biddy_Managed_ITE): h = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-  /**/
 
-  /**/
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_ITE): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-  if (!BiddyIsOK(g)) {
+  if (g && !BiddyIsOK(g)) {
     fprintf(stdout,"ERROR (Biddy_Managed_ITE): Bad g\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-  if (!BiddyIsOK(h)) {
+  if (h && !BiddyIsOK(h)) {
     fprintf(stdout,"ERROR (Biddy_Managed_ITE): Bad h\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-  /**/
 
   /* NORMALIZATION - STEP 1 */
 
   /* CURRENT IMPLEMENTATION - PROBABLY THE BEST */
   /**/
   if (Biddy_IsEqvPointer(f,g)) {
-    if (!Biddy_IsEqv(f,g)) g = biddyZero; else g = biddyOne;
+    if (f != g) g = biddyZero; else g = biddyOne;
   }
 
   if (Biddy_IsEqvPointer(f,h)) {
-    if (Biddy_IsEqv(f,h)) h = biddyZero; else h = biddyOne;
+    if (f == h) h = biddyZero; else h = biddyOne;
   }
   /**/
 
   /* ALTERNATIVE IMPLEMENTATION */
   /*
-  if (Biddy_IsEqv(f,g)) {
+  if (f == g) {
     g = biddyOne;
   } else if (Biddy_IsEqvPointer(f,g)) {
     g = biddyZero;
   }
 
-  if (Biddy_IsEqv(f,h)) {
+  if (f == h) {
     h = biddyZero;
   } else if (Biddy_IsEqvPointer(f,h)) {
     h = biddyOne;
@@ -1611,10 +1692,10 @@ Biddy_Managed_ITE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
   if (Biddy_IsConstant(f)) {
     terminal = TRUE;
     /* r = Biddy_GetMark(f) ? h : g; */
-    r = Biddy_IsEqv(f,biddyOne) ? g : h;
+    r = (f == biddyOne) ? g : h;
   } else {
     if (Biddy_IsEqvPointer(g,h)) {
-      if (Biddy_IsEqv(g,h)) {
+      if (g == h) {
         terminal = TRUE;
         r = g;
       } else {
@@ -1682,7 +1763,7 @@ Biddy_Managed_ITE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
     }
 
     /* IF RESULT IS NOT IN THE CACHE TABLE... */
-    if (!findITECache(MNG,f,g,h,&r))
+    if (!findOp3Cache(MNG,biddyIteCache,f,g,h,&r))
     {
 
       /* LOOKING FOR THE SMALLES TOP VARIABLE */
@@ -1737,17 +1818,17 @@ Biddy_Managed_ITE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
 
       /* RECURSIVE CALLS */
 
-      simple = FALSE;
+      /* simple = FALSE; */
       if (Biddy_IsConstant(Fv)) {
-        T = Biddy_IsEqv(Fv,biddyOne) ? Gv : Hv;
-        simple = TRUE;
+        T = (Fv == biddyOne) ? Gv : Hv;
+        /* simple = TRUE; */
       } else  {
         T = Biddy_Managed_ITE(MNG,Fv,Gv,Hv);
       }
 
       if (Biddy_IsConstant(Fneg_v)) {
-        E = Biddy_IsEqv(Fneg_v,biddyOne) ? Gneg_v : Hneg_v;
-        simple = TRUE;
+        E = (Fneg_v == biddyOne) ? Gneg_v : Hneg_v;
+        /* simple = TRUE; */
       } else {
         E = Biddy_Managed_ITE(MNG,Fneg_v,Gneg_v,Hneg_v);
       }
@@ -1757,12 +1838,12 @@ Biddy_Managed_ITE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
 
       /* CACHE EVERYTHING */
       /**/
-      addITECache(MNG,f,g,h,r);
+      addOp3Cache(MNG,biddyIteCache,f,g,h,r);
       /**/
 
       /* THIS DOES NOT PRODUCE BETTER RESULTS */
       /*
-      if (!simple) addITECache(MNG,f,g,h,r);
+      if (!simple) addOp3Cache(MNG,biddyIteCache,f,g,h,r);
       */
 
     } else {
@@ -1972,7 +2053,7 @@ Biddy_Managed_Leq(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (!MNG) MNG = biddyAnonymousManager;
 
   r = Biddy_Managed_ITE(MNG,f,g,biddyOne);
-  return Biddy_IsEqv(r,biddyOne);
+  return (r == biddyOne);
 }
 
 #ifdef __cplusplus
@@ -2017,6 +2098,7 @@ Biddy_Managed_Intersect(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
        function.
 
 ### Description
+    Original BDD is not changed!
     Value must be constant 0 or constant 1.
     It uses optimization: F(a=x) == NOT((NOT F)(a=x)).
 ### Side effects
@@ -2035,6 +2117,7 @@ Biddy_Edge
 Biddy_Managed_Restrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
                        Biddy_Edge value)
 {
+  Biddy_Edge h;
   Biddy_Edge e, t, r;
   Biddy_Variable fv;
 
@@ -2043,29 +2126,47 @@ Biddy_Managed_Restrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_Restrict): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Restrict): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (Biddy_IsConstant(f)) return f;
+  if (f && Biddy_IsConstant(f)) return f;
 
-  if ((fv=Biddy_GetTopVariable(f)) == v) {
-    if (Biddy_IsEqv(value,biddyOne)) {
-      return Biddy_NotCond(BiddyT(f),Biddy_GetMark(f));
-    } else {
-      return Biddy_NotCond(BiddyE(f),Biddy_GetMark(f));
+  h = biddyVariableTable.table[v].terminal;
+
+  /* IF RESULT IS NOT IN THE CACHE TABLE... */
+  if (!findOp3Cache(MNG,biddyRCCache,f,value,h,&r))
+  {
+
+    if ((fv=Biddy_GetTopVariable(f)) == v) {
+      if (value == biddyOne) {
+        return Biddy_NotCond(BiddyT(f),Biddy_GetMark(f));
+      } else {
+        return Biddy_NotCond(BiddyE(f),Biddy_GetMark(f));
+      }
     }
+
+    if (Biddy_Managed_IsSmaller(MNG,v,fv)) return f;
+
+    e = Biddy_Managed_Restrict(MNG,BiddyE(f),v,value);
+    t = Biddy_Managed_Restrict(MNG,BiddyT(f),v,value);
+    r = Biddy_NotCond(Biddy_Managed_FoaNode(MNG,fv,e,t,TRUE),Biddy_GetMark(f));
+    BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
+
+    /* CACHE EVERYTHING */
+    addOp3Cache(MNG,biddyRCCache,f,value,h,r);
+
+  } else {
+
+    /* IF THE RESULT IS FROM CACHE TABLE, FRESH IT! */
+    BiddyRefresh(MNG,r);
+
   }
-
-  if (Biddy_Managed_IsSmaller(MNG,v,fv)) return f;
-
-  e = Biddy_Managed_Restrict(MNG,BiddyE(f),v,value);
-  t = Biddy_Managed_Restrict(MNG,BiddyT(f),v,value);
-  r = Biddy_NotCond(Biddy_Managed_FoaNode(MNG,fv,e,t,TRUE),Biddy_GetMark(f));
-  BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
 
   return r;
 }
@@ -2079,6 +2180,7 @@ Biddy_Managed_Restrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
        functions.
 
 ### Description
+    Original BDDs are not changed!
     It uses optimization: F(a=G) == NOT((NOT F)(a=G)).
 ### Side effects
     Cache table is not used, yet.
@@ -2094,6 +2196,7 @@ Biddy_Edge
 Biddy_Managed_Compose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
                       Biddy_Edge g)
 {
+  Biddy_Edge h;
   Biddy_Edge e, t, r;
   Biddy_Variable fv;
 
@@ -2102,35 +2205,53 @@ Biddy_Managed_Compose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_Compose): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-
   if (!g) {
     fprintf(stdout,"ERROR (Biddy_Managed_Compose): g = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Compose): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-
-  if (!BiddyIsOK(g)) {
+  if (g && !BiddyIsOK(g)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Compose): Bad g\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (Biddy_IsConstant(f)) return f;
+  if (f && Biddy_IsConstant(f)) return f;
 
-  if ((fv=Biddy_GetTopVariable(f)) == v) {
-    return Biddy_NotCond(Biddy_Managed_ITE(MNG,g,BiddyT(f),BiddyE(f)),Biddy_GetMark(f));
+  h = biddyVariableTable.table[v].terminal;
+
+  /* IF RESULT IS NOT IN THE CACHE TABLE... */
+  if (!findOp3Cache(MNG,biddyRCCache,f,g,h,&r))
+  {
+
+    if ((fv=Biddy_GetTopVariable(f)) == v) {
+      return Biddy_NotCond(Biddy_Managed_ITE(MNG,g,BiddyT(f),BiddyE(f)),Biddy_GetMark(f));
+    }
+
+    if (Biddy_Managed_IsSmaller(MNG,v,fv)) return f;
+
+    e = Biddy_Managed_Compose(MNG,BiddyE(f),v,g);
+    t = Biddy_Managed_Compose(MNG,BiddyT(f),v,g);
+    r = Biddy_NotCond(Biddy_Managed_FoaNode(MNG,fv,e,t,TRUE),Biddy_GetMark(f));
+    BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
+
+    /* CACHE EVERYTHING */
+    addOp3Cache(MNG,biddyRCCache,f,g,h,r);
+
+  } else {
+
+    /* IF THE RESULT IS FROM CACHE TABLE, FRESH IT! */
+    BiddyRefresh(MNG,r);
+
   }
-
-  if (Biddy_Managed_IsSmaller(MNG,v,fv)) return f;
-
-  e = Biddy_Managed_Compose(MNG,BiddyE(f),v,g);
-  t = Biddy_Managed_Compose(MNG,BiddyT(f),v,g);
-  r = Biddy_NotCond(Biddy_Managed_FoaNode(MNG,fv,e,t,TRUE),Biddy_GetMark(f));
-  BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
 
   return r;
 }
@@ -2144,10 +2265,10 @@ Biddy_Managed_Compose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
        Boolean function.
 
 ### Description
+    Original BDD is not changed!
     Be careful: ExA F != NOT(ExA (NOT F)).
     Counterexample: Exb (AND (NOT a) b c).
 ### Side effects
-    Cache table is not used, yet.
 ### More info
     Macro Biddy_E(f,v) is defined for use with anonymous manager.
 *******************************************************************************/
@@ -2159,6 +2280,7 @@ extern "C" {
 Biddy_Edge
 Biddy_Managed_E(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
 {
+  Biddy_Edge h;
   Biddy_Edge e, t, r;
   Biddy_Variable fv;
 
@@ -2167,31 +2289,53 @@ Biddy_Managed_E(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_E): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f &&!BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_E): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   /* LOOKING FOR TERMINAL CASE */
-  if (Biddy_IsConstant(f)) return f;
+  if (f && Biddy_IsConstant(f)) return f;
 
-  /* THE USAGE OF EAX CACHE IS NOT IMPLEMENTED, YET */
+  h = biddyVariableTable.table[v].terminal;
 
-  if ((fv=Biddy_GetTopVariable(f)) == v) {
-    return Biddy_Managed_ITE(MNG,
-                     Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),
-                     biddyOne,
-                     Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)));
+  /* IF RESULT IS NOT IN THE CACHE TABLE... */
+  if ((((uintptr_t) f) > ((uintptr_t) biddyOne)) ?
+      !findOp3Cache(MNG,biddyEACache,biddyOne,f,h,&r) :
+      !findOp3Cache(MNG,biddyEACache,f,biddyOne,h,&r))
+  {
+
+    if ((fv=Biddy_GetTopVariable(f)) == v) {
+      return Biddy_Managed_ITE(MNG,
+                       Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),
+                       biddyOne,
+                       Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)));
+    }
+
+    if (Biddy_Managed_IsSmaller(MNG,v,fv)) return f;
+
+    e = Biddy_Managed_E(MNG,Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),v);
+    t = Biddy_Managed_E(MNG,Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),v);
+    r = Biddy_Managed_ITE(MNG,Biddy_Managed_FoaNode(MNG,fv,biddyZero,biddyOne,TRUE),t,e);
+    BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
+
+    /* CACHE EVERYTHING */
+    if (((uintptr_t) f) > ((uintptr_t) biddyOne)) {
+      addOp3Cache(MNG,biddyEACache,biddyOne,f,h,r);
+    } else {
+      addOp3Cache(MNG,biddyEACache,f,biddyOne,h,r);
+    }
+
+  } else {
+
+    /* IF THE RESULT IS FROM CACHE TABLE, FRESH IT! */
+    BiddyRefresh(MNG,r);
+
   }
-
-  if (Biddy_Managed_IsSmaller(MNG,v,fv)) return f;
-
-  e = Biddy_Managed_E(MNG,Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),v);
-  t = Biddy_Managed_E(MNG,Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),v);
-  r = Biddy_Managed_ITE(MNG,Biddy_Managed_FoaNode(MNG,fv,biddyZero,biddyOne,TRUE),t,e);
-  BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
 
   return r;
 }
@@ -2205,10 +2349,10 @@ Biddy_Managed_E(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
        Boolean function.
 
 ### Description
+    Original BDD is not changed!
     Be careful: AxA F != NOT(AxA (NOT F)).
     Counterexample: Axb (AND (NOT a) b c).
 ### Side effects
-    Cache table is not used, yet.
 ### More info
     Macro Biddy_A(f,v) is defined for use with anonymous manager.
 *******************************************************************************/
@@ -2220,39 +2364,28 @@ extern "C" {
 Biddy_Edge
 Biddy_Managed_A(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
 {
-  Biddy_Edge e, t, r;
-  Biddy_Variable fv;
+  Biddy_Edge r;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_A): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_A): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   /* LOOKING FOR TERMINAL CASE */
-  if (Biddy_IsConstant(f)) return f;
+  if (f && Biddy_IsConstant(f)) return f;
 
-  /* THE USAGE OF EAX CACHE IS NOT IMPLEMENTED, YET */
-
-  if ((fv=Biddy_GetTopVariable(f)) == v) {
-    return Biddy_Managed_ITE(MNG,
-                     Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),
-                     Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),
-                     biddyZero);
-  }
-
-  if (Biddy_Managed_IsSmaller(MNG,v,fv)) return f;
-
-  e = Biddy_Managed_A(MNG,Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),v);
-  t = Biddy_Managed_A(MNG,Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),v);
-  r = Biddy_Managed_ITE(MNG,Biddy_Managed_FoaNode(MNG,fv,biddyZero,biddyOne,TRUE),t,e);
-  BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
+  /* PROCEED BY CALCULATING NOT (EX v NOT f) */
+  r = Biddy_Managed_E(MNG,Biddy_Not(f),v);
+  r = Biddy_Not(r);
 
   return r;
 }
@@ -2288,7 +2421,7 @@ Biddy_Managed_IsVariableDependent(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variabl
   if (!MNG) MNG = biddyAnonymousManager;
 
   r = Biddy_Managed_A(MNG,f,v);
-  return Biddy_IsEqv(r,biddyZero);
+  return (r == biddyZero);
 }
 
 #ifdef __cplusplus
@@ -2301,7 +2434,7 @@ Biddy_Managed_IsVariableDependent(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variabl
 
 ### Description
 ### Side effects
-    Cache table is not implemented, yet.
+    Original BDD is not changed!
 ### More info
     Macro Biddy_ExistAbstract(f,cube) is defined for use with anonymous manager.
 *******************************************************************************/
@@ -2321,41 +2454,64 @@ Biddy_Managed_ExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_ExistAbstract): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_ExistAbstract): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   /* LOOKING FOR TERMINAL CASE */
   if (Biddy_IsConstant(f)) return f;
 
-  fv = Biddy_GetTopVariable(f);
-  cv = Biddy_GetTopVariable(cube);
+  /* IF RESULT IS NOT IN THE CACHE TABLE... */
+  if ((((uintptr_t) f) > ((uintptr_t) biddyOne)) ?
+      !findOp3Cache(MNG,biddyEACache,biddyOne,f,cube,&r) :
+      !findOp3Cache(MNG,biddyEACache,f,biddyOne,cube,&r))
+  {
 
-  while (!Biddy_IsConstant(cube) && Biddy_Managed_IsSmaller(MNG,cv,fv)) {
-    cube = BiddyT(cube);
-  }
-  if (Biddy_IsConstant(cube)) return f;
+    fv = Biddy_GetTopVariable(f);
+    cv = Biddy_GetTopVariable(cube);
 
-  if (cv == fv) {
-    
-    e = Biddy_Managed_ExistAbstract(MNG,
-          Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),BiddyT(cube));
-    t = Biddy_Managed_ExistAbstract(MNG,
-          Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),BiddyT(cube));
-    r = Biddy_Managed_ITE(MNG,t,biddyOne,e);
+    while (!Biddy_IsConstant(cube) && Biddy_Managed_IsSmaller(MNG,cv,fv)) {
+      cube = BiddyT(cube);
+      cv = Biddy_GetTopVariable(cube);
+    }
+    if (Biddy_IsConstant(cube)) return f;
+
+    if (cv == fv) {
+      
+      e = Biddy_Managed_ExistAbstract(MNG,
+            Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),BiddyT(cube));
+      t = Biddy_Managed_ExistAbstract(MNG,
+            Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),BiddyT(cube));
+      r = Biddy_Managed_ITE(MNG,t,biddyOne,e);
+
+    } else {
+
+      e = Biddy_Managed_ExistAbstract(MNG,
+            Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),cube);
+      t = Biddy_Managed_ExistAbstract(MNG,
+            Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),cube);
+      r = Biddy_Managed_FoaNode(MNG,fv,biddyZero,biddyOne,TRUE); /* terminal node */
+      BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
+      r = Biddy_Managed_ITE(MNG,r,t,e);
+
+    }
+
+    /* CACHE EVERYTHING */
+    if (((uintptr_t) f) > ((uintptr_t) biddyOne)) {
+      addOp3Cache(MNG,biddyEACache,biddyOne,f,cube,r);
+    } else {
+      addOp3Cache(MNG,biddyEACache,f,biddyOne,cube,r);
+    }
 
   } else {
 
-    e = Biddy_Managed_ExistAbstract(MNG,
-          Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),cube);
-    t = Biddy_Managed_ExistAbstract(MNG,
-          Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),cube);
-    r = Biddy_Managed_FoaNode(MNG,fv,biddyZero,biddyOne,TRUE);
-    BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
-    r = Biddy_Managed_ITE(MNG,r,t,e);
+    /* IF THE RESULT IS FROM CACHE TABLE, FRESH IT! */
+    BiddyRefresh(MNG,r);
 
   }
 
@@ -2372,7 +2528,7 @@ Biddy_Managed_ExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
 
 ### Description
 ### Side effects
-    Cache table is not implemented, yet.
+    Original BDD is not changed!
 ### More info
     Macro Biddy_UnivAbstract(f,cube) is defined for use with anonymous manager.
 *******************************************************************************/
@@ -2384,51 +2540,28 @@ extern "C" {
 Biddy_Edge
 Biddy_Managed_UnivAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
 {
-  Biddy_Edge e, t, r;
-  Biddy_Variable fv,cv;
+  Biddy_Edge r;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_UnivAbstract): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_UnivAbstract): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   /* LOOKING FOR TERMINAL CASE */
   if (Biddy_IsConstant(f)) return f;
 
-  fv = Biddy_GetTopVariable(f);
-  cv = Biddy_GetTopVariable(cube);
-
-  while (!Biddy_IsConstant(cube) && Biddy_Managed_IsSmaller(MNG,cv,fv)) {
-    cube = BiddyT(cube);
-  }
-  if (Biddy_IsConstant(cube)) return f;
-
-  if (cv == fv) {
-    
-    e = Biddy_Managed_UnivAbstract(MNG,
-          Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),BiddyT(cube));
-    t = Biddy_Managed_UnivAbstract(MNG,
-          Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),BiddyT(cube));
-    r = Biddy_Managed_ITE(MNG,t,e,biddyZero);
-
-  } else {
-
-    e = Biddy_Managed_UnivAbstract(MNG,
-          Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)),cube);
-    t = Biddy_Managed_UnivAbstract(MNG,
-          Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)),cube);
-    r = Biddy_Managed_FoaNode(MNG,fv,biddyZero,biddyOne,TRUE);
-    BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
-    r = Biddy_Managed_ITE(MNG,r,t,e);
-
-  }
+  /* PROCEED BY CALCULATING NOT (EX cube NOT f) */
+  r = Biddy_Managed_ExistAbstract(MNG,Biddy_Not(f),cube);
+  r = Biddy_Not(r);
 
   return r;
 }
@@ -2443,7 +2576,6 @@ Biddy_Managed_UnivAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
 
 ### Description
 ### Side effects
-    Cache table is not implemented, yet.
 ### More info
     Macro Biddy_AndAbstract(f,g,cube) is defined for use with anonymous manager.
 *******************************************************************************/
@@ -2465,85 +2597,113 @@ Biddy_Managed_AndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_AndAbstract): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-
   if (!g) {
     fprintf(stdout,"ERROR (Biddy_Managed_AndAbstract): g = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_AndAbstract): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-
-  if (!BiddyIsOK(g)) {
+  if (g && !BiddyIsOK(g)) {
     fprintf(stdout,"ERROR (Biddy_Managed_AndAbstract): Bad g\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   /* LOOKING FOR TERMINAL CASE */
-  if (Biddy_IsEqv(f,biddyZero) || Biddy_IsEqv(g,biddyZero)) {
+  if ((f == biddyZero) || (g == biddyZero)) {
     return biddyZero;
   }
-  if (Biddy_IsEqv(f,biddyOne) && Biddy_IsEqv(g,biddyOne)) {
-    return biddyOne;
+
+  if (f == biddyOne) {
+    return Biddy_Managed_ExistAbstract(MNG,g,cube);
   }
 
-  fv = Biddy_GetTopVariable(f);
-  gv = Biddy_GetTopVariable(g);
+  if (g == biddyOne) {
+    return Biddy_Managed_ExistAbstract(MNG,f,cube);
+  }
 
-  if (Biddy_Managed_IsSmaller(MNG,fv,gv)) {
-    f0 = Biddy_NotCond(BiddyE(f),Biddy_GetMark(f));
-    f1 = Biddy_NotCond(BiddyT(f),Biddy_GetMark(f));
-    g0 = g;
-    g1 = g;
-    minv = fv;
-  } else if (Biddy_Managed_IsSmaller(MNG,gv,fv)) {
-    f0 = f;
-    f1 = f;
-    g0 = Biddy_NotCond(BiddyE(g),Biddy_GetMark(g));
-    g1 = Biddy_NotCond(BiddyT(g),Biddy_GetMark(g));
-    minv = gv;
+  /* NORMALIZATION */
+
+  if (((uintptr_t) f) > ((uintptr_t) g)) {
+    exchangeEdges(&f,&g);
+  }
+
+  /* IF RESULT IS NOT IN THE CACHE TABLE... */
+  if (!findOp3Cache(MNG,biddyEACache,f,g,cube,&r))
+  {
+
+    fv = Biddy_GetTopVariable(f);
+    gv = Biddy_GetTopVariable(g);
+
+    if (Biddy_Managed_IsSmaller(MNG,fv,gv)) {
+      f0 = Biddy_NotCond(BiddyE(f),Biddy_GetMark(f));
+      f1 = Biddy_NotCond(BiddyT(f),Biddy_GetMark(f));
+      g0 = g;
+      g1 = g;
+      minv = fv;
+    } else if (Biddy_Managed_IsSmaller(MNG,gv,fv)) {
+      f0 = f;
+      f1 = f;
+      g0 = Biddy_NotCond(BiddyE(g),Biddy_GetMark(g));
+      g1 = Biddy_NotCond(BiddyT(g),Biddy_GetMark(g));
+      minv = gv;
+    } else {
+      f0 = Biddy_NotCond(BiddyE(f),Biddy_GetMark(f));
+      f1 = Biddy_NotCond(BiddyT(f),Biddy_GetMark(f));
+      g0 = Biddy_NotCond(BiddyE(g),Biddy_GetMark(g));
+      g1 = Biddy_NotCond(BiddyT(g),Biddy_GetMark(g));
+      minv = fv;
+    }
+
+    cv = Biddy_GetTopVariable(cube);
+
+    while (!Biddy_IsConstant(cube) && Biddy_Managed_IsSmaller(MNG,cv,minv)) {
+      cube = BiddyT(cube);
+      cv = Biddy_GetTopVariable(cube);
+    }
+
+    if (Biddy_IsConstant(cube)) {
+      return Biddy_Managed_ITE(MNG,f,g,biddyZero);
+    }
+
+    if (minv == cv) {
+
+      /* Tricky optimizations are from: */
+      /* B. Yang et al. A Performance Study of BDD-Based Model Checking. 1998. */
+      /* http://fmv.jku.at/papers/YangEtAl-FMCAD98.pdf */
+
+      e = Biddy_Managed_AndAbstract(MNG,f0,g0,BiddyT(cube));
+      if (e == biddyOne) return biddyOne;
+      if ((e == f1) || (e == g1)) return e;
+      if (e == Biddy_Not(f1)) f1 = biddyOne;
+      if (e == Biddy_Not(g1)) g1 = biddyOne;
+      t = Biddy_Managed_AndAbstract(MNG,f1,g1,BiddyT(cube));
+      r = Biddy_Managed_ITE(MNG,t,biddyOne,e);
+
+    } else {
+
+      e = Biddy_Managed_AndAbstract(MNG,f0,g0,cube);
+      t = Biddy_Managed_AndAbstract(MNG,f1,g1,cube);
+      r = Biddy_Managed_FoaNode(MNG,minv,biddyZero,biddyOne,TRUE); /* terminal node */
+      BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
+      r = Biddy_Managed_ITE(MNG,r,t,e);
+
+    }
+
+    /* CACHE EVERYTHING */
+    addOp3Cache(MNG,biddyEACache,f,g,cube,r);
+
   } else {
-    f0 = Biddy_NotCond(BiddyE(f),Biddy_GetMark(f));
-    f1 = Biddy_NotCond(BiddyT(f),Biddy_GetMark(f));
-    g0 = Biddy_NotCond(BiddyE(g),Biddy_GetMark(g));
-    g1 = Biddy_NotCond(BiddyT(g),Biddy_GetMark(g));
-    minv = fv;
-  }
-  
-  cv = Biddy_GetTopVariable(cube);
 
-  while (!Biddy_IsConstant(cube) && Biddy_Managed_IsSmaller(MNG,cv,minv)) {
-    cube = BiddyT(cube);
-  }
-
-  if (Biddy_IsConstant(cube)) {
-    return Biddy_Managed_ITE(MNG,f,g,biddyZero);
-  }
-
-  if (minv == cv) {
-
-    /* Tricky optimizations are from: */
-    /* B. Yang et al. A Performance Study of BDD-Based Model Checking. 1998. */
-    /* http://fmv.jku.at/papers/YangEtAl-FMCAD98.pdf */
-
-    e = Biddy_Managed_AndAbstract(MNG,f0,g0,BiddyT(cube));
-    if (Biddy_IsEqv(e,biddyOne)) return biddyOne;
-    if (Biddy_IsEqv(e,f1) || Biddy_IsEqv(e,g1)) return e;
-    if (Biddy_IsEqv(e,Biddy_Not(f1))) f1 = biddyOne;
-    if (Biddy_IsEqv(e,Biddy_Not(g1))) g1 = biddyOne;
-    t = Biddy_Managed_AndAbstract(MNG,f1,g1,BiddyT(cube));
-    r = Biddy_Managed_ITE(MNG,t,biddyOne,e);
-
-  } else {
-
-    e = Biddy_Managed_AndAbstract(MNG,f0,g0,cube);
-    t = Biddy_Managed_AndAbstract(MNG,f1,g1,cube);
-    r = Biddy_Managed_FoaNode(MNG,minv,biddyZero,biddyOne,TRUE);
-    BiddyRefresh(MNG,r); /* FoaNode will not refresh function! */
-    r = Biddy_Managed_ITE(MNG,r,t,e);
+    /* IF THE RESULT IS FROM CACHE TABLE, FRESH IT! */
+    BiddyRefresh(MNG,r);
 
   }
 
@@ -2590,26 +2750,28 @@ Biddy_Managed_Constrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_Constrain): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-
   if (!c) {
     fprintf(stdout,"ERROR (Biddy_Managed_Constrain): c = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Constrain): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-
-  if (!BiddyIsOK(c)) {
+  if (c && !BiddyIsOK(c)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Constrain): Bad c\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   /* LOOKING FOR TERMINAL CASE */
-  if (Biddy_IsEqv(c,biddyZero)) return biddyZero;
-  if (Biddy_IsEqv(c,biddyOne)) return f;
+  if (c == biddyZero) return biddyZero;
+  if (c == biddyOne) return f;
   if (Biddy_IsConstant(f)) return f;
 
   fv = Biddy_GetTopVariable(f);
@@ -2635,8 +2797,8 @@ Biddy_Managed_Constrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
     minv = cv;
   }
 
-  if (Biddy_IsEqv(c0,biddyZero)) return Biddy_Managed_Constrain(MNG,f1,c1);
-  if (Biddy_IsEqv(c1,biddyZero)) return Biddy_Managed_Constrain(MNG,f0,c0);
+  if (c0 == biddyZero) return Biddy_Managed_Constrain(MNG,f1,c1);
+  if (c1 == biddyZero) return Biddy_Managed_Constrain(MNG,f0,c0);
 
   e = Biddy_Managed_Constrain(MNG,f0,c0);
   t = Biddy_Managed_Constrain(MNG,f1,c1);
@@ -2681,32 +2843,34 @@ Biddy_Managed_Simplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_Simplify): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-
   if (!c) {
     fprintf(stdout,"ERROR (Biddy_Managed_Simplify): c = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Simplify): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
-
-  if (!BiddyIsOK(c)) {
+  if (c && !BiddyIsOK(c)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Simplify): Bad c\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   /* LOOKING FOR TERMINAL CASE */
-  if (Biddy_IsEqv(c,biddyZero)) return biddyNull;
-  if (Biddy_IsEqv(c,biddyOne)) return f;
+  if (c == biddyZero) return biddyNull;
+  if (c == biddyOne) return f;
   if (Biddy_IsConstant(f)) return f;
 
   /* THIS IS FROM 20-CS-626-001 */
   /* http://gauss.ececs.uc.edu/Courses/c626/lectures/BDD/bdd-desc.pdf */
-  if (Biddy_IsEqv(f,c)) return biddyOne;
-  if (Biddy_IsEqv(f,Biddy_Not(c))) return biddyZero;
+  if (f == c) return biddyOne;
+  if (f == Biddy_Not(c)) return biddyZero;
 
   fv = Biddy_GetTopVariable(f);
   cv = Biddy_GetTopVariable(c);
@@ -2730,8 +2894,8 @@ Biddy_Managed_Simplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
     minv = cv;
   }
 
-  if (Biddy_IsEqv(c0,biddyZero)) return Biddy_Managed_Simplify(MNG,f1,c1);
-  if (Biddy_IsEqv(c1,biddyZero)) return Biddy_Managed_Simplify(MNG,f0,c0);
+  if (c0 == biddyZero) return Biddy_Managed_Simplify(MNG,f1,c1);
+  if (c1 == biddyZero) return Biddy_Managed_Simplify(MNG,f0,c0);
 
   e = Biddy_Managed_Simplify(MNG,f0,c0);
   t = Biddy_Managed_Simplify(MNG,f1,c1);
@@ -2772,11 +2936,13 @@ Biddy_Managed_Support(Biddy_Manager MNG, Biddy_Edge f)
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_Support): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Support): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   if (Biddy_IsNull(f)) return biddyNull;
@@ -2814,6 +2980,7 @@ Biddy_Managed_Support(Biddy_Manager MNG, Biddy_Edge f)
        replaced.
 
 ### Description
+    Original BDD is not changed!
     Replacing is controlled by variable's values (which are edges!).
     Use Biddy_Managed_ResetVariablesValue and Biddy_Managed_SetVariableValue
     to prepare replacing. Current and new variables should be disjoint sets.
@@ -2838,17 +3005,19 @@ Biddy_Managed_Replace(Biddy_Manager MNG, Biddy_Edge f)
   if (!f) {
     fprintf(stdout,"ERROR (Biddy_Managed_Replace): f = NULL!\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (!BiddyIsOK(f)) {
+  if (f && !BiddyIsOK(f)) {
     fprintf(stdout,"ERROR (Biddy_Managed_Replace): Bad f\n");
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
-  if (Biddy_IsConstant(f)) return f;
+  if (f && Biddy_IsConstant(f)) return f;
 
   fv=Biddy_GetTopVariable(f);
-  if (!Biddy_IsEqv((r=biddyVariableTable.table[fv].value),biddyZero)) {
+  if ((r=biddyVariableTable.table[fv].value) != biddyZero) {
     fv = Biddy_GetTopVariable(r);
 
     /* DEBUGGING */
@@ -3049,7 +3218,7 @@ Biddy_Managed_Garbage(Biddy_Manager MNG)
       /* DEBUG */
       /*
       sup = biddyVariableTable.table[v].firstNewNode;
-      if (!Biddy_IsEqv(sup->f,biddyZero) || !Biddy_IsEqv(sup->t,biddyOne)) {
+      if ((sup->f != biddyZero) || (sup->t != biddyOne)) {
         fprintf(stderr,"WARNING (Biddy_Managed_Garbage): bad first element in the list\n");
         free((void *)1);
       }
@@ -3098,9 +3267,8 @@ extern "C" {
 void
 Biddy_Managed_Clean(Biddy_Manager MNG)
 {
-  Biddy_Variable v;
-  BiddyNode *sup;
-  unsigned int i,j,n;
+  unsigned int i,j;
+  BiddyFormula *tmp;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -3126,12 +3294,13 @@ Biddy_Managed_Clean(Biddy_Manager MNG)
   }
   if (i != biddyFormulaTable.size) {
     biddyFormulaTable.size = i;
-    if (!(biddyFormulaTable.table = (BiddyFormula *)
+    if (!(tmp = (BiddyFormula *)
        realloc(biddyFormulaTable.table,biddyFormulaTable.size*sizeof(BiddyFormula))))
     {
       fprintf(stderr,"Biddy_Managed_Clean: Out of memoy!\n");
       exit(1);
     }
+    biddyFormulaTable.table = tmp;
   }
 
 }
@@ -3162,6 +3331,7 @@ Biddy_Managed_ClearAll(Biddy_Manager MNG)
   Biddy_Variable v;
   BiddyNode *sup;
   unsigned int i,j,n;
+  BiddyFormula *tmp;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -3188,12 +3358,13 @@ Biddy_Managed_ClearAll(Biddy_Manager MNG)
   }
   if (i != biddyFormulaTable.size) {
     biddyFormulaTable.size = i;
-    if (!(biddyFormulaTable.table = (BiddyFormula *)
+    if (!(tmp = (BiddyFormula *)
        realloc(biddyFormulaTable.table,biddyFormulaTable.size*sizeof(BiddyFormula))))
     {
       fprintf(stderr,"Biddy_Managed_ClearAll: Out of memoy!\n");
       exit(1);
     }
+    biddyFormulaTable.table = tmp;
   }
 
   /* 2. FRESH ALL NODES INCLUDING PROLONGED AND FORTIFIED NODES */
@@ -3315,7 +3486,7 @@ extern "C" {
 Biddy_Boolean
 Biddy_Managed_FindFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge *f)
 {
-  int i;
+  unsigned int i;
   Biddy_Boolean OK;
   int cc;
 
@@ -3403,6 +3574,7 @@ Biddy_Managed_AddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f,
   unsigned int i,j;
   Biddy_Boolean OK;
   int cc;
+  BiddyFormula *tmp;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -3506,14 +3678,16 @@ Biddy_Managed_AddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f,
 
   /* element must be added */
   biddyFormulaTable.size++;
-  if (!(biddyFormulaTable.table = (BiddyFormula *)
+  if (!(tmp = (BiddyFormula *)
      realloc(biddyFormulaTable.table,biddyFormulaTable.size*sizeof(BiddyFormula))))
   {
     fprintf(stderr,"Biddy_Managed_AddFormula: Out of memoy!\n");
     exit(1);
   }
+  biddyFormulaTable.table = tmp;
 
   for (j = biddyFormulaTable.size-1; j > i; j--) {
+#pragma warning(suppress: 6386)
     biddyFormulaTable.table[j] = biddyFormulaTable.table[j-1];
   }
 
@@ -3571,10 +3745,9 @@ extern "C" {
 Biddy_Boolean
 Biddy_Managed_DeleteFormula(Biddy_Manager MNG, Biddy_String x)
 {
-  unsigned int i,j;
+  unsigned int i;
   Biddy_Boolean OK;
   int cc;
-  Biddy_Edge f;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -3640,8 +3813,6 @@ Biddy_Boolean
 Biddy_Managed_DeleteIthFormula(Biddy_Manager MNG, unsigned int i)
 {
   Biddy_Boolean OK;
-  Biddy_Edge f;
-  Biddy_String name;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -3911,7 +4082,10 @@ Biddy_Managed_Sifting(Biddy_Manager MNG, Biddy_Edge f)
       spr = BiddyT(spr);
     }
 
-    fOrdering = (BiddyOrderingTable *) malloc(sizeof(BiddyOrderingTable));
+    if (!(fOrdering = (BiddyOrderingTable *)malloc(sizeof(BiddyOrderingTable)))) {
+      fprintf(stderr, "Biddy_Managed_Sifting: Out of memoy!\n");
+      exit(1);
+    }
 
     /* determine node number and variable ordering for the specific function */
     /* fOrdering is the same ordering as biddyOrderingTable, but it */
@@ -3950,10 +4124,12 @@ Biddy_Managed_Sifting(Biddy_Manager MNG, Biddy_Edge f)
     if (minvarOrder != 1) {
       fprintf(stdout,"ERROR (Biddy_Managed_Sifting): minvarOrder %u is wrong\n",minvarOrder);
       free((void *)1); /* BREAKPOINT */
+      exit(1);
     }
     if (maxvarOrder != Biddy_Managed_VariableTableNum(MNG)) {
       fprintf(stdout,"ERROR (Biddy_Managed_Sifting): maxvarOrder %u is wrong\n",maxvarOrder);
       free((void *)1); /* BREAKPOINT */
+      exit(1);
     }
   }
 
@@ -3969,7 +4145,7 @@ Biddy_Managed_Sifting(Biddy_Manager MNG, Biddy_Edge f)
     printf("MINIMIZING NODE NUMBER FOR THE GIVEN FUNCTION\n");
     for (n=0;n<biddyFormulaTable.size;n++) {
       formula = biddyFormulaTable.table[n];
-      if (Biddy_IsEqv(formula.f,f)) {
+      if (formula.f == f) {
         if (formula.name) {
            printf("Formula name: %s\n",formula.name);
         } else {
@@ -4729,10 +4905,8 @@ BiddyIncCounter(Biddy_Manager MNG)
 void
 BiddyDecCounter(Biddy_Manager MNG)
 {
-  Biddy_Variable v;
-
   if (--biddyCount < 1) {
-    printf("ERROR (BiddyDecCounter): biddyCount is wring");
+    printf("ERROR (BiddyDecCounter): biddyCount is wrong");
   }
 }
 
@@ -4764,7 +4938,7 @@ BiddyRefresh(Biddy_Manager MNG, Biddy_Edge f)
 *******************************************************************************/
 
 void
-BiddyProlong(Biddy_Manager MNG, Biddy_Edge f, unsigned int count)
+BiddyProlong(Biddy_Manager MNG, Biddy_Edge f, int count)
 {
   if (((BiddyNode *) Biddy_Regular(f))->count &&
       (((BiddyNode *) Biddy_Regular(f))->count < count))
@@ -4813,7 +4987,6 @@ BiddyRepair1(Biddy_Manager MNG, Biddy_Variable var)
 {
   Biddy_Variable v;
   BiddyNode *sup;
-  unsigned int n;
 
   for (v=1; v<biddyVariableTable.num; v++) {
     if (GET_ORDER(biddyOrderingTable,v,var)) {
@@ -5020,6 +5193,7 @@ BiddyRepair2(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable var, int c)
     Only one local info table may exists! It is not allowed to add new BDD nodes
     if local info table exists. It is not allowed to start GC if local info
     table exists. Function returns number of dependent variables.
+    The last element and only the last element in the table has back = NULL.
 ### Side effects
     Local info for constant node is not created!
 ### More info
@@ -5046,7 +5220,7 @@ BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f)
 
   Biddy_SelectNode(biddyOne);
   BiddyNodeVarNumber(MNG,f,&num); /* NOW, ALL NODES ARE SELECTED */
-  Biddy_DeselectNode(biddyOne); /* REQUIRED FOR createLocalCache */
+  Biddy_DeselectNode(biddyOne); /* REQUIRED FOR createLocalInfo */
 
   var = 0;
   for (i=0;i<biddyVariableTable.num;i++) {
@@ -5057,7 +5231,7 @@ BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f)
   }
 
   if (!(biddyLocalInfo = (BiddyLocalInfo *)
-        malloc(num * sizeof(BiddyLocalInfo)))) {
+        malloc((num+1) * sizeof(BiddyLocalInfo)))) {
     fprintf(stderr,"BiddyCreateLocalInfo: Out of memoy!\n");
     exit(1);
   }
@@ -5066,12 +5240,13 @@ BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f)
     fprintf(stderr,"ERROR: createLocalInfo returns NULL\n");
     exit(1);
   }
-  
+  biddyLocalInfo[num].back = NULL;
+
   return var;
 }
 
 /*******************************************************************************
-\brief Function BiddyDeleteLocalCache deletes local info table for the given
+\brief Function BiddyDeleteLocalInfo deletes local info table for the given
        function.
 
 ### Description
@@ -5098,20 +5273,99 @@ BiddyDeleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f)
 }
 
 /*******************************************************************************
+\brief Function BiddyGetSeqByNode returns seq number of a given node.
+
+### Description
+### Side effects
+    Local info must be created before using this function.
+    This should not be called for constant node because constant node does
+    not have local info!
+### More info
+*******************************************************************************/
+
+unsigned int
+BiddyGetSeqByNode(Biddy_Edge root, Biddy_Edge f)
+{
+  unsigned int n;
+
+  n = (unsigned int)
+      (((uintptr_t)(((BiddyNode *)Biddy_Regular(f))->list)) -
+       ((uintptr_t)(((BiddyNode *)Biddy_Regular(root))->list))
+      ) / sizeof(BiddyLocalInfo);
+
+  return n;
+}
+
+/*******************************************************************************
+\brief Function BiddyGetNodeBySeq returns node with a given seq number.
+
+### Description
+### Side effects
+    Local info must be created before using this function.
+    Function fails if node with a given seq number does not exist.
+### More info
+*******************************************************************************/
+
+Biddy_Edge
+BiddyGetNodeBySeq(Biddy_Edge root, unsigned int n)
+{
+  return (Biddy_Edge)(((BiddyLocalInfo *)
+    (((BiddyNode *)Biddy_Regular(root))->list))[n].back);
+}
+
+/*******************************************************************************
+\brief Function BiddySetEnumerator is used in enumerateNodes.
+
+### Description
+### Side effects
+Local info must be created before using this function.
+This should not be called for constant node because constant node does
+not have local info!
+### More info
+*******************************************************************************/
+
+void
+BiddySetEnumerator(Biddy_Edge f, unsigned int n)
+{
+  ((BiddyLocalInfo *)(((BiddyNode *)Biddy_Regular(f))->list))->data.enumerator = n;
+}
+
+/*******************************************************************************
+\brief Function BiddyGetEnumerator is used in enumerateNodes.
+
+### Description
+### Side effects
+Local info must be created before using this function.
+This should not be called for constant node because constant node does
+not have local info!
+### More info
+*******************************************************************************/
+
+unsigned int
+BiddyGetEnumerator(Biddy_Edge f)
+{
+  return ((BiddyLocalInfo *)(((BiddyNode *)Biddy_Regular(f))->list))->data.enumerator;
+}
+
+/*******************************************************************************
 \brief Function BiddySetMintermCount is used in mintermCount().
 
 ### Description
 ### Side effects
+    Local info must be created before using this function.
+    We are using GNU Multiple Precision Arithmetic Library (GMP).
     This should not be called for constant node because constant node does
     not have local info!
 ### More info
 *******************************************************************************/
 
 void
-BiddySetMintermCount(Biddy_Edge f, double value)
+BiddySetMintermCount(Biddy_Edge f, mpz_t value)
 {
-  ((BiddyLocalInfo *)
-    (((BiddyNode *) Biddy_Regular(f))->list))->data.mintermCount = value;
+  mpz_init(((BiddyLocalInfo *)
+    (((BiddyNode *) Biddy_Regular(f))->list))->data.mintermCount);
+  mpz_set(((BiddyLocalInfo *)
+    (((BiddyNode *) Biddy_Regular(f))->list))->data.mintermCount,value);
 }
 
 /*******************************************************************************
@@ -5119,16 +5373,18 @@ BiddySetMintermCount(Biddy_Edge f, double value)
 
 ### Description
 ### Side effects
+    Local info must be created before using this function.
+    We are using GNU Multiple Precision Arithmetic Library (GMP).
     This should not be called for constant node because constant node does
     not have local info!
 ### More info
 *******************************************************************************/
 
-double
-BiddyGetMintermCount(Biddy_Edge f)
+void
+BiddyGetMintermCount(Biddy_Edge f, mpz_t result)
 {
-  return ((BiddyLocalInfo *)
-    (((BiddyNode *) Biddy_Regular(f))->list))->data.mintermCount;
+  mpz_set(result,((BiddyLocalInfo *)
+    (((BiddyNode *) Biddy_Regular(f))->list))->data.mintermCount);
 }
 
 /*******************************************************************************
@@ -5136,6 +5392,7 @@ BiddyGetMintermCount(Biddy_Edge f)
 
 ### Description
 ### Side effects
+    Local info must be created before using this function.
     This should not be called for constant node because constant node does
     not have local info!
 ### More info
@@ -5145,11 +5402,11 @@ void
 BiddySetNodePlainSelected(Biddy_Edge f)
 {
   if (Biddy_GetMark(f)) {
-    ((BiddyLocalInfo *)
-      (((BiddyNode *) Biddy_Regular(f))->list))->negativeSelected = TRUE;
+    (((BiddyLocalInfo *)
+      (((BiddyNode *) Biddy_Regular(f))->list))->data.npSelected) |= (unsigned int) 2;
   } else {
-    ((BiddyLocalInfo *)
-      (((BiddyNode *) Biddy_Regular(f))->list))->positiveSelected = TRUE;
+    (((BiddyLocalInfo *)
+      (((BiddyNode *) Biddy_Regular(f))->list))->data.npSelected) |= (unsigned int) 1;
   }
 }
 
@@ -5158,6 +5415,7 @@ BiddySetNodePlainSelected(Biddy_Edge f)
 
 ### Description
 ### Side effects
+    Local info must be created before using this function.
     This should not be called for constant node because constant node does
     not have local info!
 ### More info
@@ -5169,48 +5427,18 @@ BiddyGetNodePlainSelected(Biddy_Edge f)
   Biddy_Boolean r;
   
   if (Biddy_GetMark(f)) {
-    r = ((BiddyLocalInfo *)
-      (((BiddyNode *) Biddy_Regular(f))->list))->negativeSelected;
+    r = ((((BiddyLocalInfo *)
+          (((BiddyNode *) Biddy_Regular(f))->list))->data.npSelected
+         ) & (unsigned int) 2
+        ) != 0;
   } else {
-    r = ((BiddyLocalInfo *)
-      (((BiddyNode *) Biddy_Regular(f))->list))->positiveSelected;
+    r = ((((BiddyLocalInfo *)
+          (((BiddyNode *) Biddy_Regular(f))->list))->data.npSelected
+         ) & (unsigned int) 1
+        ) != 0;
   }
   
   return r;
-}
-
-/*******************************************************************************
-\brief Function BiddySetNodePlainCount is used in nodePlainNumber().
-
-### Description
-### Side effects
-    This should not be called for constant node because constant node does
-    not have local info!
-### More info
-*******************************************************************************/
-
-void
-BiddySetNodePlainCount(Biddy_Edge f, unsigned int n)
-{
-  ((BiddyLocalInfo *)
-    (((BiddyNode *) Biddy_Regular(f))->list))->data.nodePlainCount = n;
-}
-
-/*******************************************************************************
-\brief Function BiddyGetNodePlainCount is used in nodePlainNumber().
-
-### Description
-### Side effects
-    This should not be called for constant node because constant node does
-    not have local info!
-### More info
-*******************************************************************************/
-
-unsigned int
-BiddyGetNodePlainCount(Biddy_Edge f)
-{
-  return ((BiddyLocalInfo *)
-    (((BiddyNode *) Biddy_Regular(f))->list))->data.nodePlainCount;
 }
 
 /*******************************************************************************
@@ -5284,11 +5512,13 @@ BiddySystemReport(Biddy_Manager MNG)
     if (!sup) {
       fprintf(stderr,"ERROR (BiddySystemReport): Empty list\n");
       free((void *)1); /* BREAKPOINT */
+      exit(1);
     }
 
-    if (!Biddy_IsEqv(sup->f,biddyZero) || !Biddy_IsEqv(sup->t,biddyOne)) {
+    if ((sup->f != biddyZero) || (sup->t != biddyOne)) {
       fprintf(stderr,"ERROR (BiddySystemReport): Bad first element in the list\n");
       free((void *)1); /* BREAKPOINT */
+      exit(1);
     }
 
     if (sup == biddyVariableTable.table[v].freshNodes) {
@@ -5308,6 +5538,7 @@ BiddySystemReport(Biddy_Manager MNG)
           Biddy_Managed_GetTopVariableName(MNG,sup->f),
           Biddy_Managed_GetTopVariableName(MNG,sup->t));
         free((void *)1); /* BREAKPOINT */
+        exit(1);
       }
 
       if (fresh && sup->count && (sup->count < biddyCount)) {
@@ -5319,6 +5550,7 @@ BiddySystemReport(Biddy_Manager MNG)
           Biddy_Managed_GetTopVariableName(MNG,sup->f),
           Biddy_Managed_GetTopVariableName(MNG,sup->t));
         free((void *)1); /* BREAKPOINT */
+        exit(1);
       }
 
       if (( !(sup->count) &&
@@ -5340,6 +5572,7 @@ BiddySystemReport(Biddy_Manager MNG)
           Biddy_Managed_GetTopVariableName(MNG,sup->f),((BiddyNode *) Biddy_Regular(sup->f))->count,
           Biddy_Managed_GetTopVariableName(MNG,sup->t),((BiddyNode *) sup->t)->count);
         free((void *)1); /* BREAKPOINT */
+        exit(1);
       }
 
 #ifdef SYSTEMREPORTDETAILS
@@ -5380,6 +5613,7 @@ BiddySystemReport(Biddy_Manager MNG)
           Biddy_Managed_GetTopVariableName(MNG,sup->f),
           Biddy_Managed_GetTopVariableName(MNG,sup->t));
         free((void *)1); /* BREAKPOINT */
+        exit(1);
       }
 
       if (sup->count) {
@@ -5390,6 +5624,7 @@ BiddySystemReport(Biddy_Manager MNG)
           Biddy_Managed_GetTopVariableName(MNG,sup->f),((BiddyNode *) Biddy_Regular(sup->f))->count,
           Biddy_Managed_GetTopVariableName(MNG,sup->t),((BiddyNode *) sup->t)->count);
         free((void *)1); /* BREAKPOINT */
+        exit(1);
       }
 
       if (((BiddyNode *) Biddy_Regular(sup->f))->count || ((BiddyNode *) sup->t)->count) {
@@ -5401,6 +5636,7 @@ BiddySystemReport(Biddy_Manager MNG)
           Biddy_Managed_GetTopVariableName(MNG,sup->f),((BiddyNode *) Biddy_Regular(sup->f))->count,
           Biddy_Managed_GetTopVariableName(MNG,sup->t),((BiddyNode *) sup->t)->count);
         free((void *)1); /* BREAKPOINT */
+        exit(1);
       }
 
       if (sup == biddyVariableTable.table[v].freshNodes) {
@@ -5412,6 +5648,7 @@ BiddySystemReport(Biddy_Manager MNG)
           Biddy_Managed_GetTopVariableName(MNG,sup->f),
           Biddy_Managed_GetTopVariableName(MNG,sup->t));
         free((void *)1); /* BREAKPOINT */
+        exit(1);
       }
 
 #ifdef SYSTEMREPORTDETAILS
@@ -5452,6 +5689,7 @@ BiddySystemReport(Biddy_Manager MNG)
         biddyVariableTable.table[v].name,biddyVariableTable.table[v].num);
       fprintf(stderr,"COUNT list= %u, fortified = %u, all = %u\n",count1,count2,count1+count2);
       free((void *)1); /* BREAKPOINT */
+      exit(1);
     }
 
 #ifdef SYSTEMREPORTVERBOSE
@@ -5472,12 +5710,14 @@ BiddySystemReport(Biddy_Manager MNG)
             countfortified+countprolonged+countfresh+countobsolete,
             biddyNodeTable.num);
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
   if (biddyNodeTable.numf != countfortified) {
     fprintf(stderr,"ERROR (BiddySystemReport): number of fortified nodes (%u by lists) differs from numF = %u\n",
             countfortified,
             biddyNodeTable.numf);
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
   /* BDD SYSTEM BY NODE TABLE */
@@ -5547,12 +5787,14 @@ BiddySystemReport(Biddy_Manager MNG)
             countfortified+countprolonged+countfresh+countobsolete,
             biddyNodeTable.num);
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
   if (biddyNodeTable.numf != countfortified) {
     fprintf(stderr,"ERROR (BiddySystemReport): number of fortified nodes (%u by table) differs from numF = %u\n",
             countfortified,
             biddyNodeTable.numf);
     free((void *)1); /* BREAKPOINT */
+    exit(1);
   }
 
 }
@@ -5575,19 +5817,26 @@ void
 BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f)
 {
   unsigned int num;
-  Biddy_Variable k,minvar,maxvar,minvarOrder,maxvarOrder;
+  BiddyOrderingTable *fOrdering;
+#ifdef FUNCTIONREPORTVERBOSE
   Biddy_Boolean stop;
-  BiddyOrderingTable fOrdering;
+  Biddy_Variable k,minvar,maxvar,minvarOrder,maxvarOrder;
+#endif
 
   if (Biddy_IsNull(f)) {
     printf("NULL FUNCTION");
     return;
   }
 
+  if (!(fOrdering = (BiddyOrderingTable *)malloc(sizeof(BiddyOrderingTable)))) {
+    fprintf(stderr, "BiddyFunctionReport: Out of memoy!\n");
+    exit(1);
+  }
+
   /* determine function ordering and node number */
-  nullOrdering(fOrdering);
+  nullOrdering(*fOrdering);
   num = 1;
-  nodeNumberOrdering(f,&num,fOrdering);
+  nodeNumberOrdering(f,&num,*fOrdering);
   Biddy_NodeRepair(f);
 
   printf("FUNCTION: number of nodes: %d, count of top node: %d/%d\n",num,
@@ -5601,7 +5850,7 @@ BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f)
   while (!stop) {
     stop = TRUE;
     for (k=1; k<biddyVariableTable.num; k++) {
-      if (GET_ORDER(fOrdering,maxvar,k)) {
+      if (GET_ORDER(*fOrdering,maxvar,k)) {
         maxvar = k;
         stop = FALSE;
         break;
@@ -5623,6 +5872,8 @@ BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f)
   writeBDD(f);
 #endif
 
+  free(fOrdering);
+
 }
 
 /*----------------------------------------------------------------------------*/
@@ -5638,8 +5889,7 @@ BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f)
 *******************************************************************************/
 
 static unsigned int
-nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
-              unsigned int biddyNodeTableSize)
+nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt, unsigned int size)
 {
   unsigned int hash;
 
@@ -5653,7 +5903,7 @@ nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
   hash = 1 + ((((uintptr_t) v >> 0) +
                ((uintptr_t) pf >> 3) +
                ((uintptr_t) pt >> 5)
-              ) & biddyNodeTableSize);
+              ) & size);
   */
 
 
@@ -5685,7 +5935,7 @@ nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
   k ^= k >> 33;
   k *= 0xc4ceb9fe1a85ec53L;
   k ^= k >> 33;
-  hash = 1 + (k & biddyNodeTableSize);
+  hash = 1 + (k & size);
   }
 
 #else
@@ -5716,7 +5966,7 @@ nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
   k ^= k >> 13;
   k *= 0xc2b2ae35;
   k ^= k >> 16;
-  hash = 1 + (k & biddyNodeTableSize);
+  hash = 1 + (k & size);
   }
 
 #endif
@@ -5726,7 +5976,7 @@ nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
 }
 
 /*******************************************************************************
-\brief Function ITEHash.
+\brief Function op3Hash.
 
 ### Description
 ### Side effects
@@ -5734,8 +5984,7 @@ nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
 *******************************************************************************/
 
 static unsigned int
-ITEHash(Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
-        unsigned int biddyIteCacheSize)
+op3Hash(Biddy_Edge a, Biddy_Edge b, Biddy_Edge c, unsigned int size)
 {
 
   unsigned int indeks;
@@ -5745,7 +5994,7 @@ ITEHash(Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
   indeks = ( (uintptr_t) a +
              ((uintptr_t) b >> 5) +
              ((uintptr_t) c >> 7)
-           ) & biddyIteCacheSize;
+           ) & size;
   */
 
 #if UINTPTR_MAX == 0xffffffffffffffff
@@ -5776,7 +6025,7 @@ ITEHash(Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
   k ^= k >> 33;
   k *= 0xc4ceb9fe1a85ec53L;
   k ^= k >> 33;
-  indeks = k & biddyIteCacheSize;
+  indeks = k & size;
   }
 
 #else
@@ -5807,7 +6056,7 @@ ITEHash(Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
   k ^= k >> 13;
   k *= 0xc2b2ae35;
   k ^= k >> 16;
-  indeks = k & biddyIteCacheSize;
+  indeks = k & size;
   }
 
 #endif
@@ -5949,7 +6198,7 @@ findNodeTable(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
 
   while (sup &&
           (v == sup->v) &&
-          (!Biddy_IsEqv(pf,sup->f) || !Biddy_IsEqv(pt,sup->t))
+          ((pf != sup->f) || (pt != sup->t))
         )
   /**/
 
@@ -5961,8 +6210,8 @@ findNodeTable(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
 
   /*
   while (sup && (
-          !Biddy_IsEqv(pf,sup->f) ||
-          !Biddy_IsEqv(pt,sup->t) ||
+          (pf != sup->f) ||
+          (pt != sup->t) ||
           (v != sup->v)
         ))
   */
@@ -5982,7 +6231,8 @@ findNodeTable(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
 }
 
 /*******************************************************************************
-\brief Function addIteCache adds a result to the ITE cache.
+\brief Function addOp3Cache adds a result to the cache table for
+       three-arguments operations.
 
 ### Description
 ### Side effects
@@ -5990,21 +6240,21 @@ findNodeTable(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt,
 *******************************************************************************/
 
 static void
-addITECache(Biddy_Manager MNG, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
-            Biddy_Edge r)
+addOp3Cache(Biddy_Manager MNG, BiddyOp3CacheTable cache, Biddy_Edge a,
+            Biddy_Edge b, Biddy_Edge c, Biddy_Edge r)
 {
   unsigned int indeks;
   BiddyOp3Cache *p;
 
   /* THIS IS HASH FUNCTION */
-  /* MUST BE THE SAME AS IN FindIteCache! */
+  /* MUST BE THE SAME AS IN findOp3Cache! */
 
-  indeks = ITEHash(a,b,c,biddyIteCache.size);
+  indeks = op3Hash(a,b,c,cache.size);
 
-  p = &biddyIteCache.table[indeks];
+  p = &cache.table[indeks];
   if (!Biddy_IsNull(p->result)) {
     /* THE CELL IS VALID, THUS THIS IS OVERWRITING */
-    biddyIteCache.overwrite++;
+    (*cache.overwrite)++;
   }
 
   p->f = a;
@@ -6014,7 +6264,8 @@ addITECache(Biddy_Manager MNG, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
 }
 
 /*******************************************************************************
-\brief Function findIteCache looks for the result in the ITE cache.
+\brief Function findOp3Cache looks for the result in the cache table for
+       three-arguments operations.
 
 ### Description
 ### Side effects
@@ -6022,27 +6273,28 @@ addITECache(Biddy_Manager MNG, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
 *******************************************************************************/
 
 static Biddy_Boolean
-findITECache(Biddy_Manager MNG, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
-             Biddy_Edge *r)
+findOp3Cache(Biddy_Manager MNG, BiddyOp3CacheTable cache, Biddy_Edge a,
+             Biddy_Edge b, Biddy_Edge c, Biddy_Edge *r)
 {
   unsigned int indeks;
   BiddyOp3Cache *p;
 
   /* THIS IS HASH FUNCTION */
-  /* MUST BE THE SAME AS IN AddIteCache! */
+  /* MUST BE THE SAME AS IN addOp3Cache! */
 
-  indeks = ITEHash(a,b,c,biddyIteCache.size);
+  indeks = op3Hash(a,b,c,cache.size);
 
-  biddyIteCache.search++;
-  p = &biddyIteCache.table[indeks];
+  (*cache.search)++;
+
+  p = &cache.table[indeks];
 
   if (!Biddy_IsNull(p->result) &&
-      Biddy_IsEqv(p->f,a) &&
-      Biddy_IsEqv(p->g,b) &&
-      Biddy_IsEqv(p->h,c)
+      (p->f == a) &&
+      (p->g == b) &&
+      (p->h == c)
      )
   {
-    biddyIteCache.find++;
+    (*cache.find)++;
     *r = p->result;
     return TRUE;
   }
@@ -6061,7 +6313,7 @@ findITECache(Biddy_Manager MNG, Biddy_Edge a, Biddy_Edge b, Biddy_Edge c,
 static void
 ITEGarbage(Biddy_Manager MNG)
 {
-  int j;
+  unsigned int j;
   BiddyOp3Cache *c;
 
   for (j=0; j<=biddyIteCache.size; j++) {
@@ -6079,35 +6331,6 @@ ITEGarbage(Biddy_Manager MNG)
 }
 
 /*******************************************************************************
-\brief Function addEACache adds a result to the EA cache.
-
-### Description
-### Side effects
-### More info
-*******************************************************************************/
-
-static void
-addEACache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Edge r)
-{
-  /* NOT IMPLEMENTED, YET */
-}
-
-/*******************************************************************************
-\brief Function findEACache looks for the result in the EA cache.
-
-### Description
-### Side effects
-### More info
-*******************************************************************************/
-
-static Biddy_Boolean
-findEACache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Edge *r)
-{
-  /* NOT IMPLEMENTED, YET */
-  return FALSE;
-}
-
-/*******************************************************************************
 \brief Function EAGarbage performs Garbage Collection for the EA cache.
 
 ### Description
@@ -6118,50 +6341,21 @@ findEACache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Edge *r)
 static void
 EAGarbage(Biddy_Manager MNG)
 {
-  int j;
-  BiddyEACache *c;
+  unsigned int j;
+  BiddyOp3Cache *c;
 
   for (j=0; j<=biddyEACache.size; j++) {
     if (!Biddy_IsNull(biddyEACache.table[j].result)) {
       c = &biddyEACache.table[j];
       if (!BiddyIsOK(c->f) ||
+          !BiddyIsOK(c->g) ||
+          !BiddyIsOK(c->h) ||
           !BiddyIsOK(c->result))
       {
         c->result = biddyNull;
       }
     }
   }
-}
-
-/*******************************************************************************
-\brief Function addRCCache adds a result to the RC cache.
-
-### Description
-### Side effects
-### More info
-*******************************************************************************/
-
-static void
-addRCCache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Variable v,
-           Biddy_Edge r)
-{
-  /* NOT IMPLEMENTED, YET */
-}
-
-/*******************************************************************************
-\brief Function findRCCache looks for the result in the RC cache.
-
-### Description
-### Side effects
-### More info
-*******************************************************************************/
-
-static Biddy_Boolean
-findRCCache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Variable v,
-            Biddy_Edge *r)
-{
-  /* NOT IMPLEMENTED, YET */
-  return FALSE;
 }
 
 /*******************************************************************************
@@ -6175,14 +6369,15 @@ findRCCache(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Variable v,
 static void
 RCGarbage(Biddy_Manager MNG)
 {
-  int j;
-  BiddyRCCache *c;
+  unsigned int j;
+  BiddyOp3Cache *c;
 
   for (j=0; j<=biddyRCCache.size; j++) {
     if (!Biddy_IsNull(biddyRCCache.table[j].result)) {
       c = &biddyRCCache.table[j];
       if (!BiddyIsOK(c->f) ||
           !BiddyIsOK(c->g) ||
+          !BiddyIsOK(c->h) ||
           !BiddyIsOK(c->result))
       {
         c->result = biddyNull;
@@ -6293,10 +6488,8 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high)
   BiddyNode *newBegin,*newEnd,*newFresh;
   Biddy_Edge f00,f01,f10,f11,u0,u1;
   unsigned int hash;
-  Biddy_Variable v;
   unsigned int n;
   Biddy_Boolean repairNeeded;
-  int i;
 
   if (!low || !high) return;
   biddyNodeTable.swap++;
@@ -6373,7 +6566,7 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high)
         f10 = f11 = sup->t;
       }
 
-      if (Biddy_IsEqv(f00,f10)) {
+      if (f00 == f10) {
         u0 = f00;
       } else {
         /* u0 is a new node or an existing node */
@@ -6417,7 +6610,7 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high)
 
       }
 
-      if (Biddy_IsEqv(f01,f11)) {
+      if (f01 == f11) {
         u1 = f01;
       } else {
         /* u1 is a new node or an existing node */
@@ -6610,7 +6803,7 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high)
 static void
 nullOrdering(BiddyOrderingTable table)
 {
-  int i,j;
+  unsigned int i,j;
 
   for (i=0; i<BIDDYVARMAX; i++) {
     for (j=0; j<=(BIDDYVARMAX-1)/UINTPTRSIZE; j++) {
@@ -6765,6 +6958,7 @@ writeORDER(Biddy_Manager MNG)
   }
 
   for (k=0; k<Biddy_Managed_VariableTableNum(MNG); k++) {
+#pragma warning(suppress: 6001)
     printf("%s",Biddy_Managed_GetVariableName(MNG,varTable[k]));
     if (k!=Biddy_Managed_VariableTableNum(MNG)-1) printf(",");
   }
@@ -6779,20 +6973,19 @@ writeORDER(Biddy_Manager MNG)
 ### Side effects
     All nodes except constant node must be selected!
     Function createLocalInfo will deselect them.
+    data.mintermCount is using GNU Multiple Precision Arithmetic Library (GMP).
 ### More info
 *******************************************************************************/
 
 static BiddyLocalInfo *
 createLocalInfo(Biddy_Edge f, BiddyLocalInfo *c)
 {
-  /* FIELD data.* IS NOT INITIALIED! */
-
   if (Biddy_IsSelected(f)) {
     Biddy_DeselectNode(f);
-    c->org = (BiddyNode *)((BiddyNode *) Biddy_Regular(f))->list;
+    c->back = (BiddyNode *)Biddy_Regular(f);
+    c->org = (BiddyNode *)(((BiddyNode *) Biddy_Regular(f))->list);
     ((BiddyNode *) Biddy_Regular(f))->list = (void *) c;
-    c->positiveSelected = FALSE;
-    c->negativeSelected = FALSE;
+    c->data.enumerator = 0;
     c = &c[1]; /* next field in the array */
     c = createLocalInfo(BiddyE(f),c);
     c = createLocalInfo(BiddyT(f),c);
@@ -6808,6 +7001,7 @@ createLocalInfo(Biddy_Edge f, BiddyLocalInfo *c)
 ### Side effects
     All nodes except constant node must be selected!
     Function deleteLocalInfo will deselect them.
+    TO DO: memory reserved for data.mintermCount is not removed!
 ### More info
 *******************************************************************************/
 

@@ -3,8 +3,8 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 93 $]
-#  Date        [$Date: 2015-09-16 21:45:54 +0200 (sre, 16 sep 2015) $]
+#  Revision    [$Revision: 121 $]
+#  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -31,6 +31,8 @@ TCLINCLUDE = -I/Library/Frameworks/Tcl.framework/Headers/
 TCLLIB = -framework Tcl
 #TCLLIB =
 
+GMPLIB =
+
 all: local
 
 # used for local testing (../bin must contain statically linked Biddy library)
@@ -52,6 +54,7 @@ local:
 	"BIDDYLIBEXT = -L. -lbddscout" \
 	"BDDVIEWDIR = ../bddview" \
 	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"GMPLIB = $(GMPLIB)" \
 	"TCLLIB = $(TCLLIB)"
 
 # used for packaging
@@ -68,4 +71,5 @@ package:
 	"AR = ar rcs" \
 	"USECONST = const" \
 	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"GMPLIB = $(GMPLIB)" \
 	"TCLLIB = $(TCLLIB)"

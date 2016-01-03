@@ -49,8 +49,10 @@ Changes v1.4 versus v1.3
 - added extension BDDTRACES
 
 Changes v1.5 versus v1.4
-- not released, yet
+- released on Dec 31, 2015
 - adapted for changes in Biddy 1.5
 - linking simplified, without def files on MS Windows
 - extension IFIP: IFIP benchmark improved
 - extension BRA: now there are two types of sifting
+- extension BDDRACES: improved, added terminal program
+  which allows comparison of Biddy and CUDD library

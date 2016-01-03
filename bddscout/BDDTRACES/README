@@ -3,6 +3,11 @@ called bdd-trace-driver-0.9 (Bwolen Yang).
 
 We have obtained it from http://www.cs.cmu.edu/~bwolen/software/ .
 
+PLEASE NOTE!
+Original files use strange ordering of arguments to function exists().
+We have changed the role of arguments to function exists() and recalculated
+the resulting BDDs sizes.
+
 HERE IS A LEGAL PART OF THE ORIGINAL DOCUMENTATION:
 
 If you will be using one of the included files and/or any part of any

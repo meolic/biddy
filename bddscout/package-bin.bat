@@ -1,8 +1,8 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 98 $
-REM  $Date: 2015-09-25 15:45:53 +0200 (pet, 25 sep 2015) $
+REM  $Revision: 128 $
+REM  $Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $
 REM
 REM  This file is part of Bdd Scout package.
 REM  Copyright (C) 2008, 2015 UM-FERI
@@ -45,6 +45,7 @@ make static "BINDIR = ./bddscout/%NAME%-%VERSION%"
 make clean "BINDIR = ./bddscout/%NAME%-%VERSION%"
 cp biddy.h ./bddscout/%NAME%-%VERSION%
 cp CHANGES ./bddscout/%NAME%-%VERSION%/CHANGES_biddy
+cp C:/Users/Robert/Documents/mpir-dll-2.7.2/mpir.dll ./bddscout/%NAME%-%VERSION%
 echo *** Biddy OK.
 
 echo *** Preparing bddview ...
@@ -71,6 +72,7 @@ cp bddscoutBRA.c %NAME%-%VERSION%
 cp bddscoutBRA.tcl %NAME%-%VERSION%
 cp pkgExtensionBRA.tcl %NAME%-%VERSION%
 cp bddscoutBDDTRACES.c %NAME%-%VERSION%
+cp bddtraces-BIDDY.c %NAME%-%VERSION%
 cp bddscoutBDDTRACES.tcl %NAME%-%VERSION%
 cp pkgExtensionBDDTRACES.tcl %NAME%-%VERSION%
 cp Makefile %NAME%-%VERSION%
@@ -84,6 +86,19 @@ make package -f Makefile.MINGW "CFLAGS = %CFLAGS%" "BIDDYDIR = ." "BIDDYLIB = ."
 make clean "BINDIR = ."
 rm -f biddy.h
 rm -f libbiddy.a
+
+REM source code is not included in the package
+rm -f bddscout.h
+rm -f bddscout.c
+rm -f bddscout.map
+rm -f bddscoutMain.c
+rm -f bddscoutDecls.h
+rm -f bddscoutStubInit.c
+rm -f bddscoutStubLib.c
+rm -f bddscoutIFIP.c
+rm -f bddscoutBRA.c
+rm -f bddscoutBDDTRACES.c
+rm -f bddtraces-BIDDY.c
 
 cd ..
 cp COPYING %NAME%-%VERSION%

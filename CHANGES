@@ -134,13 +134,25 @@ Changes v1.4 versus v1.3
 - comment's style changed to support doxygen
 
 Changes v1.5 versus v1.4
-- not released, yet
-- fixed Biddy_CountMinterm
+- released on Dec 31, 2015
+- on MS Windows, MSYS2 is used to produce packages
 - linking simplified, without def files on MS Windows
+- fixed Biddy_CountMinterm and Biddy_NodeNumberPlain
+- fixed Biddy_ExistAbstract, Biddy_UnivAbstract, and Biddy_AndAbstract
+- variable swapping fixed and improved
+- sifting fixed and improved
+- plain "==" is used instead of Biddy_IsEqv macro
+- improved Biddy_WriteDot, now using local info table
+- Biddy_CountMinterm is now using GNU Multiple Precision Arithmetic Library
+- added CUDD-like functions Biddy_ReadMemoryInUse and Biddy_PrintInfo
 - memory management changed (this is a major change), introduced prolonged
   nodes, removed functions Biddy_Fresh, Biddy_Fortify, and Biddy_IncCounter,
   added functions Biddy_DeleteFormula, Biddy_Clean, Biddy_Refresh,
   Biddy_Purge, and Biddy_PurgeAndReorder, function Biddy_GarbageAll renamed
   to Biddy_ClearAll
-- variable swapping fixed and improved
-- sifting fixed and improved
+- EA cache (abstractions) implemented, now Biddy_E, Biddy_A,
+  Biddy_ExistAbstract, Biddy_UnivAbstract and Biddy_AndAbstract are all
+  using it
+- RC cache (restrict/compose) implemented, now Biddy_Restrict and
+  Biddy_Compose are using it
+- added 8 Queens example

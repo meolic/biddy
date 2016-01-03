@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 88 $]
-#  Date        [$Date: 2015-08-21 21:06:26 +0200 (pet, 21 avg 2015) $]
+#  Revision    [$Revision: 128 $]
+#  Date        [$Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -52,9 +52,9 @@ cp bddscoutIFIP.c bddscoutIFIP.tcl "../distribution-bddscout/version-$VERSION/$N
 cp pkgExtensionIFIP.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp bddscoutBRA.c bddscoutBRA.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp pkgExtensionBRA.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
-cp bddscoutBDDTRACES.c bddscoutBDDTRACES.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+cp bddscoutBDDTRACES.c bddtraces-BIDDY.c bddscoutBDDTRACES.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp pkgExtensionBDDTRACES.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
-cp Makefile Makefile.Linux "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+cp Makefile Makefile.Linux bddscout.map "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp example.bdd example.bf "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp ../bddview/bddview.tcl ../bddview/example.bddview "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 mkdir "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"/IFIP

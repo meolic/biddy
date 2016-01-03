@@ -3,8 +3,8 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 93 $]
-#  Date        [$Date: 2015-09-16 21:45:54 +0200 (sre, 16 sep 2015) $]
+#  Revision    [$Revision: 121 $]
+#  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -28,6 +28,8 @@
 MKDIR = mkdir -p
 CP = cp
 RM = rm -f
+GCC = gcc
+AR = ar
 
 # -ltk should be written before -ltcl
 TCLVERSION = $(shell echo 'puts $$tcl_version' | tclsh | sed "s/[.]//g")
@@ -35,20 +37,23 @@ TCLINCLUDE = -I\"C:/Tcl/include\" -DTCL
 TCLSTUBLIB = -L\"C:/Tcl/lib\" -ltclstub$(TCLVERSION)
 TCLTKLIB = -L\"C:/Tcl/lib\" -ltk$(TCLVERSION) -ltcl$(TCLVERSION)
 
+GMPLIB = -L"C:/Users/Robert/Documents/mpir-dll-2.7.2" -lmpir
+
 all: local
 
 # used for local testing (../bin must contain statically linked Biddy library)
+# add -DUSE_BIDDY and clear GMPLIB if you use dynamically linked Biddy library
 local:
 	@$(MAKE) local -f Makefile \
 	"MAINNAME = bddscout.dll" \
 	"EXTNAME1 = bddscoutIFIP.dll" \
 	"EXTNAME2 = bddscoutBRA.dll" \
 	"EXTNAME3 = bddscoutBDDTRACES.dll" \
-	"CC = C:/MinGW/bin/gcc -O0 -g -DWINDOWS -DBUILD_BIDDY $(TCLINCLUDE)" \
-	"CCEXT = C:/MinGW/bin/gcc -O0 -g -DWINDOWS -DUSE_BIDDY -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
-	"LN = C:/MinGW/bin/gcc -shared -o" \
-	"LNEXT = C:/MinGW/bin/gcc -shared -o" \
-	"AR = ar rcs" \
+	"CC = $(GCC) -O0 -g -DMINGW $(TCLINCLUDE)" \
+	"CCEXT = $(GCC) -O0 -g -DMINGW -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"LN = $(GCC) -shared -o" \
+	"LNEXT = $(GCC) -shared -o" \
+	"AR = $(AR) rcs" \
 	"USECONST = const" \
 	"BINDIR = ./bin" \
 	"BIDDYDIR = .." \
@@ -56,23 +61,25 @@ local:
 	"BIDDYLIBEXT = -L. -lbddscout" \
 	"BDDVIEWDIR = ../bddview" \
 	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"GMPLIB = $(GMPLIB)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"
 
 # used for packaging
-# in the case of dynamic linking: change -DBUILD_BIDDY => -DUSE_BIDDY
+# add -DUSE_BIDDY and clear GMPLIB if you use dynamically linked Biddy library
 package:
 	@$(MAKE) package -f Makefile \
 	"MAINNAME = bddscout.dll" \
 	"EXTNAME1 = bddscoutIFIP.dll" \
 	"EXTNAME2 = bddscoutBRA.dll" \
 	"EXTNAME3 = bddscoutBDDTRACES.dll" \
-	"CC = C:/MinGW/bin/gcc -O2 -DWINDOWS -DBUILD_BIDDY $(TCLINCLUDE)" \
-	"CCEXT = C:/MinGW/bin/gcc -O2 -DWINDOWS -DUSE_BIDDY -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
-	"LN = C:/MinGW/bin/gcc -shared -o" \
-	"LNEXT = C:/MinGW/bin/gcc -shared -o" \
-	"AR = ar rcs" \
+	"CC = $(GCC) -O2 -DMINGW $(TCLINCLUDE)" \
+	"CCEXT = $(GCC) -O2 -DMINGW -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"LN = $(GCC) -shared -o" \
+	"LNEXT = $(GCC) -shared -o" \
+	"AR = $(AR) rcs" \
 	"USECONST = const" \
 	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"GMPLIB = $(GMPLIB)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"

@@ -1,10 +1,10 @@
 # ######################################################################
-# gcc, MinGW + MSYS
+# MSYS2 + MinGW-64
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 93 $]
-#  Date        [$Date: 2015-09-16 21:45:54 +0200 (sre, 16 sep 2015) $]
+#  Revision    [$Revision: 121 $]
+#  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2015 UM-FERI
@@ -25,13 +25,15 @@
 #               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #               Boston, MA 02110-1301 USA.]
 
+BIDDYVERSION = `cat ./VERSION`
+
 MKDIR = mkdir -p
 CP = cp
 RM = rm -f
+GCC = gcc
+AR = ar
 
-BIDDYVERSION = `cat ./VERSION`
-
-RM = rm -f
+LIBGMP = -L"C:/Users/Robert/Documents/mpir-dll-2.7.2" -lmpir
 
 all: dynamic
 
@@ -41,21 +43,24 @@ dynamic:
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = biddy.dll" \
-	"CC = C:/MinGW/bin/gcc -O2 -DWINDOWS -DBUILD_BIDDY" \
-	"LN = C:/MinGW/bin/gcc -shared -Wl,--out-implib,biddy.lib -o"
+	"LIBGMP = $(LIBGMP)" \
+	"CC = $(GCC) -O2 -DMINGW -DBUILD_BIDDY" \
+	"LN = $(GCC) -shared -Wl,--out-implib,biddy.lib -o"
 
 static:
 	@$(MAKE) lib \
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
-	"CC = C:/MinGW/bin/gcc -O2 -DWINDOWS" \
-	"LN = C:/MinGW/bin/ar rcs"
+	"LIBGMP = " \
+	"CC = $(GCC) -O2 -DMINGW" \
+	"LN = $(AR) rcs"
 
 debug:
 	@$(MAKE) lib \
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
-	"CC = C:/MinGW/bin/gcc -g -O0 -DWINDOWS" \
-	"LN = C:/MinGW/bin/ar rcs"
+	"LIBGMP = " \
+	"CC = $(GCC) -g -O0 -DMINGW" \
+	"LN = $(AR) rcs"

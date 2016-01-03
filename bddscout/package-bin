@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 88 $]
-#  Date        [$Date: 2015-08-21 21:06:26 +0200 (pet, 21 avg 2015) $]
+#  Revision    [$Revision: 128 $]
+#  Date        [$Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -85,10 +85,11 @@ cp bddscoutBRA.c ./$NAME-$VERSION
 cp bddscoutBRA.tcl ./$NAME-$VERSION
 cp pkgExtensionBRA.tcl ./$NAME-$VERSION
 cp bddscoutBDDTRACES.c ./$NAME-$VERSION
+cp bddtraces-BIDDY.c ./$NAME-$VERSION
 cp bddscoutBDDTRACES.tcl ./$NAME-$VERSION
 cp pkgExtensionBDDTRACES.tcl ./$NAME-$VERSION
 cp Makefile ./$NAME-$VERSION
-cp Makefile.$OS ./$NAME-$VERSION
+cp Makefile.$OS bddscout.map ./$NAME-$VERSION
 cp CHANGES ./$NAME-$VERSION/CHANGES_bddscout
 cp example.bf ./$NAME-$VERSION
 cp example.bdd ./$NAME-$VERSION
@@ -98,6 +99,19 @@ make package -f Makefile.$OS "CFLAGS = $CFLAGS" "BIDDYDIR = ." "BIDDYLIB = ." "B
 make clean "BINDIR = ."
 rm -f ./biddy.h
 rm -f ./libbiddy.a
+
+# source code is not included in the package
+rm -f ./bddscout.h
+rm -f ./bddscout.c
+rm -f ./bddscout.map
+rm -f ./bddscoutMain.c
+rm -f ./bddscoutDecls.h
+rm -f ./bddscoutStubInit.c
+rm -f ./bddscoutStubLib.c
+rm -f ./bddscoutIFIP.c
+rm -f ./bddscoutBRA.c
+rm -f ./bddscoutBDDTRACES.c
+rm -f ./bddtraces-BIDDY.c
 
 cd ..
 cp COPYING ./$NAME-$VERSION

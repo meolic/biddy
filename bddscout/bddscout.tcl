@@ -42,7 +42,7 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 } elseif {$OS == "windows"} {
 
   set DESKTOP_DPI 96.0
-  set GHOSTSCRIPT_EXE "C:/Program Files/gs/gs9.16/bin/gswin64c.exe"
+  set GHOSTSCRIPT_EXE "C:/Program Files/gs/gs9.18/bin/gswin64c.exe"
   set DOT_EXE "C:/Program Files (x86)/Graphviz2.38/bin/dot.exe"
 
   if {[file executable $DOT_EXE] != 1} {
@@ -62,8 +62,8 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 }
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 101 $]
-#  Date        [$Date: 2015-10-06 15:51:07 +0200 (tor, 06 okt 2015) $]
+#  Revision    [$Revision: 113 $]
+#  Date        [$Date: 2015-12-21 00:10:59 +0100 (pon, 21 dec 2015) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI

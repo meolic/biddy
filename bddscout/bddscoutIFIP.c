@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutIFIP.c]
-  Revision    [$Revision: 102 $]
-  Date        [$Date: 2015-10-07 11:51:45 +0200 (sre, 07 okt 2015) $]
+  Revision    [$Revision: 118 $]
+  Date        [$Date: 2015-12-24 10:15:47 +0100 (čet, 24 dec 2015) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -46,7 +46,11 @@
 int SCAN_RESULT; /* used in readln macro */
 
 /*-----------------------------------------------------------------------*/
-/* Functions                                                             */
+/* External functions                                                    */
+/*-----------------------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------*/
+/* Internal functions                                                    */
 /*-----------------------------------------------------------------------*/
 
 /**Function****************************************************************
@@ -62,7 +66,7 @@ static Biddy_String makeFunction(FILE *f, Biddy_String line, Biddy_String prefix
 static Biddy_String upCase(Biddy_String s);
 
 Biddy_String
-Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
+BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
 {
   Biddy_String line;
   Biddy_String s1;
@@ -74,7 +78,7 @@ Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
   Biddy_Boolean ok,usedcs;
   Biddy_Edge bdd1,bdd2,dcs;
   Biddy_String report;
-  int len;
+  unsigned int len;
   int i,n;
 
   for (i=0; i<strlen(filename); i++) filename[i]=toupper(filename[i]);
@@ -106,7 +110,7 @@ Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
   while (strstr(line,"@sub") != line &&
          strstr(line,"@out") != line)
   {
-    n = strlen(s1)+strlen(line)+1+1;
+    n = (unsigned int)strlen(s1)+(unsigned int)strlen(line)+1+1;
     s1 = (char *) realloc(s1, sizeof(char) * n);
     strcat(s1," ");
     strcat(s1,line);
@@ -146,7 +150,7 @@ Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
   readln(f,line);
   do {
     tmpname = strdup("BE1_");
-    len = 4+strlen(filename)+1;
+    len = 4+(unsigned int)strlen(filename)+1;
     tmpname = (Biddy_String) realloc(tmpname,len);
     strcat(tmpname,filename);
 
@@ -184,7 +188,7 @@ Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
   while (strstr(line,"@sub") != line &&
          strstr(line,"@out") != line)
   {
-    n = strlen(s1)+strlen(line)+1+1;
+    n = (unsigned int)strlen(s1)+(unsigned int)strlen(line)+1+1;
     s1 = (char *) realloc(s1, sizeof(char) * n);
     strcat(s1," ");
     strcat(s1,line);
@@ -221,7 +225,7 @@ Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
   readln(f,line);
   do {
     tmpname = strdup("BE2_");
-    len = 4+strlen(filename)+1;
+    len = 4+(unsigned int)strlen(filename)+1;
     tmpname = (Biddy_String) realloc(tmpname,len);
     strcat(tmpname,filename);
 
@@ -274,7 +278,7 @@ Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
   ok = TRUE;
   eqvTable = (Biddy_Boolean *) malloc(sizeof(Biddy_Boolean)*nameNumber);
   for (i=0; i<nameNumber; i++) {
-    len = strlen(filename)+strlen(nameTable[i])+5+1;
+    len = (unsigned int)strlen(filename)+(unsigned int)strlen(nameTable[i])+5+1;
     name = strdup("BE1_");
     name = (Biddy_String) realloc(name,len);
     strcat(name,filename);
@@ -284,9 +288,9 @@ Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
     name[2] = '2';
     Biddy_FindFormula(name,&bdd2);
     free(name);
-    eqvTable[i] = Biddy_IsEqv(
-      Biddy_ITE(dcs,Biddy_GetConstantZero(),bdd1),
-      Biddy_ITE(dcs,Biddy_GetConstantZero(),bdd2)
+    eqvTable[i] = (
+      Biddy_ITE(dcs,Biddy_GetConstantZero(),bdd1) ==
+        Biddy_ITE(dcs,Biddy_GetConstantZero(),bdd2)
     );
     if (!eqvTable[i]) ok = FALSE;
   }
@@ -322,7 +326,7 @@ Bddscout_BenchmarkIFIP(FILE *f, Biddy_String filename)
   }
 
   for (i=0; i<nameNumber; i++) {
-    len = strlen(report)+strlen(nameTable[i])+3+1;
+    len = (unsigned int)strlen(report)+(unsigned int)strlen(nameTable[i])+3+1;
     report = (Biddy_String) realloc(report,len);
     strcat(report,nameTable[i]);
     strcat(report," ");
@@ -358,7 +362,7 @@ makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
   printf("MAKEFUNCTION: %s\n",line);
   */
 
-  x = strcspn(line, "=");
+  x = (unsigned int)strcspn(line, "=");
   if (x == strlen(line)) {
     s1 = NULL;                 /* s1 = left part of the expression */
     s2 = strdup(line);         /* s2 = right part of the expression */
@@ -367,7 +371,7 @@ makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
     s1 = (Biddy_String) strdup(line);
     s1[x] = 0; /* strndup is not supported everywhere */
     if (x != strlen(line)-1) {
-      y = strspn(&line[x+1], " \t");
+      y = (unsigned int)strspn(&line[x+1], " \t");
       s2 = strdup(&line[x+1+y]);
     } else {
       s2 = NULL;
@@ -377,14 +381,14 @@ makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
   if (!s1) {
     name = (Biddy_String) strdup(prefix);
   } else {
-    x = strspn(s1," \t");
-    y = strcspn(&s1[x]," \t\n");
+    x = (unsigned int)strspn(s1," \t");
+    y = (unsigned int)strcspn(&s1[x]," \t\n");
 
     if (!prefix) {
       name = (Biddy_String) strdup(&s1[x]);
       name[y] = 0; /* strndup is not supported everywhere */
     } else {
-      len = strlen(prefix)+1+y+1;
+      len = (unsigned int)strlen(prefix)+1+y+1;
       name = strdup(prefix);
       name = (Biddy_String) realloc(name,len);
       strcat(name,"_");
@@ -397,7 +401,7 @@ makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
 
   if (!feof(f)) {
     readln(f,line);
-    x = strcspn(line,"=");
+    x = (unsigned int)strcspn(line,"=");
   } else {
     strcpy(line,"@end");
     x = 0;
@@ -407,7 +411,7 @@ makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
          strstr(line, "@end") != line)
   {
     if (s2 != NULL) {
-      len = strlen(s2)+strlen(line)+1;
+      len = (unsigned int)strlen(s2)+(unsigned int)strlen(line)+1;
       s2 = (Biddy_String) realloc(s2, len+1);
       strcat(s2," ");
       strcat(s2,line);
@@ -417,7 +421,7 @@ makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
 
     if (!feof(f)) {
       readln(f,line);
-      x = strcspn(line, "=");
+      x = (unsigned int)strcspn(line, "=");
     } else {
       strcpy(line,"@end");
       x = 0;
@@ -488,7 +492,7 @@ static int BddscoutParseIfipCmd(ClientData clientData, Tcl_Interp *interp,
 extern "C" {
 #endif
 
-int
+EXTERN int
 Bddscoutifip_Init(Tcl_Interp *interp)
 {
 
@@ -536,7 +540,7 @@ BddscoutParseIfipCmd(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  report = Bddscout_BenchmarkIFIP(funfile,s2);
+  report = BddscoutBenchmarkIFIP(funfile,s2);
 
   fclose(funfile);
 

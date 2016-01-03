@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.c]
-  Revision    [$Revision: 101 $]
-  Date        [$Date: 2015-10-06 15:51:07 +0200 (tor, 06 okt 2015) $]
+  Revision    [$Revision: 121 $]
+  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -65,23 +65,26 @@ int SCAN_RESULT; /* used in readln macro */
 /*-----------------------------------------------------------------------*/
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ListVariablesByPosition]
-  Description [Bddscout_ListVariablesByPosition creates a list of all BDD
+  Synopsis    [Function BddscoutListVariablesByPosition]
+  Description [BddscoutListVariablesByPosition creates a list of all BDD
                variables sorted by position in Variable table.]
   SideEffects []
   SeeAlso     []
   ************************************************************************/
 
 void
-Bddscout_ListVariablesByPosition(Biddy_String *list)
+BddscoutListVariablesByPosition(Biddy_String *list)
 {
   Biddy_Variable v;
   Biddy_String newlist;
   Biddy_String name;
 
+  if (!list) return;
+
   for (v=0; v<Biddy_VariableTableNum(); v++) {
     name = Biddy_GetVariableName(v);
     newlist = (Biddy_String) malloc(strlen(*list)+strlen(name)+2);
+    if (!newlist) return;
     sprintf(newlist,"%s %s",*list,name);
     free(*list);
     *list = newlist;
@@ -89,23 +92,26 @@ Bddscout_ListVariablesByPosition(Biddy_String *list)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ListVariablesByName]
-  Description [Bddscout_ListVariablesByName creates a list of all BDD
+  Synopsis    [Function BddscoutListVariablesByName]
+  Description [BddscoutListVariablesByName creates a list of all BDD
                variables sorted by name.]
   SideEffects [SORTING NOT IMPLEMENTED, YET]
   SeeAlso     []
   ************************************************************************/
 
 void
-Bddscout_ListVariablesByName(Biddy_String *list)
+BddscoutListVariablesByName(Biddy_String *list)
 {
   Biddy_Variable v;
   Biddy_String newlist;
   Biddy_String name;
 
+  if (!list) return;
+
   for (v=0; v<Biddy_VariableTableNum(); v++) {
     name = Biddy_GetVariableName(v);
     newlist = (Biddy_String) malloc(strlen(*list)+strlen(name)+2);
+    if (!newlist) return;
     sprintf(newlist,"%s %s",*list,name);
     free(*list);
     *list = newlist;
@@ -113,23 +119,26 @@ Bddscout_ListVariablesByName(Biddy_String *list)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ListVariablesByOrder]
-  Description [Bddscout_ListVariablesByOrder creates a list of all BDD
+  Synopsis    [Function BddscoutListVariablesByOrder]
+  Description [BddscoutListVariablesByOrder creates a list of all BDD
                variables sorted by order in active ordering.]
   SideEffects [SORTING NOT IMPLEMENTED, YET]
   SeeAlso     []
   ************************************************************************/
 
 void
-Bddscout_ListVariablesByOrder(Biddy_String *list)
+BddscoutListVariablesByOrder(Biddy_String *list)
 {
   Biddy_Variable v;
   Biddy_String newlist;
   Biddy_String name;
 
+  if (!list) return;
+
   for (v=0; v<Biddy_VariableTableNum(); v++) {
     name = Biddy_GetVariableName(v);
     newlist = (Biddy_String) malloc(strlen(*list)+strlen(name)+2);
+    if (!newlist) return;
     sprintf(newlist,"%s %s",*list,name);
     free(*list);
     *list = newlist;
@@ -137,23 +146,26 @@ Bddscout_ListVariablesByOrder(Biddy_String *list)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ListVariablesByNumber]
-  Description [Bddscout_ListVariablesByNumber creates a list of all BDD
+  Synopsis    [Function BddscoutListVariablesByNumber]
+  Description [BddscoutListVariablesByNumber creates a list of all BDD
                variables sorted by number of BDD nodes.]
   SideEffects [SORTING NOT IMPLEMENTED, YET]
   SeeAlso     []
   ************************************************************************/
 
 void
-Bddscout_ListVariablesByNumber(Biddy_String *list)
+BddscoutListVariablesByNumber(Biddy_String *list)
 {
   Biddy_Variable v;
   Biddy_String newlist;
   Biddy_String name;
 
+  if (!list) return;
+
   for (v=0; v<Biddy_VariableTableNum(); v++) {
     name = Biddy_GetVariableName(v);
     newlist = (Biddy_String) malloc(strlen(*list)+strlen(name)+2);
+    if (!newlist) return;
     sprintf(newlist,"%s %s",*list,name);
     free(*list);
     *list = newlist;
@@ -161,20 +173,22 @@ Bddscout_ListVariablesByNumber(Biddy_String *list)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ListFormulaByName]
-  Description [Bddscout_ListFormulaByName creates a sorted list of all
+  Synopsis    [Function BddscoutListFormulaByName]
+  Description [BddscoutListFormulaByName creates a sorted list of all
                formulae in Biddy Formulae tree.]
   SideEffects []
   SeeAlso     []
   ************************************************************************/
 
 void
-Bddscout_ListFormulaByName(Biddy_String *list)
+BddscoutListFormulaByName(Biddy_String *list)
 {
   Biddy_String newlist;
   Biddy_Edge formula;
   Biddy_String formulaname;
   unsigned int i;
+
+  if (!list) return;
 
   i = 0;
   formula = Biddy_GetIthFormula(i);
@@ -189,6 +203,7 @@ Bddscout_ListFormulaByName(Biddy_String *list)
         *list = strdup("");
       }
       newlist = (Biddy_String) malloc(strlen(*list)+strlen(formulaname)+2);
+      if (!newlist) return;
       sprintf(newlist,"%s %s",*list,formulaname);
       free(*list);
       *list = newlist;
@@ -201,7 +216,7 @@ Bddscout_ListFormulaByName(Biddy_String *list)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ListFormulaByUIntParameter]
+  Synopsis    [Function BddscoutListFormulaByUIntParameter]
   Description [Bddscout_ListFormulaByUIntParameter creates a sorted list
                of all formulae in Biddy Formulae tree.
                Parameter is a function used for sorting.]
@@ -210,7 +225,7 @@ Bddscout_ListFormulaByName(Biddy_String *list)
   ************************************************************************/
 
 void
-Bddscout_ListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy_Edge))
+BddscoutListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy_Edge))
 {
   typedef struct {
     Biddy_Edge t;
@@ -219,13 +234,16 @@ Bddscout_ListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy
   } FT;
 
   FT *sortingTable;
-  int tableSize;
+  FT *tmp;
+  unsigned int tableSize;
   Biddy_String newlist;
   Biddy_String number;
   Biddy_Edge formula;
   Biddy_String formulaname;
-  int i,j;
-  int n;
+  unsigned int i,j;
+  unsigned int n;
+
+  if (!list) return;
 
   tableSize = 0;
   sortingTable = NULL;
@@ -243,6 +261,7 @@ Bddscout_ListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy
         free(*list);
         *list = strdup("");
         sortingTable = (FT *) malloc(sizeof(FT));
+        if (!sortingTable) return;
         tableSize = 1;
         sortingTable[0].t = formula;
         sortingTable[0].name = formulaname;
@@ -251,9 +270,11 @@ Bddscout_ListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy
       } else {
 
         tableSize++;
-        sortingTable = (FT *) realloc(sortingTable,sizeof(FT)*tableSize);
+        tmp = (FT *) realloc(sortingTable,sizeof(FT)*tableSize);
+        if (!tmp) return;
+        sortingTable = tmp;
 
-        j = tableSize-2;
+        if (tableSize > 2) j = tableSize - 2; else j = 0;
         n = PF(formula);
         while ((j>=0) && (sortingTable[j].parameter > n)) {
           sortingTable[j+1].t = sortingTable[j].t;
@@ -261,6 +282,7 @@ Bddscout_ListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy
           sortingTable[j+1].parameter = sortingTable[j].parameter;
           j--;
         }
+#pragma warning(suppress: 6386)
         sortingTable[j+1].t = formula;
         sortingTable[j+1].name = formulaname;
         sortingTable[j+1].parameter = n;
@@ -275,9 +297,11 @@ Bddscout_ListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy
 
   for (i=0;i<tableSize;++i) {
     number = (Biddy_String) malloc(255);
+    if (!number) return;
     sprintf(number,"(%d)",sortingTable[i].parameter);
     newlist = (Biddy_String)
       malloc(strlen(*list)+ strlen(sortingTable[i].name)+strlen(number)+2);
+    if (!newlist) return;
     sprintf(newlist,"%s %s%s",*list,sortingTable[i].name,number);
     free(number);
     free(*list);
@@ -286,8 +310,8 @@ Bddscout_ListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ListFormulaByFloatParameter]
-  Description [Bddscout_ListFormulaByFloatParameter creates a sorted list
+  Synopsis    [Function BddscoutListFormulaByFloatParameter]
+  Description [BddscoutListFormulaByFloatParameter creates a sorted list
                of all formulae in Biddy Formulae tree.
                Parameter is a function used for sorting.]
   SideEffects []
@@ -295,7 +319,7 @@ Bddscout_ListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy
   ************************************************************************/
 
 void
-Bddscout_ListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge))
+BddscoutListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge))
 {
   typedef struct {
     Biddy_Edge t;
@@ -304,13 +328,16 @@ Bddscout_ListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge)
   } FT;
 
   FT *sortingTable;
+  FT *tmp;
   int tableSize;
   Biddy_String newlist;
   Biddy_String number;
   Biddy_Edge formula;
   Biddy_String formulaname;
   int i,j;
-  int n;
+  float n;
+
+  if (!list) return;
 
   tableSize = 0;
   sortingTable = NULL;
@@ -328,6 +355,7 @@ Bddscout_ListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge)
         free(*list);
         *list = strdup("");
         sortingTable = (FT *) malloc(sizeof(FT));
+        if (!sortingTable) return;
         tableSize = 1;
         sortingTable[0].t = formula;
         sortingTable[0].name = formulaname;
@@ -336,7 +364,9 @@ Bddscout_ListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge)
       } else {
 
         tableSize++;
-        sortingTable = (FT *) realloc(sortingTable,sizeof(FT)*tableSize);
+        tmp = (FT *) realloc(sortingTable,sizeof(FT)*tableSize);
+        if (!tmp) return;
+        sortingTable = tmp;
 
         j = tableSize-2;
         n = PF(formula);
@@ -360,9 +390,11 @@ Bddscout_ListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge)
 
   for (i=0;i<tableSize;++i) {
     number = (Biddy_String) malloc(255);
+    if (!number) return;
     sprintf(number,"(%.2f)",sortingTable[i].parameter);
     newlist = (Biddy_String)
       malloc(strlen(*list)+ strlen(sortingTable[i].name)+strlen(number)+2);
+    if (!newlist) return;
     sprintf(newlist,"%s %s%s",*list,sortingTable[i].name,number);
     free(number);
     free(*list);
@@ -375,7 +407,7 @@ Bddscout_ListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge)
 /*-----------------------------------------------------------------------*/
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ParseFile]
+  Synopsis    [Function BddscoutParseFile]
   Description []
   SideEffects [Implemented long time ago (1995). Not comprehensible.]
   SeeAlso     []
@@ -386,31 +418,36 @@ Bddscout_ListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge)
 static Biddy_String makeFunction(FILE *f, Biddy_String line);
 
 Biddy_String
-Bddscout_ParseFile(FILE *f)
+BddscoutParseFile(FILE *f)
 {
   Biddy_String line,name;
   Biddy_String s1;
   Biddy_String var;
   unsigned int n,x;
+  Biddy_String tmp;
 
   line = (Biddy_String) malloc(4096);
+  if (!line) return NULL;
 
   readln(f,line);
-  x = strcspn(line,"=");
+  x = (unsigned int)strcspn(line,"=");
   if (x != strlen(line)) {
     printf("WARNING: Variable ordering not specified.\n");
   } else {
     s1 = strdup(line);
     readln(f,line);
-    x = strcspn(line,"=");
+    x = (unsigned int)strcspn(line,"=");
     while (x == strlen(line))
     {
-      n = strlen(s1)+strlen(line)+1+1;
-      s1 = (Biddy_String) realloc(s1,n);
+      n = (unsigned int)strlen(s1)+(unsigned int)strlen(line)+1+1;
+      tmp = (Biddy_String) realloc(s1,n);
+      if (!tmp) return NULL;
+      s1 = tmp;
+#pragma warning(suppress: 6386)
       strcat(s1," ");
       strcat(s1,line);
       readln(f,line);
-      x = strcspn(line,"=");
+      x = (unsigned int)strcspn(line,"=");
     }
 
     var = strtok(&s1[1]," \t)");
@@ -447,10 +484,11 @@ makeFunction(FILE *f, Biddy_String line)
   Biddy_String s1,s2,name;
   unsigned int len;
   unsigned int x,y;
+  Biddy_String tmp;
 
   if (!line) return NULL;
 
-  x = strcspn(line, "=");
+  x = (unsigned int)strcspn(line, "=");
   if (x == strlen(line)) {
     s1 = NULL;                 /* s1 = left part of the expression */
     s2 = strdup(line);         /* s2 = right part of the expression */
@@ -458,7 +496,7 @@ makeFunction(FILE *f, Biddy_String line)
     s1 = (Biddy_String) strdup(line);
     s1[x] = 0; /* strndup is not supported everywhere */
     if (x != strlen(line)-1) {
-      y = strspn(&line[x+1], " \t");
+      y = (unsigned int)strspn(&line[x+1], " \t");
       s2 = strdup(&line[x+1+y]);
     } else {
       s2 = NULL;
@@ -466,8 +504,8 @@ makeFunction(FILE *f, Biddy_String line)
   }
 
   if (s1) {
-    x = strspn(s1," \t");
-    y = strcspn(&s1[x]," \t\n");
+    x = (unsigned int)strspn(s1," \t");
+    y = (unsigned int)strcspn(&s1[x]," \t\n");
     name = (Biddy_String) strdup(&s1[x]);
     name[y] = 0; /* strndup is not supported everywhere */
     free(s1);
@@ -477,7 +515,7 @@ makeFunction(FILE *f, Biddy_String line)
 
   if (!feof(f)) {
     readln(f,line);
-    x = strcspn(line,"=");
+    x = (unsigned int)strcspn(line,"=");
   } else {
     line[0] = 0;
     line = NULL;
@@ -486,8 +524,11 @@ makeFunction(FILE *f, Biddy_String line)
   while (line && (x == strlen(line)))
   {
     if (s2 != NULL) {
-      len = strlen(s2)+strlen(line)+1;
-      s2 = (Biddy_String) realloc(s2, len+1);
+      len = (unsigned int)strlen(s2)+(unsigned int)strlen(line)+1;
+      tmp = (Biddy_String) realloc(s2, len+1);
+      if (!tmp) return NULL;
+      s2 = tmp;
+#pragma warning(suppress: 6386)
       strcat(s2," ");
       strcat(s2,line);
     } else {
@@ -496,7 +537,7 @@ makeFunction(FILE *f, Biddy_String line)
 
     if (!feof(f)) {
       readln(f,line);
-      x = strcspn(line, "=");
+      x = (unsigned int)strcspn(line, "=");
     } else {
       line[0] = 0;
       line = NULL;
@@ -519,7 +560,7 @@ makeFunction(FILE *f, Biddy_String line)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_WriteBDDView.]
+  Synopsis    [Function BddscoutWriteBDDView.]
   Description []
   SideEffects [Uses Biddy_WriteDot and graphviz package]
   SeeAlso     []
@@ -538,15 +579,15 @@ typedef struct {
   int y;
 } tableXY;
 
-static void EnumerateNodes(Biddy_Edge f, tNode **tnode, int *t, int *n);
+static void enumerateNodes(Biddy_Edge f, tNode **tnode, int *t, int *n);
 static void addNode(tNode **tnode, int n, void *p, int t);
 static int findNode(tNode *tnode, int n, void *p, int t);
-static void WriteDotConnections(FILE *funfile, Biddy_Edge f, tNode *tnode,
+static void writeDotConnections(FILE *funfile, Biddy_Edge f, tNode *tnode,
                                  int *t, int n);
-static void ParseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize);
+static void parseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize);
 
 int
-Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
+BddscoutWriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
 {
   FILE *xdotfile;
   int i,t,n;
@@ -554,13 +595,14 @@ Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
   tableXY *table;
   int xsize,ysize;
   Biddy_Edge f;
-#ifndef WINDOWS
+#if defined(MINGW) || defined(_MSC_VER)
+#else
   pid_t childpid;
   int status;
 #endif
   char* dotname;
   char* xdotname;
-#ifdef WINDOWS
+#if defined(MINGW) || defined(_MSC_VER)
   char* docdir;
   char* appdir;
   docdir = getenv("USERPROFILE");
@@ -572,13 +614,14 @@ Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
     return -1;
   } else {
 
-#ifdef WINDOWS
+#if defined(MINGW) || defined(_MSC_VER)
     dotname = (Biddy_String) malloc(strlen(docdir)+strlen(appdir)+7+1);
     dotname[0] = 0;
     strcat(dotname,docdir);
     strcat(dotname,appdir);
     strcat(dotname,"bdd.dot");
     xdotname = (Biddy_String) malloc(strlen(docdir)+strlen(appdir)+8+1);
+    if (!xdotname) return -1;
     xdotname[0] = 0;
     strcat(xdotname,docdir);
     strcat(xdotname,appdir);
@@ -607,7 +650,7 @@ Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
       return(0);
     }
 
-#ifdef WINDOWS
+#if defined(MINGW) || defined(_MSC_VER)
     _spawnlp(_P_WAIT, dotexe, "dot.exe", "-y", "-o",xdotname,dotname,NULL);
 #else
     childpid = fork();
@@ -625,7 +668,8 @@ Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
     }
 
     table = (tableXY *) malloc((n+1) * sizeof(tableXY)); /* n = nodes, add one label */
-    ParseDot(xdotfile,table,&xsize,&ysize);
+    if (!table) return -1;
+    parseDot(xdotfile,table,&xsize,&ysize);
     fclose(xdotfile);
 
     free(dotname);
@@ -634,7 +678,7 @@ Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
     t = 0;
     n = 0;
     tn = NULL;
-    EnumerateNodes(f,&tn,&t,&n);
+    enumerateNodes(f,&tn,&t,&n);
     Biddy_DeselectNode(Biddy_GetConstantOne()); /* needed for Biddy_NodeRepair */
     Biddy_NodeRepair(f);
 
@@ -643,6 +687,7 @@ Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
       if (tn[i-1].t == 0) {
         fprintf(s,"node %d %s %d %d\n",table[i].id,table[i].label,table[i].x,table[i].y);
       } else {
+#pragma warning(suppress: 6385)
         fprintf(s,"terminal %d %s %d %d\n",table[i].id,table[i].label,table[i].x,table[i].y);
       }
       free(table[i].label);
@@ -657,7 +702,7 @@ Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
     }
 
     t = 1;
-    WriteDotConnections(s,f,tn,&t,n); /* this will select all nodes except constant node */
+    writeDotConnections(s,f,tn,&t,n); /* this will select all nodes except constant node */
     Biddy_NodeRepair(f);
 
     free(tn);
@@ -668,7 +713,7 @@ Bddscout_WriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
 }
 
 static void
-EnumerateNodes(Biddy_Edge f, tNode **tnode, int *t, int *n)
+enumerateNodes(Biddy_Edge f, tNode **tnode, int *t, int *n)
 {
   if (!Biddy_IsSelected(f)) {
     Biddy_SelectNode(f);
@@ -685,10 +730,10 @@ EnumerateNodes(Biddy_Edge f, tNode **tnode, int *t, int *n)
         addNode(tnode,(*n),Biddy_Regular(f),(*t));
       }
       if (!Biddy_IsConstant(Biddy_GetElse(f))) {
-        EnumerateNodes(Biddy_GetElse(f),tnode,t,n);
+        enumerateNodes(Biddy_GetElse(f),tnode,t,n);
       }
       if (!Biddy_IsConstant(Biddy_GetThen(f))) {
-        EnumerateNodes(Biddy_GetThen(f),tnode,t,n);
+        enumerateNodes(Biddy_GetThen(f),tnode,t,n);
       }
     }
   }
@@ -697,10 +742,16 @@ EnumerateNodes(Biddy_Edge f, tNode **tnode, int *t, int *n)
 static void
 addNode(tNode **tnode, int n, void *p, int t)
 {
+  tNode *tmp;
+
   if (!(*tnode)) {
-    (*tnode) = (tNode *) malloc(n * sizeof(tNode));
+    tmp = (tNode *) malloc(n * sizeof(tNode));
+    if (!tmp) return;
+    (*tnode) = tmp;
   } else {
-    (*tnode) = (tNode *) realloc((*tnode), n * sizeof(tNode));
+    tmp = (tNode *) realloc((*tnode), n * sizeof(tNode));
+    if (!tmp) return;
+    (*tnode) = tmp;
   }
   (*tnode)[n-1].n = n;
   (*tnode)[n-1].p = p;
@@ -724,7 +775,7 @@ findNode(tNode *tnode, int n, void *p, int t)
 }
 
 static void
-WriteDotConnections(FILE *funfile, Biddy_Edge f, tNode *tnode, int *t, int n)
+writeDotConnections(FILE *funfile, Biddy_Edge f, tNode *tnode, int *t, int n)
 {
   int n1,n2;
 
@@ -765,13 +816,13 @@ WriteDotConnections(FILE *funfile, Biddy_Edge f, tNode *tnode, int *t, int n)
     }
 
     if (Biddy_IsConstant(Biddy_GetElse(f)) || Biddy_IsConstant(Biddy_GetThen(f))) (*t)++;
-    WriteDotConnections(funfile,Biddy_GetElse(f),tnode,t,n);
-    WriteDotConnections(funfile,Biddy_GetThen(f),tnode,t,n);
+    writeDotConnections(funfile,Biddy_GetElse(f),tnode,t,n);
+    writeDotConnections(funfile,Biddy_GetThen(f),tnode,t,n);
   }
 }
 
 static void
-ParseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize)
+parseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize)
 {
   char line[255];
   Biddy_String r,label,defaultlabel,pos;
@@ -784,7 +835,9 @@ ParseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize)
   while (r && !strstr(line,"bb=")) r = fgets(line,255,dotfile);
   if (r) {
     pos = (Biddy_String) malloc(strlen(line));
+#pragma warning(suppress: 6031)
     sscanf(&(strstr(line,"bb=")[4]),"%s",pos);
+#pragma warning(suppress: 6031)
     sscanf(pos,"%d,%d,%d,%d",&x,&y,xsize,ysize);
     free(pos);
   }
@@ -798,11 +851,13 @@ ParseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize)
       while (r && !strstr(line,"label=")) r = fgets(line,255,dotfile);
       if (defaultlabel) free(defaultlabel);
       defaultlabel = (Biddy_String) malloc(strlen(line));
+#pragma warning(suppress: 6031)
       sscanf(&(strstr(line,"label=")[6]),"%s",defaultlabel);
       defaultlabel[strlen(defaultlabel)-1] = 0;
       while (r && !strstr(line,"height=")) r = fgets(line,255,dotfile);
     }
     if (r) {
+#pragma warning(suppress: 6031)
       sscanf(line,"%d",&id);
       table[id].id = id;
     }
@@ -811,6 +866,9 @@ ParseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize)
     if (r) {
       if (strstr(line,"label=")) {
         label = (Biddy_String) malloc(strlen(line));
+        if (!label) return;
+#pragma warning(suppress: 6011)
+#pragma warning(suppress: 6031)
         sscanf(&(strstr(line,"label=")[6]),"%s",label);
         label[strlen(label)-1] = 0;
       } else {
@@ -821,12 +879,16 @@ ParseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize)
     while (r && !strstr(line,"pos=")) r = fgets(line,255,dotfile);
     if (r) {
       pos = (Biddy_String) malloc(strlen(line));
+      if (!pos) return;
+#pragma warning(suppress: 6011)
+#pragma warning(suppress: 6031)
       sscanf(&(strstr(line,"pos=")[5]),"%s",pos);
+#pragma warning(suppress: 6031)
       sscanf(pos,"%f,%f",&xf,&yf);
 
       table[id].label = strdup(label);
-      table[id].x = xf; /* float -> int */
-      table[id].y = yf; /* float -> int */
+      table[id].x = (int)xf; /* float -> int */
+      table[id].y = (int)yf; /* float -> int */
       free(label);
       free(pos);
 
@@ -845,7 +907,7 @@ ParseDot(FILE *dotfile, tableXY *table, int *xsize, int *ysize)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ConstructBDD.]
+  Synopsis    [Function BddscoutConstructBDD.]
   Description []
   SideEffects []
   SeeAlso     []
@@ -869,7 +931,7 @@ static void reorderVariables(BddscoutVariableOrder *tableV, BddscoutTclBDD *tabl
 static void constructBDD(BddscoutTclBDD *table, int id);
 
 void
-Bddscout_ConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4)
+BddscoutConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4)
 {
   BddscoutVariableOrder *tableV;
   BddscoutTclBDD *tableN;
@@ -885,7 +947,9 @@ Bddscout_ConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4)
   */
 
   tableV = (BddscoutVariableOrder *) malloc(numV * sizeof(BddscoutVariableOrder));
+  if (!tableV) return;
   tableN = (BddscoutTclBDD *) malloc(numN * sizeof(BddscoutTclBDD));
+  if (!tableN) return;
 
   if (numV) {
     word = strtok(s2," "); /* parsing list of variables */
@@ -893,6 +957,7 @@ Bddscout_ConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4)
     tableV[0].order = 0;
     for (i=1; i<numV; ++i) {
       word = strtok(NULL," ");
+#pragma warning(suppress: 6386)
       tableV[i].name = strdup(word);
       tableV[i].order = 0;
     }
@@ -927,6 +992,7 @@ Bddscout_ConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4)
   }
 
   for (i=0; i<numV; ++i) {
+#pragma warning(suppress: 6385)
     Biddy_FoaVariable(tableV[i].name);
   }
 
@@ -940,6 +1006,7 @@ Bddscout_ConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4)
   */
 
   for (i=0; i<numN; ++i) {
+#pragma warning(suppress: 6385)
     if (tableN[i].type == 0) {
       reorderVariables(tableV,tableN,tableN[i].l);
       constructBDD(tableN,tableN[i].l);
@@ -1004,24 +1071,27 @@ constructBDD(BddscoutTclBDD *tableN, int id)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_ReadBDD.]
+  Synopsis    [Function BddscoutReadBDD.]
   Description []
   SideEffects []
   SeeAlso     []
   ************************************************************************/
 
 Biddy_String
-Bddscout_ReadBDD(FILE *s)
+BddscoutReadBDD(FILE *s)
 {
   Biddy_String bdd;
-  int len,n;
+  unsigned int len,n;
   Biddy_String name;
+  Biddy_String tmp;
 
   len = 0;
   bdd = strdup("");
   do {
-    bdd = (Biddy_String) realloc(bdd,len+255);
-    n = fread(&bdd[len],1,255,s);
+    tmp = (Biddy_String) realloc(bdd,len+255);
+    if (!tmp) return NULL;
+    bdd = tmp;
+    n = (unsigned int)fread(&bdd[len],1,255,s);
     len = len + n;
   } while (n == 255);
 
@@ -1037,14 +1107,14 @@ Bddscout_ReadBDD(FILE *s)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function Bddscout_WriteBDD.]
+  Synopsis    [Function BddscoutWriteBDD.]
   Description []
   SideEffects []
   SeeAlso     []
   ************************************************************************/
 
 void
-Bddscout_WriteBDD(char *filename, Biddy_String name)
+BddscoutWriteBDD(char *filename, Biddy_String name)
 {
   Biddy_Edge f;
 
@@ -1193,7 +1263,7 @@ static int BiddyIteCacheOverwriteCmd(ClientData clientData, Tcl_Interp *interp,
 extern "C" {
 #endif
 
-int
+EXTERN int
 Bddscout_Init(Tcl_Interp *interp)
 {
 
@@ -1396,7 +1466,7 @@ BddscoutListVariablesByPositionCmd(ClientData clientData, Tcl_Interp *interp,
 
   list = strdup("");
 
-  Bddscout_ListVariablesByPosition(&list);
+  BddscoutListVariablesByPosition(&list);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1412,7 +1482,7 @@ BddscoutListVariablesByNameCmd(ClientData clientData, Tcl_Interp *interp,
 
   list = strdup("");
 
-  Bddscout_ListVariablesByName(&list);
+  BddscoutListVariablesByName(&list);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1428,7 +1498,7 @@ BddscoutListVariablesByOrderCmd(ClientData clientData, Tcl_Interp *interp,
 
   list = strdup("");
 
-  Bddscout_ListVariablesByOrder(&list);
+  BddscoutListVariablesByOrder(&list);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1444,7 +1514,7 @@ BddscoutListVariablesByNumberCmd(ClientData clientData, Tcl_Interp *interp,
 
   list = strdup("");
 
-  Bddscout_ListVariablesByNumber(&list);
+  BddscoutListVariablesByNumber(&list);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1460,7 +1530,7 @@ BddscoutListFormulaeByNameCmd(ClientData clientData, Tcl_Interp *interp, int arg
 
   list = strdup("NULL"); /* not required, but nice */
 
-  Bddscout_ListFormulaByName(&list);
+  BddscoutListFormulaByName(&list);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1476,7 +1546,7 @@ BddscoutListFormulaeByNodeNumberCmd(ClientData clientData,
 
   list = strdup("NULL"); /* required! */
 
-  Bddscout_ListFormulaByUIntParameter(&list,Biddy_NodeNumber);
+  BddscoutListFormulaByUIntParameter(&list,Biddy_NodeNumber);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1492,7 +1562,7 @@ BddscoutListFormulaeByNodeMaxLevelCmd(ClientData clientData,
 
   list = strdup("NULL"); /* required! */
 
-  Bddscout_ListFormulaByUIntParameter(&list,Biddy_NodeMaxLevel);
+  BddscoutListFormulaByUIntParameter(&list,Biddy_NodeMaxLevel);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1508,7 +1578,7 @@ BddscoutListFormulaeByNodeAvgLevelCmd(ClientData clientData,
 
   list = strdup("NULL"); /* required! */
 
-  Bddscout_ListFormulaByFloatParameter(&list,Biddy_NodeAvgLevel);
+  BddscoutListFormulaByFloatParameter(&list,Biddy_NodeAvgLevel);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1524,7 +1594,7 @@ BddscoutWriteBDDviewCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   FILE *funfile;
   int ERR;
 
-#ifdef WINDOWS
+#if defined(MINGW) || defined(_MSC_VER)
   char* docdir;
   char* appdir;
   docdir = getenv("USERPROFILE");
@@ -1540,8 +1610,9 @@ BddscoutWriteBDDviewCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   s2 = strdup(argv[2]);
   s3 = strdup(argv[3]);
 
-#ifdef WINDOWS
+#if defined(MINGW) || defined(_MSC_VER)
   s2x = (Biddy_String) malloc(strlen(docdir)+strlen(appdir)+strlen(s2)+1);
+  if (!s2x) return TCL_ERROR;
   s2x[0] = 0;
   strcat(s2x,docdir);
   strcat(s2x,appdir);
@@ -1566,7 +1637,7 @@ BddscoutWriteBDDviewCmd(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  ERR = Bddscout_WriteBDDView(funfile,s3,s1);
+  ERR = BddscoutWriteBDDView(funfile,s3,s1);
   fclose(funfile);
 
   free(s1);
@@ -1603,7 +1674,7 @@ BddscoutConstructBDDCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   numV = atoi(s1);
   numN = atoi(s3);
 
-  Bddscout_ConstructBDD(numV,s2,numN,s4);
+  BddscoutConstructBDD(numV,s2,numN,s4);
 
   free(s1);
   free(s2);
@@ -1628,7 +1699,7 @@ BddscoutWriteBDDCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   s1 = strdup(argv[1]);
   s2 = strdup(argv[2]);
 
-  Bddscout_WriteBDD(s1,s2);
+  BddscoutWriteBDD(s1,s2);
 
   free(s1);
   free(s2);
@@ -1659,7 +1730,7 @@ BddscoutReadBDDCmd(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  name = Bddscout_ReadBDD(funfile);
+  name = BddscoutReadBDD(funfile);
 
   fclose(funfile);
 
@@ -1693,7 +1764,7 @@ BddscoutReadBFCmd(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  name = Bddscout_ParseFile(funfile);
+  name = BddscoutParseFile(funfile);
 
   fclose(funfile);
 
@@ -1758,6 +1829,7 @@ BiddyVariableNumCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_VariableTableNum());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -1777,6 +1849,7 @@ BiddyTableSizeCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableSize());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -1796,6 +1869,7 @@ BiddyTableMaxCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableMax());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -1815,6 +1889,7 @@ BiddyTableNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableNum());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -1853,6 +1928,7 @@ BiddyVariableNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
     sup = strdup("0");
   } else {
     sup = (Biddy_String) malloc(127);
+    if (!sup) return TCL_ERROR;
     sprintf(sup,"%u",Biddy_NodeTableNumVar(v));
   }
 
@@ -1874,6 +1950,7 @@ BiddyTableFortifiedCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableNumF());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -1893,9 +1970,10 @@ BiddyTableFoaCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
 
-#ifdef WINDOWS
-  sprintf(sup,"%I64u",Biddy_NodeTableFOA()); /* MINGW REQUIRES "%I64u" */
+#if defined(MINGW) || defined(_MSC_VER)
+  sprintf(sup,"%I64u",Biddy_NodeTableFOA()); /* MINGW AND VS?? REQUIRE "%I64u" */
 #else
   sprintf(sup,"%llu",Biddy_NodeTableFOA());
 #endif
@@ -1918,9 +1996,10 @@ BiddyTableCompareCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
 
-#ifdef WINDOWS
-  sprintf(sup,"%I64u",Biddy_NodeTableCompare()); /* MINGW REQUIRES "%I64u" */
+#if defined(MINGW) || defined(_MSC_VER)
+  sprintf(sup,"%I64u",Biddy_NodeTableCompare()); /* MINGW AND VS ?? REQUIRE "%I64u" */
 #else
   sprintf(sup,"%llu",Biddy_NodeTableCompare());
 #endif
@@ -1943,9 +2022,10 @@ BiddyTableAddCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
 
-#ifdef WINDOWS
-  sprintf(sup,"%I64u",Biddy_NodeTableAdd()); /* MINGW REQUIRES "%I64u" */
+#if defined(MINGW) || defined(_MSC_VER)
+  sprintf(sup,"%I64u",Biddy_NodeTableAdd()); /* MINGW AND VS?? REQUIRE "%I64u" */
 #else
   sprintf(sup,"%llu",Biddy_NodeTableAdd());
 #endif
@@ -1968,6 +2048,7 @@ BiddyGarbageNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableGarbage());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -1987,6 +2068,7 @@ BiddyTableGeneratedCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableGenerated());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -2006,6 +2088,7 @@ BiddyBlockNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableBlockNumber());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -2025,6 +2108,7 @@ BiddySwapNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableSwapNumber());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -2044,6 +2128,7 @@ BiddySiftingNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_NodeTableSiftingNumber());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -2063,6 +2148,7 @@ BiddyListUsedCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_ListUsed());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -2082,6 +2168,7 @@ BiddyListMaxLengthCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%u",Biddy_ListMaxLength());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -2101,6 +2188,7 @@ BiddyListAvgLengthCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
   sprintf(sup,"%.2f",Biddy_ListAvgLength());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
@@ -2120,9 +2208,10 @@ BiddyIteCacheSearchCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
 
-#ifdef WINDOWS
-  sprintf(sup,"%I64u",Biddy_IteCacheSearch()); /* MINGW REQUIRES "%I64u" */
+#if defined(MINGW) || defined(_MSC_VER)
+  sprintf(sup,"%I64u",Biddy_IteCacheSearch()); /* MINGW AND VS?? REQUIRE "%I64u" */
 #else
   sprintf(sup,"%llu",Biddy_IteCacheSearch());
 #endif
@@ -2145,9 +2234,10 @@ BiddyIteCacheFindCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
 
-#ifdef WINDOWS
-  sprintf(sup,"%I64u",Biddy_IteCacheFind()); /* MINGW REQUIRES "%I64u" */
+#if defined(MINGW) || defined(_MSC_VER)
+  sprintf(sup,"%I64u",Biddy_IteCacheFind()); /* MINGW AND VS?? REQUIRE "%I64u" */
 #else
   sprintf(sup,"%llu",Biddy_IteCacheFind());
 #endif
@@ -2170,9 +2260,10 @@ BiddyIteCacheOverwriteCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   sup = (Biddy_String) malloc(127);
+  if (!sup) return TCL_ERROR;
 
-#ifdef WINDOWS
-  sprintf(sup,"%I64u",Biddy_IteCacheOverwrite()); /* MINGW REQUIRES "%I64u" */
+#if defined(MINGW) || defined(_MSC_VER)
+  sprintf(sup,"%I64u",Biddy_IteCacheOverwrite()); /* MINGW AND VS?? REQUIRE "%I64u" */
 #else
   sprintf(sup,"%llu",Biddy_IteCacheOverwrite());
 #endif

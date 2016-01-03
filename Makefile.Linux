@@ -3,8 +3,8 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 104 $]
-#  Date        [$Date: 2015-10-23 17:13:04 +0200 (pet, 23 okt 2015) $]
+#  Revision    [$Revision: 123 $]
+#  Date        [$Date: 2015-12-29 10:52:28 +0100 (tor, 29 dec 2015) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2015 UM-FERI
@@ -34,6 +34,8 @@ MKDIR = mkdir -p
 CP = cp
 GCC = gcc
 
+LIBGMP = -lgmp
+
 all: dynamic
 
 dynamic:
@@ -41,7 +43,8 @@ dynamic:
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.so.$(BIDDYVERSION)" \
-	"CC = $(GCC) -fpic -O2 -DUNIX" \
+	"LIBGMP = $(LIBGMP)" \
+	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX" \
 	"LN = $(GCC) -shared -Wl,-soname,libbiddy.so.$(BIDDYMAJORVERSION) -o"
 	$(LNS) libbiddy.so.$(BIDDYVERSION) $(BINDIR)/libbiddy.so.$(BIDDYMAJORVERSION)
 	$(LNS) libbiddy.so.$(BIDDYMAJORVERSION) $(BINDIR)/libbiddy.so
@@ -51,7 +54,8 @@ static:
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
-	"CC = $(GCC) -fpic -O2 -DUNIX" \
+	"LIBGMP = " \
+	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX" \
 	"LN = ar rcs"
 
 debug:
@@ -59,7 +63,8 @@ debug:
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
-	"CC = /usr/bin/g++ -fpic -g -O0 -DUNIX" \
+	"LIBGMP = " \
+	"CC = /usr/bin/g++ -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -g -O0 -DUNIX" \
 	"LN = ar rcs"
 
 profile:
@@ -67,7 +72,8 @@ profile:
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
-	"CC = $(GCC) -fpic -g -pg -O0 -DUNIX" \
+	"LIBGMP = " \
+	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -g -pg -O0 -DUNIX" \
 	"LN = ar rcs"
 
 install:

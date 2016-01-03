@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 84 $]
-#  Date        [$Date: 2015-08-04 10:10:13 +0200 (tor, 04 avg 2015) $]
+#  Revision    [$Revision: 121 $]
+#  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2015 UM-FERI
@@ -32,7 +32,7 @@ CP = cp
 MKDIR = mkdir -p
 CD = cd
 
-all: start dynamic clean static ok
+all: start dynamic clean ok
 	$(CP) ./biddy.h $(BINDIR)
 
 dynamic: start_dynamic make_dynamic
@@ -103,7 +103,7 @@ $(BINDIR)/biddyInOut.o: biddyInOut.c biddy.h biddyInt.h
 #	$(CC) $(CFLAGS) -o $(BINDIR)/biddy4cudd.o -c biddy4cudd.c
 
 $(BINDIR)/$(LIBNAME): $(BINDIR)/biddyMain.o $(BINDIR)/biddyStat.o $(BINDIR)/biddyInOut.o
-	$(CD) $(BINDIR); $(LN) $(LIBNAME) $(CFLAGS) biddyMain.o biddyStat.o biddyInOut.o
+	$(CD) $(BINDIR); $(LN) $(LIBNAME) $(CFLAGS) biddyMain.o biddyStat.o biddyInOut.o $(LIBGMP)
 
 # -----------------------------------------------------------------------
 # purge = purify source directory, clean = purify bin directory

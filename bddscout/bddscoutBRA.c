@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutBRA.c]
-  Revision    [$Revision: 97 $]
-  Date        [$Date: 2015-09-24 11:46:00 +0200 (čet, 24 sep 2015) $]
+  Revision    [$Revision: 114 $]
+  Date        [$Date: 2015-12-21 16:04:00 +0100 (pon, 21 dec 2015) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -44,11 +44,15 @@
 /*-----------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------*/
-/* Functions                                                             */
+/* External functions                                                    */
+/*-----------------------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------*/
+/* Internal functions                                                    */
 /*-----------------------------------------------------------------------*/
 
 Biddy_String
-Bddscout_BRAExhaustive(Biddy_String fname)
+BddscoutBRAExhaustive(Biddy_String fname)
 {
   Biddy_Edge f;
   Biddy_Boolean ok;
@@ -122,7 +126,7 @@ static int BddscoutBraExhaustiveCmd(ClientData clientData, Tcl_Interp *interp,
 extern "C" {
 #endif
 
-int
+EXTERN int
 Bddscoutbra_Init(Tcl_Interp *interp)
 {
 
@@ -237,7 +241,7 @@ BddscoutBraExhaustiveCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 
   s1 = strdup(argv[1]);
 
-  report = Bddscout_BRAExhaustive(s1);
+  report = BddscoutBRAExhaustive(s1);
 
   free(s1);
 

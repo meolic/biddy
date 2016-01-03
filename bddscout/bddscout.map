@@ -1,0 +1,4 @@
+{
+global: Bddscout*_Init;
+local: *;
+};

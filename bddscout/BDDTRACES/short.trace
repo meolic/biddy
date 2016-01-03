@@ -20,6 +20,13 @@ OUTPUT
          lv_8,      lv_10,      lv_12,      lv_14,      lv_17,
         lv_18,      lv_19,      lv_65;
 STRUCTURE
+   trace_verbose_print("START OF COMMENT");
+   trace_verbose_print("this is sample-trace from free software called bdd-trace-driver-0.9 (Bwolen Yang)");
+   trace_verbose_print("original file has been obtained from http://www.cs.cmu.edu/~bwolen/software/");
+   trace_verbose_print("original file uses strange ordering of arguments to function exists()");
+   trace_verbose_print("we have changed the role of arguments to function exists() and recalculated the resulting BDDs sizes");
+   trace_verbose_print("robert.meolic@um.si, 2015");
+   trace_verbose_print("END OF COMMENT");
    false = new_int_leaf(0);   % 1
    true = new_int_leaf(1);   % 1
    trace_verbose_print("Registering quantifiers (curr/next vars)");
@@ -47,13 +54,13 @@ STRUCTURE
    are_equal(lv_7, false);   % 0
    are_equal(lv_7, true);   % 0
    lv_9 = support_vars(lv_7);   % 5
-   lv_10 = exists(lv_4, lv_9);   % 4
-   lv_11 = exists(lv_2, lv_9);   % 3
+   lv_10 = exists(lv_4, lv_9);   % 3
+   lv_11 = exists(lv_2, lv_9);   % 1
    trace_verbose_print("  Initial merging...");
    trace_verbose_print("  Done initializing partitions...");
    trace_verbose_print("  Ordering/Clustering for Image computationd...");
    trace_verbose_print("    Ordering partitions...");
-   lv_12 = and(true, lv_11);   % 3
+   lv_12 = and(true, lv_11);   % 1
    lv_13 = and(v0, true);   % 3
    lv_14 = and(v2, lv_13);   % 4
    trace_verbose_print("    Done ordering partitions...");
@@ -62,13 +69,13 @@ STRUCTURE
    are_equal(lv_7, false);   % 0
    are_equal(lv_7, true);   % 0
    lv_15 = support_vars(lv_7);   % 5
-   lv_16 = exists(lv_4, lv_15);   % 4
-   lv_17 = exists(lv_2, lv_15);   % 3
+   lv_16 = exists(lv_4, lv_15);   % 3
+   lv_17 = exists(lv_2, lv_15);   % 1
    trace_verbose_print("  Initial merging...");
    trace_verbose_print("  Done initializing partitions...");
    trace_verbose_print("  Ordering/Clustering for PreImage computation...");
    trace_verbose_print("    Ordering partitions...");
-   lv_18 = and(true, lv_16);   % 4
+   lv_18 = and(true, lv_16);   % 3
    lv_19 = and(v3, true);   % 3
    trace_verbose_print("    Done ordering partitions...");
    trace_verbose_print("    Clustering partitions...");

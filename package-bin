@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 78 $]
-#  Date        [$Date: 2015-04-20 23:07:29 +0200 (pon, 20 apr 2015) $]
+#  Revision    [$Revision: 129 $]
+#  Date        [$Date: 2016-01-02 01:09:02 +0100 (sob, 02 jan 2016) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2015 UM-FERI
@@ -44,14 +44,14 @@ cp COPYING "./$NAME-$VERSION/"
 cp CHANGES "./$NAME-$VERSION/"
 cp biddy.h "./$NAME-$VERSION/"
 
-echo "Creating $NAME-bin-$VERSION-$OS.zip ..."
-zip -y -o "$NAME-bin-$VERSION-$OS.zip" "./$NAME-$VERSION"/* -x "./$NAME-$VERSION"/biddy.h -x "./$NAME-$VERSION"/libbiddy.a -x "./$NAME-$VERSION"/*.so
+echo "Creating $NAME-$VERSION-$OS.zip ..."
+zip -y -o "$NAME-$VERSION-$OS.zip" "./$NAME-$VERSION"/* -x "./$NAME-$VERSION"/biddy.h -x "./$NAME-$VERSION"/libbiddy.a -x "./$NAME-$VERSION"/*.so
 if [ -e "./$NAME-$VERSION"/libbiddy.so ] && [ ! -L "./$NAME-$VERSION"/libbiddy.so ] ; then
-  zip -y -o "$NAME-bin-$VERSION-$OS.zip" "./$NAME-$VERSION"/libbiddy.so
+  zip -y -o "$NAME-$VERSION-$OS.zip" "./$NAME-$VERSION"/libbiddy.so
 fi
 
-echo "Creating $NAME-$VERSION-$OS.zip ..."
-zip -y -o "$NAME-$VERSION-$OS.zip" "./$NAME-$VERSION"/*
+echo "Creating $NAME-dev-$VERSION-$OS.zip ..."
+zip -y -o "$NAME-dev-$VERSION-$OS.zip" "./$NAME-$VERSION"/*
 
 rm -fr "./$NAME-$VERSION"
 

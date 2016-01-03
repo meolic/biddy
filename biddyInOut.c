@@ -13,8 +13,8 @@
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 100 $]
-    Date        [$Date: 2015-10-05 16:59:26 +0200 (pon, 05 okt 2015) $]
+    Revision    [$Revision: 124 $]
+    Date        [$Date: 2015-12-30 17:27:05 +0100 (sre, 30 dec 2015) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net),
                  Volodymyr Mihav (mihaw.wolodymyr@gmail.com),
@@ -45,11 +45,13 @@ See also: biddy.h, biddyInt.h
 
 #include "biddyInt.h"
 
+/*
 typedef struct {
   int n;
   void *p;
   int t;
 } EnumeratedNode;
+*/
 
 typedef struct BoolTreeNodeType {
   long parent;
@@ -98,25 +100,15 @@ static void WriteBDD(Biddy_Manager MNG, Biddy_Edge f);
 
 /* Function WriteBDDx() is used in Biddy_WriteBDDx(). */
 
-static void WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, int *line);
+static void WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned int *line);
 
 /* The following functions are used in Biddy_WriteDot(). */
 
-static void EnumerateNodes(Biddy_Edge f, EnumeratedNode **tnode, int *t, int *n);
+static unsigned int enumerateNodes(Biddy_Edge f, unsigned int n);
 
-static void WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, EnumeratedNode *tnode, int n, int id);
+static void WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id);
 
-static void WriteDotEdges(FILE *dotfile, Biddy_Edge f, EnumeratedNode *tnode, int *t, int n);
-
-static void addNode(EnumeratedNode **tnode, int n, void *p, int t);
-
-static int findNode(EnumeratedNode *tnode, int n, void *p, int t);
-
-/* The following functions are used in Biddy_WriteTable(). */
-
-static Biddy_Boolean foaVariableTable(Biddy_Edge* nodes, Biddy_Edge node);
-
-static int createVariableTable(Biddy_Edge f, int steps, Biddy_Edge* usedNodes);
+static void WriteDotEdges(FILE *dotfile, Biddy_Edge f);
 
 /* Other functions that may be used everywhere */
 
@@ -282,7 +274,9 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
   
   i = 0; j = 0; 
   tree = (BTreeContainer *) calloc(1, sizeof(BTreeContainer));
+  if (!tree) return biddyNull;
   tree->tnode = (BTreeNode*) malloc(1024 * sizeof(BTreeNode));
+  if (!tree->tnode) return biddyNull;
   tree->availableNode = -1;
   for (i = 1023; i > 0; i--) {
     tree->tnode[i].parent = tree->availableNode;
@@ -446,7 +440,7 @@ void
 Biddy_Managed_WriteBDDx(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
                         Biddy_String label)
 {
-  int line;
+  unsigned int line;
   FILE *s;
 
   if (!MNG) MNG = biddyAnonymousManager;
@@ -485,12 +479,12 @@ Biddy_Managed_WriteBDDx(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
 extern "C" {
 #endif
 
-int
+unsigned int
 Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
                        const char label[])
 {
-  int id,t,n;
-  EnumeratedNode *tn;
+  int id;
+  unsigned int n;
   char *label1;
   char *hash;
   FILE *s;
@@ -502,11 +496,11 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
   n = 0;
   if (Biddy_IsNull(f)) {
     /* printf("ERROR Biddy_Managed_WriteDot: Function is null!\n"); */
-    return(0);
+    return 0 ;
   } else {
 
     s = fopen(filename,"w");
-    if (!s) return(0);
+    if (!s) return 0;
 
     label1 = strdup(label);
     while ((hash=strchr(label1,'#'))) hash[0]='_'; /* avoid hashes in the name */
@@ -521,35 +515,30 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
 
     free(label1);
 
-    t = 0;
-    tn = NULL;
-    EnumerateNodes(f,&tn,&t,&n); /* this will select all nodes */
-    Biddy_DeselectNode(biddyOne); /* needed for Biddy_NodeRepair */
+    BiddyCreateLocalInfo(MNG,f);
+    n = enumerateNodes(f,0); /* this will select all nodes except constant node */
     Biddy_NodeRepair(f);
-    WriteDotNodes(MNG,s,tn,n,id);
+    WriteDotNodes(MNG,s,f,id);
     if (Biddy_GetMark(f)) {
       fprintf(s,"  0 -> 1 [arrowtail=\"none\" arrowhead=\"dot\"];\n");
     } else {
       fprintf(s,"  0 -> 1 [arrowtail=\"none\"];\n");
     }
-    t = 1;
-    WriteDotEdges(s,f,tn,&t,n); /* this will select all nodes except constant node */
-    Biddy_NodeRepair(f);
-    fprintf(s,"}\n");
+    WriteDotEdges(s,f); /* this will select all nodes except constant node */
+    BiddyDeleteLocalInfo(MNG, f);
 
-    free(tn);
+    fprintf(s,"}\n");
     fclose(s);
   }
 
   return n;
 }
 
-int
+unsigned int
 Biddy_Managed_WriteDotx(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
                         const char label[], int id)
 {
-  int t,n;
-  EnumeratedNode *tn;
+  unsigned int n;
   char *label1;
   char *hash;
   FILE *s;
@@ -559,11 +548,11 @@ Biddy_Managed_WriteDotx(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
   n = 0;
   if (Biddy_IsNull(f)) {
     /* printf("ERROR Biddy_Managed_WriteDotx: Function is null!\n"); */
-    return(0);
+    return 0;
   } else {
 
     s = fopen(filename,"w");
-    if (!s) return(0);
+    if (!s) return 0;
 
     label1 = strdup(label);
     while ((hash=strchr(label1,'#'))) hash[0]='_'; /* avoid hashes in the name */
@@ -578,23 +567,19 @@ Biddy_Managed_WriteDotx(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
 
     free(label1);
 
-    t = 0;
-    tn = NULL;
-    EnumerateNodes(f,&tn,&t,&n); /* this will select all nodes */
-    Biddy_DeselectNode(biddyOne); /* needed for Biddy_NodeRepair */
+    BiddyCreateLocalInfo(MNG,f);
+    n = enumerateNodes(f,0); /* this will select all nodes except constant node */
     Biddy_NodeRepair(f);
-    WriteDotNodes(MNG,s,tn,n,id);
+    WriteDotNodes(MNG,s,f,id);
     if (Biddy_GetMark(f)) {
       fprintf(s,"  0 -> 1 [arrowtail=\"none\" arrowhead=\"dot\"];\n");
     } else {
       fprintf(s,"  0 -> 1 [arrowtail=\"none\"];\n");
     }
-    t = 1;
-    WriteDotEdges(s,f,tn,&t,n); /* this will select all nodes except constant node */
-    Biddy_NodeRepair(f);
-    fprintf(s,"}\n");
+    WriteDotEdges(s,f); /* this will select all nodes except constant node */
+    BiddyDeleteLocalInfo(MNG, f);
 
-    free(tn);
+    fprintf(s,"}\n");
     fclose(s);
   }
 
@@ -626,9 +611,10 @@ Biddy_Managed_WriteTable(Biddy_Manager MNG, Biddy_Edge f)
   Biddy_Edge support;
   unsigned int variableNumber;
   Biddy_Variable* variableTable;
-  int i,j;
+  unsigned int i;
+  int j;
   Biddy_Edge temp;
-  int numcomb;
+  unsigned int numcomb;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -644,10 +630,12 @@ Biddy_Managed_WriteTable(Biddy_Manager MNG, Biddy_Edge f)
   }
 
   /* variableTable is a table of all variables in BDD */
-  variableTable = (Biddy_Variable *) malloc((variableNumber) * sizeof(Biddy_Variable));
+  if (!(variableTable = (Biddy_Variable *)malloc((variableNumber) * sizeof(Biddy_Variable)))) return;
 
   for (i = 0; i < variableNumber; i++) {
+#pragma warning(suppress: 6386)
     variableTable[i] = Biddy_GetTopVariable(support);
+#pragma warning(suppress: 6385)
     printf("|%s",Biddy_Managed_GetVariableName(MNG,variableTable[i]));
     support = BiddyT(support);
   }
@@ -670,7 +658,7 @@ Biddy_Managed_WriteTable(Biddy_Manager MNG, Biddy_Edge f)
       }
     }
     printf(" :");
-    if (Biddy_IsEqv(temp, biddyOne)) printf("1\n"); else printf("0\n");
+    if (temp == biddyOne) printf("1\n"); else printf("0\n");
   }
 
   free(variableTable);
@@ -858,6 +846,7 @@ evaluateN(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch,
 
   h = evaluate1(MNG,s,i,ch,lf);
   if (!Biddy_IsNull(h)) {
+    f = biddyNull;
     switch (op) {
             case oAND:  f = Biddy_Managed_ITE(MNG,g,h,biddyZero);
                         break;
@@ -1000,7 +989,7 @@ WriteBDD(Biddy_Manager MNG, Biddy_Edge f)
 }
 
 static void
-WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, int *line)
+WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned int *line)
 {
   Biddy_String var;
 
@@ -1013,7 +1002,7 @@ WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, int *line)
   var = Biddy_Managed_GetTopVariableName(MNG,f);
   fprintf(funfile,"%s",var);
 
-  *line = *line + strlen(var);
+  *line = *line + (unsigned int)strlen(var);
 
   if (!Biddy_IsConstant(f)) {
     if (*line >= 80) {
@@ -1039,82 +1028,80 @@ WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, int *line)
   }
 }
 
-static void
-EnumerateNodes(Biddy_Edge f, EnumeratedNode **tnode, int *t, int *n)
+static unsigned int
+enumerateNodes(Biddy_Edge f, unsigned int n)
 {
   if (!Biddy_IsSelected(f)) {
-    Biddy_SelectNode(f);
     if (Biddy_IsConstant(f)) {
-      (*n)++;
-      (*t)++;
-      addNode(tnode,(*n),Biddy_Regular(f),(*t));
     } else {
-      (*n)++;
-      addNode(tnode,(*n),Biddy_Regular(f),0);
+      Biddy_SelectNode(f);
+      n++;
+      BiddySetEnumerator(f,n);
       if (Biddy_IsConstant(BiddyE(f)) || Biddy_IsConstant(BiddyT(f))) {
-        (*n)++;
-        (*t)++;
-        addNode(tnode,(*n),Biddy_Regular(f),(*t));
+        n++; /* every instance of constant node is enumerated */
       }
       if (!Biddy_IsConstant(BiddyE(f))) {
-        EnumerateNodes(BiddyE(f),tnode,t,n);
+        n = enumerateNodes(BiddyE(f),n);
       }
       if (!Biddy_IsConstant(BiddyT(f))) {
-        EnumerateNodes(BiddyT(f),tnode,t,n);
+        n = enumerateNodes(BiddyT(f),n);
       }
     }
   }
+  return n;
 }
 
 static void
-WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, EnumeratedNode *tnode, int n, int id)
+WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id)
 {
-  int i;
-  void *p;
+  BiddyLocalInfo *li;
   Biddy_String name,hash;
 
-  for (i=0; i<n; ++i) {
-    if (tnode[i].t == 0) {
-      p = tnode[i].p;
-      if (id == -1) {
-        name = getname(MNG,p);
-      } else {
-        name = getshortname(MNG,p,id);
-      }
-      while ( (hash=strchr(name,'#')) ) hash[0]='_';
-
-      fprintf(dotfile,"  node [shape = circle, label = \"%s\"] %d;\n",name,tnode[i].n);
-      free(name);
+  if (Biddy_IsConstant(f)) {
+    fprintf(dotfile, "  node [shape = none, label = \"1\"] %u;\n",1);
+    return;
+  }
+  li = (BiddyLocalInfo *)(((BiddyNode *)Biddy_Regular(f))->list);
+  while (li->back) {
+    if (id == -1) {
+      name = getname(MNG,li->back);
     } else {
-      fprintf(dotfile,"  node [shape = none, label = \"1\"] %d;\n",tnode[i].n);
+      name = getshortname(MNG,li->back,id);
     }
+    while ((hash = strchr(name, '#'))) hash[0] = '_';
+    fprintf(dotfile,"  node [shape = circle, label = \"%s\"] %u;\n",name,li->data.enumerator);
+    free(name);
+    if (Biddy_IsConstant(BiddyE(li->back)) || Biddy_IsConstant(BiddyT(li->back))) {
+      fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+1);
+    }
+    li = &li[1]; /* next field in the array */
   }
 }
 
 static void
-WriteDotEdges(FILE *dotfile, Biddy_Edge f, EnumeratedNode *tnode, int *t, int n)
+WriteDotEdges(FILE *dotfile, Biddy_Edge f)
 {
-  int n1,n2;
+  unsigned int n1,n2;
 
   if (!Biddy_IsConstant(f) && !Biddy_IsSelected(f)) {
     Biddy_SelectNode(f);
-    n1 = findNode(tnode,n,Biddy_Regular(f),0);
+    n1 = BiddyGetEnumerator(f);
 
     if (Biddy_IsConstant(BiddyE(f))) {
-      n2 = findNode(tnode,n,Biddy_Regular(f),(*t));
+      n2 = n1 + 1;
     } else {
-      n2 = findNode(tnode,n,Biddy_Regular(BiddyE(f)),0);
+      n2 = BiddyGetEnumerator(BiddyE(f));
     }
     if (Biddy_GetMark(BiddyE(f))) {
-      fprintf(dotfile,"  %d -> %d [arrowtail=\"odot\" arrowhead=\"dot\"];\n",n1,n2);
+      fprintf(dotfile,"  %u -> %u [arrowtail=\"odot\" arrowhead=\"dot\"];\n",n1,n2);
     } else {
-      fprintf(dotfile,"  %d -> %d [arrowtail=\"odot\"];\n",n1,n2);
+      fprintf(dotfile,"  %u -> %u [arrowtail=\"odot\"];\n",n1,n2);
     }
 
     if (Biddy_IsConstant(BiddyT(f))) {
-      n2 = findNode(tnode,n,Biddy_Regular(f),(*t));
+      n2 = n1 + 1;
     } else {
-      n2 = findNode(tnode,n,BiddyT(f),0);
+      n2 = BiddyGetEnumerator(BiddyT(f));
     }
     if (Biddy_GetMark(BiddyT(f))) {
       fprintf(dotfile,"  %d -> %d [arrowtail=\"invempty\" arrowhead=\"dot\"];\n",n1,n2);
@@ -1122,39 +1109,9 @@ WriteDotEdges(FILE *dotfile, Biddy_Edge f, EnumeratedNode *tnode, int *t, int n)
       fprintf(dotfile,"  %d -> %d [arrowtail=\"invempty\"];\n",n1,n2);
     }
 
-    if (Biddy_IsConstant(BiddyE(f)) || Biddy_IsConstant(BiddyT(f))) (*t)++;
-    WriteDotEdges(dotfile,BiddyE(f),tnode,t,n);
-    WriteDotEdges(dotfile,BiddyT(f),tnode,t,n);
+    WriteDotEdges(dotfile,BiddyE(f));
+    WriteDotEdges(dotfile,BiddyT(f));
   }
-}
-
-static void
-addNode(EnumeratedNode **tnode, int n, void *p, int t)
-{
-  if (!(*tnode)) {
-    (*tnode) = (EnumeratedNode *) malloc(n * sizeof(EnumeratedNode));
-  } else {
-    (*tnode) = (EnumeratedNode *) realloc((*tnode), n * sizeof(EnumeratedNode));
-  }
-  (*tnode)[n-1].n = n;
-  (*tnode)[n-1].p = p;
-  (*tnode)[n-1].t = t;
-}
-
-static int
-findNode(EnumeratedNode *tnode, int n, void *p, int t)
-{
-  int i;
-
-  i=0;
-  while (i<n) {
-    if ((tnode[i].p == p) && (tnode[i].t == t)) {
-      return tnode[i].n;
-    }
-    i++;
-  }
-
-  return -1;
 }
 
 static Biddy_String
@@ -1173,12 +1130,12 @@ getname(Biddy_Manager MNG, void *p) {
 
 static Biddy_String
 getshortname(Biddy_Manager MNG, void *p, int n) {
-  int i;
+  unsigned int i;
   Biddy_String name;
   Biddy_String shortname;
 
   name = strdup(Biddy_Managed_GetTopVariableName(MNG,(Biddy_Edge) p));
-  i = strcspn(name,"<");
+  i = (unsigned int)strcspn(name,"<");
   name[i]=0;
   shortname = strdup(name);
   free(name);

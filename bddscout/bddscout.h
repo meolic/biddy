@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.h]
-  Revision    [$Revision: 87 $]
-  Date        [$Date: 2015-08-20 16:53:32 +0200 (čet, 20 avg 2015) $]
+  Revision    [$Revision: 114 $]
+  Date        [$Date: 2015-12-21 16:04:00 +0100 (pon, 21 dec 2015) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description [The file bddscout.h contains some declarations.]
   SeeAlso     []
@@ -29,16 +29,44 @@
                Boston, MA 02110-1301 USA.]
   ************************************************************************/
 
+/* To inspect DLL use Visual Studio Command Prompt + DUMPBIN /EXPORTS */
+
 #ifndef _BDDSCOUT
 #define _BDDSCOUT
 
-#include <biddy.h>
 #include <tcl.h>
+#include <biddy.h>
 
-#ifdef VISUALSTUDIO
-#include <io.h>
+/* ON MS WINDOWS + MINGW THERE HAS TO BE DEFINED MINGW */
+/* ON GNU/LINUX THERE HAS TO BE DEFINED UNIX */
+/* ON MACOSX THERE HAS TO BE DEFINED MACOSX */
+
+#ifdef UNIX
+#  undef EXTERN
+#  define EXTERN
+#  undef DATAEXTERN
+#  define DATAEXTERN
+#endif
+
+#ifdef MACOSX
+#  undef EXTERN
+#  define EXTERN
+#  undef DATAEXTERN
+#  define DATAEXTERN
+#endif
+
+#if defined(MINGW) || defined(_MSC_VER)
+#  undef EXTERN
+#  define EXTERN __declspec (dllexport)
+#  undef DATAEXTERN
+#  define DATAEXTERN extern __declspec (dllexport)
+#endif
+
+#ifdef _MSC_VER
+#  include <io.h>
+#  include <process.h>
 #else
-#include <unistd.h>
+#  include <unistd.h>
 #endif
 
 #if TCL_MAJOR_VERSION < 8
@@ -46,7 +74,7 @@
 #elif defined(USE_TCL_STUBS) && TCL_MAJOR_VERSION == 8 && \
    (TCL_MINOR_VERSION == 0 || \
    (TCL_MINOR_VERSION == 1 && TCL_RELEASE_LEVEL != TCL_FINAL_RELEASE))
-#   error "Stubs interface doesn't work in 8.0 and alpha/beta 8.1"
+#  error "Stubs interface doesn't work in 8.0 and alpha/beta 8.1"
 #endif
 
 /*-----------------------------------------------------------------------*/

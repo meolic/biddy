@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DOCUMENT Type="Advanced Installer" CreateVersion="12.6.1" version="12.6.1" Modules="architect" RootPath="." Language="en" Id="{091AF130-E08C-4A53-8771-3A58EB3D7221}">
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
+    <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
+    <ROW Property="ALLUSERS" Value="1" MultiBuildValue="DefaultBuild:"/>
+    <ROW Property="ARPCONTACT" Value="robert.meolic@um.si"/>
+    <ROW Property="ARPURLINFOABOUT" Value="biddy.meolic.com"/>
+    <ROW Property="Manufacturer" Value="University of Maribor"/>
+    <ROW Property="ProductCode" Value="1033:{5BD6071F-76DC-4802-80E9-B1857C1540C4} " Type="16"/>
+    <ROW Property="ProductLanguage" Value="1033"/>
+    <ROW Property="ProductName" Value="BDD Scout"/>
+    <ROW Property="ProductVersion" Value="1.5" Type="32"/>
+    <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
+    <ROW Property="UpgradeCode" Value="{7F6C1AD3-155E-4138-B41E-3F667E140D09}"/>
+    <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsType9XDisplay" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT" MultiBuildValue="DefaultBuild:Windows 9x/ME/NT/2000/XP/Vista/Windows 7/Windows 8 x86/Windows 8.1 x86/Windows 10 x86" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT40" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT40Display" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT50" MultiBuildValue="DefaultBuild:Windows 2000" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT50Display" MultiBuildValue="DefaultBuild:Windows 2000" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64" MultiBuildValue="DefaultBuild:Windows XP x64, Windows XP x64 Service Pack 1, Windows XP x64 Service Pack 2, Windows Vista x64, Windows Vista x64 Service Pack 1, Windows Vista x64 Service Pack 2" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64Display" MultiBuildValue="DefaultBuild:Windows XP x64, Windows Vista x64" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNTDisplay" MultiBuildValue="DefaultBuild:32 bit Operating Systems" ValueLocId="-"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
+    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
+    <ROW Directory="BDDTRACES_Dir" Directory_Parent="APPDIR" DefaultDir="BDDTRA~1|BDDTRACES"/>
+    <ROW Directory="IFIP_Dir" Directory_Parent="APPDIR" DefaultDir="IFIP"/>
+    <ROW Directory="NewFolder_Dir" Directory_Parent="APPDIR" DefaultDir="bddscout"/>
+    <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
+    <ROW Directory="cath_Dir" Directory_Parent="IFIP_Dir" DefaultDir="cath"/>
+    <ROW Directory="ex_Dir" Directory_Parent="IFIP_Dir" DefaultDir="ex"/>
+    <ROW Directory="hachtel_Dir" Directory_Parent="IFIP_Dir" DefaultDir="hachtel"/>
+    <ROW Directory="plasco_Dir" Directory_Parent="IFIP_Dir" DefaultDir="plasco"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
+    <ROW Component="BDDTRACES" ComponentId="{1A937E28-C5F0-480A-8E42-1CE7DB0519E2}" Directory_="BDDTRACES_Dir" Attributes="0" KeyPath="abp4.trace" Type="0"/>
+    <ROW Component="IFIP" ComponentId="{AAC19D88-C70D-48BE-B8B3-348E6EB9E74C}" Directory_="IFIP_Dir" Attributes="0" KeyPath="README_1" Type="0"/>
+    <ROW Component="IFIPCATH" ComponentId="{99B3F22A-D4FC-4B77-8F08-FE0AEC8E031E}" Directory_="cath_Dir" Attributes="0" KeyPath="add1.be" Type="0"/>
+    <ROW Component="IFIPEX" ComponentId="{75CF4341-F23A-4799-B011-49B6BD07F274}" Directory_="ex_Dir" Attributes="0" KeyPath="ex2.be" Type="0"/>
+    <ROW Component="IFIPHACHTEL" ComponentId="{96693B1A-5C33-460C-B890-0280A8FF985E}" Directory_="hachtel_Dir" Attributes="0" KeyPath="alupla20.be" Type="0"/>
+    <ROW Component="IFIPPLASCO" ComponentId="{45ADD83D-20AC-434A-B4B8-847C5AE50CB6}" Directory_="plasco_Dir" Attributes="0" KeyPath="counter.be" Type="0"/>
+    <ROW Component="ProductName" ComponentId="{3C550EF1-8BA7-40EA-86A1-A02DB9F7D61C}" Directory_="APPDIR" Attributes="4" KeyPath="ProductName"/>
+    <ROW Component="bddscout" ComponentId="{3796F8F9-648F-4F99-ABE1-8E603302C6FD}" Directory_="NewFolder_Dir" Attributes="0" KeyPath="CHANGES_1" Type="0"/>
+    <ROW Component="bddscout.dll" ComponentId="{6C799095-7D6E-497B-B712-6FA9F87C909B}" Directory_="NewFolder_Dir" Attributes="256" KeyPath="bddscout.dll"/>
+    <ROW Component="bddscoutBDDTRACES.dll" ComponentId="{5B6E528D-FCBD-40B2-8D15-9171E6308A2A}" Directory_="NewFolder_Dir" Attributes="256" KeyPath="bddscoutBDDTRACES.dll"/>
+    <ROW Component="bddscoutBRA.dll" ComponentId="{D5AB1725-4EE8-49CE-B22B-697C68C4ADBB}" Directory_="NewFolder_Dir" Attributes="256" KeyPath="bddscoutBRA.dll"/>
+    <ROW Component="bddscoutIFIP.dll" ComponentId="{C6AA8605-6EBB-4CBA-9D68-0D7CF50DEECE}" Directory_="NewFolder_Dir" Attributes="256" KeyPath="bddscoutIFIP.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
+    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="BDDTRACES IFIP IFIPCATH IFIPEX IFIPHACHTEL IFIPPLASCO ProductName bddscout bddscout.dll bddscoutBDDTRACES.dll bddscoutBRA.dll bddscoutIFIP.dll"/>
+    <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
+    <ROW File="CHANGES" Component_="bddscout" FileName="CHANGE~2|CHANGES_bddscout" Attributes="0" SourcePath="..\bddscout\CHANGES" SelfReg="false" NextFile="COPYING"/>
+    <ROW File="CHANGES_1" Component_="bddscout" FileName="CHANGE~1|CHANGES_bddview" Attributes="0" SourcePath="..\bddview\CHANGES" SelfReg="false" NextFile="CHANGES_2"/>
+    <ROW File="CHANGES_2" Component_="bddscout" FileName="CHANGE~3|CHANGES_biddy" Attributes="0" SourcePath="..\CHANGES" SelfReg="false" NextFile="README_2"/>
+    <ROW File="COPYING" Component_="bddscout" FileName="COPYING" Attributes="0" SourcePath="..\bddscout\COPYING" SelfReg="false" NextFile="example.bdd"/>
+    <ROW File="README" Component_="BDDTRACES" FileName="README" Attributes="0" SourcePath="..\bddscout\BDDTRACES\README" SelfReg="false" NextFile="README.trace"/>
+    <ROW File="README.trace" Component_="BDDTRACES" FileName="README~1.TRA|README.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\README.trace" SelfReg="false" NextFile="short.trace"/>
+    <ROW File="README_1" Component_="IFIP" FileName="README" Attributes="0" SourcePath="..\bddscout\IFIP\README" SelfReg="false" NextFile="WG10.21989cfp.txt"/>
+    <ROW File="README_2" Component_="bddscout" FileName="README" Attributes="0" SourcePath="..\bddscout\README" SelfReg="false" NextFile="example.bddview"/>
+    <ROW File="WG10.21989cfp.txt" Component_="IFIP" FileName="WG102-~1.TXT|WG10.2-1989-cfp.txt" Attributes="0" SourcePath="..\bddscout\IFIP\WG10.2-1989-cfp.txt" SelfReg="false" NextFile="CHANGES"/>
+    <ROW File="abp4.trace" Component_="BDDTRACES" FileName="ABP4~1.TRA|abp4.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\abp4.trace" SelfReg="false" NextFile="dme1.trace"/>
+    <ROW File="add1.be" Component_="IFIPCATH" FileName="add1.be" Attributes="0" SourcePath="..\bddscout\IFIP\cath\add1.be" SelfReg="false" NextFile="add2.be"/>
+    <ROW File="add2.be" Component_="IFIPCATH" FileName="add2.be" Attributes="0" SourcePath="..\bddscout\IFIP\cath\add2.be" SelfReg="false" NextFile="add3.be"/>
+    <ROW File="add3.be" Component_="IFIPCATH" FileName="add3.be" Attributes="0" SourcePath="..\bddscout\IFIP\cath\add3.be" SelfReg="false" NextFile="add4.be"/>
+    <ROW File="add4.be" Component_="IFIPCATH" FileName="add4.be" Attributes="0" SourcePath="..\bddscout\IFIP\cath\add4.be" SelfReg="false" NextFile="addsub.be"/>
+    <ROW File="addsub.be" Component_="IFIPCATH" FileName="addsub.be" Attributes="0" SourcePath="..\bddscout\IFIP\cath\addsub.be" SelfReg="false" NextFile="alu.be"/>
+    <ROW File="alu.be" Component_="IFIPCATH" FileName="alu.be" Attributes="0" SourcePath="..\bddscout\IFIP\cath\alu.be" SelfReg="false" NextFile="ex2.be"/>
+    <ROW File="alupla20.be" Component_="IFIPHACHTEL" FileName="alupla20.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\alupla20.be" SelfReg="false" NextFile="alupla21.be"/>
+    <ROW File="alupla21.be" Component_="IFIPHACHTEL" FileName="alupla21.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\alupla21.be" SelfReg="false" NextFile="alupla22.be"/>
+    <ROW File="alupla22.be" Component_="IFIPHACHTEL" FileName="alupla22.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\alupla22.be" SelfReg="false" NextFile="alupla23.be"/>
+    <ROW File="alupla23.be" Component_="IFIPHACHTEL" FileName="alupla23.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\alupla23.be" SelfReg="false" NextFile="alupla24.be"/>
+    <ROW File="alupla24.be" Component_="IFIPHACHTEL" FileName="alupla24.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\alupla24.be" SelfReg="false" NextFile="dc2.be"/>
+    <ROW File="bddscout.dll" Component_="bddscout.dll" FileName="bddscout.dll" Attributes="0" SourcePath="x64\bddscout.dll" SelfReg="false" NextFile="pkgExtensionBDDTRACES.tcl"/>
+    <ROW File="bddscout.tcl" Component_="bddscout" FileName="bddscout.tcl" Attributes="0" SourcePath="..\bddscout\bddscout.tcl" SelfReg="false" NextFile="pkgIndex.tcl"/>
+    <ROW File="bddscoutBDDTRACES.dll" Component_="bddscoutBDDTRACES.dll" FileName="BDDSCO~1.DLL|bddscoutBDDTRACES.dll" Attributes="0" SourcePath="x64\bddscoutBDDTRACES.dll" SelfReg="false" NextFile="bddscoutBDDTRACES.tcl"/>
+    <ROW File="bddscoutBDDTRACES.tcl" Component_="bddscout" FileName="BDDSCO~1.TCL|bddscoutBDDTRACES.tcl" Attributes="0" SourcePath="..\bddscout\bddscoutBDDTRACES.tcl" SelfReg="false" NextFile="bddscoutBRA.tcl"/>
+    <ROW File="bddscoutBRA.dll" Component_="bddscoutBRA.dll" FileName="BDDSCO~2.DLL|bddscoutBRA.dll" Attributes="0" SourcePath="x64\bddscoutBRA.dll" SelfReg="false" NextFile="bddscoutIFIP.dll"/>
+    <ROW File="bddscoutBRA.tcl" Component_="bddscout" FileName="BDDSCO~2.TCL|bddscoutBRA.tcl" Attributes="0" SourcePath="..\bddscout\bddscoutBRA.tcl" SelfReg="false" NextFile="bddscoutIFIP.tcl"/>
+    <ROW File="bddscoutIFIP.dll" Component_="bddscoutIFIP.dll" FileName="BDDSCO~3.DLL|bddscoutIFIP.dll" Attributes="0" SourcePath="x64\bddscoutIFIP.dll" SelfReg="false" NextFile="pkgExtensionBRA.tcl"/>
+    <ROW File="bddscoutIFIP.tcl" Component_="bddscout" FileName="BDDSCO~3.TCL|bddscoutIFIP.tcl" Attributes="0" SourcePath="..\bddscout\bddscoutIFIP.tcl" SelfReg="false" NextFile="bddscoutBRA.dll"/>
+    <ROW File="bddview.tcl" Component_="bddscout" FileName="bddview.tcl" Attributes="0" SourcePath="..\bddview\bddview.tcl" SelfReg="false" NextFile="bddscout.tcl"/>
+    <ROW File="counter.be" Component_="IFIPPLASCO" FileName="counter.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\counter.be" SelfReg="false" NextFile="d3.be"/>
+    <ROW File="d3.be" Component_="IFIPPLASCO" FileName="d3.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\d3.be" SelfReg="false" NextFile="hostint1.be"/>
+    <ROW File="dc2.be" Component_="IFIPHACHTEL" FileName="dc2.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\dc2.be" SelfReg="false" NextFile="dk17.be"/>
+    <ROW File="dk17.be" Component_="IFIPHACHTEL" FileName="dk17.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\dk17.be" SelfReg="false" NextFile="dk27.be"/>
+    <ROW File="dk27.be" Component_="IFIPHACHTEL" FileName="dk27.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\dk27.be" SelfReg="false" NextFile="f51m.be"/>
+    <ROW File="dme1.trace" Component_="BDDTRACES" FileName="DME1~1.TRA|dme1.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\dme1.trace" SelfReg="false" NextFile="dme2.trace"/>
+    <ROW File="dme2.trace" Component_="BDDTRACES" FileName="DME2~1.TRA|dme2.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\dme2.trace" SelfReg="false" NextFile="gigamax.trace"/>
+    <ROW File="ex2.be" Component_="IFIPEX" FileName="ex2.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\ex2.be" SelfReg="false" NextFile="mul03.be"/>
+    <ROW File="example.bdd" Component_="bddscout" FileName="example.bdd" Attributes="0" SourcePath="..\bddscout\example.bdd" SelfReg="false" NextFile="example.bf"/>
+    <ROW File="example.bddview" Component_="bddscout" FileName="EXAMPL~1.BDD|example.bddview" Attributes="0" SourcePath="..\bddview\example.bddview" SelfReg="false"/>
+    <ROW File="example.bf" Component_="bddscout" FileName="example.bf" Attributes="0" SourcePath="..\bddscout\example.bf" SelfReg="false" NextFile="CHANGES_1"/>
+    <ROW File="f51m.be" Component_="IFIPHACHTEL" FileName="f51m.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\f51m.be" SelfReg="false" NextFile="misg.be"/>
+    <ROW File="gigamax.trace" Component_="BDDTRACES" FileName="GIGAMA~1.TRA|gigamax.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\gigamax.trace" SelfReg="false" NextFile="guidance.trace"/>
+    <ROW File="guidance.trace" Component_="BDDTRACES" FileName="GUIDAN~1.TRA|guidance.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\guidance.trace" SelfReg="false" NextFile="mutex.trace"/>
+    <ROW File="hostint1.be" Component_="IFIPPLASCO" FileName="hostint1.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\hostint1.be" SelfReg="false" NextFile="in1.be"/>
+    <ROW File="in1.be" Component_="IFIPPLASCO" FileName="in1.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\in1.be" SelfReg="false" NextFile="mp2d.be"/>
+    <ROW File="misg.be" Component_="IFIPHACHTEL" FileName="misg.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\misg.be" SelfReg="false" NextFile="mlp4.be"/>
+    <ROW File="mlp4.be" Component_="IFIPHACHTEL" FileName="mlp4.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\mlp4.be" SelfReg="false" NextFile="rd73.be"/>
+    <ROW File="mp2d.be" Component_="IFIPPLASCO" FileName="mp2d.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\mp2d.be" SelfReg="false" NextFile="mul.be"/>
+    <ROW File="mul.be" Component_="IFIPPLASCO" FileName="mul.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\mul.be" SelfReg="false" NextFile="pitch.be"/>
+    <ROW File="mul03.be" Component_="IFIPEX" FileName="mul03.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\mul03.be" SelfReg="false" NextFile="mul04.be"/>
+    <ROW File="mul04.be" Component_="IFIPEX" FileName="mul04.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\mul04.be" SelfReg="false" NextFile="mul05.be"/>
+    <ROW File="mul05.be" Component_="IFIPEX" FileName="mul05.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\mul05.be" SelfReg="false" NextFile="mul06.be"/>
+    <ROW File="mul06.be" Component_="IFIPEX" FileName="mul06.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\mul06.be" SelfReg="false" NextFile="mul07.be"/>
+    <ROW File="mul07.be" Component_="IFIPEX" FileName="mul07.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\mul07.be" SelfReg="false" NextFile="mul08.be"/>
+    <ROW File="mul08.be" Component_="IFIPEX" FileName="mul08.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\mul08.be" SelfReg="false" NextFile="rip02.be"/>
+    <ROW File="mutex.trace" Component_="BDDTRACES" FileName="MUTEX~1.TRA|mutex.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\mutex.trace" SelfReg="false" NextFile="mutex1.trace"/>
+    <ROW File="mutex1.trace" Component_="BDDTRACES" FileName="MUTEX1~1.TRA|mutex1.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\mutex1.trace" SelfReg="false" NextFile="README"/>
+    <ROW File="pitch.be" Component_="IFIPPLASCO" FileName="pitch.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\pitch.be" SelfReg="false" NextFile="rom2.be"/>
+    <ROW File="pkgExtensionBDDTRACES.tcl" Component_="bddscout" FileName="PKGEXT~1.TCL|pkgExtensionBDDTRACES.tcl" Attributes="0" SourcePath="..\bddscout\pkgExtensionBDDTRACES.tcl" SelfReg="false" NextFile="bddscoutBDDTRACES.dll"/>
+    <ROW File="pkgExtensionBRA.tcl" Component_="bddscout" FileName="PKGEXT~2.TCL|pkgExtensionBRA.tcl" Attributes="0" SourcePath="..\bddscout\pkgExtensionBRA.tcl" SelfReg="false" NextFile="pkgExtensionIFIP.tcl"/>
+    <ROW File="pkgExtensionIFIP.tcl" Component_="bddscout" FileName="PKGEXT~3.TCL|pkgExtensionIFIP.tcl" Attributes="0" SourcePath="..\bddscout\pkgExtensionIFIP.tcl" SelfReg="false" NextFile="abp4.trace"/>
+    <ROW File="pkgIndex.tcl" Component_="bddscout" FileName="pkgIndex.tcl" Attributes="0" SourcePath="..\bddscout\pkgIndex.tcl" SelfReg="false" NextFile="bddscout.dll"/>
+    <ROW File="rd73.be" Component_="IFIPHACHTEL" FileName="rd73.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\rd73.be" SelfReg="false" NextFile="risc.be"/>
+    <ROW File="rip02.be" Component_="IFIPEX" FileName="rip02.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\rip02.be" SelfReg="false" NextFile="rip04.be"/>
+    <ROW File="rip04.be" Component_="IFIPEX" FileName="rip04.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\rip04.be" SelfReg="false" NextFile="rip06.be"/>
+    <ROW File="rip06.be" Component_="IFIPEX" FileName="rip06.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\rip06.be" SelfReg="false" NextFile="rip08.be"/>
+    <ROW File="rip08.be" Component_="IFIPEX" FileName="rip08.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\rip08.be" SelfReg="false" NextFile="transp.be"/>
+    <ROW File="risc.be" Component_="IFIPHACHTEL" FileName="risc.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\risc.be" SelfReg="false" NextFile="root.be"/>
+    <ROW File="rom2.be" Component_="IFIPPLASCO" FileName="rom2.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\rom2.be" SelfReg="false" NextFile="table.be"/>
+    <ROW File="root.be" Component_="IFIPHACHTEL" FileName="root.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\root.be" SelfReg="false" NextFile="sqn.be"/>
+    <ROW File="short.trace" Component_="BDDTRACES" FileName="SHORT~1.TRA|short.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\short.trace" SelfReg="false" NextFile="syncarb5.trace"/>
+    <ROW File="sqn.be" Component_="IFIPHACHTEL" FileName="sqn.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\sqn.be" SelfReg="false" NextFile="vg2.be"/>
+    <ROW File="syncarb5.trace" Component_="BDDTRACES" FileName="SYNCAR~1.TRA|syncarb5.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\syncarb5.trace" SelfReg="false" NextFile="add1.be"/>
+    <ROW File="table.be" Component_="IFIPPLASCO" FileName="table.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\table.be" SelfReg="false" NextFile="werner.be"/>
+    <ROW File="transp.be" Component_="IFIPEX" FileName="transp.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\transp.be" SelfReg="false" NextFile="ztwaalf1.be"/>
+    <ROW File="vg2.be" Component_="IFIPHACHTEL" FileName="vg2.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\vg2.be" SelfReg="false" NextFile="x1dn.be"/>
+    <ROW File="werner.be" Component_="IFIPPLASCO" FileName="werner.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\werner.be" SelfReg="false" NextFile="README_1"/>
+    <ROW File="x1dn.be" Component_="IFIPHACHTEL" FileName="x1dn.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\x1dn.be" SelfReg="false" NextFile="x6dn.be"/>
+    <ROW File="x6dn.be" Component_="IFIPHACHTEL" FileName="x6dn.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\x6dn.be" SelfReg="false" NextFile="z4.be"/>
+    <ROW File="z4.be" Component_="IFIPHACHTEL" FileName="z4.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\z4.be" SelfReg="false" NextFile="z5xpl.be"/>
+    <ROW File="z5xpl.be" Component_="IFIPHACHTEL" FileName="z5xpl.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\z5xpl.be" SelfReg="false" NextFile="z9sym.be"/>
+    <ROW File="z9sym.be" Component_="IFIPHACHTEL" FileName="z9sym.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\z9sym.be" SelfReg="false" NextFile="counter.be"/>
+    <ROW File="ztwaalf1.be" Component_="IFIPEX" FileName="ztwaalf1.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\ztwaalf1.be" SelfReg="false" NextFile="ztwaalf2.be"/>
+    <ROW File="ztwaalf2.be" Component_="IFIPEX" FileName="ztwaalf2.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\ztwaalf2.be" SelfReg="false" NextFile="alupla20.be"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="bddscout-1-5-Win" Languages="en" InstallationType="4" UseLargeSchema="true" MsiPackageType="x64"/>
+    <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
+    <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
+    <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
+    <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
+    <ROW Fragment="FolderDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\FolderDlg.aip"/>
+    <ROW Fragment="MaintenanceTypeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\MaintenanceTypeDlg.aip"/>
+    <ROW Fragment="MaintenanceWelcomeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\MaintenanceWelcomeDlg.aip"/>
+    <ROW Fragment="SequenceDialogs.aip" Path="&lt;AI_THEMES&gt;classic\fragments\SequenceDialogs.aip"/>
+    <ROW Fragment="Sequences.aip" Path="&lt;AI_FRAGS&gt;Sequences.aip"/>
+    <ROW Fragment="StaticUIStrings.aip" Path="&lt;AI_FRAGS&gt;StaticUIStrings.aip"/>
+    <ROW Fragment="UI.aip" Path="&lt;AI_THEMES&gt;classic\fragments\UI.aip"/>
+    <ROW Fragment="Validation.aip" Path="&lt;AI_FRAGS&gt;Validation.aip"/>
+    <ROW Fragment="VerifyRemoveDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\VerifyRemoveDlg.aip"/>
+    <ROW Fragment="VerifyRepairDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\VerifyRepairDlg.aip"/>
+    <ROW Fragment="WelcomeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\WelcomeDlg.aip"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
+    <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
+    <ROW Dialog_="AdminWelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="Welcome to the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.AdminWelcomeDlg#Title" MsiKey="AdminWelcomeDlg#Title"/>
+    <ROW Dialog_="AdminWelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="The [Wizard] will create a server image of [ProductName], at a specified network location.  Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.AdminWelcomeDlg#Description" MsiKey="AdminWelcomeDlg#Description"/>
+    <ROW Dialog_="ExitDialog" Control="ViewReadmeCheckBox" Type="CheckBox" X="135" Y="146" Width="10" Height="10" Attributes="0" Property="VIEWREADME" Order="500" MsiKey="ExitDialog#ViewReadmeCheckBox" Options="1"/>
+    <ROW Dialog_="ExitDialog" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="BDD Scout" TextStyle="VerdanaBold13" Order="600" TextLocId="Control.Text.ExitDialog#Title" MsiKey="ExitDialog#Title"/>
+    <ROW Dialog_="ExitDialog" Control="LaunchProdCheckBox" Type="CheckBox" X="135" Y="165" Width="10" Height="10" Attributes="0" Property="RUNAPPLICATION" Order="700" MsiKey="ExitDialog#LaunchProdCheckBox" Options="1"/>
+    <ROW Dialog_="ExitDialog" Control="Description" Type="Text" X="135" Y="86" Width="220" Height="20" Attributes="196611" Text="Click the &quot;Finish&quot; button to exit the [Wizard]." Order="800" TextLocId="Control.Text.ExitDialog#Description" MsiKey="ExitDialog#Description"/>
+    <ROW Dialog_="ExitDialog" Control="BottomLine" Type="Line" X="0" Y="234" Width="372" Height="0" Attributes="1" Order="900" MsiKey="ExitDialog#BottomLine"/>
+    <ROW Dialog_="ExitDialog" Control="Text_1" Type="Text" X="135" Y="106" Width="220" Height="20" Attributes="65539" Property="TEXT_1_PROP_2" Text="Thanks to Advanced Installer for granting us a free licence for producing this BDD Scout installer." Order="1000"/>
+    <ROW Dialog_="ExitDialog" Control="Hyperlink_1" Type="Hyperlink" X="135" Y="130" Width="220" Height="12" Attributes="65539" Property="HYPERLINK_1_PROP" Text="&lt;a href=&quot;http://www.advancedinstaller.com/&quot;&gt;http://www.advancedinstaller.com/&lt;/a&gt;" Order="1100"/>
+    <ROW Dialog_="ExitDialog" Control="Text_2" Type="Text" X="135" Y="36" Width="220" Height="16" Attributes="65539" Property="TEXT_1_PROP_1_1" Text="Version [ProductVersion]" TextStyle="VerdanaBold13" Order="1200"/>
+    <ROW Dialog_="FatalError" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="The [ProductName] [Wizard] ended prematurely" TextStyle="VerdanaBold13" Order="800" TextLocId="Control.Text.FatalError#Title" MsiKey="FatalError#Title"/>
+    <ROW Dialog_="FolderDlg" Control="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Attributes="196611" Text="Please, enter EMPTY OR NON-EXISTING target folder." Order="1200" TextLocId="Control.Text.FolderDlg#Description" MsiKey="FolderDlg#Description"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="Welcome to the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.MaintenanceWelcomeDlg#Title" MsiKey="MaintenanceWelcomeDlg#Title"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="The [Wizard] will allow you to change the way [ProductName] features are installed on your computer or even to remove [ProductName] from your computer.  Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.MaintenanceWelcomeDlg#Description" MsiKey="MaintenanceWelcomeDlg#Description"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="Welcome to the [ProductName] Patch [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.PatchWelcomeDlg#Title" MsiKey="PatchWelcomeDlg#Title"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="The [Wizard] will install the Patch for [ProductName] on your computer. Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the Patch [Wizard]." Order="600" TextLocId="Control.Text.PatchWelcomeDlg#Description" MsiKey="PatchWelcomeDlg#Description"/>
+    <ROW Dialog_="PrepareDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="BDD Scout" TextStyle="VerdanaBold13" Order="300" TextLocId="Control.Text.PrepareDlg#Title" MsiKey="PrepareDlg#Title"/>
+    <ROW Dialog_="PrepareDlg" Control="Text_1" Type="Text" X="135" Y="36" Width="220" Height="16" Attributes="65539" Property="TEXT_1_PROP_1" Text="Version [ProductVersion]" TextStyle="VerdanaBold13" Order="1000"/>
+    <ROW Dialog_="ProgressDlg" Control="Title" Type="Text" X="20" Y="15" Width="200" Height="15" Attributes="196611" Text="[Progress1] BDD Scout" TextStyle="[DlgTitleFont]" Order="900" TextLocId="Control.Text.ProgressDlg#Title" MsiKey="ProgressDlg#Title"/>
+    <ROW Dialog_="ProgressDlg" Control="Text" Type="Text" X="35" Y="65" Width="300" Height="30" Attributes="196611" Text="Please wait while the [Wizard] [Progress2] BDD Scout." Order="1000" TextLocId="Control.Text.ProgressDlg#Text" MsiKey="ProgressDlg#Text"/>
+    <ROW Dialog_="ResumeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="Resuming the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.ResumeDlg#Title" MsiKey="ResumeDlg#Title"/>
+    <ROW Dialog_="ResumeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="The [Wizard] will complete the installation of [ProductName] on your computer.  Click &quot;Install&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.ResumeDlg#Description" MsiKey="ResumeDlg#Description"/>
+    <ROW Dialog_="UserExit" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="The [ProductName] [Wizard] was interrupted" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.UserExit#Title" MsiKey="UserExit#Title"/>
+    <ROW Dialog_="VerifyReadyDlg" Control="Description" Type="Text" X="25" Y="23" Width="304" Height="20" Attributes="196611" Text="The [Wizard] is ready to begin the BDD Scout installation" Order="800" TextLocId="Control.Text.VerifyReadyDlg#Description" MsiKey="VerifyReadyDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="BDD Scout" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.WelcomeDlg#Title" MsiKey="WelcomeDlg#Title"/>
+    <ROW Dialog_="WelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="BDD Scout is a demo application demonstrating the capability of BDD package Biddy and Tcl/Tk viewer bddview." TextStyle="DlgFont8" Order="600" TextLocId="Control.Text.WelcomeDlg#Description" MsiKey="WelcomeDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_1" Type="Text" X="135" Y="36" Width="220" Height="16" Attributes="65539" Property="TEXT_1_PROP" Text="Version [ProductVersion]" TextStyle="VerdanaBold13" Order="800"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_2" Type="Text" X="135" Y="106" Width="220" Height="10" Attributes="65539" Property="TEXT_2_PROP" Text="This is free software. See GNU GPL (Version 2)." TextStyle="DlgFont8" Order="900"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_3" Type="Text" X="135" Y="120" Width="220" Height="20" Attributes="65539" Property="TEXT_3_PROP" Text="You need ActiveTcl and graphviz installed on your computer. To start the program click bddscout.tcl in target folder." TextStyle="DlgFont8" Order="1000"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_4" Type="Text" X="135" Y="142" Width="220" Height="30" Attributes="65539" Property="TEXT_4_PROP" Text="NOTE: No registry entry will be changed and no file will be created outside the target folder. You can uninstall this software by simply deleting the target folder." TextStyle="DlgFont8" Order="1100"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_5" Type="Text" X="135" Y="180" Width="220" Height="10" Attributes="65539" Property="TEXT_5_PROP" Text="Robert Meolic (robert.meolic@um.si)" TextStyle="DlgFont8" Order="1200"/>
+    <ATTRIBUTE name="DeletedRows" value="ExitDialog#LaunchProdText@ExitDialog#ViewReadmeText"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlConditionComponent">
+    <ATTRIBUTE name="DeletedRows" value="ExitDialog#LaunchProdText#Hide#((NOT AI_INSTALL) AND (NOT AI_PATCH)) OR ((CTRLS &lt;&gt; 2) AND (CTRLS &lt;&gt; 3))@ExitDialog#ViewReadmeText#Hide#((NOT AI_INSTALL) AND (NOT AI_PATCH)) OR ((CTRLS &lt;&gt; 1) AND (CTRLS &lt;&gt; 3))"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlEventComponent">
+    <ROW Dialog_="WelcomeDlg" Control_="Next" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="FolderDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_INSTALL" Ordering="201"/>
+    <ROW Dialog_="FolderDlg" Control_="Back" Event="NewDialog" Argument="WelcomeDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control_="Next" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="99"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_MAINT" Ordering="198"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="CustomizeDlg" Condition="AI_MAINT" Ordering="202"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_INSTALL" Ordering="197"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="201"/>
+    <ROW Dialog_="CustomizeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_MAINT" Ordering="101"/>
+    <ROW Dialog_="CustomizeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="1"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="ChangeButton" Event="NewDialog" Argument="CustomizeDlg" Condition="AI_MAINT" Ordering="501"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceWelcomeDlg" Condition="AI_MAINT" Ordering="1"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="RemoveButton" Event="NewDialog" Argument="VerifyRemoveDlg" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="601"/>
+    <ROW Dialog_="VerifyRemoveDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="1"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="RepairButton" Event="NewDialog" Argument="VerifyRepairDlg" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="601"/>
+    <ROW Dialog_="VerifyRepairDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="1"/>
+    <ROW Dialog_="VerifyRepairDlg" Control_="Repair" Event="EndDialog" Argument="Return" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="399" Options="1"/>
+    <ROW Dialog_="VerifyRemoveDlg" Control_="Remove" Event="EndDialog" Argument="Return" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="299" Options="1"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_PATCH" Ordering="201"/>
+    <ROW Dialog_="ResumeDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_RESUME" Ordering="299"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_PATCH" Ordering="199"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="PatchWelcomeDlg" Condition="AI_PATCH" Ordering="203"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
+    <ROW Action="AI_DOWNGRADE" Type="19" Target="4010"/>
+    <ROW Action="AI_DpiContentScale" Type="1" Source="aicustact.dll" Target="DpiContentScale"/>
+    <ROW Action="AI_InstallModeCheck" Type="1" Source="aicustact.dll" Target="UpdateInstallMode" WithoutSeq="true"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
+    <ROW Action="AI_RESTORE_LOCATION" Type="65" Source="aicustact.dll" Target="RestoreLocation"/>
+    <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>
+    <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
+    <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
+    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[WindowsVolume]\Users\[LogonUser]\bddscout"/>
+    <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
+    <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiDialogComponent">
+    <ROW Dialog="ExitDialog" HCentering="50" VCentering="50" Width="370" Height="270" Attributes="3" Title="BDD Scout Setup" Control_Default="Finish" Control_Cancel="Cancel" TitleLocId="Dialog.ExitDialog" MsiKey="ExitDialog"/>
+    <ROW Dialog="FolderDlg" HCentering="50" VCentering="50" Width="370" Height="270" Attributes="39" Title="BDD Scout Setup" Control_Default="Next" Control_Cancel="Cancel" TitleLocId="Dialog.FolderDlg" MsiKey="FolderDlg"/>
+    <ROW Dialog="PrepareDlg" HCentering="50" VCentering="50" Width="370" Height="270" Attributes="1" Title="BDD Scout Setup" Control_Default="Cancel" Control_Cancel="Cancel" TitleLocId="Dialog.PrepareDlg" MsiKey="PrepareDlg"/>
+    <ROW Dialog="ProgressDlg" HCentering="50" VCentering="50" Width="370" Height="270" Attributes="1" Title="BDD Scout Setup" Control_Default="Cancel" Control_Cancel="Cancel" TitleLocId="Dialog.ProgressDlg" MsiKey="ProgressDlg"/>
+    <ROW Dialog="VerifyReadyDlg" HCentering="50" VCentering="50" Width="370" Height="270" Attributes="35" Title="BDD Scout Setup" Control_Default="Install" Control_Cancel="Cancel" TitleLocId="Dialog.VerifyReadyDlg" MsiKey="VerifyReadyDlg"/>
+    <ROW Dialog="WelcomeDlg" HCentering="50" VCentering="50" Width="370" Height="270" Attributes="3" Title="BDD Scout Setup" Control_Default="Next" Control_Cancel="Cancel" TitleLocId="Dialog.WelcomeDlg" MsiKey="WelcomeDlg"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
+    <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
+    <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
+    <ROW Action="AI_STORE_LOCATION" Condition="(Not Installed) OR REINSTALL" Sequence="1501"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Condition="AI_UPGRADE=&quot;No&quot; AND (Not Installed)" Sequence="1399"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="51"/>
+    <ATTRIBUTE name="RegisterProduct" value="false"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
+    <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="52"/>
+    <ROW Action="AI_DpiContentScale" Sequence="51"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
+    <ROW Condition="( Version9X OR ( NOT VersionNT64 ) OR ( VersionNT64 AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT64Display]." DescriptionLocId="AI.LaunchCondition.NoSpecificNT64" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="( Version9X OR VersionNT64 )" Description="[ProductName] cannot be installed on [WindowsTypeNTDisplay]." DescriptionLocId="AI.LaunchCondition.NoNT" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(VersionNT &lt;&gt; 400)" Description="[ProductName] cannot be installed on [WindowsTypeNT40Display]." DescriptionLocId="AI.LaunchCondition.NoNT40" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(VersionNT &lt;&gt; 500)" Description="[ProductName] cannot be installed on [WindowsTypeNT50Display]." DescriptionLocId="AI.LaunchCondition.NoNT50" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsType9XDisplay]." DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
+    <ROW Registry="ProductName" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="+" Component_="ProductName"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
+    <ATTRIBUTE name="UsedTheme" value="classic"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiUpgradeComponent">
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="0.0.1" VersionMax="[|ProductVersion]" Attributes="257" ActionProperty="OLDPRODUCTS"/>
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
+  </COMPONENT>
+</DOCUMENT>

@@ -74,6 +74,7 @@ Biddy consists of the following files:
 - package-rpm (script used to build distribution)
 - debian/* (files used when creating deb package)
 - rpm/* (files used when creating rpm package)
+- biddy-example-8queens.c (8 Queens example)
 
 There are  two C headers,  external and internal. The  external header
 file,  named  biddy.h, defines  features  visible  from outside  the
@@ -105,6 +106,12 @@ Precompiled packages include dynamically linked library
 and the appropriate C header biddy.h. Currently, there are no interfaces
 for other programming languages.
 
+For linking with Biddy library you have to use:
+
+~~~
+-lbiddy -lgmp
+~~~
+
 Biddy is capable of all the typical operations regarding
 Boolean functions and BDDs.
 
@@ -114,7 +121,7 @@ Biddy has a manager but its usage is optional and it is also not shown in
 the given example.
 
 IMPORTANT:
-You should define UNIX, MACOSX, or WINDOWS.
+You should define UNIX, MACOSX, or MINGW.
 You should define USE_BIDDY iff you are using Biddy via dynamic library.
 
 ```
@@ -204,7 +211,7 @@ to immediately remove all nodes which are not preserved.
 ### Biddy_Purge()
 
 Immediately remove all nodes which were not preserved or which are not
-preserved anymore. Call to Biddy_Result does not count as cleaning and thus all
+preserved anymore. Call to Biddy_Purge does not count as cleaning and thus all
 preserved formulae remains preserved for the same number of cleanings. 
 
 ### Biddy_PurgeAndReorder(bdd)
@@ -496,12 +503,12 @@ fresh nodes).
 ### 3.4 MORE DETAILS OF MEMORY MANAGEMENT (NODE CHAINING)
 
 Biddy relies on a single hash table for all variables. However, it supports
-chaining of nodes to form different lists (ather is an extra pointer in
+chaining of nodes to form different lists (using an extra pointer in
 each node). This facility is used to improve efficiency of garbage
 collection and sifting.
 
 Please node, that node chaining is not determined or limited by
-using formulae tagging or GC with a formulae counter, it is 
+using formulae tagging or a formulae counter, it is 
 an independent mechanism.
 
 4. BUILDING PACKAGES
@@ -510,7 +517,7 @@ an independent mechanism.
 ### Compiling Biddy library
 
 ~~~
-biddy> make "BINDIR = ./bin"
+biddy> make dynamic "BINDIR = ./bin"
 biddy> make clean "BINDIR = ./bin"
 ~~~
 
@@ -518,20 +525,40 @@ Alternatively, you can use:
 
 ~~~
 biddy> make static "BINDIR = ./bin"
-biddy> make dynamic "BINDIR = ./bin"
 biddy> make debug "BINDIR = ./bin"
+biddy> make profile "BINDIR = ./bin"
 ~~~
+
+On MS Windows, we are using MSYS2.
+Moreover, we are using MPIR library (project dll_mpir_core2)
+which we obtained from http://mpir.org/ .
+
+We have used pacman to prepare the environment:
+
+~~~
+MSYS shell> update-core
+(restart MSYS shell)
+MSYS shell> pacman -Su
+MSYS shell> pacman -S mingw-w64-x86_64-gcc
+MSYS shell> pacman -S make
+MSYS shell> pacman -S bison
+MSYS shell> pacman -S gdb
+MSYS shell> pacman -S nano
+MSYS shell> pacman -S subversion
+~~~
+
+Alternatively, you can use Visual Studio for building.
+A prepared solution consisting of many projects
+is ./VS/Biddy.sln . You need to adapt include and lib folders.
+
+To produce nice setup files, projects based on Advanced Installer
+(http://www.advancedinstaller.com/) are integrated into Visual Studio solution.
+We have been granted a free licence. MANY THANKS!
 
 ### Creating Biddy library as a zip package
 
 ~~~
 biddy> ./package-bin
-~~~
-
-The same, but using specific gcc options (Linux, only)
-
-~~~
-biddy> export CFLAGS=-m64;./package-bin 
 ~~~
 
 You need a zip program.
@@ -662,16 +689,17 @@ were the most significant additions.
 In 2014, svn repositories for biddy, bddview and bddscout are moved
 to Savannah. http://svn.savannah.nongnu.org/viewvc/?root=biddy
 
-In 2015, Biddy  v1.3  was released. Various input/output methods have been
-added. Support for 64-bit arhitectures and support for Visual Studio projects
-were improved.
+In 2015, Biddy  v1.3, v.1.4 and v1.5 was released. Various input/output methods
+have been added. Support for 64-bit arhitectures and support for Visual Studio
+projects were improved. Biddy got a manager. Many CUDD-like functions have been
+added. Comment's style changed to support doxygen. HTML and PDF documentation
+were produced.
 
 Also in 2015, Personal Package Archive ppa:meolic/biddy has been created
 https://launchpad.net/~meolic/+archive/ubuntu/biddy
 
-Also in 2015, Biddy  v1.4  was released. Biddy got a manager. Many CUDD-like
-functions have been added. Comment's style changed to support doxygen which
-allows producing HTML and PDF documentation.
+Also in 2015, sources became available on GitHub
+https://github.com/meolic/biddy
 
 6. PUBLICATIONS
 ---------------

@@ -1,8 +1,8 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 78 $
-REM  $Date: 2015-04-20 23:07:29 +0200 (pon, 20 apr 2015) $
+REM  $Revision: 130 $
+REM  $Date: 2016-01-02 06:09:54 +0100 (sob, 02 jan 2016) $
 REM
 REM  This file is part of Biddy.
 REM  Copyright (C) 2006, 2015 UM-FERI
@@ -33,6 +33,7 @@ FOR /F "USEBACKQ" %%T IN (`TYPE VERSION`) DO SET VVERSION=%%T
 SET VERSION=%VVERSION:.=-%
 SET MYZIP="C:\Program Files\7-Zip\7z.exe" a
 SET SFX="C:\Program Files\7-Zip\7zsd_All_x64.sfx"
+SET MPIRDLL="C:\Users\Robert\Documents\mpir-dll-2.7.2\mpir.dll"
 
 rm -f %NAME%-bin-%VERSION%-Win.7z
 rm -f %NAME%-bin-%VERSION%-Win.exe
@@ -47,9 +48,10 @@ make clean "BINDIR = ../biddy/%NAME%-%VERSION%"
 cp COPYING ./%NAME%-%VERSION%/
 cp CHANGES ./%NAME%-%VERSION%/CHANGES
 cp biddy.h ./%NAME%-%VERSION%/
+cp %MPIRDLL% ./%NAME%-%VERSION%/
 
-%MYZIP% %NAME%-bin-%VERSION%-Win.7z .\%NAME%-%VERSION%\* -x!.\%NAME%-%VERSION%\*.h -x!.\%NAME%-%VERSION%\*.a
-%MYZIP% %NAME%-%VERSION%-Win.7z .\%NAME%-%VERSION%\*
+%MYZIP% %NAME%-%VERSION%-Win.7z .\%NAME%-%VERSION%\* -x!.\%NAME%-%VERSION%\*.h -x!.\%NAME%-%VERSION%\*.a -x!.\%NAME%-%VERSION%\*.lib
+%MYZIP% %NAME%-dev-%VERSION%-Win.7z .\%NAME%-%VERSION%\*
 
 echo "Creating %NAME%-bin-%VERSION%-Win.exe ..."
 
@@ -64,7 +66,7 @@ echo GUIMode="1" >> cfg.cfg
 echo InstallPath="%HOMEPATH%\\biddy" >> cfg.cfg
 echo ;!@InstallEnd@! >> cfg.cfg
 
-copy /b /y %SFX% + cfg.cfg + "%NAME%-bin-%VERSION%-Win.7z" "%NAME%-bin-%VERSION%-Win.exe"
+copy /b /y %SFX% + cfg.cfg + "%NAME%-%VERSION%-Win.7z" "%NAME%-%VERSION%-Win.exe"
 
 echo "Creating %NAME%-%VERSION%-Win.exe ..."
 
@@ -79,12 +81,12 @@ echo GUIMode="1" >> cfg.cfg
 echo InstallPath="%HOMEPATH%\\biddy" >> cfg.cfg
 echo ;!@InstallEnd@! >> cfg.cfg
 
-copy /b /y %SFX% + cfg.cfg + "%NAME%-%VERSION%-Win.7z" "%NAME%-%VERSION%-Win.exe"
+copy /b /y %SFX% + cfg.cfg + "%NAME%-dev-%VERSION%-Win.7z" "%NAME%-dev-%VERSION%-Win.exe"
 
 rm -f cfg.cfg
 rm -fr %NAME%-%VERSION%
-rm -f %NAME%-bin-%VERSION%-Win.7z
 rm -f %NAME%-%VERSION%-Win.7z
+rm -f %NAME%-dev-%VERSION%-Win.7z
 
 echo *******************
 echo PACKAGES COMPLETED!

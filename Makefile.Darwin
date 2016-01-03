@@ -3,8 +3,8 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 78 $]
-#  Date        [$Date: 2015-04-20 23:07:29 +0200 (pon, 20 apr 2015) $]
+#  Revision    [$Revision: 121 $]
+#  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2015 UM-FERI
@@ -29,6 +29,8 @@ BIDDYVERSION = `cat VERSION`
 
 RM = rm -f
 
+LIBGMP =
+
 all: dynamic
 
 dynamic:
@@ -36,6 +38,7 @@ dynamic:
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.dylib" \
+	"LIBGMP = $(LIBGMP)" \
 	"CC = gcc -O2 -DMACOSX" \
 	"LN = gcc -dynamiclib -mmacosx-version-min=10.5 -o"
 
@@ -44,5 +47,6 @@ static:
 	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
+	"LIBGMP = " \
 	"CC = gcc -O2 -DMACOSX" \
 	"LN = ar rcs"

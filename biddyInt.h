@@ -13,8 +13,8 @@
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 103 $]
-    Date        [$Date: 2015-10-15 14:51:19 +0200 (čet, 15 okt 2015) $]
+    Revision    [$Revision: 124 $]
+    Date        [$Date: 2015-12-30 17:27:05 +0100 (sre, 30 dec 2015) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
@@ -48,8 +48,16 @@ See also: biddy.h
 /* sleep() is not included in modern version of MINGW */
 /* #define sleep(sec) (Sleep ((sec) * 1000), 0) */
 
-#ifdef WINDOWS
+#ifdef MINGW
 #define sleep(sec) 0
+#endif
+
+/* this is from */
+/* http://stackoverflow.com/questions/3694723/error-c3861-strcasecmp-identifier-not-found-in-visual-studio-2008 */
+/* not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw */
+#ifdef _MSC_VER 
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
 #endif
 
 /*----------------------------------------------------------------------------*/
@@ -124,12 +132,12 @@ See also: biddy.h
 #define biddyIteCache (*((BiddyOp3CacheTable*)(MNG[7])))
 
 /* EA Cache in manager MNG, since Biddy v1.4. */
-/* this is typecasted to (BiddyEACacheTable*) and dereferenced */
-#define biddyEACache (*((BiddyEACacheTable*)(MNG[8])))
+/* this is typecasted to (BiddyOp3CacheTable*) and dereferenced */
+#define biddyEACache (*((BiddyOp3CacheTable*)(MNG[8])))
 
 /* RC Cache in manager MNG, since Biddy v1.4. */
-/* this is typecasted to (BiddyRCCacheTable*) and dereferenced */
-#define biddyRCCache (*((BiddyRCCacheTable*)(MNG[9])))
+/* this is typecasted to (BiddyOp3CacheTable*) and dereferenced */
+#define biddyRCCache (*((BiddyOp3CacheTable*)(MNG[9])))
 
 /* Cache list in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (BiddyCacheList**) and dereferenced */
@@ -204,6 +212,7 @@ typedef struct {
   BiddyNode *freshNodes;
   BiddyNode *fortifiedNodes;
   unsigned int num; /* number of nodes with this variable */
+  Biddy_Edge terminal; /* bdd representing a single positive variable */
   Biddy_Edge value; /* value: biddy_zero = 0, biddy_one = 1. etc. */
   Biddy_Boolean selected; /* used to count variables */
 } BiddyVariable;
@@ -258,9 +267,9 @@ typedef struct {
 typedef struct {
   BiddyOp1Cache *table;
   unsigned int size;
-  unsigned long long int search;
-  unsigned long long int find;
-  unsigned long long int overwrite;
+  unsigned long long int *search;
+  unsigned long long int *find;
+  unsigned long long int *overwrite;
 } BiddyOp1CacheTable;
 
 /* OP2 Cache = a fixed-size cache table for two-arguments operations */
@@ -272,9 +281,9 @@ typedef struct {
 typedef struct {
   BiddyOp2Cache *table;
   unsigned int size;
-  unsigned long long int search;
-  unsigned long long int find;
-  unsigned long long int overwrite;
+  unsigned long long int *search;
+  unsigned long long int *find;
+  unsigned long long int *overwrite;
 } BiddyOp2CacheTable;
 
 /* OP3 Cache = a fixed-size cache table for three-arguments operations */
@@ -286,41 +295,16 @@ typedef struct {
 typedef struct {
   BiddyOp3Cache *table;
   unsigned int size;
-  unsigned long long int search;
-  unsigned long long int find;
-  unsigned long long int overwrite;
+  unsigned long long int *search;
+  unsigned long long int *find;
+  unsigned long long int *overwrite;
 } BiddyOp3CacheTable;
 
 /* EA Cache = a fixed-size cache table intended for Biddy_E and Biddy_A */
-typedef struct {
-  Biddy_Edge f;
-  Biddy_Edge result; /* biddy_null = not valid record! */
-  BiddyVariable v;
-} BiddyEACache;
-
-typedef struct {
-  BiddyEACache *table;
-  unsigned int size;
-  unsigned long long int search;
-  unsigned long long int find;
-  unsigned long long int overwrite;
-} BiddyEACacheTable;
+/* Since Biddy v1.5, EA Cache is BiddyOp3Cache where variable is represented by h */
 
 /* RC Cache = a fixed-size cache table intended for Biddy_Restrict and Biddy_Compose */
-typedef struct {
-  Biddy_Edge f;
-  Biddy_Edge g;
-  Biddy_Edge result; /* biddy_null = not valid record! */
-  BiddyVariable v;
-} BiddyRCCache;
-
-typedef struct {
-  BiddyRCCache *table;
-  unsigned int size;
-  unsigned long long int search;
-  unsigned long long int find;
-  unsigned long long int overwrite;
-} BiddyRCCacheTable;
+/* Since Biddy v1.5, RC Cache is BiddyOp3Cache where variable is represented by h */
 
 /* Manager = configuration of a BDD system, since Biddy v1.4 */
 /* All fields in BiddyManager must be pointers or arrays */
@@ -338,26 +322,30 @@ typedef struct {
   void *nodeTable; /* this is typecasted to (BiddyNodeTable*) */
   void *variableTable; /* this is typecasted to (BiddyVariableTable*) */
   void *formulaTable; /* this is typecasted to (BiddyFormulaTable*) */
-  void *ITEcache; /* this is typecasted to (BiddyITECache*) */
-  void *EAcache; /* this is typecasted to (BiddyEACache*) */
-  void *RCcache; /* this is typecasted to (BiddyRCCache*) */
+  void *ITEcache; /* this is typecasted to (BiddyOp3CacheTable*) */
+  void *EAcache; /* this is typecasted to (BiddyOp3CacheTable*) */
+  void *RCcache; /* this is typecasted to (BiddyOp3CacheTable*) */
   void *cacheList; /* this is typecasted to (BiddyCacheList*) */
   void *blocksize; /* this is typecasted to (unsigned int*) */
   void *freeNodes; /* this is typecasted to (BiddyNode*) */
-  void *ordering; /* this is typecasted to BiddyOrdering */
+  void *ordering; /* this is typecasted to (BiddyOrderingTable*) */
   void *counter; /* this is typecasted to (int*) */
 } BiddyManager;
 
 /* LocalInfo = a table for additional info about nodes, since Biddy v1.4 */
 /* Created only if needed and deleted before normal operations */
 /* It reuses pointer which is normally used for garbage collection! */
+/* Only one element of the union can be used! */
 typedef struct {
+  BiddyNode *back; /* reference to node */
   BiddyNode *org; /* original pointer, used when deleting local cache */
-  Biddy_Boolean positiveSelected; /* used in nodePlainNumbers() */
-  Biddy_Boolean negativeSelected; /* used in nodePlainNumbers() */
   union {
-    double mintermCount; /* used in mintermCount() */
-    unsigned int nodePlainCount; /* used in nodePlainNumbers() */
+    unsigned int enumerator; /* used in enumerateNodes */
+    unsigned int npSelected; /* used in nodePlainNumber() */
+    /* positiveSelected iff (data.npSelected & 1 != 0) */
+    /* negativeSelected iff (data.npSelected & 2 != 0) */
+    mpz_t mintermCount; /* used in mintermCount() */
+    /* mintermCount is a number represented by using GMP library */
   } data;
 } BiddyLocalInfo;
 
@@ -379,7 +367,7 @@ void BiddyDecCounter(Biddy_Manager MNG);
 
 extern void BiddyRefresh(Biddy_Manager MNG, Biddy_Edge f);
 
-extern void BiddyProlong(Biddy_Manager MNG, Biddy_Edge f, unsigned int count);
+extern void BiddyProlong(Biddy_Manager MNG, Biddy_Edge f, int count);
 
 extern void BiddyFortify(Biddy_Manager MNG, Biddy_Edge f);
 
@@ -391,17 +379,21 @@ extern Biddy_Variable BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
 
 extern void BiddyDeleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
 
-extern void BiddySetMintermCount(Biddy_Edge f, double value);
+extern unsigned int BiddyGetSeqByNode(Biddy_Edge root, Biddy_Edge f);
 
-extern double BiddyGetMintermCount(Biddy_Edge f);
+extern Biddy_Edge BiddyGetNodeBySeq(Biddy_Edge root, unsigned int n);
+
+extern void BiddySetEnumerator(Biddy_Edge f, unsigned int n);
+
+extern unsigned int BiddyGetEnumerator(Biddy_Edge f);
+
+extern void BiddySetMintermCount(Biddy_Edge f, mpz_t value);
+
+extern void BiddyGetMintermCount(Biddy_Edge f, mpz_t result);
 
 extern void BiddySetNodePlainSelected(Biddy_Edge f);
 
 extern Biddy_Boolean BiddyGetNodePlainSelected(Biddy_Edge f);
-
-extern void BiddySetNodePlainCount(Biddy_Edge f, unsigned int n);
-
-extern unsigned int BiddyGetNodePlainCount(Biddy_Edge f);
 
 extern void BiddySystemReport(Biddy_Manager MNG);
 

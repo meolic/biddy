@@ -3,8 +3,8 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 104 $]
-#  Date        [$Date: 2015-10-23 17:13:04 +0200 (pet, 23 okt 2015) $]
+#  Revision    [$Revision: 128 $]
+#  Date        [$Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -45,6 +45,8 @@ TCLLIB = -L/home/tcltk86/lib -ltcl$(TCLVERSION)
 TCLSTUBLIB = -L/home/tcltk86/lib -ltclstub$(TCLVERSION)
 TCLTKLIB = -L/home/tcltk86/lib -ltk$(TCLVERSION) -ltcl$(TCLVERSION)
 endif
+
+GMPLIB = -lgmp
 
 # -----------------------------------------------------------------------
 # the type of compiling and linking
@@ -110,10 +112,10 @@ local:
 	"EXTNAME1 = bddscoutIFIP.so" \
 	"EXTNAME2 = bddscoutBRA.so" \
 	"EXTNAME3 = bddscoutBDDTRACES.so" \
-	"CC = $(GCC) -Wall -fpic -O0 -g -DUNIX $(TCLINCLUDE)" \
-	"CCEXT = $(GCC) -Wall -fpic -O0 -g -DUNIX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
-	"LN = $(GCC) -shared -o" \
-	"LNEXT = $(GCC) -shared -o" \
+	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O0 -g -DUNIX $(TCLINCLUDE)" \
+	"CCEXT = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O0 -g -DUNIX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"LN = $(GCC) -shared -Wl,--version-script=bddscout.map -o" \
+	"LNEXT = $(GCC) -shared -Wl,--version-script=bddscout.map -o" \
 	"AR = ar rcs" \
 	"USECONST = const" \
 	"BINDIR = ./bin" \
@@ -122,6 +124,7 @@ local:
 	"BIDDYLIBEXT = ./bddscout.so" \
 	"BDDVIEWDIR = ../bddview" \
 	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"GMPLIB = $(GMPLIB)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"
 
@@ -133,12 +136,13 @@ package:
 	"EXTNAME1 = bddscoutIFIP.so" \
 	"EXTNAME2 = bddscoutBRA.so" \
 	"EXTNAME3 = bddscoutBDDTRACES.so" \
-	"CC = $(GCC) -Wall -fpic -O2 -DUNIX $(TCLINCLUDE)" \
-	"CCEXT = $(GCC) -Wall -fpic -O2 -DUNIX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
-	"LN = $(GCC) -shared -o" \
-	"LNEXT = $(GCC) -shared -o" \
+	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX $(TCLINCLUDE)" \
+	"CCEXT = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"LN = $(GCC) -shared -Wl,--version-script=bddscout.map -o" \
+	"LNEXT = $(GCC) -shared -Wl,--version-script=bddscout.map -o" \
 	"AR = ar rcs" \
 	"USECONST = const" \
 	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"GMPLIB = $(GMPLIB)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"

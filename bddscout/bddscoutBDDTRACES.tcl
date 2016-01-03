@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 86 $]
-#  Date        [$Date: 2015-08-13 16:52:19 +0200 (čet, 13 avg 2015) $]
+#  Revision    [$Revision: 106 $]
+#  Date        [$Date: 2015-11-29 23:35:27 +0100 (ned, 29 nov 2015) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -92,7 +92,7 @@ proc BDDTRACES_run { fname } {
   bddscout_initPkg
   update_info
 
-  text .dialogBddTrace.f -font REPORTFONT -width 120 -height 40 -tabs {720 center 820 center 920 left} -yscrollcommand ".dialogBddTrace.ys set"
+  text .dialogBddTrace.f -font REPORTFONT -width 160 -height 40 -tabs {750 left 850 left 950 left 1050 left 1150 left 1250 left} -yscrollcommand ".dialogBddTrace.ys set"
   .dialogBddTrace.f tag configure bg0 -background azure1
   .dialogBddTrace.f tag configure bg1 -background azure2
   .dialogBddTrace.f tag configure bg2 -background azure3
@@ -109,16 +109,23 @@ proc BDDTRACES_run { fname } {
   set et [time {set report [bddscout_runBddTrace $fname]}]
   set et [expr [scan $et %i] / 1000]
 
-  set host [lindex $report 0]
-  set report [split $report "\n"]
-  set report [lreplace $report 0 0]
-  set report [lreplace $report end end]
+  #set host [lindex $report 0]
+  set host ""
+  set report [split $report "\t\n"]
+  #set report [lreplace $report 0 0] #remove first element
+  #set report [lreplace $report end end] #remove last element
 
   .dialogBddTrace.f insert end "Command" bg2
   .dialogBddTrace.f insert end "\t" bg2
   .dialogBddTrace.f insert end "Reported" bg2
   .dialogBddTrace.f insert end "\t" bg2
+  .dialogBddTrace.f insert end "Time" bg2
+  .dialogBddTrace.f insert end "\t" bg2
+  .dialogBddTrace.f insert end "Stat time" bg2
+  .dialogBddTrace.f insert end "\t" bg2
   .dialogBddTrace.f insert end "Counted" bg2
+  .dialogBddTrace.f insert end "\t" bg2
+  .dialogBddTrace.f insert end "Counted plain" bg2
   .dialogBddTrace.f insert end "\n" bg2
 
   set j 0
@@ -127,13 +134,19 @@ proc BDDTRACES_run { fname } {
   foreach cmd $report {
     lappend cmdlist $cmd
     incr j
-    if {$j == 3} {
-      if {[lindex $cmdlist 1] == [lindex $cmdlist 2]} {
+    if {$j == 6} {
+      if {[lindex $cmdlist 1] == [lindex $cmdlist 5]} {
         .dialogBddTrace.f insert end [lindex $cmdlist 0] bg$i
         .dialogBddTrace.f insert end "\t" bg$i
         .dialogBddTrace.f insert end [lindex $cmdlist 1] bg$i
         .dialogBddTrace.f insert end "\t" bg$i
         .dialogBddTrace.f insert end [lindex $cmdlist 2] bg$i
+        .dialogBddTrace.f insert end "\t" bg$i
+        .dialogBddTrace.f insert end [lindex $cmdlist 3] bg$i
+        .dialogBddTrace.f insert end "\t" bg$i
+        .dialogBddTrace.f insert end [lindex $cmdlist 4] bg$i
+        .dialogBddTrace.f insert end "\t" bg$i
+        .dialogBddTrace.f insert end [lindex $cmdlist 5] bg$i
         .dialogBddTrace.f insert end " \n" bg$i
       } else {
         .dialogBddTrace.f insert end [lindex $cmdlist 0] {bg$i err}
@@ -141,7 +154,16 @@ proc BDDTRACES_run { fname } {
         .dialogBddTrace.f insert end [lindex $cmdlist 1] {bg$i err bold}
         .dialogBddTrace.f insert end "\t" bg$i
         .dialogBddTrace.f insert end [lindex $cmdlist 2] {bg$i err bold}
+        .dialogBddTrace.f insert end "\t" bg$i
+        .dialogBddTrace.f insert end [lindex $cmdlist 3] {bg$i err bold}
+        .dialogBddTrace.f insert end "\t" bg$i
+        .dialogBddTrace.f insert end [lindex $cmdlist 4] {bg$i err bold}
+        .dialogBddTrace.f insert end "\t" bg$i
+        .dialogBddTrace.f insert end [lindex $cmdlist 5] {bg$i err bold}
         .dialogBddTrace.f insert end " \n" bg$i
+
+  destroy .dialogBddTrace.m
+
       }    
       set j 0
       set cmdlist [list]
@@ -158,9 +180,6 @@ proc BDDTRACES_run { fname } {
   .dialogBddTrace.f insert end "\n" bg2
 
   .dialogBddTrace.f configure -state disabled
-
-  destroy .dialogBddTrace.m
-
   scrollbar .dialogBddTrace.ys -borderwidth 0 -command ".dialogBddTrace.f yview" -highlightthickness 0 -orient vertical
   pack .dialogBddTrace.ys -fill y -side right
   pack .dialogBddTrace.f -expand yes -fill both

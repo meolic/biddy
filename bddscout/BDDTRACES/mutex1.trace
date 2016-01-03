@@ -27,6 +27,13 @@ OUTPUT
       lv_6403,    lv_6410,    lv_6412,    lv_6417,    lv_6422,
       lv_6428;
 STRUCTURE
+   trace_verbose_print("START OF COMMENT");
+   trace_verbose_print("this is sample-trace from free software called bdd-trace-driver-0.9 (Bwolen Yang)");
+   trace_verbose_print("original file has been obtained from http://www.cs.cmu.edu/~bwolen/software/");
+   trace_verbose_print("original file uses strange ordering of arguments to function exists()");
+   trace_verbose_print("we have changed the role of arguments to function exists() and recalculated the resulting BDDs sizes");
+   trace_verbose_print("robert.meolic@um.si, 2015");
+   trace_verbose_print("END OF COMMENT");
    false = new_int_leaf(0);   % 1
    true = new_int_leaf(1);   % 1
    trace_verbose_print("Registering quantifiers (curr/next vars)");
@@ -144,58 +151,58 @@ STRUCTURE
    are_equal(lv_33, false);   % 0
    are_equal(lv_33, true);   % 0
    lv_83 = support_vars(lv_33);   % 10
-   lv_84 = exists(lv_14, lv_83);   % 7
-   lv_85 = exists(lv_7, lv_83);   % 5
+   lv_84 = exists(lv_14, lv_83);   % 6
+   lv_85 = exists(lv_7, lv_83);   % 4
    are_equal(lv_37, false);   % 0
    are_equal(lv_37, true);   % 0
    lv_86 = support_vars(lv_37);   % 8
-   lv_87 = exists(lv_14, lv_86);   % 7
-   lv_88 = exists(lv_7, lv_86);   % 3
+   lv_87 = exists(lv_14, lv_86);   % 8
+   lv_88 = exists(lv_7, lv_86);   % 4
    are_equal(lv_49, false);   % 0
    are_equal(lv_49, true);   % 0
    lv_89 = support_vars(lv_49);   % 11
-   lv_90 = exists(lv_14, lv_89);   % 9
-   lv_91 = exists(lv_7, lv_89);   % 4
+   lv_90 = exists(lv_14, lv_89);   % 7
+   lv_91 = exists(lv_7, lv_89);   % 1
    are_equal(lv_63, false);   % 0
    are_equal(lv_63, true);   % 0
    lv_92 = support_vars(lv_63);   % 10
-   lv_93 = exists(lv_14, lv_92);   % 7
-   lv_94 = exists(lv_7, lv_92);   % 5
+   lv_93 = exists(lv_14, lv_92);   % 6
+   lv_94 = exists(lv_7, lv_92);   % 4
    are_equal(lv_67, false);   % 0
    are_equal(lv_67, true);   % 0
    lv_95 = support_vars(lv_67);   % 8
-   lv_96 = exists(lv_14, lv_95);   % 7
-   lv_97 = exists(lv_7, lv_95);   % 3
+   lv_96 = exists(lv_14, lv_95);   % 8
+   lv_97 = exists(lv_7, lv_95);   % 4
    are_equal(lv_81, false);   % 0
    are_equal(lv_81, true);   % 0
    lv_98 = support_vars(lv_81);   % 11
-   lv_99 = exists(lv_14, lv_98);   % 9
-   lv_100 = exists(lv_7, lv_98);   % 4
+   lv_99 = exists(lv_14, lv_98);   % 7
+   lv_100 = exists(lv_7, lv_98);   % 1
    trace_verbose_print("  Initial merging...");
    lv_101 = and(lv_33, lv_37);   % 21
    lv_102 = support_vars(lv_101);   % 10
-   lv_103 = exists(lv_14, lv_102);   % 7
-   lv_104 = exists(lv_7, lv_102);   % 5
+   lv_103 = exists(lv_14, lv_102);   % 6
+   lv_104 = exists(lv_7, lv_102);   % 4
    lv_105 = and(lv_63, lv_67);   % 21
    lv_106 = support_vars(lv_105);   % 10
-   lv_107 = exists(lv_14, lv_106);   % 7
-   lv_108 = exists(lv_7, lv_106);   % 5
+   lv_107 = exists(lv_14, lv_106);   % 6
+   lv_108 = exists(lv_7, lv_106);   % 4
    lv_109 = and(lv_49, lv_101);   % 32
    lv_110 = support_vars(lv_109);   % 12
-   lv_111 = exists(lv_14, lv_110);   % 9
-   lv_112 = exists(lv_7, lv_110);   % 5
+   lv_111 = exists(lv_14, lv_110);   % 6
+   lv_112 = exists(lv_7, lv_110);   % 1
    lv_113 = and(lv_81, lv_105);   % 36
    lv_114 = support_vars(lv_113);   % 12
-   lv_115 = exists(lv_14, lv_114);   % 9
-   lv_116 = exists(lv_7, lv_114);   % 5
+   lv_115 = exists(lv_14, lv_114);   % 6
+   lv_116 = exists(lv_7, lv_114);   % 1
    lv_117 = and(lv_109, lv_113);   % 64
    lv_118 = support_vars(lv_117);   % 14
-   lv_119 = exists(lv_14, lv_118);   % 9
-   lv_120 = exists(lv_7, lv_118);   % 7
+   lv_119 = exists(lv_14, lv_118);   % 4
+   lv_120 = exists(lv_7, lv_118);   % 1
    trace_verbose_print("  Done initializing partitions...");
    trace_verbose_print("  Ordering/Clustering for Image computationd...");
    trace_verbose_print("    Ordering partitions...");
-   lv_121 = and(true, lv_120);   % 7
+   lv_121 = and(true, lv_120);   % 1
    lv_122 = and(v0, true);   % 3
    lv_123 = and(v2, lv_122);   % 4
    lv_124 = and(v4, lv_123);   % 5
@@ -209,13 +216,13 @@ STRUCTURE
    are_equal(lv_117, false);   % 0
    are_equal(lv_117, true);   % 0
    lv_129 = support_vars(lv_117);   % 14
-   lv_130 = exists(lv_14, lv_129);   % 9
-   lv_131 = exists(lv_7, lv_129);   % 7
+   lv_130 = exists(lv_14, lv_129);   % 4
+   lv_131 = exists(lv_7, lv_129);   % 1
    trace_verbose_print("  Initial merging...");
    trace_verbose_print("  Done initializing partitions...");
    trace_verbose_print("  Ordering/Clustering for PreImage computation...");
    trace_verbose_print("    Ordering partitions...");
-   lv_132 = and(true, lv_130);   % 9
+   lv_132 = and(true, lv_130);   % 4
    lv_133 = and(v5, true);   % 3
    lv_134 = and(v7, lv_133);   % 4
    lv_135 = and(v9, lv_134);   % 5

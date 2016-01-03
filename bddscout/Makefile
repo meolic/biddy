@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 93 $]
-#  Date        [$Date: 2015-09-16 21:45:54 +0200 (sre, 16 sep 2015) $]
+#  Revision    [$Revision: 128 $]
+#  Date        [$Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -35,6 +35,7 @@ all: nop
 
 # used for local testing
 local: start $(BINDIR) \
+     $(BINDIR)/bddscout.map \
      $(BINDIR)/$(MAINNAME) \
      $(BINDIR)/$(EXTNAME1) \
      $(BINDIR)/$(EXTNAME2) \
@@ -89,6 +90,9 @@ $(BINDIR)/COPYING: ./COPYING
 
 $(BINDIR)/bddview.tcl: $(BDDVIEWDIR)/bddview.tcl
 	$(CP) $(BDDVIEWDIR)/bddview.tcl $(BINDIR)
+
+$(BINDIR)/bddscout.map: ./bddscout.map
+	$(CP) ./bddscout.map $(BINDIR)
 
 $(BINDIR)/bddscout.tcl: ./bddscout.tcl
 	$(CP) ./bddscout.tcl $(BINDIR)
@@ -146,7 +150,7 @@ $(BINDIR)/bddscoutBDDTRACES.o: bddscoutBDDTRACES.c bddscout.h
 # -----------------------------------------------------------------------
 
 $(BINDIR)/$(MAINNAME): $(BINDIR)/bddscout.o $(BINDIR)/bddscoutStubInit.o
-	$(CD) $(BINDIR); $(LN) $(MAINNAME) $(CFLAGS) bddscout.o bddscoutStubInit.o -L$(BIDDYLIB) -lbiddy $(TCLSTUBLIB)
+	$(CD) $(BINDIR); $(LN) $(MAINNAME) $(CFLAGS) bddscout.o bddscoutStubInit.o -L$(BIDDYLIB) -lbiddy $(GMPLIB) $(TCLSTUBLIB)
 	$(CD) $(BINDIR); $(AR) $(BDDSCOUTLIB) bddscoutStubLib.o
 	$(CC) $(CFLAGS) -o $(BINDIR)/bddscout bddscoutMain.c $(TCLTKLIB)
 
