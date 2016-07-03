@@ -13,14 +13,14 @@
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyStat.c]
-    Revision    [$Revision: 132 $]
-    Date        [$Date: 2016-01-02 09:59:22 +0100 (sob, 02 jan 2016) $]
+    Revision    [$Revision: 167 $]
+    Date        [$Date: 2016-06-26 23:02:13 +0200 (ned, 26 jun 2016) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
-Copyright (C) 2006, 2015 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2016 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -50,21 +50,22 @@ static void MaxLevel(Biddy_Edge f, unsigned int *max, unsigned int i);
 
 static void AvgLevel(Biddy_Edge f, float *sum, unsigned int *n, unsigned int i);
 
-static void mintermCount(Biddy_Edge f, mpz_t max, Biddy_Edge constantOne, mpz_t result);
+static void mintermCount(Biddy_Manager MNG, Biddy_Edge f, mpz_t max, mpz_t result);
 
-static unsigned int nodePlainNumber(Biddy_Edge f);
+static unsigned int nodePlainNumber(Biddy_Manager MNG, Biddy_Edge f);
 
 /*----------------------------------------------------------------------------*/
 /* Definition of exported functions                                           */
 /*----------------------------------------------------------------------------*/
 
 /***************************************************************************//*!
-\brief Function Biddy_NodeNumber.
+\brief Function Biddy_Managed_NodeNumber.
 
 ### Description
     Count number of nodes in a BDD.
 ### Side effects
 ### More info
+    Macro Biddy_Managed_NodeNumber(f) is defined for use with anonymous manager.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -72,9 +73,11 @@ extern "C" {
 #endif
 
 unsigned int
-Biddy_NodeNumber(Biddy_Edge f)
+Biddy_Managed_NodeNumber(Biddy_Manager MNG, Biddy_Edge f)
 {
   unsigned int n;
+
+  if (!MNG) MNG = biddyAnonymousManager;
 
   if (Biddy_IsNull(f)) return 0;
   if (Biddy_IsConstant(f)) return 1;
@@ -87,8 +90,8 @@ Biddy_NodeNumber(Biddy_Edge f)
 
   n = 1; /* CONSTANT NODE IS COUNTED HERE */
 
-  BiddyNodeNumber(f,&n);
-  Biddy_NodeRepair(f);
+  BiddyNodeNumber(MNG,f,&n);
+  Biddy_Managed_DeselectAll(MNG);
 
   return n;
 }
@@ -211,12 +214,13 @@ Biddy_Managed_NodeTableSize(Biddy_Manager MNG)
 #endif
 
 /***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableMax.
+\brief Function Biddy_Managed_NodeTableBlockNumber.
 
 ### Description
 ### Side effects
 ### More info
-    Macro Biddy_NodeTableMax() is defined for use with anonymous manager.
+    Macro Biddy_NodeTableBlockNumber() is defined for use with anonymous
+    manager.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -224,186 +228,11 @@ extern "C" {
 #endif
 
 unsigned int
-Biddy_Managed_NodeTableMax(Biddy_Manager MNG)
+Biddy_Managed_NodeTableBlockNumber(Biddy_Manager MNG)
 {
   if (!MNG) MNG = biddyAnonymousManager;
 
-  return biddyNodeTable.max;
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-/***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableNum.
-
-### Description
-### Side effects
-### More info
-    Macro Biddy_NodeTableNum() is defined for use with anonymous manager.
-*******************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-unsigned int
-Biddy_Managed_NodeTableNum(Biddy_Manager MNG)
-{
-  if (!MNG) MNG = biddyAnonymousManager;
-
-  return biddyNodeTable.num;
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-/***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableNumVar.
-
-### Description
-### Side effects
-### More info
-    Macro Biddy_NodeTableNumVar(v) is defined for use with anonymous manager.
-*******************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-unsigned int
-Biddy_Managed_NodeTableNumVar(Biddy_Manager MNG, Biddy_Variable v)
-{
-  if (!MNG) MNG = biddyAnonymousManager;
-
-  return biddyVariableTable.table[v].num;
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-/***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableNumF.
-
-### Description
-### Side effects
-### More info
-    Macro Biddy_NodeTableNumF() is defined for use with anonymous manager.
-*******************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-unsigned int
-Biddy_Managed_NodeTableNumF(Biddy_Manager MNG)
-{
-  if (!MNG) MNG = biddyAnonymousManager;
-
-  return biddyNodeTable.numf;
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-/***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableFOA.
-
-### Description
-### Side effects
-### More info
-    Macro Biddy_NodeTableFOA() is defined for use with anonymous manager.
-*******************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-unsigned long long int
-Biddy_Managed_NodeTableFOA(Biddy_Manager MNG)
-{
-  if (!MNG) MNG = biddyAnonymousManager;
-
-  return biddyNodeTable.foa;
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-/***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableCompare.
-
-### Description
-### Side effects
-### More info
-    Macro Biddy_NodeTableCompare() is defined for use with anonymous manager.
-*******************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-unsigned long long int
-Biddy_Managed_NodeTableCompare(Biddy_Manager MNG)
-{
-  if (!MNG) MNG = biddyAnonymousManager;
-
-  return biddyNodeTable.compare;
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-/***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableAdd.
-
-### Description
-### Side effects
-### More info
-    Macro Biddy_NodeTableAdd() is defined for use with anonymous manager.
-*******************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-unsigned long long int
-Biddy_Managed_NodeTableAdd(Biddy_Manager MNG)
-{
-  if (!MNG) MNG = biddyAnonymousManager;
-
-  return biddyNodeTable.add;
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-/***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableGarbage.
-
-### Description
-### Side effects
-### More info
-    Macro Biddy_NodeTableGarbage() is defined for use with anonymous manager.
-*******************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-unsigned int
-Biddy_Managed_NodeTableGarbage(Biddy_Manager MNG)
-{
-  if (!MNG) MNG = biddyAnonymousManager;
-
-  return biddyNodeTable.garbage;
+  return biddyNodeTable.blocknumber;
 }
 
 #ifdef __cplusplus
@@ -436,13 +265,13 @@ Biddy_Managed_NodeTableGenerated(Biddy_Manager MNG)
 #endif
 
 /***************************************************************************//*!
-\brief Function Biddy_Managed_NodeTableBlockNumber.
+\brief Function Biddy_Managed_NodeTableMax returns maximal (peek) number of
+       nodes in node table.
 
 ### Description
 ### Side effects
 ### More info
-    Macro Biddy_NodeTableBlockNumber() is defined for use with anonymous
-    manager.
+    Macro Biddy_NodeTableMax() is defined for use with anonymous manager.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -450,11 +279,88 @@ extern "C" {
 #endif
 
 unsigned int
-Biddy_Managed_NodeTableBlockNumber(Biddy_Manager MNG)
+Biddy_Managed_NodeTableMax(Biddy_Manager MNG)
 {
   if (!MNG) MNG = biddyAnonymousManager;
 
-  return biddyNodeTable.blocknumber;
+  return biddyNodeTable.max;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_NodeTableNum returns number of all nodes
+       currently in node table.
+
+### Description
+### Side effects
+### More info
+    Macro Biddy_NodeTableNum() is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+unsigned int
+Biddy_Managed_NodeTableNum(Biddy_Manager MNG)
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  return biddyNodeTable.num;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_NodeTableNumVar returns number of nodes with
+       a given variable currently in node table.
+
+### Description
+### Side effects
+### More info
+    Macro Biddy_NodeTableNumVar(v) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+unsigned int
+Biddy_Managed_NodeTableNumVar(Biddy_Manager MNG, Biddy_Variable v)
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  return biddyVariableTable.table[v].num;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_NodeTableGCNumber.
+
+### Description
+### Side effects
+### More info
+    Macro Biddy_NodeTableGCNumber() is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+unsigned int
+Biddy_Managed_NodeTableGCNumber(Biddy_Manager MNG)
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  return biddyNodeTable.garbage;
 }
 
 #ifdef __cplusplus
@@ -513,6 +419,106 @@ Biddy_Managed_NodeTableSiftingNumber(Biddy_Manager MNG)
 #endif
 
 /***************************************************************************//*!
+\brief Function Biddy_Managed_NodeTableITENumber.
+
+### Description
+### Side effects
+### More info
+    Macro Biddy_NodeTableITENumber() is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+unsigned int
+Biddy_Managed_NodeTableITENumber(Biddy_Manager MNG)
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  return biddyNodeTable.funite;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_NodeTableANDNumber.
+
+### Description
+### Side effects
+### More info
+    Macro Biddy_NodeTableANDNumber() is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+unsigned int
+Biddy_Managed_NodeTableANDNumber(Biddy_Manager MNG)
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  return biddyNodeTable.funand;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_NodeTableGCTime.
+
+### Description
+### Side effects
+### More info
+    Macro Biddy_NodeTableGCTime() is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+clock_t
+Biddy_Managed_NodeTableGCTime(Biddy_Manager MNG)
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  return biddyNodeTable.gctime;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_NodeTableDRTime.
+
+### Description
+### Side effects
+### More info
+    Macro Biddy_NodeTableDRTime() is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+clock_t
+Biddy_Managed_NodeTableDRTime(Biddy_Manager MNG)
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  return biddyNodeTable.drtime;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
 \brief Function Biddy_Managed_ListUsed.
 
 ### Description
@@ -533,7 +539,7 @@ Biddy_Managed_ListUsed(Biddy_Manager MNG)
   if (!MNG) MNG = biddyAnonymousManager;
 
   n = 0;
-  for (i=1; i<biddyNodeTable.size+2; i++) {
+  for (i=1; i<=biddyNodeTable.size+1; i++) {
     if (biddyNodeTable.table[i] != NULL) {
       n++;
     }
@@ -572,12 +578,13 @@ Biddy_Managed_ListMaxLength(Biddy_Manager MNG)
   if (!MNG) MNG = biddyAnonymousManager;
 
   max = 0;
-  for (i=1; i<biddyNodeTable.size+2; i++) {
+  for (i=1; i<=biddyNodeTable.size+1; i++) {
     if (biddyNodeTable.table[i] != NULL) {
       n = 0;
       sup = biddyNodeTable.table[i];
       while (sup != NULL) {
         n++;
+        assert( sup != sup->next );
         sup = sup->next;
       }
       if (n > max) {
@@ -632,12 +639,13 @@ Biddy_Managed_ListAvgLength(Biddy_Manager MNG)
 
   sum = 0;
   n = 0;
-  for (i=1; i<biddyNodeTable.size+2; i++) {
+  for (i=1; i<=biddyNodeTable.size+1; i++) {
     if (biddyNodeTable.table[i] != NULL) {
       n++;
       sup = biddyNodeTable.table[i];
       while (sup != NULL) {
         sum = sum + 1;
+        assert( sup != sup->next );
         sup = sup->next;
       }
     }
@@ -731,7 +739,7 @@ Biddy_Managed_IteCacheOverwrite(Biddy_Manager MNG)
     Count number of nodes in a corresponding BDD without complement edges.
 ### Side effects
 ### More info
-    Macro Biddy_NodeNumberPlain(f) is defined for use with anonymous manager.
+    Macro Biddy_Managed_NodeNumberPlain(f) is defined for use with anonymous manager.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -751,7 +759,7 @@ Biddy_Managed_NodeNumberPlain(Biddy_Manager MNG, Biddy_Edge f)
   n = 2; /* BOTH CONSTANT NODES ARE COUNTED HERE */
 #pragma warning(suppress: 6031)
   BiddyCreateLocalInfo(MNG,f); /* returned number of variables is not used */
-  n += nodePlainNumber(f); /* select all nodes except constant node */
+  n += nodePlainNumber(MNG,f); /* select all nodes except constant node */
   BiddyDeleteLocalInfo(MNG,f);
 
   return n;
@@ -794,10 +802,9 @@ Biddy_Managed_VariableNumber(Biddy_Manager MNG, Biddy_Edge f)
   }
 
   n = 1; /* NOT NEEDED, BUT NODES ARE COUNTED BY BiddyNodeVarNumber */
-  Biddy_SelectNode(biddyOne); /* needed for BiddyNodeVarNumber */
+  Biddy_Managed_SelectNode(MNG,biddyOne); /* needed for BiddyNodeVarNumber */
   BiddyNodeVarNumber(MNG,f,&n); /* VARIABLES ARE MARKED */
-  Biddy_DeselectNode(biddyOne); /* needed for Biddy_NodeRepair */
-  Biddy_NodeRepair(f);
+  Biddy_Managed_DeselectAll(MNG);
 
   for (i=1;i<biddyVariableTable.num;i++) {
     if (biddyVariableTable.table[i].selected == TRUE) {
@@ -849,10 +856,9 @@ Biddy_Managed_NodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n,
     biddyVariableTable.table[i].selected = FALSE;
   }
 
-  Biddy_SelectNode(biddyOne); /* needed for BiddyNodeVarNumber */
+  Biddy_Managed_SelectNode(MNG,biddyOne); /* needed for BiddyNodeVarNumber */
   BiddyNodeVarNumber(MNG,f,n); /* VARIABLES ARE MARKED */
-  Biddy_DeselectNode(biddyOne); /* needed for Biddy_NodeRepair */
-  Biddy_NodeRepair(f);
+  Biddy_Managed_DeselectAll(MNG);
 
   for (i=0;i<biddyVariableTable.num;i++) {
     if (biddyVariableTable.table[i].selected == TRUE) {
@@ -904,7 +910,7 @@ Biddy_Managed_CountMinterm(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars)
   mpz_init(max);
   mpz_ui_pow_ui(max,2,nvars);
   mpz_init(result);
-  mintermCount(f,max,biddyOne,result); /* select all nodes except constant node */
+  mintermCount(MNG,f,max,result); /* select all nodes except constant node */
   if (Biddy_GetMark(f)) {
     mpz_sub(result,max,result);
   }
@@ -948,7 +954,7 @@ Biddy_Managed_ReadMemoryInUse(Biddy_Manager MNG) {
   n = 0;
 
   /* nodes */
-  n += biddyNodeTable.blocknumber * biddyBlockSize * sizeof(BiddyNode);
+  n += biddyNodeTable.generated * sizeof(BiddyNode);
 
   /* node table */
   n += sizeof(BiddyNodeTable) +
@@ -958,6 +964,7 @@ Biddy_Managed_ReadMemoryInUse(Biddy_Manager MNG) {
   /* variable table */
   n += sizeof(BiddyVariableTable) +
        biddyVariableTable.size * sizeof(BiddyVariable);
+  /* n += biddyVariableTable.size * sizeof(BiddyLookupVariable); */ /* currently not used */
   for (v=0; v<biddyVariableTable.num; v++) {
     if (biddyVariableTable.table[v].name) {
       n += strlen(biddyVariableTable.table[v].name) + 1;
@@ -989,17 +996,17 @@ Biddy_Managed_ReadMemoryInUse(Biddy_Manager MNG) {
   /* ITE cache */
   n += sizeof(BiddyOp3CacheTable) +
        (biddyIteCache.size+1) * sizeof(BiddyOp3Cache);
-  n += 3 * sizeof(unsigned long long int);
+  n += 4 * sizeof(unsigned long long int); /* counters */
 
   /* EA cache */
   n += sizeof(BiddyOp3CacheTable) +
        (biddyEACache.size+1) * sizeof(BiddyOp3Cache);
-  n += 3 * sizeof(unsigned long long int);
+  n += 4 * sizeof(unsigned long long int); /* counters */
 
   /* RC cache */
   n += sizeof(BiddyOp3CacheTable) +
        (biddyRCCache.size+1) * sizeof(BiddyOp3Cache);
-  n += 3 * sizeof(unsigned long long int);
+  n += 4 * sizeof(unsigned long long int); /* counters */
   
   return n;
 }
@@ -1030,6 +1037,8 @@ Biddy_Managed_PrintInfo(Biddy_Manager MNG, FILE *f) {
   if (!f) f = stdout;
 
   fprintf(f,"**** System parameters ****\n");
+  fprintf(f,"UINTPTRSIZE = %u bits\n",(unsigned int) UINTPTRSIZE);
+  fprintf(f,"sizeof(clock_t): %u bytes\n",(unsigned int)sizeof(clock_t));
   fprintf(f,"sizeof(BiddyNode *): %u bytes\n",(unsigned int)sizeof(BiddyNode *));
   fprintf(f,"sizeof(BiddyNode): %u bytes\n",(unsigned int)sizeof(BiddyNode));
   fprintf(f,"sizeof(BiddyVariable): %u bytes\n",(unsigned int)sizeof(BiddyVariable));
@@ -1037,98 +1046,164 @@ Biddy_Managed_PrintInfo(Biddy_Manager MNG, FILE *f) {
   fprintf(f,"sizeof(BiddyOp3Cache): %u bytes\n",(unsigned int)sizeof(BiddyOp3Cache));
   fprintf(f,"sizeof(BiddyOrderingTable): %u bytes\n",(unsigned int)sizeof(BiddyOrderingTable));
   fprintf(f,"**** Biddy modifiable parameters ****\n");
-  fprintf(f,"Nodes per one memory block: %u\n",biddyBlockSize);
   fprintf(f,"Limit for number of variables: %u\n",biddyVariableTable.size);
-  fprintf(f,"Limit for number of buckets in node table: %u\n",biddyNodeTable.size);
-  fprintf(f,"ITE cache size: %u\n",biddyIteCache.size);
-  fprintf(f,"EA cache size: %u\n",biddyEACache.size);
-  fprintf(f,"RC cache size: %u\n",biddyRCCache.size);
+  fprintf(f,"Initial number of buckets in Node table: %u\n",biddyNodeTable.initsize+1);
+  fprintf(f,"Number of nodes in the initial memory block: %u\n",biddyNodeTable.initblocksize);
+  fprintf(f,"Initial ITE cache size: %u\n",biddyIteCache.size);
+  fprintf(f,"Initial EA cache size: %u\n",biddyEACache.size);
+  fprintf(f,"Initial RC cache size: %u\n",biddyRCCache.size);
   fprintf(f,"**** Biddy non-modifiable parameters ****\n");
 #ifdef MINGW
-  fprintf(f, "Memory in use: %I64u bytes\n", Biddy_Managed_ReadMemoryInUse(MNG));
+  fprintf(f, "Memory in use: %I64u bytes\n",Biddy_Managed_ReadMemoryInUse(MNG));
 #else
-  fprintf(f, "Memory in use: %llu bytes\n", Biddy_Managed_ReadMemoryInUse(MNG));
+  fprintf(f, "Memory in use: %llu bytes\n",Biddy_Managed_ReadMemoryInUse(MNG));
 #endif
-  fprintf(f,"Number of memory blocks: %u\n",Biddy_Managed_NodeTableBlockNumber(MNG));
-  fprintf(f,"Number of variables: %u\n",Biddy_Managed_VariableTableNum(MNG));
-  fprintf(f,"Number of formulae: %u\n",biddyFormulaTable.size); /* TO DO: report externally */
-  fprintf(f,"Peak number of BDD nodes: %u\n",Biddy_Managed_NodeTableGenerated(MNG));
-  fprintf(f,"Peak number of live BDD nodes: %u\n",Biddy_Managed_NodeTableMax(MNG));
-  fprintf(f,"Number of live BDD nodes: %u\n",Biddy_Managed_NodeTableNum(MNG));
-  fprintf(f,"Number of fortified BDD nodes: %u\n",Biddy_Managed_NodeTableNumF(MNG));
+  fprintf(f,"Number of memory blocks: %u\n",biddyNodeTable.blocknumber);
+  fprintf(f,"Number of nodes in the last memory block: %u\n",biddyNodeTable.blocksize);
+  fprintf(f,"Number of variables: %u\n",biddyVariableTable.num);
+  fprintf(f,"Number of formulae: %u\n",biddyFormulaTable.size); 
+  fprintf(f,"Peak number of BDD nodes: %u\n",biddyNodeTable.generated);
+  fprintf(f,"Peak number of live BDD nodes: %u\n",biddyNodeTable.max);
+  fprintf(f,"Number of live BDD nodes: %u\n",biddyNodeTable.num);
+  fprintf(f,"Garbage collections so far: %u (node table resizing was used in %u of them)\n",biddyNodeTable.garbage,biddyNodeTable.nodetableresize);
+  fprintf(f,"Total time for garbage collections so far: %.3fs\n",biddyNodeTable.gctime / (1.0 * CLOCKS_PER_SEC));
+  fprintf(f,"Dynamic reorderings so far: %u\n",biddyNodeTable.sifting);
+  fprintf(f,"Node swaps in dynamic reorderings: %u\n",biddyNodeTable.swap);
+  fprintf(f,"Total time for dynamic reorderings so far: %.3fs\n",biddyNodeTable.drtime / (1.0 * CLOCKS_PER_SEC));
+  fprintf(f,"**** Node Table stats ****\n");
+  fprintf(f,"Number of buckets in Node table: %u\n",biddyNodeTable.size+1);
+  fprintf(f,"Used buckets in Node table: %u (%.2f%%)\n",
+                                   Biddy_Managed_ListUsed(MNG),
+                                   (100.0*Biddy_Managed_ListUsed(MNG)/(biddyNodeTable.size+1)));
+  fprintf(f,"Max bucket's size in Node table: %u\n",Biddy_Managed_ListMaxLength(MNG));
+  fprintf(f,"Avg bucket's size in Node table: %f\n",Biddy_Managed_ListAvgLength(MNG));
+#ifdef BIDDYEXTENDEDSTATS_YES
 #ifdef MINGW
-  fprintf(f, "Number of node table FOA calls: %I64u\n", Biddy_Managed_NodeTableFOA(MNG));
+  fprintf(f, "Number of ITE calls: %u (internal direct and recursive calls: %I64u)\n",biddyNodeTable.funite,biddyNodeTable.iterecursive);
+  fprintf(f, "Number of AND calls: %u (internal direct and recursive calls: %I64u)\n",biddyNodeTable.funand,biddyNodeTable.andrecursive);
+  fprintf(f, "Number of node table FOA calls: %I64u\n",biddyNodeTable.foa);
+  fprintf(f, "Number of node table insertions: %I64u\n",biddyNodeTable.add);
+  fprintf(f, "Number of compared nodes: %I64u (%.2f per findNodeTable call)\n",
+                                   biddyNodeTable.compare,
+                                   biddyNodeTable.find ?
+                                   (1.0*biddyNodeTable.compare/biddyNodeTable.find):0);
 #else
-  fprintf(f, "Number of node table FOA calls: %llu\n", Biddy_Managed_NodeTableFOA(MNG));
+  fprintf(f, "Number of ITE calls: %u (internal direct and recursive calls: %llu)\n",biddyNodeTable.funite,biddyNodeTable.iterecursive);
+  fprintf(f, "Number of AND calls: %u (internal direct and recursive calls: %llu)\n",biddyNodeTable.funand,biddyNodeTable.andrecursive);
+  fprintf(f, "Number of node table FOA calls: %llu\n",biddyNodeTable.foa);
+  fprintf(f, "Number of node table insertions: %llu\n",biddyNodeTable.add);
+  fprintf(f, "Number of compared nodes: %llu (%.2f per findNodeTable call)\n",
+                                   biddyNodeTable.compare,
+                                   biddyNodeTable.find ?
+                                   (1.0*biddyNodeTable.compare/biddyNodeTable.find):0);
 #endif
+#endif
+  fprintf(f,"**** ITE cache stats ****\n");
+  fprintf(f,"Size of ITE cache: %u\n",biddyIteCache.size);
 #ifdef MINGW
-  fprintf(f, "Number of node table compare calls: %I64u\n", Biddy_Managed_NodeTableCompare(MNG));
+  fprintf(f, "Number of ITE cache look-ups: %I64u\n",*(biddyIteCache.search));
+  fprintf(f, "Number of ITE cache hits: %I64u (%.2f%% of all calls)\n",
+                                   *(biddyIteCache.find),
+                                   *(biddyIteCache.search) ?
+                                   (100.0*(*(biddyIteCache.find))/(*(biddyIteCache.search))):0);
+  fprintf(f,"Number of ITE cache insertions: %I64u (%.2f%% of all calls)\n",
+                                   *(biddyIteCache.insert),
+                                   *(biddyIteCache.search) ?
+                                   (100.0*(*(biddyIteCache.insert))/(*(biddyIteCache.search))):0);
+  fprintf(f, "Number of ITE cache collisions: %I64u (%.2f%% of all insertions, %.2f%% of all calls)\n",
+                                   *(biddyIteCache.overwrite),
+                                   (*(biddyIteCache.insert)) ?
+                                   (100.0*(*(biddyIteCache.overwrite))/(*(biddyIteCache.insert))):0,
+                                   *(biddyIteCache.search) ?
+                                   (100.0*(*(biddyIteCache.overwrite))/(*(biddyIteCache.search))):0);
 #else
-  fprintf(f, "Number of node table compare calls: %llu\n", Biddy_Managed_NodeTableCompare(MNG));
+  fprintf(f, "Number of ITE cache look-ups: %llu\n",*(biddyIteCache.search));
+  fprintf(f, "Number of ITE cache hits: %llu (%.2f%% of all calls)\n",
+                                   *(biddyIteCache.find),
+                                   *(biddyIteCache.search) ?
+                                   (100.0*(*(biddyIteCache.find))/(*(biddyIteCache.search))):0);
+  fprintf(f,"Number of ITE cache insertions: %llu (%.2f%% of all calls)\n",
+                                   *(biddyIteCache.insert),
+                                   *(biddyIteCache.search) ?
+                                   (100.0*(*(biddyIteCache.insert))/(*(biddyIteCache.search))):0);
+  fprintf(f, "Number of ITE cache collisions: %llu (%.2f%% of all insertions, %.2f%% of all calls)\n",
+                                   *(biddyIteCache.overwrite),
+                                   (*(biddyIteCache.insert)) ?
+                                   (100.0*(*(biddyIteCache.overwrite))/(*(biddyIteCache.insert))):0,
+                                   *(biddyIteCache.search) ?
+                                   (100.0*(*(biddyIteCache.overwrite))/(*(biddyIteCache.search))):0);
 #endif
+  fprintf(f,"**** EA cache stats ****\n");
+  fprintf(f,"Size of EA cache: %u\n",biddyEACache.size);
 #ifdef MINGW
-  fprintf(f, "Number of node table insertions: %I64u\n", Biddy_Managed_NodeTableAdd(MNG));
+  fprintf(f, "Number of EA cache look-ups: %I64u\n",*(biddyEACache.search));
+  fprintf(f, "Number of EA cache hits: %I64u (%.2f%% of all calls)\n",
+                                   *(biddyEACache.find),
+                                   (*(biddyEACache.search)) ?
+                                   (100.0*(*(biddyEACache.find))/(*(biddyEACache.search))):0);
+  fprintf(f,"Number of EA cache insertions: %I64u (%.2f%% of all calls)\n",
+                                   *(biddyEACache.insert),
+                                   (*(biddyEACache.search)) ?
+                                   (100.0*(*(biddyEACache.insert))/(*(biddyEACache.search))):0);
+  fprintf(f, "Number of EA cache collisions: %I64u (%.2f%% of all insertions, %.2f%% of all calls)\n",
+                                   *(biddyEACache.overwrite),
+                                   (*(biddyEACache.insert)) ?
+                                   (100.0*(*(biddyEACache.overwrite))/(*(biddyEACache.insert))):0,
+                                   (*(biddyEACache.search)) ?
+                                   (100.0*(*(biddyEACache.overwrite))/(*(biddyEACache.search))):0);
 #else
-  fprintf(f, "Number of node table insertions: %llu\n", Biddy_Managed_NodeTableAdd(MNG));
+  fprintf(f, "Number of EA cache look-ups: %llu\n",*(biddyEACache.search));
+  fprintf(f, "Number of EA cache hits: %llu (%.2f%% of all calls)\n",
+                                   *(biddyEACache.find),
+                                   (*(biddyEACache.search)) ?
+                                   (100.0*(*(biddyEACache.find))/(*(biddyEACache.search))):0);
+  fprintf(f,"Number of EA cache insertions: %llu (%.2f%% of all calls)\n",
+                                   *(biddyEACache.insert),
+                                   (*(biddyEACache.search)) ?
+                                   (100.0*(*(biddyEACache.insert))/(*(biddyEACache.search))):0);
+  fprintf(f, "Number of EA cache collisions: %llu (%.2f%% of all insertions, %.2f%% of all calls)\n",
+                                   *(biddyEACache.overwrite),
+                                   (*(biddyEACache.insert)) ?
+                                   (100.0*(*(biddyEACache.overwrite))/(*(biddyEACache.insert))):0,
+                                   (*(biddyEACache.search)) ?
+                                   (100.0*(*(biddyEACache.overwrite))/(*(biddyEACache.search))):0);
 #endif
-  fprintf(f,"Garbage collections so far: %u\n",Biddy_Managed_NodeTableGarbage(MNG));
-  fprintf(f,"Reorderings so far: %u\n",Biddy_Managed_NodeTableSiftingNumber(MNG));
-  fprintf(f,"Node swaps in reordering: %u\n",Biddy_Managed_NodeTableSwapNumber(MNG));
-  fprintf(f,"Number of buckets in node table: %u\n",Biddy_Managed_NodeTableSize(MNG));
-  fprintf(f,"Used buckets in node table: %u (%.2f%%)\n",Biddy_Managed_ListUsed(MNG),(100.0*Biddy_Managed_ListUsed(MNG)/Biddy_Managed_NodeTableSize(MNG)));
-  fprintf(f,"Max bucket's size in node table: %u\n",Biddy_Managed_ListMaxLength(MNG));
-  fprintf(f,"Avg bucket's size in node table: %f\n",Biddy_Managed_ListAvgLength(MNG));
-  fprintf(f,"Size of ITE cache: %u\n",biddyIteCache.size); /* TO DO: report externally */
+  fprintf(f,"**** RC cache stats ****\n");
+  fprintf(f,"Size of RC cache: %u\n",biddyRCCache.size);
 #ifdef MINGW
-  fprintf(f, "Number of ITE cache look-ups: %I64u\n", Biddy_Managed_IteCacheSearch(MNG));
+  fprintf(f, "Number of RC cache look-ups: %I64u\n",*(biddyRCCache.search));
+  fprintf(f, "Number of RC cache hits: %I64u (%.2f%% of all calls)\n",
+                                   *(biddyRCCache.find),
+                                   (*(biddyRCCache.search)) ?
+                                   (100.0*(*(biddyRCCache.find))/(*(biddyRCCache.search))):0);
+  fprintf(f,"Number of RC cache insertions: %I64u (%.2f%% of all calls)\n",
+                                   *(biddyRCCache.insert),
+                                   (*(biddyRCCache.search)) ?
+                                   (100.0*(*(biddyRCCache.insert))/(*(biddyRCCache.search))):0);
+  fprintf(f, "Number of RC cache collisions: %I64u (%.2f%% of all insertions, %.2f%% of all calls)\n",
+                                   *(biddyRCCache.overwrite),
+                                   (*(biddyRCCache.insert)) ?
+                                   (100.0*(*(biddyRCCache.overwrite))/(*(biddyRCCache.insert))):0,
+                                   (*(biddyRCCache.search)) ?
+                                   (100.0*(*(biddyRCCache.overwrite))/(*(biddyRCCache.search))):0);
 #else
-  fprintf(f, "Number of ITE cache look-ups: %llu\n", Biddy_Managed_IteCacheSearch(MNG));
+  fprintf(f, "Number of RC cache look-ups: %llu\n",*(biddyRCCache.search));
+  fprintf(f, "Number of RC cache hits: %llu (%.2f%% of all calls)\n",
+                                   *(biddyRCCache.find),
+                                   (*(biddyRCCache.search)) ?
+                                   (100.0*(*(biddyRCCache.find))/(*(biddyRCCache.search))):0);
+  fprintf(f,"Number of RC cache insertions: %llu (%.2f%% of all calls)\n",
+                                   *(biddyRCCache.insert),
+                                   (*(biddyRCCache.search)) ?
+                                   (100.0*(*(biddyRCCache.insert))/(*(biddyRCCache.search))):0);
+  fprintf(f, "Number of RC cache collisions: %llu (%.2f%% of all insertions, %.2f%% of all calls)\n",
+                                   *(biddyRCCache.overwrite),
+                                   (*(biddyRCCache.insert)) ?
+                                   (100.0*(*(biddyRCCache.overwrite))/(*(biddyRCCache.insert))):0,
+                                   (*(biddyRCCache.search)) ?
+                                   (100.0*(*(biddyRCCache.overwrite))/(*(biddyRCCache.search))):0);
 #endif
-#ifdef MINGW
-  fprintf(f, "Number of ITE cache hits: %I64u\n", Biddy_Managed_IteCacheFind(MNG));
-#else
-  fprintf(f, "Number of ITE cache hits: %llu\n", Biddy_Managed_IteCacheFind(MNG));
-#endif
-  fprintf(f,"Number of ITE cache insertions: NOT IMPLEMENTED, YET\n");
-#ifdef MINGW
-  fprintf(f, "Number of ITE cache collisions: %I64u\n", Biddy_Managed_IteCacheOverwrite(MNG));
-#else
-  fprintf(f, "Number of ITE cache collisions: %llu\n", Biddy_Managed_IteCacheOverwrite(MNG));
-#endif
-  fprintf(f,"Size of EA cache: %u\n",biddyEACache.size); /* TO DO: report externally */
-#ifdef MINGW
-  fprintf(f, "Number of EA cache look-ups: %I64u\n", *(biddyEACache.search)); /* TO DO: report externally */
-#else
-  fprintf(f, "Number of EA cache look-ups: %llu\n", *(biddyEACache.search)); /* TO DO: report externally */
-#endif
-#ifdef MINGW
-  fprintf(f, "Number of EA cache hits: %I64u\n", *(biddyEACache.find)); /* TO DO: report externally */
-#else
-  fprintf(f, "Number of EA cache hits: %llu\n", *(biddyEACache.find)); /* TO DO: report externally */
-#endif
-  fprintf(f,"Number of EA cache insertions: NOT IMPLEMENTED, YET\n");
-#ifdef MINGW
-  fprintf(f, "Number of EA cache collisions: %I64u\n", *(biddyEACache.overwrite)); /* TO DO: report externally */
-#else
-  fprintf(f, "Number of EA cache collisions: %llu\n", *(biddyEACache.overwrite)); /* TO DO: report externally */
-#endif
-  fprintf(f,"Size of RC cache: %u\n",biddyRCCache.size); /* TO DO: report externally */
-#ifdef MINGW
-  fprintf(f, "Number of RC cache look-ups: %I64u\n", *(biddyRCCache.search)); /* TO DO: report externally */
-#else
-  fprintf(f, "Number of RC cache look-ups: %llu\n", *(biddyRCCache.search)); /* TO DO: report externally */
-#endif
-#ifdef MINGW
-  fprintf(f, "Number of RC cache hits: %I64u\n", *(biddyRCCache.find)); /* TO DO: report externally */
-#else
-  fprintf(f, "Number of RC cache hits: %llu\n", *(biddyRCCache.find)); /* TO DO: report externally */
-#endif
-  fprintf(f,"Number of RC cache insertions: NOT IMPLEMENTED, YET\n");
-#ifdef MINGW
-  fprintf(f, "Number of RC cache collisions: %I64u\n", *(biddyRCCache.overwrite)); /* TO DO: report externally */
-#else
-  fprintf(f, "Number of RC cache collisions: %llu\n", *(biddyRCCache.overwrite)); /* TO DO: report externally */
-#endif
+  fprintf(f,"**** END OF STATS ****\n");
 }
 
 #ifdef __cplusplus
@@ -1149,13 +1224,13 @@ Biddy_Managed_PrintInfo(Biddy_Manager MNG, FILE *f) {
 *******************************************************************************/
 
 void
-BiddyNodeNumber(Biddy_Edge f, unsigned int *n)
+BiddyNodeNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
 {
-  if (!Biddy_IsConstant(f) && !Biddy_IsSelected(f)) {
-    Biddy_SelectNode(f);
+  if (!Biddy_IsConstant(f) && !Biddy_Managed_IsSelected(MNG,f)) {
+    Biddy_Managed_SelectNode(MNG,f);
     (*n)++;
-    BiddyNodeNumber(BiddyE(f),n);
-    BiddyNodeNumber(BiddyT(f),n);
+    BiddyNodeNumber(MNG,BiddyE(f),n);
+    BiddyNodeNumber(MNG,BiddyT(f),n);
   }
 }
 
@@ -1172,8 +1247,8 @@ BiddyNodeNumber(Biddy_Edge f, unsigned int *n)
 void
 BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
 {
-  if (!Biddy_IsSelected(f)) {
-    Biddy_SelectNode(f);
+  if (!Biddy_Managed_IsSelected(MNG,f)) {
+    Biddy_Managed_SelectNode(MNG,f);
     (*n)++;
     biddyVariableTable.table[((BiddyNode *) Biddy_Regular(f))->v].selected = TRUE;
     BiddyNodeVarNumber(MNG,BiddyE(f),n);
@@ -1225,34 +1300,33 @@ AvgLevel(Biddy_Edge f, float *sum, unsigned int *n, unsigned int i)
 
 ### Description
 ### Side effects
-    We are using argument constantOne to avoid dependency on a manager.
     We are using GNU Multiple Precision Arithmetic Library (GMP).
 ### More info
 *******************************************************************************/
 
-static void mintermCount(Biddy_Edge f, mpz_t max, Biddy_Edge constantOne, mpz_t result)
+static void mintermCount(Biddy_Manager MNG, Biddy_Edge f, mpz_t max, mpz_t result)
 {
   mpz_t countE,countT;
 
-  if (Biddy_IsEqvPointer(f,constantOne)) {
+  if (Biddy_IsConstant(f)) {
     mpz_set(result,max);
     return;
   }
 
-  if (Biddy_IsSelected(f)) {
+  if (Biddy_Managed_IsSelected(MNG,f)) {
     BiddyGetMintermCount(f,result);
     return;
   }
   
   mpz_init(countE);
   mpz_init(countT);
-  Biddy_SelectNode(f);
+  Biddy_Managed_SelectNode(MNG,f);
 
-  mintermCount(BiddyE(f),max,constantOne,countE);
+  mintermCount(MNG,BiddyE(f),max,countE);
   if (Biddy_GetMark(BiddyE(f))) {
     mpz_sub(countE,max,countE);
   }
-  mintermCount(BiddyT(f),max,constantOne,countT);
+  mintermCount(MNG,BiddyT(f),max,countT);
 
   mpz_add(result,countE,countT);
   mpz_divexact_ui(result,result,2);
@@ -1267,9 +1341,9 @@ static void mintermCount(Biddy_Edge f, mpz_t max, Biddy_Edge constantOne, mpz_t 
   printf("MINTERM COUNT: ");
   if (Biddy_GetMark(f)) printf(" marked ");
   printf("edge to %s (%s, %s) represents %.0f minterms\n",
-         Biddy_GetTopVariableName(f),
-         Biddy_GetTopVariableName(BiddyE(f)),
-         Biddy_GetTopVariableName(BiddyT(f)),
+         Biddy_Managed_GetTopVariableName(MNG,f),
+         Biddy_Managed_GetTopVariableName(MNG,BiddyE(f)),
+         Biddy_Managed_GetTopVariableName(MNG,BiddyT(f)),
          count
         );
   */
@@ -1283,12 +1357,12 @@ static void mintermCount(Biddy_Edge f, mpz_t max, Biddy_Edge constantOne, mpz_t 
 ### More info
 *******************************************************************************/
 
-static unsigned int nodePlainNumber(Biddy_Edge f)
+static unsigned int nodePlainNumber(Biddy_Manager MNG, Biddy_Edge f)
 {
   unsigned int n;
 
   if (Biddy_IsConstant(f)) return 0;
-  if (Biddy_IsSelected(f)) {
+  if (Biddy_Managed_IsSelected(MNG,f)) {
     if (BiddyGetNodePlainSelected(f)) {
       /* ALREADY VISITED */
       return 0;
@@ -1298,12 +1372,12 @@ static unsigned int nodePlainNumber(Biddy_Edge f)
     }
   }
 
-  Biddy_SelectNode(f);
+  Biddy_Managed_SelectNode(MNG,f);
   BiddySetNodePlainSelected(f);
 
   n = 1;
-  n += nodePlainNumber(Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)));
-  n += nodePlainNumber(Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)));
+  n += nodePlainNumber(MNG,Biddy_NotCond(BiddyE(f),Biddy_GetMark(f)));
+  n += nodePlainNumber(MNG,Biddy_NotCond(BiddyT(f),Biddy_GetMark(f)));
 
   return n;
 }

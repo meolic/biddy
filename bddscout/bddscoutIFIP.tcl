@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 101 $]
-#  Date        [$Date: 2015-10-06 15:51:07 +0200 (tor, 06 okt 2015) $]
+#  Revision    [$Revision: 168 $]
+#  Date        [$Date: 2016-06-28 22:44:56 +0200 (tor, 28 jun 2016) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -117,7 +117,7 @@ proc IFIP_benchmark {  } {
   .dialogIFIPbench.f insert end "$OS\n" {bg2 bold}
   .dialogIFIPbench.f insert end "[clock format [clock seconds] -format {%d.%m.%Y %H:%M:%S}]\n" {bg2 bold}
   .dialogIFIPbench.f insert end "\n" {bg2 bold}
-  .dialogIFIPbench.f insert end "Filename\tElapsed.Time\tNum.Variables\tNum.Nodes\tNum.FNodes\tNum.GC\tResult\n" {bg2 bold}
+  .dialogIFIPbench.f insert end "Filename\tElapsed.Time\tNum.Variables\tNum.Nodes\tNum.GC\tResult\n" {bg2 bold}
 
   set list [list \
     "cath/add1.be" \
@@ -179,6 +179,8 @@ proc IFIP_benchmark {  } {
   set maxVar 0
   set maxNodes 0
   set totalT 0
+  
+# TO DO: CHANGE THIS
   set totalFOA 0
   set totalCMP 0
   set totalADD 0
@@ -193,9 +195,9 @@ proc IFIP_benchmark {  } {
       set et [expr [scan $et %i] / 1000]
 
       set totalT [expr $totalT + $et]
-      set totalFOA [expr $totalFOA + [biddy_table_foa]]
-      set totalCMP [expr $totalCMP + [biddy_table_compare]]
-      set totalADD [expr $totalADD + [biddy_table_add]]
+      set totalFOA [expr $totalFOA + 0]
+      set totalCMP [expr $totalCMP + 0]
+      set totalADD [expr $totalADD + 0]
 
       set nameX [string map {"/" "_" "\\" "_" "." "_" ":" "_"} $name]
 
@@ -214,8 +216,7 @@ proc IFIP_benchmark {  } {
 
       set numvar [lindex $report 2]
       set numnodes [lindex $report 3]
-      set numfnodes [lindex $report 4]
-      set garbage [lindex $report 5]
+      set garbage [lindex $report 4]
 
       if {$numvar > $maxVar} {
         set maxVar $numvar
@@ -233,12 +234,10 @@ proc IFIP_benchmark {  } {
       .dialogIFIPbench.f insert end "\t" bg$i
       .dialogIFIPbench.f insert end "$numnodes" bg$i
       .dialogIFIPbench.f insert end "\t" bg$i
-      .dialogIFIPbench.f insert end "$numfnodes" bg$i
-      .dialogIFIPbench.f insert end "\t" bg$i
       .dialogIFIPbench.f insert end "$garbage" bg$i
       .dialogIFIPbench.f insert end "\t" bg$i
 
-      set report [lrange $report 6 end]
+      set report [lrange $report 5 end]
       menubutton .dialogIFIPbench.f.$nameX -menu .dialogIFIPbench.f.$nameX.list -text $r -bg azure3 -fg $fgc -relief groove -borderwidth 1
       menu .dialogIFIPbench.f.$nameX.list -tearoff false
       .dialogIFIPbench.f.$nameX.list add command -label $name

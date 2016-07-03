@@ -3,11 +3,11 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 121 $]
-#  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
+#  Revision    [$Revision: 160 $]
+#  Date        [$Date: 2016-06-08 14:49:08 +0200 (sre, 08 jun 2016) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2015 UM-FERI
+#               Copyright (C) 2006, 2016 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -35,18 +35,16 @@ all: dynamic
 
 dynamic:
 	@$(MAKE) --no-print-directory lib \
-	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.dylib" \
 	"LIBGMP = $(LIBGMP)" \
-	"CC = gcc -O2 -DMACOSX" \
-	"LN = gcc -dynamiclib -mmacosx-version-min=10.5 -o"
+	"CC = gcc $(CFLAGS) -O2 -DMACOSX -DNDEBUG" \
+	"LN = gcc $(CFLAGS) -dynamiclib -mmacosx-version-min=10.5 -o"
 
 static:
 	@$(MAKE) --no-print-directory lib \
-	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
 	"LIBGMP = " \
-	"CC = gcc -O2 -DMACOSX" \
+	"CC = gcc $(CFLAGS) -O2 -DMACOSX -DNDEBUG" \
 	"LN = ar rcs"

@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 128 $]
-#  Date        [$Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $]
+#  Revision    [$Revision: 159 $]
+#  Date        [$Date: 2016-06-03 12:46:41 +0200 (pet, 03 jun 2016) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -26,12 +26,16 @@ EXTNAME1 = EXTNAME1
 EXTNAME2 = EXTNAME2
 EXTNAME3 = EXTNAME3
 
+OS = $(shell uname | sed "s/_.*//;s/[0-9]//g")
 RM = rm -f
 CP = cp
 MKDIR = mkdir -p
 CD = cd
 
-all: nop
+# default folder (used for purge and clean, only)
+BINDIR = ./bin
+
+all: default
 
 # used for local testing
 local: start $(BINDIR) \
@@ -64,8 +68,10 @@ package: start $(BINDIR) $(BINDIR)/$(MAINNAME) $(BINDIR)/$(EXTNAME1) $(BINDIR)/$
 # help
 # -----------------------------------------------------------------------
 
-nop:
-	@echo Please, check README to get instructions for building BDD Scout
+default:
+	@echo "*** DEFAULT BUILDING! ***"
+	@echo Please, check README to find other options for building BDD Scout.
+	@$(MAKE) --no-print-directory -f Makefile.$(OS)
 
 start:
 	@echo "----------------------------------"

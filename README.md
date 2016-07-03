@@ -75,6 +75,9 @@ Biddy consists of the following files:
 - debian/* (files used when creating deb package)
 - rpm/* (files used when creating rpm package)
 - biddy-example-8queens.c (8 Queens example)
+- biddy-example-independence.c (8 Queens example)
+- biddy-example-independence-usa.c (Independence example)
+- biddy-example-independence-europe.c (Independence example)
 
 There are  two C headers,  external and internal. The  external header
 file,  named  biddy.h, defines  features  visible  from outside  the
@@ -178,7 +181,7 @@ int main() {
 ### 3.1 NODE MANAGEMENT WITH FORMULAE TAGGING
 
 Biddy includes powerful node management based on formulae tagging.
-There are seven user functions to maintain nodes.
+There are six user functions to maintain nodes.
 
 ### Biddy_AddFormula(name,bdd,count)
 
@@ -186,7 +189,7 @@ Nodes of the given BDD will be preserved for the given number of cleanings.
 If (name != NULL) then formula is accessible by its name. If formula with
 a given name already exists it is overwritten. If (count == 0) then
 formula is persistently preserved and you have to use Biddy_DeleteFormula
-and Biddy_ClearAll to remove its nodes. There are two macros defined to simplify
+to remove its nodes. There are two macros defined to simplify
 formulae management. Macro Biddy_AddTmpFormula(bdd,count) is defined as
 Biddy_AddFormula(NULL,bdd,count) and macro Biddy_AddPersistentFormula(name,bdd)
 is defined as Biddy_AddFormula(name,bdd,0).
@@ -196,22 +199,21 @@ is defined as Biddy_AddFormula(name,bdd,0).
 Nodes of the given formula are tagged as not needed.
 Formula is not accessible by its name anymore.
 Regular cleaning with Biddy_Clean is not considered this tag.
-Obsolete nodes from preserved formulae can be immediately removed
-in explicite call to Biddy_ClearAll (this is the only way to remove
-obsolete nodes from permanently preserved formulae).
 
 ### Biddy_Clean()
 
-Performs cleaning.
 Discard all nodes which were not preserved or which are not preserved
 anymore. Obsolete nodes are not immediately removed, they will be removed
 during the first garbage collection. Use Biddy_Purge or Biddy_PurgeAndReorder
-to immediately remove all nodes which are not preserved.
+to immediately remove all non-preserved nodes.
 
 ### Biddy_Purge()
 
 Immediately remove all nodes which were not preserved or which are not
-preserved anymore. Call to Biddy_Purge does not count as cleaning and thus all
+preserved anymore.
+Nodes from deleted prolonged formulae and nodes from deleted fortified
+formulae are removed if they are not needed by other formulae.
+Call to Biddy_Purge does not count as cleaning and thus all
 preserved formulae remains preserved for the same number of cleanings. 
 
 ### Biddy_PurgeAndReorder(bdd)
@@ -223,14 +225,6 @@ The same as Biddy_Purge but also trigger reordering on function
 
 All obsolete nodes become fresh nodes. This is an external variant of
 internal function BiddyRefresh. It is needed to implement user caches.
-
-### Biddy_ClearAll()
-
-Immediately remove all nodes except the permanently preserved ones
-which were not made obsolete by Biddy_DeleteFormula.
-Please note, that regularly use of Biddy_Clean will trigger automatic garbage
-collection, thus Biddy_ClearAll is needed only if you need more extensive
-cleaning, e.g. to remove all obsolete nodes after a call to Biddy_DeleteFormula.
 
 ### 3.2. EXAMPLES OF NODE MANAGEMENT WITH BIDDY
 
@@ -246,25 +240,48 @@ f1 = op(...);
 f2 = op(...);
 g2 = op(f1,f2,...);
 Biddy_AddTmpFormula(g2,1); /* g2 is preserved for next cleaning */
-Biddy_Clean(); /* g1 and g2 are still usable */
+Biddy_Clean(); /* g1 and g2 are still usable, f1 and f2 are obsolete */
 result = op(g1,g2,...);
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
-Biddy_Clean(); /* tmp result are not needed, anymore */
+Biddy_Clean(); /* g1 and g2 are not needed, anymore */
 \endcode
 ```
 
-If garbage collection is needed also after the calculation of g1, you must
-add the following code after the calculation of g1:
+If garbage collection is needed also after the calculation of g1, you can
+use the following code after the calculation of g1:
 
 ```
 \code
 Biddy_AddTmpFormula(g1,2); /* g1 is preserved for next two cleanings */
-Biddy_Clean(); /* g1 remains preserved for one additional cleaning */
+Biddy_Clean(); /* g1 remains preserved for next cleaning */
 \endcode
 ```
 
-To trigger reordering in the first example, you should add calls to
-Biddy_PurgeAndReorder to get the following code:
+In this approach, f1 and f2 become obsolete after Biddy_Clean, but their
+nodes are not immediately removed (garbage collection is started automatically
+when there are no free nodes in the system).
+If garbage collection should be started immediately, you must
+use the following code after the calculation of g1:
+
+```
+\code
+Biddy_AddTmpFormula(g1,2); /* g1 is preserved for next two cleanings */
+Biddy_Clean(); /* g1 remains preserved for next cleaning */
+Biddy_Purge(); /* keep only preserved (g1) formulae */
+\endcode
+```
+
+Alternatively, you can use the following approach:
+
+```
+\code
+Biddy_AddTmpFormula(g1,1); /* g1 is preserved for next cleaning */
+Biddy_Purge(); /* this will not make g1 obsolete */
+\endcode
+```
+
+To trigger reordering in this example, you should use Biddy_PurgeAndReorder
+to get the following code:
 
 ```
 \code
@@ -272,17 +289,17 @@ f1 = op(...);
 f2 = op(...);
 g1 = op(f1,f2,...);
 Biddy_AddTmpFormula(g1,2); /* g1 is preserved for next two cleanings */
-Biddy_PurgeAndReorder(g1); /* keep only preserved formulae (g1), perform reordering on g1 */
+Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (g1), perform reordering */
 Biddy_Clean(); /* g1 remains preserved for one additional cleaning */
 f1 = op(...);
 f2 = op(...);
 g2 = op(f1,f2,...);
 Biddy_AddTmpFormula(g2,1); /* g2 is preserved for next cleaning */
-Biddy_PurgeAndReorder(g2); /* keep only preserved formulae (g1, g2), perform reordering on g2 */
+Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (g1, g2), perform reordering */
 Biddy_Clean(); /* g1 and g2 are still usable but not preserved */
 result = op(g1,g2,...);
 Biddy_AddPersistentFormula("result",result); /* result is permanently preserved */
-Biddy_PurgeAndReorder(result); /* keep only preserved formulae (result), perform reordering on result */
+Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (result), perform reordering */
 \endcode
 ```
 
@@ -300,7 +317,7 @@ while (!finish) {
   result = op(result,g,...);
 }
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
-Biddy_Clean(); /* tmp results are not needed, anymore */
+Biddy_Clean(); /* temp results are not needed, anymore */
 \endcode
 ```
 
@@ -321,7 +338,7 @@ while (!finish) {
   result = op(result,g,...);
 }
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
-Biddy_Clean(); /* tmp results are not needed, anymore */
+Biddy_Clean(); /* temp results are not needed, anymore */
 \endcode
 ```
 
@@ -333,7 +350,7 @@ f = op(...);
 result = op(f,...);
 while (!finish) {
   Biddy_AddTmpFormula(result,2); /* result is preserved for next two cleanings */
-  Biddy_PurgeAndReorder(result); /* keep only preserved formulae (result), perform reordering on result */
+  Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (result), perform reordering */
   Biddy_Clean(); /* result remains preserved for one additional cleaning */
   f = op(...);
   g = op(f,...);
@@ -342,7 +359,7 @@ while (!finish) {
   result = op(result,g,...);
 }
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
-Biddy_PurgeAndReorder(result); /* keep only preserved formulae (result), perform reordering on result */
+Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (result), perform reordering */
 \endcode
 ```
 
@@ -357,15 +374,15 @@ Z = 0;
 last = 1;
 while (Z!=last) {
   Biddy_AddTmpFormula(Z,1); /* Z is preserved for next cleaning */
-  Biddy_PurgeAndReorder(Z); /* keep only preserved formulae (sup, Z), perform reordering on Z */
+  Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (sup,Z), perform reordering */
   Biddy_Clean(); /* Z remains usable but not preserved */
   last = Z;
   Z = NextSet(Z,sup,...);
 }
 result = Z;
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
-Biddy_DeleteFormula("sup");
-Biddy_ClearAll(); /* optional, if you really need to immediately remove sup */
+Biddy_DeleteFormula("sup"); /* optional, if you really need to remove sup */
+Biddy_Purge(); /* optional, immediately remove non-preserved nodes */
 \endcode
 ```
 
@@ -379,7 +396,7 @@ Biddy_AddPersistentFormula("init",init) /* init is permanently preserved */
 eq = InitialEq(init_p,tr_p,init_q,tr_q,...);
 do {
   Biddy_AddTmpFormula(eq,1); /* eq is preserved for next cleaning */
-  Biddy_PurgeAndReorder(eq); /* keep only preserved formulae (init, eq), perform reordering on eq */
+  Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (init, eq), perform reordering */
   Biddy_Clean(); /* eq remains usable but not preserved */
   last = eq;
   eq1 = NextEqPart1(eq,tr_p,tr_q,...);
@@ -387,8 +404,8 @@ do {
   eq = AND(eq1,eq2);
 } while (AND(init,eq)!=0 && eq!=last)
 if (AND(init,eq)!=0) return false; else return true;
-Biddy_DeleteFormula("init");
-Biddy_ClearAll(); /* optional, if you really need to immediately remove init */
+Biddy_DeleteFormula("init"); /* optional, if you really need to remove init */
+Biddy_Purge(); /* optional, immediately remove non-preserved nodes */
 \endcode
 ```
 
@@ -442,7 +459,7 @@ for (i=1;i<=N;i++) for (j=1;j<=N;j++) {
 }
 result = OR(tr1,tr2);
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
-Biddy_ClearAll(); /* optional, tmp result are not needed, anymore */
+Biddy_Clean(); /* temp results are not needed, anymore */
 \endcode
 ```
 
@@ -454,12 +471,9 @@ obsolete nodes as possible.
 
 Biddy does not use reference counter.
 We call the implemented algorithm "GC with a formulae counter".
-Please note, that formulae tagging as presented above can
-be implemented via reference counter or via formulae counter,
-in both case it relies on additional structures, e.g. formula table.
+Please note, that it relies on additional structure (Formula table).
 
-While using formulae counter instead of reference counter is less
-efficient (i.e. it requires more work to maintain nodes) it has
+Using formulae counter instead of reference counter has
 some advantages. It allows GC to be started in any time
 without breaking the ongoing calculation. Thus, there is no need
 to taking care of repeating broken calculations. Moreover,
@@ -476,16 +490,15 @@ these classes:
 - __prolonged__ node (count > biddyCount);
 - __obsolete__ node (0 < count < biddyCount).
 
-All successors of a fortified node are fortified nodes.
-All successors of a prolonged node are prolonged or fortified nodes.
-All successors of a fresh node are fresh, prolonged, or fortified nodes.
+Before GC, nodes must be refreshed in such a way that no successor of
+non-obsolete node is obsolete. This can be achieved with relative simple
+loop which will check each node at least once.
 
-There are four internal functions to maintain nodes.
+There are three internal functions to maintain nodes.
 
-- __BiddyFortiy__ (all nodes become fortified nodes)
-- __BiddyRefresh__ (all obsolete nodes become fresh nodes)
-- __BiddyProlong__ (all obsolete and fresh nodes become prolonged nodes)
-- __BiddyIncCounter__ (all prolonged nodes become fresh nodes, all fresh nodes become obsolete nodes)
+- __BiddyProlongOne__ (one node is prolonged)
+- __BiddyProlongRecursively__ (one node and its successors are prolonged recursively until a non-obsolete node is reached)
+- __BiddyIncCounter__ (all fresh nodes become obsolete nodes)
 
 There are four functions which can be used by an expert user.
 
@@ -536,9 +549,11 @@ which we obtained from http://mpir.org/ .
 We have used pacman to prepare the environment:
 
 ~~~
-MSYS shell> update-core
-(restart MSYS shell)
+MSYS shell> pacman -Sy
+MSYS shell> pacman --needed -S bash pacman pacman-mirrors msys2-runtime
+(restart MSYS2 shell)
 MSYS shell> pacman -Su
+MSYS shell> pacman -S mingw-w64-i686-gcc
 MSYS shell> pacman -S mingw-w64-x86_64-gcc
 MSYS shell> pacman -S make
 MSYS shell> pacman -S bison
@@ -700,6 +715,9 @@ https://launchpad.net/~meolic/+archive/ubuntu/biddy
 
 Also in 2015, sources became available on GitHub
 https://github.com/meolic/biddy
+
+In 2016, Biddy v1.6 was released. Now, formulae are not recursively refreshed
+all the time. The size of Node table became resizable.
 
 6. PUBLICATIONS
 ---------------

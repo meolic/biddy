@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.h]
-  Revision    [$Revision: 114 $]
-  Date        [$Date: 2015-12-21 16:04:00 +0100 (pon, 21 dec 2015) $]
+  Revision    [$Revision: 164 $]
+  Date        [$Date: 2016-06-19 18:26:23 +0200 (ned, 19 jun 2016) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description [The file bddscout.h contains some declarations.]
   SeeAlso     []
@@ -34,8 +34,10 @@
 #ifndef _BDDSCOUT
 #define _BDDSCOUT
 
-#include <tcl.h>
 #include <biddy.h>
+#include <string.h>
+#include <ctype.h>
+#include <tcl.h>
 
 /* ON MS WINDOWS + MINGW THERE HAS TO BE DEFINED MINGW */
 /* ON GNU/LINUX THERE HAS TO BE DEFINED UNIX */

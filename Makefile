@@ -1,9 +1,9 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 121 $]
-#  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
+#  Revision    [$Revision: 157 $]
+#  Date        [$Date: 2016-05-23 15:06:09 +0200 (pon, 23 maj 2016) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2015 UM-FERI
+#               Copyright (C) 2006, 2016 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 LIBNAME = LIBNAME
 OS = $(shell uname | sed "s/_.*//;s/[0-9]//g")
 RM = rm -f
+RMFR = rm -fr
 CP = cp
 MKDIR = mkdir -p
 CD = cd
@@ -70,11 +71,9 @@ start:
 
 start_dynamic:
 	@echo "*** Building dynamic library ..."
-	@echo "CFLAGS="$(CFLAGS)
 
 start_static:
 	@echo "*** Building static library ..."
-	@echo "CFLAGS="$(CFLAGS)
 
 ok:
 	@echo "---------------------------------------"
@@ -91,19 +90,19 @@ $(BINDIR):
 # make library
 
 $(BINDIR)/biddyMain.o: biddyMain.c biddy.h biddyInt.h
-	$(CC) $(CFLAGS) -o $(BINDIR)/biddyMain.o -c biddyMain.c -D'BIDDYVERSION="$(BIDDYVERSION)"'
+	$(CC) -o $(BINDIR)/biddyMain.o -c biddyMain.c -D'BIDDYVERSION="$(BIDDYVERSION)"'
 
 $(BINDIR)/biddyStat.o: biddyStat.c biddy.h biddyInt.h
-	$(CC) $(CFLAGS) -o $(BINDIR)/biddyStat.o -c biddyStat.c
+	$(CC) -o $(BINDIR)/biddyStat.o -c biddyStat.c
 
 $(BINDIR)/biddyInOut.o: biddyInOut.c biddy.h biddyInt.h
-	$(CC) $(CFLAGS) -o $(BINDIR)/biddyInOut.o -c biddyInOut.c
+	$(CC) -o $(BINDIR)/biddyInOut.o -c biddyInOut.c
 
 #$(BINDIR)/biddy4cudd.o: biddy4cudd.c biddy.h biddyInt.h biddy4cudd.h
-#	$(CC) $(CFLAGS) -o $(BINDIR)/biddy4cudd.o -c biddy4cudd.c
+#	$(CC) -o $(BINDIR)/biddy4cudd.o -c biddy4cudd.c
 
 $(BINDIR)/$(LIBNAME): $(BINDIR)/biddyMain.o $(BINDIR)/biddyStat.o $(BINDIR)/biddyInOut.o
-	$(CD) $(BINDIR); $(LN) $(LIBNAME) $(CFLAGS) biddyMain.o biddyStat.o biddyInOut.o $(LIBGMP)
+	$(CD) $(BINDIR); $(LN) $(LIBNAME) biddyMain.o biddyStat.o biddyInOut.o $(LIBGMP)
 
 # -----------------------------------------------------------------------
 # purge = purify source directory, clean = purify bin directory
@@ -111,6 +110,21 @@ $(BINDIR)/$(LIBNAME): $(BINDIR)/biddyMain.o $(BINDIR)/biddyStat.o $(BINDIR)/bidd
 purge:
 	@$(RM) *~
 	@$(RM) */*~
+
+purgevs:
+	@$(RMFR) VS/BDDScoutInstaller-cache
+	@$(RMFR) VS/BDDScoutInstaller-SetupFiles
+	@$(RMFR) VS/BiddyDevInstaller-cache
+	@$(RMFR) VS/BiddyDevInstaller-SetupFiles
+	@$(RMFR) VS/BiddyInstaller-cache
+	@$(RMFR) VS/BiddyInstaller-SetupFiles
+	@$(RMFR) VS/x64
+	@$(RM) VS/BDDScout.vcxproj.user
+	@$(RM) VS/BDDScoutBDDTRACES.vcxproj.user
+	@$(RM) VS/BDDScoutBRA.vcxproj.user
+	@$(RM) VS/BDDScoutIFIP.vcxproj.user
+	@$(RM) VS/BiddyExample8Queens.vcxproj.user
+	@$(RM) VS/BiddyExampleIndependence.vcxproj.user
 
 clean:
 	@$(RM) $(BINDIR)/biddyMain.o

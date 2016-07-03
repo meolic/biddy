@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddtraces-cmd.c]
-  Revision    [$Revision: 119 $]
-  Date        [$Date: 2015-12-24 10:59:37 +0100 (čet, 24 dec 2015) $]
+  Revision    [$Revision: 150 $]
+  Date        [$Date: 2016-03-29 14:56:14 +0200 (tor, 29 mar 2016) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -29,17 +29,16 @@
                Boston, MA 02110-1301 USA.]
   ************************************************************************/
 
-#define USEBIDDY
-#define NOCUDD
-
 /* COMPILE WITH: */
-/* gcc -DUNIX -o bddtraces-cmd bddtraces-cmd.c -I../ -L../bin -lbiddy -lgmp */
-/* gcc -o bddtraces-cmd bddtraces-cmd.c -I ../../cudd-2.5.1/include/ -L ../../cudd-2.5.1/cudd/ -L ../../cudd-2.5.1/util/ -L ../../cudd-2.5.1/mtr/ -L ../../cudd-2.5.1/st/ -L ../../cudd-2.5.1/epd/ -lcudd -lutil -lepd -lmtr -lst -lm */
+/* gcc -DUSEBIDDY -DUNIX -o bddtraces-biddy-cmd bddtraces-cmd.c -I../ -L../bin -lbiddy -lgmp */
+/* gcc -DUSECUDD -o bddtraces-cudd-cmd bddtraces-cmd.c -I ../../cudd-3.0.0/ -I ../../cudd-3.0.0/cudd/ -I ../../cudd-3.0.0-exe/include/ -L ../../cudd-3.0.0-exe/lib/ -lcudd -lm */
 
 #define NODEBUG
 
 #ifdef USEBIDDY
 #  include "biddy.h"
+#  include <string.h>
+#  include <ctype.h>
 #  define BDDNULL NULL
 #  include "./bddtraces-BIDDY.c"
 #endif
@@ -48,10 +47,10 @@
 #  include <stdio.h>
 #  include <stdlib.h>
 #  include <stdint.h>
-#  include <string.h>
-#  include <ctype.h>
 #  include <stdarg.h>
 #  include <math.h>
+#  include <string.h>
+#  include <ctype.h>
 #  include "cudd.h"
 #  define BDDNULL NULL
 #  ifndef TRUE

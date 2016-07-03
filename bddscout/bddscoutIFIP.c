@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutIFIP.c]
-  Revision    [$Revision: 118 $]
-  Date        [$Date: 2015-12-24 10:15:47 +0100 (čet, 24 dec 2015) $]
+  Revision    [$Revision: 168 $]
+  Date        [$Date: 2016-06-28 22:44:56 +0200 (tor, 28 jun 2016) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -73,13 +73,13 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   Biddy_String var;
   Biddy_String name,tmpname;
   Biddy_String *nameTable;
-  int nameNumber;
+  unsigned int nameNumber;
   Biddy_Boolean *eqvTable;
   Biddy_Boolean ok,usedcs;
   Biddy_Edge bdd1,bdd2,dcs;
   Biddy_String report;
   unsigned int len;
-  int i,n;
+  unsigned int i,n;
 
   for (i=0; i<strlen(filename); i++) filename[i]=toupper(filename[i]);
 
@@ -299,12 +299,11 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   /* YOU CAN ENABLE VARIANT 1 OR VARIANT 2, OR DISABLE BOTH */
 
   /* VARIANT 1: USING Biddy_AddFormula AND Biddy_Clean */
-  /* you can use Biddy_Purge() or Biddy_PurgeAndReorder(NULL) before Biddy_Clean */
   /**/
-  Biddy_Clean();
+  Biddy_Purge();
   /**/
 
-  /* VARIANT 2: USING Biddy_AddPersistentFormula AND Biddy_ClearAll */
+  /* VARIANT 2: USING Biddy_AddPersistentFormula AND Biddy_DeleteIthFormula */
   /*
   i = 2;
   name = Biddy_GetIthFormulaName(i);
@@ -315,14 +314,14 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
     i++;
     name = Biddy_GetIthFormulaName(i);
   }
-  Biddy_ClearAll();
+  Biddy_Clean();
   */
 
   report = (Biddy_String) malloc(255);
   if (!ok) {
-    sprintf(report,"%s 0 %u %u %u %u ",Tcl_GetHostName(),Biddy_VariableTableNum(),Biddy_NodeTableMax(),Biddy_NodeTableNumF(),Biddy_NodeTableGarbage());
+    sprintf(report,"%s 0 %u %u %u ",Tcl_GetHostName(),Biddy_VariableTableNum(),Biddy_NodeTableMax(),Biddy_NodeTableGCNumber());
   } else {
-    sprintf(report,"%s 1 %u %u %u %u ",Tcl_GetHostName(),Biddy_VariableTableNum(),Biddy_NodeTableMax(),Biddy_NodeTableNumF(),Biddy_NodeTableGarbage());
+    sprintf(report,"%s 1 %u %u %u ",Tcl_GetHostName(),Biddy_VariableTableNum(),Biddy_NodeTableMax(),Biddy_NodeTableGCNumber());
   }
 
   for (i=0; i<nameNumber; i++) {

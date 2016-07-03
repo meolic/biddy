@@ -62,8 +62,8 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 }
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 113 $]
-#  Date        [$Date: 2015-12-21 00:10:59 +0100 (pon, 21 dec 2015) $]
+#  Revision    [$Revision: 164 $]
+#  Date        [$Date: 2016-06-19 18:26:23 +0200 (ned, 19 jun 2016) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2015 UM-FERI
@@ -928,13 +928,9 @@ proc update_info {  } {
     "\nBiddy_NodeTableSize = " [biddy_table_size] \
     "\nBiddy_NodeTableMax = " [biddy_table_max] \
     "\nBiddy_NodeTableNum = " [biddy_table_number] \
-    "\nBiddy_NodeTableNumF = " [biddy_table_fortified] \
-    "\nBiddy_NodeTableFOA = " [biddy_table_foa] \
-    "\nBiddy_NodeTableCompare = " [biddy_table_compare] \
-    "\nBiddy_NodeTableAdd = " [biddy_table_add] \
     "\nBiddy_NodeTableGenerated = " [biddy_table_generated] \
     "\nBiddy_NodeTableBlockNumber = " [biddy_block_number] \
-    "\nBiddy_NodeTableGarbage = " [biddy_garbage_number] \
+    "\nBiddy_NodeTableGarbageNumber = " [biddy_garbage_number] \
     "\nBiddy_NodeSwapNumber = " [biddy_swap_number] \
     "\nBiddy_NodeSiftingNumber = " [biddy_sifting_number] \
     "\nBiddy_ListUsed = " [biddy_list_used] \

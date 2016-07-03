@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.c]
-  Revision    [$Revision: 121 $]
-  Date        [$Date: 2015-12-27 23:07:57 +0100 (ned, 27 dec 2015) $]
+  Revision    [$Revision: 168 $]
+  Date        [$Date: 2016-06-28 22:44:56 +0200 (tor, 28 jun 2016) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -55,6 +55,16 @@ extern BddscoutStubs bddscoutStubs;
 /*-----------------------------------------------------------------------*/
 
 int SCAN_RESULT; /* used in readln macro */
+
+/*-----------------------------------------------------------------------*/
+/* Static function prototypes                                            */
+/*-----------------------------------------------------------------------*/
+
+static unsigned int MyNodeNumber(Biddy_Edge f);
+
+static unsigned int MyNodeMaxLevel(Biddy_Edge f);
+
+static float MyNodeAvgLevel(Biddy_Edge f);
 
 /*-----------------------------------------------------------------------*/
 /* External functions                                                    */
@@ -679,8 +689,7 @@ BddscoutWriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
     n = 0;
     tn = NULL;
     enumerateNodes(f,&tn,&t,&n);
-    Biddy_DeselectNode(Biddy_GetConstantOne()); /* needed for Biddy_NodeRepair */
-    Biddy_NodeRepair(f);
+    Biddy_DeselectAll();
 
     fprintf(s,"label %d %s %d %d\n",table[0].id,table[0].label,table[0].x,table[0].y);
     for (i=1;i<(n+1);++i) {
@@ -703,7 +712,7 @@ BddscoutWriteBDDView(FILE *s, Biddy_String dotexe, Biddy_String name)
 
     t = 1;
     writeDotConnections(s,f,tn,&t,n); /* this will select all nodes except constant node */
-    Biddy_NodeRepair(f);
+    Biddy_DeselectAll();
 
     free(tn);
 
@@ -1127,6 +1136,25 @@ BddscoutWriteBDD(char *filename, Biddy_String name)
 }
 
 /*-----------------------------------------------------------------------*/
+/* Definition of static functions                                        */
+/*-----------------------------------------------------------------------*/
+
+static unsigned int MyNodeNumber(Biddy_Edge f)
+{
+  return Biddy_NodeNumber(f);
+}
+
+static unsigned int MyNodeMaxLevel(Biddy_Edge f)
+{
+  return Biddy_NodeMaxLevel(f);
+}
+
+static float MyNodeAvgLevel(Biddy_Edge f)
+{
+  return Biddy_NodeAvgLevel(f);
+}
+
+/*-----------------------------------------------------------------------*/
 /* TCL related functions                                                 */
 /*-----------------------------------------------------------------------*/
 
@@ -1212,18 +1240,6 @@ static int BiddyTableNumberCmd(ClientData clientData, Tcl_Interp *interp,
                                 int argc, USECONST char **argv);
 
 static int BiddyVariableNumberCmd(ClientData clientData, Tcl_Interp *interp,
-                                int argc, USECONST char **argv);
-
-static int BiddyTableFortifiedCmd(ClientData clientData, Tcl_Interp *interp,
-                                int argc, USECONST char **argv);
-
-static int BiddyTableFoaCmd(ClientData clientData, Tcl_Interp *interp,
-                                int argc, USECONST char **argv);
-
-static int BiddyTableCompareCmd(ClientData clientData, Tcl_Interp *interp,
-                                int argc, USECONST char **argv);
-
-static int BiddyTableAddCmd(ClientData clientData, Tcl_Interp *interp,
                                 int argc, USECONST char **argv);
 
 static int BiddyGarbageNumberCmd(ClientData clientData, Tcl_Interp *interp,
@@ -1348,18 +1364,6 @@ Bddscout_Init(Tcl_Interp *interp)
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
   Tcl_CreateCommand(interp, "biddy_variable_number", BiddyVariableNumberCmd,
-                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
-
-  Tcl_CreateCommand(interp, "biddy_table_fortified", BiddyTableFortifiedCmd,
-                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
-
-  Tcl_CreateCommand(interp, "biddy_table_foa", BiddyTableFoaCmd,
-                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
-
-  Tcl_CreateCommand(interp, "biddy_table_compare", BiddyTableCompareCmd,
-                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
-
-  Tcl_CreateCommand(interp, "biddy_table_add", BiddyTableAddCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
   Tcl_CreateCommand(interp, "biddy_garbage_number", BiddyGarbageNumberCmd,
@@ -1546,7 +1550,7 @@ BddscoutListFormulaeByNodeNumberCmd(ClientData clientData,
 
   list = strdup("NULL"); /* required! */
 
-  BddscoutListFormulaByUIntParameter(&list,Biddy_NodeNumber);
+  BddscoutListFormulaByUIntParameter(&list,MyNodeNumber);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1562,7 +1566,7 @@ BddscoutListFormulaeByNodeMaxLevelCmd(ClientData clientData,
 
   list = strdup("NULL"); /* required! */
 
-  BddscoutListFormulaByUIntParameter(&list,Biddy_NodeMaxLevel);
+  BddscoutListFormulaByUIntParameter(&list,MyNodeMaxLevel);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1578,7 +1582,7 @@ BddscoutListFormulaeByNodeAvgLevelCmd(ClientData clientData,
 
   list = strdup("NULL"); /* required! */
 
-  BddscoutListFormulaByFloatParameter(&list,Biddy_NodeAvgLevel);
+  BddscoutListFormulaByFloatParameter(&list,MyNodeAvgLevel);
 
   Tcl_SetResult(interp, list, TCL_VOLATILE);
   free(list);
@@ -1785,7 +1789,7 @@ BddscoutSiftingCmd(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  Biddy_Sifting(NULL);
+  Biddy_Sifting(NULL,FALSE);
 
   Tcl_SetResult(interp, (char *) "", TCL_STATIC);
   return TCL_OK;
@@ -1807,7 +1811,7 @@ BddscoutSiftingOnFunctionCmd(ClientData clientData, Tcl_Interp *interp, int argc
   s1 = strdup(argv[1]);
 
   if (Biddy_FindFormula(s1,&f)) {
-    Biddy_Sifting(f);
+    Biddy_Sifting(f,FALSE);
   }
 
   free(s1);
@@ -1939,104 +1943,6 @@ BiddyVariableNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 static int
-BiddyTableFortifiedCmd(ClientData clientData, Tcl_Interp *interp, int argc,
-                  USECONST char **argv)
-{
-  Biddy_String sup;
-
-  if (argc != 1) {
-    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
-    return TCL_ERROR;
-  }
-
-  sup = (Biddy_String) malloc(127);
-  if (!sup) return TCL_ERROR;
-  sprintf(sup,"%u",Biddy_NodeTableNumF());
-  Tcl_SetResult(interp, sup, TCL_VOLATILE);
-  free(sup);
-
-  return TCL_OK;
-}
-
-static int
-BiddyTableFoaCmd(ClientData clientData, Tcl_Interp *interp, int argc,
-                  USECONST char **argv)
-{
-  Biddy_String sup;
-
-  if (argc != 1) {
-    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
-    return TCL_ERROR;
-  }
-
-  sup = (Biddy_String) malloc(127);
-  if (!sup) return TCL_ERROR;
-
-#if defined(MINGW) || defined(_MSC_VER)
-  sprintf(sup,"%I64u",Biddy_NodeTableFOA()); /* MINGW AND VS?? REQUIRE "%I64u" */
-#else
-  sprintf(sup,"%llu",Biddy_NodeTableFOA());
-#endif
-
-  Tcl_SetResult(interp, sup, TCL_VOLATILE);
-  free(sup);
-
-  return TCL_OK;
-}
-
-static int
-BiddyTableCompareCmd(ClientData clientData, Tcl_Interp *interp, int argc,
-                  USECONST char **argv)
-{
-  Biddy_String sup;
-
-  if (argc != 1) {
-    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
-    return TCL_ERROR;
-  }
-
-  sup = (Biddy_String) malloc(127);
-  if (!sup) return TCL_ERROR;
-
-#if defined(MINGW) || defined(_MSC_VER)
-  sprintf(sup,"%I64u",Biddy_NodeTableCompare()); /* MINGW AND VS ?? REQUIRE "%I64u" */
-#else
-  sprintf(sup,"%llu",Biddy_NodeTableCompare());
-#endif
-
-  Tcl_SetResult(interp, sup, TCL_VOLATILE);
-  free(sup);
-
-  return TCL_OK;
-}
-
-static int
-BiddyTableAddCmd(ClientData clientData, Tcl_Interp *interp, int argc,
-                  USECONST char **argv)
-{
-  Biddy_String sup;
-
-  if (argc != 1) {
-    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
-    return TCL_ERROR;
-  }
-
-  sup = (Biddy_String) malloc(127);
-  if (!sup) return TCL_ERROR;
-
-#if defined(MINGW) || defined(_MSC_VER)
-  sprintf(sup,"%I64u",Biddy_NodeTableAdd()); /* MINGW AND VS?? REQUIRE "%I64u" */
-#else
-  sprintf(sup,"%llu",Biddy_NodeTableAdd());
-#endif
-
-  Tcl_SetResult(interp, sup, TCL_VOLATILE);
-  free(sup);
-
-  return TCL_OK;
-}
-
-static int
 BiddyGarbageNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
                   USECONST char **argv)
 {
@@ -2049,7 +1955,7 @@ BiddyGarbageNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 
   sup = (Biddy_String) malloc(127);
   if (!sup) return TCL_ERROR;
-  sprintf(sup,"%u",Biddy_NodeTableGarbage());
+  sprintf(sup,"%u",Biddy_NodeTableGCNumber());
   Tcl_SetResult(interp, sup, TCL_VOLATILE);
   free(sup);
 

@@ -13,8 +13,8 @@
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 124 $]
-    Date        [$Date: 2015-12-30 17:27:05 +0100 (sre, 30 dec 2015) $]
+    Revision    [$Revision: 148 $]
+    Date        [$Date: 2016-03-08 22:03:25 +0100 (tor, 08 mar 2016) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net),
                  Volodymyr Mihav (mihaw.wolodymyr@gmail.com),
@@ -23,7 +23,7 @@
 
 ### Copyright
 
-Copyright (C) 2006, 2015 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2016 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -104,11 +104,11 @@ static void WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned i
 
 /* The following functions are used in Biddy_WriteDot(). */
 
-static unsigned int enumerateNodes(Biddy_Edge f, unsigned int n);
+static unsigned int enumerateNodes(Biddy_Manager MNG, Biddy_Edge f, unsigned int n);
 
 static void WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id);
 
-static void WriteDotEdges(FILE *dotfile, Biddy_Edge f);
+static void WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f);
 
 /* Other functions that may be used everywhere */
 
@@ -516,16 +516,16 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
     free(label1);
 
     BiddyCreateLocalInfo(MNG,f);
-    n = enumerateNodes(f,0); /* this will select all nodes except constant node */
-    Biddy_NodeRepair(f);
+    n = enumerateNodes(MNG,f,0); /* this will select all nodes except constant node */
+    Biddy_Managed_DeselectAll(MNG);
     WriteDotNodes(MNG,s,f,id);
     if (Biddy_GetMark(f)) {
       fprintf(s,"  0 -> 1 [arrowtail=\"none\" arrowhead=\"dot\"];\n");
     } else {
       fprintf(s,"  0 -> 1 [arrowtail=\"none\"];\n");
     }
-    WriteDotEdges(s,f); /* this will select all nodes except constant node */
-    BiddyDeleteLocalInfo(MNG, f);
+    WriteDotEdges(MNG,s,f); /* this will select all nodes except constant node */
+    BiddyDeleteLocalInfo(MNG,f);
 
     fprintf(s,"}\n");
     fclose(s);
@@ -568,16 +568,16 @@ Biddy_Managed_WriteDotx(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
     free(label1);
 
     BiddyCreateLocalInfo(MNG,f);
-    n = enumerateNodes(f,0); /* this will select all nodes except constant node */
-    Biddy_NodeRepair(f);
+    n = enumerateNodes(MNG,f,0); /* this will select all nodes except constant node */
+    Biddy_Managed_DeselectAll(MNG);
     WriteDotNodes(MNG,s,f,id);
     if (Biddy_GetMark(f)) {
       fprintf(s,"  0 -> 1 [arrowtail=\"none\" arrowhead=\"dot\"];\n");
     } else {
       fprintf(s,"  0 -> 1 [arrowtail=\"none\"];\n");
     }
-    WriteDotEdges(s,f); /* this will select all nodes except constant node */
-    BiddyDeleteLocalInfo(MNG, f);
+    WriteDotEdges(MNG,s,f); /* this will select all nodes except constant node */
+    BiddyDeleteLocalInfo(MNG,f);
 
     fprintf(s,"}\n");
     fclose(s);
@@ -1029,22 +1029,22 @@ WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned int *line)
 }
 
 static unsigned int
-enumerateNodes(Biddy_Edge f, unsigned int n)
+enumerateNodes(Biddy_Manager MNG, Biddy_Edge f, unsigned int n)
 {
-  if (!Biddy_IsSelected(f)) {
+  if (!Biddy_Managed_IsSelected(MNG,f)) {
     if (Biddy_IsConstant(f)) {
     } else {
-      Biddy_SelectNode(f);
+      Biddy_Managed_SelectNode(MNG,f);
       n++;
       BiddySetEnumerator(f,n);
       if (Biddy_IsConstant(BiddyE(f)) || Biddy_IsConstant(BiddyT(f))) {
         n++; /* every instance of constant node is enumerated */
       }
       if (!Biddy_IsConstant(BiddyE(f))) {
-        n = enumerateNodes(BiddyE(f),n);
+        n = enumerateNodes(MNG,BiddyE(f),n);
       }
       if (!Biddy_IsConstant(BiddyT(f))) {
-        n = enumerateNodes(BiddyT(f),n);
+        n = enumerateNodes(MNG,BiddyT(f),n);
       }
     }
   }
@@ -1079,12 +1079,12 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id)
 }
 
 static void
-WriteDotEdges(FILE *dotfile, Biddy_Edge f)
+WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f)
 {
   unsigned int n1,n2;
 
-  if (!Biddy_IsConstant(f) && !Biddy_IsSelected(f)) {
-    Biddy_SelectNode(f);
+  if (!Biddy_IsConstant(f) && !Biddy_Managed_IsSelected(MNG,f)) {
+    Biddy_Managed_SelectNode(MNG,f);
     n1 = BiddyGetEnumerator(f);
 
     if (Biddy_IsConstant(BiddyE(f))) {
@@ -1109,8 +1109,8 @@ WriteDotEdges(FILE *dotfile, Biddy_Edge f)
       fprintf(dotfile,"  %d -> %d [arrowtail=\"invempty\"];\n",n1,n2);
     }
 
-    WriteDotEdges(dotfile,BiddyE(f));
-    WriteDotEdges(dotfile,BiddyT(f));
+    WriteDotEdges(MNG,dotfile,BiddyE(f));
+    WriteDotEdges(MNG,dotfile,BiddyT(f));
   }
 }
 

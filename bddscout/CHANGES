@@ -56,3 +56,7 @@ Changes v1.5 versus v1.4
 - extension BRA: now there are two types of sifting
 - extension BDDRACES: improved, added terminal program
   which allows comparison of Biddy and CUDD library
+
+Changes v1.6 versus v1.5
+- released on Jul 3, 2016
+- adapted for changes in Biddy 1.6

@@ -13,14 +13,14 @@
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 124 $]
-    Date        [$Date: 2015-12-30 17:27:05 +0100 (sre, 30 dec 2015) $]
+    Revision    [$Revision: 168 $]
+    Date        [$Date: 2016-06-28 22:44:56 +0200 (tor, 28 jun 2016) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
-Copyright (C) 2006, 2015 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2016 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -44,6 +44,10 @@ See also: biddy.h
 #define _BIDDYINT
 
 #include "biddy.h"
+#include <assert.h>
+#include <string.h>
+#include <ctype.h>
+#include <gmp.h>
 
 /* sleep() is not included in modern version of MINGW */
 /* #define sleep(sec) (Sleep ((sec) * 1000), 0) */
@@ -55,10 +59,22 @@ See also: biddy.h
 /* this is from */
 /* http://stackoverflow.com/questions/3694723/error-c3861-strcasecmp-identifier-not-found-in-visual-studio-2008 */
 /* not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw */
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
 #endif
+
+/* extended stats (YES or NO) */
+#define BIDDYEXTENDEDSTATS_NO
+
+/* event log (YES or NO) */
+#define BIDDYEVENTLOG_NO
+#ifdef BIDDYEVENTLOG_YES
+#define ZF_LOGI(x) {static unsigned int biddystat = 0;printf(x);printf("#%u,%.2f\n",++biddystat,clock()/(1.0*CLOCKS_PER_SEC));}
+#else
+#define ZF_LOGI(x)
+#endif
+
 
 /*----------------------------------------------------------------------------*/
 /* Constant declarations                                                      */
@@ -70,8 +86,8 @@ See also: biddy.h
 
 /* Max number of variables - this is hardcoded for better performance. */
 /* for optimal space reservation use VARMAX =  32*N */
-/* this must be compatible with Biddy_Variable (<65536) */
 /* variable "1" is one of these variables */
+/* BIDDY IS NOT CAPABLE TO EFFICIENTLY WORK WITH TOO MANY VARIABLES! */
 #define BIDDYVARMAX 2048
 
 /*----------------------------------------------------------------------------*/
@@ -92,6 +108,10 @@ See also: biddy.h
 /* BiddyE returns ELSE successor, since Biddy v1.4 */
 
 #define BiddyE(fun) (((BiddyNode *) Biddy_Regular(fun))->f)
+
+/* BiddyV returns top variable, since Biddy v1.6 */
+
+#define BiddyV(fun) (((BiddyNode *) Biddy_Regular(fun))->v)
 
 /* orderingtable[X,Y]==1 iff variabe X is smaller than variable Y */
 /* IN THE BDD, SMALLER VARIABLES ARE ABOVE THE GREATER ONES */
@@ -143,24 +163,27 @@ See also: biddy.h
 /* this is typecasted to (BiddyCacheList**) and dereferenced */
 #define biddyCacheList (*((BiddyCacheList**)(MNG[10])))
 
-/* The size of memory block in manager MNG, since Biddy v1.4. */
-/* this is typecasted to (unsigned int*) and dereferenced */
-#define biddyBlockSize (*((unsigned int*)(MNG[11])))
-
 /* List of free nodes in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (BiddyNode**) and dereferenced */
-#define biddyFreeNodes (*((BiddyNode**)(MNG[12])))
+#define biddyFreeNodes (*((BiddyNode**)(MNG[11])))
 
 /* Variable ordering in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (BiddyOrderingTable*) and dereferenced */
-#define biddyOrderingTable (*((BiddyOrderingTable*)(MNG[13])))
+#define biddyOrderingTable (*((BiddyOrderingTable*)(MNG[12])))
 
 /* Formulae counter in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (int*) and dereferenced */
-#define biddyCount (*((int*)(MNG[14])))
+#define biddyCount (*((unsigned int*)(MNG[13])))
+
+/* Node selector in manager MNG, since Biddy v1.6 */
+/* this is typecasted to (int*) and dereferenced */
+#define biddySelect (*((unsigned short int*)(MNG[14])))
 
 /* BiddyIsOK returns TRUE if the top node of given BDD is not obsolete, since Biddy v1.5 */
 #define BiddyIsOK(f) (!(((BiddyNode *) Biddy_Regular(f))->count) || ((((BiddyNode *) Biddy_Regular(f))->count) >= biddyCount))
+
+/* BiddyProlongOne prolonges top node of the given function, since Biddy v1.6 */
+#define BiddyProlongOne(MNG,f,c) if((!(c))||(((BiddyNode*)Biddy_Regular(f))->count&&(((BiddyNode *)Biddy_Regular(f))->count<(c))))((BiddyNode*)Biddy_Regular(f))->count=(c)
 
 /*----------------------------------------------------------------------------*/
 /* Type declarations                                                          */
@@ -172,32 +195,55 @@ See also: biddy.h
 
 /* NODE TABLE (UNIQUE TABLE) = a fixed-size hash table with chaining */
 /* TYPE Biddy_Variable IS DEFINED IN biddy.h */
-/* IF Biddy_Variable IS unsigned int (4B) THEN: */
+/* IF Biddy_Variable IS unsigned short int (2B) THEN: */
 /* THE SIZE OF BiddyNode on 32-bit systems is 28 Bytes */
 /* THE SIZE OF BiddyNode on 64-bit systems is 48 Bytes */
 typedef struct BiddyNode {
   struct BiddyNode *prev, *next; /* !!!MUST BE FIRST AND SECOND */
   Biddy_Edge f, t; /* f = else, t = then, !!!MUST BE THIRD AND FOURTH */
   void *list; /* list of nodes (various purposes) */
-  int count; /* formulae counter, !!!MUST BE SIGNED */
+  unsigned int count; /* formulae counter */
+  unsigned short int select; /* used to select node */
   Biddy_Variable v; /* index in variable table */
 } BiddyNode;
 
 typedef struct {
   BiddyNode **table;
-  unsigned int size; /* size of node table */
   BiddyNode **blocktable; /* table of allocated memory blocks */
-  unsigned long long int foa; /* number of calls to Biddy_FoaNode */
-  unsigned long long int compare; /* num of cmp made by Biddy_FoaNode */
-  unsigned long long int add; /* number of adds made by Biddy_FoaNode */
-  unsigned int max; /* maximal number of nodes in node table */
-  unsigned int num; /* number of nodes currently in node table */
-  unsigned int numf; /* number of fortified nodes */
-  unsigned int garbage; /* number of garbage collections */
-  unsigned int generated; /* number of free nodes generated */
+  unsigned int initsize; /* initial size of Node table */
+  unsigned int size; /* current size of Node table */
+  unsigned int limitsize; /* limit for the size of Node table */
   unsigned int blocknumber; /* number of allocated memory blocks */
-  unsigned int swap; /* number of allocated memory blocks */
-  unsigned int sifting; /* number of allocated memory blocks */
+  unsigned int initblocksize; /* the size of the first block of nodes */
+  unsigned int blocksize; /* the size of the last block of nodes */
+  unsigned int limitblocksize; /* limit for the size of the block of nodes */
+  unsigned int generated; /* total number of generated nodes  */
+  unsigned int max; /* maximal (peek) number of nodes in node table */
+  unsigned int num; /* number of nodes currently in node table */
+  unsigned int garbage; /* number of garbage collections */
+  unsigned int swap; /* number of performed variable swapping */
+  unsigned int sifting; /* number of performed dynamic reordering */
+  unsigned int nodetableresize; /* number of performed node table resizing */
+  unsigned int funite; /* number of calls of function Biddy_ITE */
+  unsigned int funand; /* number of calls of function Biddy_And */
+  clock_t gctime; /* total time spent for garbage collections */
+  clock_t drtime; /* total time spent for dynamic reordering */
+  float gcratio; /* do not start GC if the number of nodes is to low */
+  float resizeratio; /* resize Node table if there are enough nodes */
+  float newblockratio; /* create newblock of nodes if there are not enough free nodes */
+  float siftingtreshold; /* stop sifting if the size of the system grows to much */
+  float fsiftingtreshold; /* stop sifting if the size of the function grows to much */
+  float convergesiftingtreshold;  /* stop one step of converging sifting if the size of the system grows to much */
+  float fconvergesiftingtreshold; /* stop one step of converging sifting if the size of the function grows to much */
+
+#ifdef BIDDYEXTENDEDSTATS_YES
+  unsigned long long int iterecursive; /* number of calls to BiddyITE (direct and recursive) */
+  unsigned long long int andrecursive; /*  number of calls to BiddyAnd (direct and recursive) */
+  unsigned long long int foa; /* number of calls to Biddy_FoaNode */
+  unsigned long long int find; /* number of calls to findNodeTable */
+  unsigned long long int compare; /* num of compared nodes in findNodeTable */
+  unsigned long long int add; /* number of calls to addNodeTable (node table insertions) */
+#endif
 } BiddyNodeTable;
 
 /* VARIABLE TABLE (SYMBOL TREE) = dynamicaly allocated table */
@@ -205,20 +251,28 @@ typedef struct {
 /* size of variable table must be compatible with Biddy_Variable */
 /* value is used for evaluation and also for renaming variables */
 /* counting variables is also used in BiddyCreateLocalInfo */
+/* lastNewNode->list IS NOT DEFINED! */
+/* YOU MUST NEVER ASSUME THAT lastNewNode->list = NULL */
 typedef struct {
   Biddy_String name; /* name of variable */
+  unsigned int num; /* number of nodes with this variable */
+  unsigned int numone; /* used to count number of nodes with this variable in one function */
+  unsigned int numobsolete; /* used to count number of obsolete nodes with this variable */
   BiddyNode *firstNewNode;
   BiddyNode *lastNewNode;
-  BiddyNode *freshNodes;
-  BiddyNode *fortifiedNodes;
-  unsigned int num; /* number of nodes with this variable */
-  Biddy_Edge terminal; /* bdd representing a single positive variable */
+  Biddy_Edge variable; /* bdd representing a single positive variable */
   Biddy_Edge value; /* value: biddy_zero = 0, biddy_one = 1. etc. */
   Biddy_Boolean selected; /* used to count variables */
 } BiddyVariable;
 
 typedef struct {
+  Biddy_String name; /* name of variable */
+  Biddy_Variable v; /* variable corresponding to the name */
+} BiddyLookupVariable;
+
+typedef struct {
   BiddyVariable *table;
+  BiddyLookupVariable *lookup;
   Biddy_Variable size; /* size = Biddy_VARMAX */
   Biddy_Variable num; /* number of all variables, inc. 1 */
   Biddy_Variable numnum; /* number of numbered variables, inc. 1 */
@@ -241,7 +295,7 @@ typedef UINTPTR BiddyOrderingTable[BIDDYVARMAX][1+(BIDDYVARMAX-1)/UINTPTRSIZE];
 typedef struct {
   Biddy_Edge f;
   Biddy_String name;
-  int count;
+  unsigned int count;
   Biddy_Boolean deleted;
 } BiddyFormula;
 
@@ -269,6 +323,7 @@ typedef struct {
   unsigned int size;
   unsigned long long int *search;
   unsigned long long int *find;
+  unsigned long long int *insert;
   unsigned long long int *overwrite;
 } BiddyOp1CacheTable;
 
@@ -283,6 +338,7 @@ typedef struct {
   unsigned int size;
   unsigned long long int *search;
   unsigned long long int *find;
+  unsigned long long int *insert;
   unsigned long long int *overwrite;
 } BiddyOp2CacheTable;
 
@@ -297,6 +353,7 @@ typedef struct {
   unsigned int size;
   unsigned long long int *search;
   unsigned long long int *find;
+  unsigned long long int *insert;
   unsigned long long int *overwrite;
 } BiddyOp3CacheTable;
 
@@ -314,6 +371,7 @@ typedef struct {
 /* User can create its own manager and use it instead of anonymous manager */
 /* All managers are of type void** but internally they have the structure */
 /* given here (see function Biddy_Init for details). */
+/* NOTE: names of elements given here are not used in the program! */
 typedef struct {
   void *name; /* this is typecasted to Biddy_String */
   void *type; /* this is typecasted to Biddy_String */
@@ -326,10 +384,10 @@ typedef struct {
   void *EAcache; /* this is typecasted to (BiddyOp3CacheTable*) */
   void *RCcache; /* this is typecasted to (BiddyOp3CacheTable*) */
   void *cacheList; /* this is typecasted to (BiddyCacheList*) */
-  void *blocksize; /* this is typecasted to (unsigned int*) */
   void *freeNodes; /* this is typecasted to (BiddyNode*) */
   void *ordering; /* this is typecasted to (BiddyOrderingTable*) */
-  void *counter; /* this is typecasted to (int*) */
+  void *counter; /* this is typecasted to (unsigned int*) */
+  void *selector; /* this is typecasted to (unsigned short int*) */
 } BiddyManager;
 
 /* LocalInfo = a table for additional info about nodes, since Biddy v1.4 */
@@ -342,10 +400,10 @@ typedef struct {
   union {
     unsigned int enumerator; /* used in enumerateNodes */
     unsigned int npSelected; /* used in nodePlainNumber() */
-    /* positiveSelected iff (data.npSelected & 1 != 0) */
-    /* negativeSelected iff (data.npSelected & 2 != 0) */
+    /* NOTE: positiveSelected iff (data.npSelected & 1 != 0) */
+    /* NOTE: negativeSelected iff (data.npSelected & 2 != 0) */
     mpz_t mintermCount; /* used in mintermCount() */
-    /* mintermCount is a number represented by using GMP library */
+    /* NOTE: mintermCount is a number represented by using GMP library */
   } data;
 } BiddyLocalInfo;
 
@@ -365,15 +423,7 @@ void BiddyIncCounter(Biddy_Manager MNG);
 
 void BiddyDecCounter(Biddy_Manager MNG);
 
-extern void BiddyRefresh(Biddy_Manager MNG, Biddy_Edge f);
-
-extern void BiddyProlong(Biddy_Manager MNG, Biddy_Edge f, int count);
-
-extern void BiddyFortify(Biddy_Manager MNG, Biddy_Edge f);
-
-extern void BiddyRepair1(Biddy_Manager MNG, Biddy_Variable var);
-
-extern void BiddyRepair2(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable var, int c);
+extern void BiddyProlongRecursively(Biddy_Manager MNG, Biddy_Edge f, unsigned int count, Biddy_Variable v);
 
 extern Biddy_Variable BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
 
@@ -403,7 +453,7 @@ extern void BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f);
 /* Prototypes for internal functions defined in biddyStat.c                   */
 /*----------------------------------------------------------------------------*/
 
-extern void BiddyNodeNumber(Biddy_Edge f, unsigned int *n);
+extern void BiddyNodeNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n);
 
 extern void BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n);
 

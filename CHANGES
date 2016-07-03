@@ -138,12 +138,12 @@ Changes v1.5 versus v1.4
 - on MS Windows, MSYS2 is used to produce packages
 - linking simplified, without def files on MS Windows
 - fixed Biddy_CountMinterm and Biddy_NodeNumberPlain
+- Biddy_CountMinterm is now using GNU Multiple Precision Arithmetic Library
 - fixed Biddy_ExistAbstract, Biddy_UnivAbstract, and Biddy_AndAbstract
 - variable swapping fixed and improved
 - sifting fixed and improved
 - plain "==" is used instead of Biddy_IsEqv macro
 - improved Biddy_WriteDot, now using local info table
-- Biddy_CountMinterm is now using GNU Multiple Precision Arithmetic Library
 - added CUDD-like functions Biddy_ReadMemoryInUse and Biddy_PrintInfo
 - memory management changed (this is a major change), introduced prolonged
   nodes, removed functions Biddy_Fresh, Biddy_Fortify, and Biddy_IncCounter,
@@ -155,4 +155,28 @@ Changes v1.5 versus v1.4
   using it
 - RC cache (restrict/compose) implemented, now Biddy_Restrict and
   Biddy_Compose are using it
-- added 8 Queens example
+- added 8Queens example
+
+Changes v1.6 versus v1.5
+- released on Jul 3, 2016
+- fixed findNodeTable
+- fixed Biddy_Managed_AddFormula
+- the size of Node table is now resizable with the initial size of 65535
+- the size of memory block is now resizable with the initial size of 262143
+- size of ITE cache table changed from 65535 to 262143 (it remains fixed)
+- variables are not stored in Node table, anymore
+- changed the role of formulae counter, now it is not neccessary to keep
+  formulae recursively updated all the time (this is a major optimization)
+- memory management simplified by removing List of fortified node
+- memory management simplified by removing pointer freshNodes
+- memory management simplified by removing function Biddy_ClearAll
+- functions Biddy_And and Biddy_Or are now directly implemented
+- new implementation of node selection
+- improved sifting
+- improved hash functions
+- improved statistics
+- added timing info for garbage collection and dynamic reordering
+- added simple event logging
+- using assert.h to catch errors
+- added Independence example
+- examples adapted for CUDD v3.0.0

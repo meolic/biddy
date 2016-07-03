@@ -3,11 +3,11 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 123 $]
-#  Date        [$Date: 2015-12-29 10:52:28 +0100 (tor, 29 dec 2015) $]
+#  Revision    [$Revision: 165 $]
+#  Date        [$Date: 2016-06-21 15:25:59 +0200 (tor, 21 jun 2016) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2015 UM-FERI
+#               Copyright (C) 2006, 2016 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -40,40 +40,36 @@ all: dynamic
 
 dynamic:
 	@$(MAKE) --no-print-directory lib \
-	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.so.$(BIDDYVERSION)" \
 	"LIBGMP = $(LIBGMP)" \
-	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX" \
-	"LN = $(GCC) -shared -Wl,-soname,libbiddy.so.$(BIDDYMAJORVERSION) -o"
+	"CC = $(GCC) $(CFLAGS) -DNDEBUG -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX" \
+	"LN = $(GCC) $(CFLAGS) -shared -Wl,-soname,libbiddy.so.$(BIDDYMAJORVERSION) -o"
 	$(LNS) libbiddy.so.$(BIDDYVERSION) $(BINDIR)/libbiddy.so.$(BIDDYMAJORVERSION)
 	$(LNS) libbiddy.so.$(BIDDYMAJORVERSION) $(BINDIR)/libbiddy.so
 
 static:
 	@$(MAKE) --no-print-directory lib \
-	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
 	"LIBGMP = " \
-	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX" \
+	"CC = $(GCC) $(CFLAGS) -DNDEBUG -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX" \
 	"LN = ar rcs"
 
 debug:
 	@$(MAKE) --no-print-directory lib \
-	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
 	"LIBGMP = " \
-	"CC = /usr/bin/g++ -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -g -O0 -DUNIX" \
+	"CC = /usr/bin/g++ $(CFLAGS) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O0 -g -DUNIX" \
 	"LN = ar rcs"
 
 profile:
 	@$(MAKE) --no-print-directory lib \
-	"CFLAGS = $(CFLAGS)" \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
 	"LIBGMP = " \
-	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -g -pg -O0 -DUNIX" \
+	"CC = $(GCC) $(CFLAGS) -DNDEBUG -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -ggdb -DUNIX" \
 	"LN = ar rcs"
 
 install:

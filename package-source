@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 133 $]
-#  Date        [$Date: 2016-01-02 10:11:41 +0100 (sob, 02 jan 2016) $]
+#  Revision    [$Revision: 157 $]
+#  Date        [$Date: 2016-05-23 15:06:09 +0200 (pon, 23 maj 2016) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2015 UM-FERI
+#               Copyright (C) 2006, 2016 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -26,6 +26,9 @@
 VERSION=`sed "s|\.|-|g" VERSION`
 
 rm -f "biddy-source-$VERSION.zip"
+
+make purge
+make clean
 
 cd ..
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/* -x .svn -x .git -x biddy/*.zip -x biddy/bin/ -x biddy/logo/ -x biddy/doxygen/ -x biddy/biddy-studio/ -x biddy/doc/ -x biddy/test/ -x biddy/distribution/ x biddy/distribution-bddscout/

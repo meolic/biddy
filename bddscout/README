@@ -1,0 +1,255 @@
+================
+BDD Scout README
+================
+
+BDD Scout is a demo  application demonstrating the capability of Biddy
+and bddview.   It is easy  extendable! Some interesting  extensions
+are part of the package.
+
+BDD Scout depends on Tcl/Tk, BWidget, bddview, and Biddy library.
+
+Biddy is a multi-platform academic Binary Decision Diagrams package.
+
+bddview is a pure Tcl/Tk script for visualization of BDDs.
+
+Homepage: http://biddy.meolic.com/
+
+
+BDD Scout consists of the following files:
+
+  README		- some notes (general)
+  README.*		- some notes (for different systems)
+  CHANGES		- history of changes
+  COPYING		- license file
+  VERSION		- version file
+  Makefile		- Makefile
+  Makefile.Linux	- Makefile for GNU/Linux
+  Makefile.MINGW	- Makefile for MS Windows
+  Makefile.Darwin	- Makefile for MacOS
+  bddscout.def		- symbols definition for MS Windows
+  bddscout-biddy.def	- symbols definition for MS Windows
+  bddscout.h		- header
+  bddscout.c		- main functions
+  pkgIndex.tcl		- tcl specific file
+  bddscout.tcl		- tcl/tk GUI (an extension of bddview)
+  bddscout.decls	- stub mechanism allows binary extensions
+  bddscoutDecls.h	- stub mechanism allows binary extensions
+  bddscoutStubInit.c	- stub mechanism allows binary extensions
+  bddscoutStubLib.c	- stub mechanism allows binary extensions
+  bddscoutIFIP.def	- bddscout extension (IFIP benchmark)
+  bddscoutIFIP.c	- bddscout extension (IFIP benchmark)
+  bddscoutIFIP.tcl	- bddscout extension (IFIP benchmark)
+  pkgExtensionIFIP.tcl	- bddscout extension (IFIP benchmark)
+  bddscoutBRA.def	- bddscout extension (Best Reordering Algorithm)
+  bddscoutBRA.c	- bddscout extension (Best Reordering Algorithm)
+  bddscoutBRA.tcl	- bddscout extension (Best Reordering Algorithm)
+  pkgExtensionBRA.tcl	- bddscout extension (Best Reordering Algorithm)
+  bddscoutBDDTRACES.def	- bddscout extension (BDD traces)
+  bddscoutBDDTRACES.c	- bddscout extension (BDD traces)
+  bddscoutBDDTRACES.tcl	- bddscout extension (BDD traces)
+  pkgExtensionBDDTRACES.tcl	- bddscout extension (BDD traces)
+  example.bdd		- example file
+  example.bf		- example file
+  package-bin		- script used to build distribution
+  package-bin.bat	- script used to build distribution
+  package-tgz		- script used to build distribution
+  package-deb		- script used to build distribution
+  package-rpm		- script used to build distribution
+  debian/*		- used when creating deb files
+  rpm/*			- used when creating rpm files
+
+========================================
+RUNNING precompiled version of BDD Scout
+========================================
+
+BDD Scout is started by interpreting the file bddscout.tcl.
+
+Zip packages provide bddscout library which includes Biddy library,
+thus it should run even if Biddy library is not installed on your
+computer (and it will not use your Biddy library if you have one).
+
+Deb and rpm files include dynamically linked program, thus you will
+also need appropriate libbbiddy package.
+
+If your system cannot find BWidgets uncomment and edit line 6 in
+the file bddview.tcl.
+
+Optionally,
+- you can install Graphviz package to be able to visualize BDDs
+  created by Biddy package (http://www.graphviz.org/)
+- you can install Ghostscript package to be able to export BDDs as
+  PNG images and PDF documents. (http://pages.cs.wisc.edu/~ghost/)
+
+The path to the executables from Graphviz and Ghostscript package
+is given in file bddscout.tcl, lines 20-41. Please, check it!
+
+On GNU/Linux, if you get installation error: "nothing provides
+libtcl8.5.so.0" ignore it and manualy create the following links:
+> ln -s /usr/lib/libtk8.5.so /usr/lib/libtk8.5.so.0
+> ln -s /usr/lib/libtcl8.5.so /usr/lib/libtcl8.5.so.0
+
+On GNU/Linux, if main program /usr/bin/bddscout is not starting
+properly you can try the following command:
+> echo source /usr/lib/bddscout/bddscout.tcl | wish
+
+======================
+BUILDING new extension
+======================
+
+Supplied bddscout library includes Biddy library.
+You should not link your extension against Biddy library!
+
+======================================
+BUILDING your own version of BDD Scout
+======================================
+
+Zip packages includes complete source code, thus it serves as a good
+starting and reference example.
+
+BDD Scout is free software and your are welcome to change it
+(please, respect GPL)!
+
+To build your own version of BDD Scout you have to take the following steps:
+
+1. Obtain zip package of BDD Scout and development version of Biddy
+
+Available on http://biddy.meolic.com/
+
+2. Obtain development version of Tcl/Tk and a version of BWidget
+
+Ask Google :-)
+On MS Windows, installing ActiveTcl is OK and enough.
+
+3. Create statically linked Biddy library in ../biddy/bin
+
+biddy> make static "BINDIR = ./bin"
+or
+biddy> make debug "BINDIR = ./bin"
+
+4. Create local copy of bddscout in ./bin
+
+bddscout> make -f Makefile.OS
+bddscout> make clean "BINDIR = `pwd`/bin"
+
+5. There is also an alternative script.
+   Instead of steps 3 and 4, just do the following:
+
+bddscout> ./package-bin
+
+or
+
+bddscout> export CFLAGS=-m64;./package-bin 
+
+This should  create BDD Scout  (staticaly linked with  Biddy library).
+The script  will produce a zip  file. You install BDD Scout by  simply
+unzip to the target directory.
+
+You need a zip program.
+
+On MS Windows, you  need 7-Zip (http://7-zip.org/) - and it has a strange
+use of -x! You also   need   file   7zsd_All_x64.sfx  that   you   should 
+download  as part of "7z SFX Tools" from http://7zsfx.info/en/ and put
+in the directory containing 7z.exe.
+
+==============================
+PLEASE NOTE
+==============================
+
+Supplied makefiles are tricky and not easy to understand
+(we are using them to do many different things on different systems :-)
+
+If you do not want to use makefiles or have problems with them, check
+README for your OS to get more detailed instructions.
+
+Send your comments and questions to robert.meolic@um.si (Robert Meolic).
+
+==============================
+FILE FORMATS USED IN BDD Scout
+==============================
+
+BDD Scout is builded on bddview thus the native
+data format used in Open/Save is bddview format,
+which uses the followin keywords:
+
+label <n> <name> <x> <y>
+node <n> <name> <x> <y>
+terminal <n> 1 <x> <y>
+connect <n1> <n2> <type>
+
+<n> is the unique number (integer)
+<name> is a string
+<x> and <y> are coordinates (integer)
+<type> is one of the following:
+s : single line
+si : inverted single line
+r : line to 'then' succesor
+l : line to 'else' successor
+li : inverted line to 'else' successor
+d : double line
+
+REMARKS:
+1. (0,0) is top left corner.
+2. Only one label is supported.
+3. Single line (or inverted single line) should be
+   used to connect a label and a node.
+4. Line to the right successor can not be inverted.
+5. When using double line, the line to the left succesor
+   is always inverted.
+
+Example (example.bddview):
+---
+label 0 "Biddy" 100.0 10
+node 1 "B" 100 60
+node 2 "i" 100 125
+node 3 "d" 50 175
+terminal 4 1 50 240
+node 5 "y" 100 225
+terminal 6 1 100 290
+node 7 "d" 150 175
+terminal 8 1 150 240
+connect 0 1 s
+connect 1 2 d
+connect 2 3 l
+connect 2 7 r
+connect 3 4 l
+connect 3 5 r
+connect 5 6 d
+connect 7 5 l
+connect 7 8 r
+---
+
+BDD Scout can import BDD given in prefix form:
+1. the first word is the name of BDD
+2. the second word is the name of top variable
+3. any non-terminal variable is followed by two
+   supgraphs in parenthesis, e.g. VAR (...) (...)
+4. the name of terminal node is "1"
+5. symbol * is used to denote complement edges.
+
+Example (example.bdd):
+---
+Biddy
+B (* i (d (1) (y (* 1) (1))) (d (y (* 1) (1)) (1)))
+  (  i (d (1) (y (* 1) (1))) (d (y (* 1) (1)) (1)))
+---
+
+BDD Scout can import Boolean functions given in prefix form:
+1. the file is started with the set of variables given
+   in parenthesis - this is optional and is used
+   to give variable ordering
+2. there can be many Boolean functions in the same file
+3. one Boolean function can go over many lines, the only
+   requirement is that the function name and symbol "=" are
+   given in the same line 4. supported operators are NOT, OR,
+   AND, and EXOR
+
+Example (example.bf):
+---
+(B i d y)
+s1 = (or B (not y))
+s2 =  (or B i d)
+s3 = (or B (not i) (not d))
+s4 = (or (not B) i (not d) y)
+s5 = (or (not B) (not i) d y)
+Biddy = (and s1 s2 s3 s4 s5)
+---
