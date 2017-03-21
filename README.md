@@ -1,4 +1,4 @@
-TL;DR
+### TL;DR
 --------------
 
 Biddy is a multi-platform academic Binary Decision Diagrams package.
@@ -44,7 +44,7 @@ Biddy is free software maintained by Robert Meolic
 
 Homepage: http://biddy.meolic.com/
 
-1. AN OVERVIEW
+### 1. AN OVERVIEW
 --------------
 
 Biddy supports ROBDDs with complemented edges as described in "K.S. Brace,
@@ -75,7 +75,7 @@ Biddy  is  currently  used  in  the following  projects:
 - Efficient Symbolic Tools (EST), model checking and other algorithms
   for formal verification of systems (http://est.meolic.com/)
 
-2. SOURCE CODE
+### 2. SOURCE CODE
 --------------
 
 Biddy is free software released under GPL.
@@ -149,7 +149,7 @@ There  are two  aditional packages  included into  Biddy distribution:
 
 Details about building are given in Section 4.
 
-3. USING BIDDY LIBRARY
+### 3. USING BIDDY LIBRARY
 ----------------------
 
 Precompiled packages include dynamically linked library
