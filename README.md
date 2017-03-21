@@ -549,7 +549,7 @@ Please node, that node chaining is not determined or limited by
 using formulae protecting schema or a system age approach, it is 
 an independent mechanism.
 
-4. BUILDING PACKAGES
+### 4. BUILDING PACKAGES
 --------------------
 
 ### Compiling Biddy library
@@ -690,7 +690,7 @@ bddscout-bddtrace-data). They are tested on Ubuntu system.
 bddscout-ifip, bddscout-bddtrace, bddscout-ifip-data, and
 bddscout-bddtrace-data). They are tested on openSUSE system.
 
-5. HISTORY
+### 5. HISTORY
 ----------
 
 Biddy is based on a BDD package written in Pascal in 1992 as a student
@@ -759,7 +759,7 @@ https://github.com/meolic/biddy
 In 2016, Biddy v1.6 was released. Formulae are not recursively refreshed
 all the time. The size of Node table became resizable.
 
-In 2016, Biddy v1.7 was released. Terminology is changed a lot,
+In 2017, Biddy v1.7.1 was released. Terminology is changed a lot,
 e.g. "formulae counter" is now "system age". Added support for
 0-sup-BDDs and TZBDDs. Implemented creation and manipulaton of
 non-anonymous managers. Added manipulation of combination sets.
@@ -767,7 +767,7 @@ Sifting does not require removing fresh nodes.
 Many new CUDD-like functions have been added.
 bddview and BDD Scout have been significantly improved.
 
-6. PUBLICATIONS
+### 6. PUBLICATIONS
 ---------------
 
 If you find our work useful, please, cite us.
