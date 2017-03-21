@@ -1,9 +1,9 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 157 $]
-#  Date        [$Date: 2016-05-23 15:06:09 +0200 (pon, 23 maj 2016) $]
+#  Revision    [$Revision: 229 $]
+#  Date        [$Date: 2017-01-07 15:46:42 +0100 (sob, 07 jan 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2016 UM-FERI
+#               Copyright (C) 2006, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -27,11 +27,13 @@
 
 LIBNAME = LIBNAME
 OS = $(shell uname | sed "s/_.*//;s/[0-9]//g")
+# OS := $(subst MSYS,MINGW,$(OS))
 RM = rm -f
 RMFR = rm -fr
 CP = cp
 MKDIR = mkdir -p
 CD = cd
+BINDIR = "./bin"
 
 all: start dynamic clean ok
 	$(CP) ./biddy.h $(BINDIR)
@@ -50,16 +52,16 @@ lib: $(BINDIR) $(BINDIR)/$(LIBNAME)
 # initialization
 
 make_dynamic:
-	@$(MAKE) --no-print-directory dynamic -f Makefile.$(OS)
+	@$(MAKE) "BINDIR = $(BINDIR)" --no-print-directory dynamic -f Makefile.$(OS)
 
 make_static:
-	@$(MAKE) --no-print-directory static -f Makefile.$(OS)
+	@$(MAKE) "BINDIR = $(BINDIR)" --no-print-directory static -f Makefile.$(OS)
 
 make_debug:
-	@$(MAKE) --no-print-directory debug -f Makefile.$(OS)
+	@$(MAKE) "BINDIR = $(BINDIR)" --no-print-directory debug -f Makefile.$(OS)
 
 make_profile:
-	@$(MAKE) --no-print-directory profile -f Makefile.$(OS)
+	@$(MAKE) "BINDIR = $(BINDIR)" --no-print-directory profile -f Makefile.$(OS)
 
 # -----------------------------------------------------------------------
 # help
@@ -89,8 +91,11 @@ $(BINDIR):
 # -----------------------------------------------------------------------
 # make library
 
-$(BINDIR)/biddyMain.o: biddyMain.c biddy.h biddyInt.h
-	$(CC) -o $(BINDIR)/biddyMain.o -c biddyMain.c -D'BIDDYVERSION="$(BIDDYVERSION)"'
+#$(BINDIR)/biddyMain.o: biddyMain.c biddy.h biddyInt.h
+#	$(CC) -o $(BINDIR)/biddyMain.o -c biddyMain.c -D'BIDDYVERSION="$(BIDDYVERSION)"'
+
+$(BINDIR)/biddyMain.o: biddyMainGDD.c biddy.h biddyInt.h
+	$(CC) -o $(BINDIR)/biddyMain.o -c biddyMainGDD.c -D'BIDDYVERSION="$(BIDDYVERSION)"'
 
 $(BINDIR)/biddyStat.o: biddyStat.c biddy.h biddyInt.h
 	$(CC) -o $(BINDIR)/biddyStat.o -c biddyStat.c

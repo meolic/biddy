@@ -1,11 +1,11 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 148 $
-REM  $Date: 2016-03-08 22:03:25 +0100 (tor, 08 mar 2016) $
+REM  $Revision: 226 $
+REM  $Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $
 REM
 REM  This file is part of Biddy.
-REM  Copyright (C) 2006, 2016 UM-FERI
+REM  Copyright (C) 2006, 2017 UM-FERI
 REM  UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 REM
 REM  Biddy is free software; you can redistribute it and/or modify

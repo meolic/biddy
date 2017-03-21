@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 157 $]
-#  Date        [$Date: 2016-05-23 15:06:09 +0200 (pon, 23 maj 2016) $]
+#  Revision    [$Revision: 263 $]
+#  Date        [$Date: 2017-03-21 09:49:54 +0100 (tor, 21 mar 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2016 UM-FERI
+#               Copyright (C) 2006, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -37,7 +37,7 @@ zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/VS/*
-zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/* -x biddy/bddscout/*.zip -x biddy/bddscout/bin/ 
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/* -x biddy/bddscout/*.zip -x biddy/bddscout/ISCAS/ -x biddy/bddscout/bin/ -x biddy/bddscout/test/
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/debian/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/debian/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/rpm/*

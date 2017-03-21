@@ -68,7 +68,7 @@ Changes v1.1 versus v1.0
 
 Changes v1.2 versus v1.1
 - released on May 28, 2014
-- formulae table added
+- Formula table added
 - implemented list of fortified nodes
 - implemented variable swapping
 - implemented sifting algorithm
@@ -180,3 +180,37 @@ Changes v1.6 versus v1.5
 - using assert.h to catch errors
 - added Independence example
 - examples adapted for CUDD v3.0.0
+
+Changes v1.7.1 versus v1.6
+- released on Mar 21, 2017
+- formulae counter is now system age, biddyCount is now biddySystemAge,
+  BiddyNode.count is now BiddyNode.expiry
+- ITE cache is now OP cache
+- fixed above/below issue when adding numbered variable
+- fixed Biddy_Compose
+- fixed and changed sifting (removing fresh nodes is not neccessary, anymore)
+- memory management simplified and optimized
+- variables are not stored in Formula table, anymore
+- improved Biddy_FoaVariable, added Biddy_GetVariable and Biddy_GetVariableEdge
+- improved determination of previous and next variable
+- implemented creation and manipulaton of non-anonymous managers
+- added Biddy_GetManagerType, Biddy_SetManagerParameters, Biddy_GetTerminal,
+  Biddy_Copy, Biddy_CopyFormula, Biddy_Eval, and Biddy_IsEqv
+- implemented Biddy_Xor
+- removed existing Biddy_Intersect, renamed Biddy_Leq into Biddy_IsLeq,
+  added Biddy_Not, Biddy_Leq (implies) and Biddy_Gt
+- added manipulation of combination sets, added functions Biddy_GetBaseSet,
+  Biddy_Change, and Biddy_Subset, added macros Biddy_GetEmptySet,
+  Biddy_GetUniversalSet, Biddy_Intersect, Biddy_Union, Biddy_Diff,
+  Biddy_Subset0, Biddy_Subset1, and Biddy_CountCombination
+- added Biddy_CountPaths, Biddy_DensityFunction, and Biddy_DensityBDD
+- added Biddy_Random and Biddy_RandomSet
+- improved Biddy_Eval2 (now, variables can be arbitrary strings)
+- added Biddy_ReadVerilogFile
+- function Biddy_WriteDot can now generate CUDD-like dot output
+- added Biddy_WriteSOP and Biddy_WriteBddview
+- started biddyMainGDD.c, a framework for General Decision Diagrams
+- implemented almost all operations on ZBDDs
+- implemented almost all operations on TZBDDs
+- added Random example
+- added Hanoi example

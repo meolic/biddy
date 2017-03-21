@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyStaticLibrary", "Biddy.vcxproj", "{18ACF089-DE22-4905-B15C-8CFFAE5E58BD}"
 EndProject
@@ -37,6 +37,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyExample8Queens", "BiddyExample8Queens.vcxproj", "{79185867-FA21-4F8E-8C26-638D9C9307EF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyExampleIndependence", "BiddyExampleIndependence.vcxproj", "{05E380F6-626B-4C67-B15F-95E3AD9A952C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyExampleRandom", "BiddyExampleRandom.vcxproj", "{4D694FC3-F8EF-4E05-BA56-BE543044FB84}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyExampleHanoi", "BiddyExampleHanoi.vcxproj", "{A6B61673-3AC7-471D-9D37-2120F6F1EB92}"
 EndProject
 Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "Biddy32Installer", "Biddy32Installer.aiproj", "{5BD76558-9505-4420-9CD4-E9A164DA5D1E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -154,6 +158,14 @@ Global
 		{05E380F6-626B-4C67-B15F-95E3AD9A952C}.Release|x64.Build.0 = Release|x64
 		{05E380F6-626B-4C67-B15F-95E3AD9A952C}.Release|x86.ActiveCfg = Release|Win32
 		{05E380F6-626B-4C67-B15F-95E3AD9A952C}.Release|x86.Build.0 = Release|Win32
+		{4D694FC3-F8EF-4E05-BA56-BE543044FB84}.Debug|x64.ActiveCfg = Debug|x64
+		{4D694FC3-F8EF-4E05-BA56-BE543044FB84}.Debug|x64.Build.0 = Debug|x64
+		{4D694FC3-F8EF-4E05-BA56-BE543044FB84}.Debug|x86.ActiveCfg = Debug|Win32
+		{4D694FC3-F8EF-4E05-BA56-BE543044FB84}.Debug|x86.Build.0 = Debug|Win32
+		{4D694FC3-F8EF-4E05-BA56-BE543044FB84}.Release|x64.ActiveCfg = Release|x64
+		{4D694FC3-F8EF-4E05-BA56-BE543044FB84}.Release|x64.Build.0 = Release|x64
+		{4D694FC3-F8EF-4E05-BA56-BE543044FB84}.Release|x86.ActiveCfg = Release|Win32
+		{4D694FC3-F8EF-4E05-BA56-BE543044FB84}.Release|x86.Build.0 = Release|Win32
 		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Debug|x64.ActiveCfg = All
 		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Debug|x64.Build.0 = All
 		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Debug|x86.ActiveCfg = All
@@ -178,6 +190,14 @@ Global
 		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Release|x64.Build.0 = All
 		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Release|x86.ActiveCfg = All
 		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Release|x86.Build.0 = All
+		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Debug|x64.ActiveCfg = Debug|x64
+		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Debug|x64.Build.0 = Debug|x64
+		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Debug|x86.ActiveCfg = Debug|Win32
+		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Debug|x86.Build.0 = Debug|Win32
+		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Release|x64.ActiveCfg = Release|x64
+		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Release|x64.Build.0 = Release|x64
+		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Release|x86.ActiveCfg = Release|Win32
+		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

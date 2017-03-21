@@ -15,21 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\biddy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\biddyInt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\biddyInOut.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\biddyStat.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\biddyMainGDD.c">
+    <ClCompile Include="..\biddy-example-random.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

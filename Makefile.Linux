@@ -3,11 +3,11 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 165 $]
-#  Date        [$Date: 2016-06-21 15:25:59 +0200 (tor, 21 jun 2016) $]
+#  Revision    [$Revision: 252 $]
+#  Date        [$Date: 2017-03-17 23:30:03 +0100 (pet, 17 mar 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2016 UM-FERI
+#               Copyright (C) 2006, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -33,6 +33,7 @@ LNS = ln -fs
 MKDIR = mkdir -p
 CP = cp
 GCC = gcc
+#GCC = /usr/bin/gcc
 
 LIBGMP = -lgmp
 
@@ -61,7 +62,7 @@ debug:
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
 	"LIBGMP = " \
-	"CC = /usr/bin/g++ $(CFLAGS) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O0 -g -DUNIX" \
+	"CC = /usr/bin/g++ $(CFLAGS) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O0 -g3 -DUNIX" \
 	"LN = ar rcs"
 
 profile:
@@ -69,7 +70,7 @@ profile:
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
 	"LIBGMP = " \
-	"CC = $(GCC) $(CFLAGS) -DNDEBUG -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -ggdb -DUNIX" \
+	"CC = $(GCC) $(CFLAGS) -DBIDDYEXTENDEDSTATS_YES -DNDEBUG -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -ggdb -DUNIX" \
 	"LN = ar rcs"
 
 install:

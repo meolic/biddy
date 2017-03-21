@@ -29,7 +29,7 @@ Packager: meolic
 %description
 Biddy is a special purpose mathematical library (Binary Decision Diagrams package).
 
- Biddy uses ROBDDs with complement edges.
+ Biddy supports ROBDDs with complement edges, 0-sup-BDDs with complement edges, and TZBDDs.
  Biddy is oriented towards readable and comprehensible source code in C.
  Biddy is used in EST, a tool for formal verification of systems.
 
@@ -43,7 +43,7 @@ Group: Other
 %description devel
 Biddy is a special purpose mathematical library (Binary Decision Diagrams package).
 
- Biddy uses ROBDDs with complement edges.
+ Biddy supports ROBDDs with complement edges, 0-sup-BDDs with complement edges, and TZBDDs.
  Biddy is oriented towards readable and comprehensible source code in C.
  Biddy is used in EST, a tool for formal verification of systems.
 

@@ -18,10 +18,10 @@
     <ClCompile Include="..\biddyInOut.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\biddyMain.c">
+    <ClCompile Include="..\biddyStat.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\biddyStat.c">
+    <ClCompile Include="..\biddyMainGDD.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

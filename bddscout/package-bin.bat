@@ -1,11 +1,11 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 128 $
-REM  $Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $
+REM  $Revision: 226 $
+REM  $Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $
 REM
 REM  This file is part of Bdd Scout package.
-REM  Copyright (C) 2008, 2015 UM-FERI
+REM  Copyright (C) 2008, 2017 UM-FERI
 REM  UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 REM
 REM  Bdd Scout is free software; you can redistribute it and/or modify

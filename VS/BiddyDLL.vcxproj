@@ -184,7 +184,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\biddyInOut.c" />
-    <ClCompile Include="..\biddyMain.c" />
+    <ClCompile Include="..\biddyMainGDD.c" />
     <ClCompile Include="..\biddyStat.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

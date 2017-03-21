@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 148 $]
-#  Date        [$Date: 2016-03-08 22:03:25 +0100 (tor, 08 mar 2016) $]
+#  Revision    [$Revision: 257 $]
+#  Date        [$Date: 2017-03-20 21:21:22 +0100 (pon, 20 mar 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2016 UM-FERI
+#               Copyright (C) 2006, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -66,7 +66,7 @@ VERSION=`sed "" VERSION`
 MAJORVERSION=`cut -c1 VERSION`
 NAME="libbiddy$MAJORVERSION"
 OS=`uname | sed "s/_.*//;s/[0-9]//g"`
-DIST=$(lsb_release --short --codename)
+DISTRO=$(lsb_release --short --codename)
 
 if [ $# != 1 ]
 then
@@ -107,14 +107,11 @@ cp debian/rules "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/d
 cp debian/source/format "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian/source"
 
 cp VERSION README.md CHANGES "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
-cp biddy.h biddyInt.h biddyMain.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp biddy.h biddyInt.h biddyMain.c biddyMainGDD.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 cp Makefile Makefile.Linux "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 
 pushd "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 cp "../../changelog.deb" "debian/changelog"
-# change distribution name if needed
-dch -M -v "$VERSION-$RELEASE" -D trusty
-cp "debian/changelog" "../../changelog.deb"
 cd ..
 tar -czf "$NAME-$VERSION.tar.gz" "$NAME-$VERSION"
 mv "$NAME-$VERSION.tar.gz" "$NAME"_"$VERSION.orig.tar.gz"
@@ -123,22 +120,94 @@ cd "$NAME-$VERSION"
 echo ""
 echo "**************************"
 echo "GENERATING SOURCE PACKAGES"
+echo "used to mantain Ubuntu PPA"
 echo "**************************"
 echo ""
-# change key if you are not Robert Meolic
+
+# create a source distribution which match your system
+# it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+# change key (debuild -k) if you are not Robert Meolic
+echo "GENERATING SOURCE PACKAGE FOR DEFAULT DISTRO"
+dch -M -v "$VERSION-$RELEASE" -D $DISTRO
+cp "debian/changelog" "../../changelog.deb"
 debuild -S -sa -kD22F409B
-mkdir `pwd`/../source
-mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../source/
-cp `pwd`/../*.gz `pwd`/../source/
+mkdir `pwd`/../default
+mkdir `pwd`/../default/source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../default/source
+mv `pwd`/../*.debian.tar.xz `pwd`/../default/source
+mv `pwd`/../*.build `pwd`/../default/source
+cp `pwd`/../*.orig.tar.gz `pwd`/../default/source
+
+# create a source distribution for trusty
+# it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+# change key (debuild -k) if you are not Robert Meolic
+ALTDISTRO=trusty
+echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
+cp "../../changelog.deb" "debian/changelog"
+dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
+debuild --no-lintian -S -sa -kD22F409B
+mkdir `pwd`/../$ALTDISTRO
+mkdir `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
+cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
+
+# create a source distribution for yakkety
+# it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+# change key (debuild -k) if you are not Robert Meolic
+ALTDISTRO=yakkety
+echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
+cp "../../changelog.deb" "debian/changelog"
+dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
+debuild --no-lintian -S -sa -kD22F409B
+mkdir `pwd`/../$ALTDISTRO
+mkdir `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
+cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
+
+cd ..
 
 echo ""
-echo "*********************"
-echo "GENERATING LIBRARIES "
-echo "*********************"
+echo "************************"
+echo "GENERATING DEB PACKAGES "
+echo "************************"
 echo ""
-# change key if you are not Robert Meolic
-pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
-rm -f `pwd`/../*source.changes
+
+# all target pbuilder environments must already exists
+# use e.g pbuilder-dist yaketty create
+
+echo "BUILDING FOR YOUR DIST: $DIST"
+pbuilder-dist $DISTRO build --buildresult `pwd`/default `pwd`/default/source/*.dsc
+#pushd `pwd`/default/source
+#dpkg-source -x *.dsc
+#cd "$NAME-$VERSION"
+#change key if you are not Robert Meolic
+#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
+#popd
+
+ALTDISTRO=trusty
+echo "BUILDING FOR $ALTDISTRO"
+pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
+#pushd `pwd`/$ALTDISTRO/source
+#dpkg-source -x *.dsc
+#cd "$NAME-$VERSION"
+#change key if you are not Robert Meolic
+#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
+#popd
+
+ALTDISTRO=yakkety
+echo "BUILDING FOR $ALTDISTRO"
+pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
+#pushd `pwd`/$ALTDISTRO/source
+#dpkg-source -x *.dsc
+#cd "$NAME-$VERSION"
+#change key if you are not Robert Meolic
+#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
+#popd
+
 popd
 rm -fr "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 

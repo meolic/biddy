@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 128 $]
-#  Date        [$Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $]
+#  Revision    [$Revision: 261 $]
+#  Date        [$Date: 2017-03-20 23:15:22 +0100 (pon, 20 mar 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2015 UM-FERI
+#               Copyright (C) 2008, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -35,45 +35,38 @@
 # https://wiki.ubuntu.com/PbuilderHowto
 # http://wiki.debian.org/PbuilderTricks
 
-# We are using pdebuild which uses pbuilder. Initialize pbuilder as follows:
-# 1. install pbuilder
-# 2. sudo pbuilder create
-# 3. sudo pbuilder update
+# 1A. If using pdebuild then initialize pbuilder as follows:
+# sudo pbuilder create
+# sudo pbuilder update
 
-# We are using biddy package from Ubuntu ppa.
+# 1B. If using pbuilder-dist then initialize pbuilder as follows:
+# pbuilder-dist xenial create
+# pbuilder-dist xenial update
+
+# 2. We are using biddy package from Ubuntu ppa.
 # You can check it on https://launchpad.net/~meolic/+archive/ubuntu/biddy
 # To add this ppa to your pbuilder environment, do the following:
 # sudo pbuilder --login --save-after-login
+# OR
+# pbuilder-dist xenial login --save-after-login
+# You will get root prompt and then do the following:
 # apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9018C2C6
 # exit
-# To get the latest biddy library, do the following:
-# sudo pbuilder update --override-config  --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu trusty main"
+
+# 3. You have to get the latest biddy library. Do the following:
+# sudo pbuilder update --override-config --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu trusty main"
+# OR
+# pbuilder-dist xenial update --override-config --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu xenial main"
+# OR
 # Alternatively, you can adapt /etc/pbuilderrc (set at least BINDMOUNTS and OTHERMIRROR)
 
-#Create 64-bit package after creation of 32-bit package.
-# 0. You need dpkg-dev, fakeroot, debhelper, build-essential, pbuilder
-# 1. You need source package, e.g.:
-#      foo_*.debian.tar.gz
-#      foo_*.dsc
-#      foo_*_source.changes
-#      foo_*.orig.tar.gz
-# 2. Extract the package into a directory called foo_* and cd into it:
-#      dpkg-source -x foo_*.dsc
-#      cd foo_*
-# 3. Use pbuilder (you need local repository for extra dependencies,
-#    result will be in /var/cache/pbuilder/result/):
-#      pdebuild
-# 4. If you do not have pbuilder, instal all dependencies and then
-#    (result will be in ../):
-#      dpkg-buildpackage -rfakeroot -b
-
-# DO NOT USE (= 1.X) FOR libbiddy1 AND libbiddy1-dev IN control FILE
+# DO NOT USE (= 1.X) FOR libbiddy IN YOUR control FILE
 # FOR ME, THE PACKAGE IS CORRECTLY BUILDED ONLY IF I USE (>= 1.X)
 
 VERSION=`sed "" VERSION`
 NAME="bddscout"
 OS=`uname | sed "s/_.*//;s/[0-9]//g"`
-DIST=$(lsb_release --short --codename)
+DISTRO=$(lsb_release --short --codename)
 
 if [ $# != 1 ]
 then
@@ -145,9 +138,6 @@ cp BDDTRACES/* "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME
 
 pushd "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 cp "../../changelog.deb" "debian/changelog"
-# change distribution name if needed
-dch -M -v "$VERSION-$RELEASE" -D trusty
-cp "debian/changelog" "../../changelog.deb"
 cd ..
 tar -czf "$NAME-$VERSION.tar.gz" "$NAME-$VERSION"
 mv "$NAME-$VERSION.tar.gz" "$NAME"_"$VERSION.orig.tar.gz"
@@ -156,21 +146,94 @@ cd "$NAME-$VERSION"
 echo ""
 echo "**************************"
 echo "GENERATING SOURCE PACKAGES"
+echo "used to mantain Ubuntu PPA"
 echo "**************************"
 echo ""
-# change key if you are not Robert Meolic
+
+# create a source distribution which match your system
+# it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+# change key (debuild -k) if you are not Robert Meolic
+echo "GENERATING SOURCE PACKAGE FOR DEFAULT DISTRO"
+dch -M -v "$VERSION-$RELEASE" -D $DISTRO
+cp "debian/changelog" "../../changelog.deb"
 debuild -S -sa -kD22F409B
-mkdir `pwd`/../source
-mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../source/
-cp `pwd`/../*.gz `pwd`/../source/
+mkdir `pwd`/../default
+mkdir `pwd`/../default/source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../default/source/
+mv `pwd`/../*.debian.tar.xz `pwd`/../default/source
+mv `pwd`/../*.build `pwd`/../default/source
+cp `pwd`/../*.orig.tar.gz `pwd`/../default/source/
+
+# create a source distribution for trusty
+# it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+# change key (debuild -k) if you are not Robert Meolic
+ALTDISTRO=trusty
+echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
+cp "../../changelog.deb" "debian/changelog"
+dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
+debuild --no-lintian -S -sa -kD22F409B
+mkdir `pwd`/../$ALTDISTRO
+mkdir `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
+cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
+
+# create a source distribution for yakkety
+# it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+# change key (debuild -k) if you are not Robert Meolic
+ALTDISTRO=yakkety
+echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
+cp "../../changelog.deb" "debian/changelog"
+dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
+debuild --no-lintian -S -sa -kD22F409B
+mkdir `pwd`/../$ALTDISTRO
+mkdir `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
+cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
+
+cd ..
 
 echo ""
-echo "*********************"
-echo "GENERATING LIBRARIES "
-echo "*********************"
+echo "************************"
+echo "GENERATING DEB PACKAGES "
+echo "************************"
 echo ""
-pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
-rm -f `pwd`/../*source.changes
+
+# all target pbuilder environments must already exists
+# use e.g pbuilder-dist yakkety create
+
+echo "BUILDING FOR YOUR DIST: $DIST"
+pbuilder-dist $DISTRO build --buildresult `pwd`/default `pwd`/default/source/*.dsc
+#pushd `pwd`/default/source
+#dpkg-source -x *.dsc
+#cd "$NAME-$VERSION"
+#change key if you are not Robert Meolic
+#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
+#popd
+
+ALTDISTRO=trusty
+echo "BUILDING FOR $ALTDISTRO"
+pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
+#pushd `pwd`/$ALTDISTRO/source
+#dpkg-source -x *.dsc
+#cd "$NAME-$VERSION"
+#change key if you are not Robert Meolic
+#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
+#popd
+
+ALTDISTRO=yakkety
+echo "BUILDING FOR $ALTDISTRO"
+pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
+#pushd `pwd`/$ALTDISTRO/source
+#dpkg-source -x *.dsc
+#cd "$NAME-$VERSION"
+#change key if you are not Robert Meolic
+#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
+#popd
+
 popd
 rm -fr "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 

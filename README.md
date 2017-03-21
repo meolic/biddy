@@ -1,32 +1,84 @@
-Biddy is a multi-platform academic Binary Decision Diagrams package.
+TL;DR
+--------------
 
-Biddy is maintained by Robert Meolic (robert.meolic@um.si) at University
-of Maribor, Slovenia.
+Biddy is a multi-platform academic Binary Decision Diagrams package.
+It supports ROBDDs with complemented edges, 0-sup-BDDs with
+complemented edges, and TZBDDs.
+
+Biddy is capable of all the typical operations regarding
+Boolean functions and BDDs.
+
+Biddy is a library to be included in your C and C++ projects:
+
+~~~
+#define UNIX
+#define USE_BIDDY
+#include "/path/to/biddy.h"
+~~~
+
+To compile Biddy library:
+
+~~~
+biddy> make dynamic
+biddy> make clean
+~~~
+
+Dependencies:
+
+- on GNU/Linux, you need libgmp (https://gmplib.org/).
+- on MS Windows, you need MPIR library (http://mpir.org/).
+
+When using Biddy on GNU/Linux, you may have to tell bash about the library:
+
+~~~
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
+~~~
+
+There  are two  aditional packages included into Biddy distribution:
+
+- bddview is a pure Tcl/Tk script for visualization of BDDs,
+- BDD Scout is a demo  application demonstrating the capability of Biddy and bddview.
+
+Biddy is free software maintained by Robert Meolic
+(robert.meolic@um.si) at University of Maribor, Slovenia.
 
 Homepage: http://biddy.meolic.com/
 
 1. AN OVERVIEW
 --------------
 
-Biddy is free software released under GPL.
+Biddy supports ROBDDs with complemented edges as described in "K.S. Brace,
+R.L. Rudell, R.E. Bryant. Efficient  Implementation  of a  BDD
+Package. 27th ACM/IEEE DAC, pages 40-45, 1990".
 
-Biddy uses ROBDDs with complement  edges as described in "K. S. Brace,
-R.L.   Rudell,  R.  E.   Bryant.  Efficient  Implementation  of a  BDD
-Package. 27. ACM/IEEE DAC, pages 40-45, 1990."
+Biddy supports 0-sup-BDDs with complemented edges as described in
+"S. Minato. Zero-Suppressed BDDs for Set Manipulation in Combinatorial
+Problems, 30th ACM/IEEE DAC, pages 272-277, 1993".
 
-Biddy includes automatic garbage collection with a formulae counter,
-node management with formulae tagging, and variable swapping.
-Sifting algorithm is implemented.
+Biddy supports TZBDDs (tagged zero-supressed binary decison diagrams)
+as introduced by Robert Meolic in 2016 (to be published).
+
+Biddy includes:
+
+- automatic garbage collection with a system age
+  (a variant of a mark-and-sweep approach),
+- node management through formulae protecting,
+- variable swapping and sifting algorithm (ROBDDs, only).
 
 Biddy is optimized for efficiency, but it is  mainly oriented towards
 readable and  comprehensible source  code in C.
 
 Biddy  is  currently  used  in  the following  projects:
-- BDD Scout, demo project
-- Efficient Symbolic Tools (EST), http://est.meolic.com/
+
+- BDD Scout, demo project which allows visualization of BDDs and
+  also includes some benchmarks
+- Efficient Symbolic Tools (EST), model checking and other algorithms
+  for formal verification of systems (http://est.meolic.com/)
 
 2. SOURCE CODE
 --------------
+
+Biddy is free software released under GPL.
 
 The short name of Biddy package is 'biddy'. This name is placed in front
 of  all filenames and external identifiers.  It may appear in
@@ -34,11 +86,13 @@ all  lowercase,  or with  its  first  letter  capitalized, written  as
 'biddy' and 'Biddy', respectively.
 
 There are three categories of C functions.
+
 - Exported functions are visible outside the package.
 - Internal functions are visible to all files within the package.
 - Static functions are visible to the file only.
 
 There are two types of C functions.
+
 - General functions which operates on a particular BDD and considering only
   graph properties (i.e. changing edge's mark, selecting nodes, counting nodes
   etc.). These functions are the same for different type of decision diagrams
@@ -63,7 +117,8 @@ Biddy consists of the following files:
 - Makefile.Darwin (Makefile definitions for MacOS)
 - biddy.h (header)
 - biddyInt.h (header)
-- biddyMain.c (main functions)
+- biddyMain.c (main functions, ROBDDs only, deprecated)
+- biddyMainGDD.c (main functions)
 - biddyStat.c (functions for statistic)
 - biddyInOut.c (parsers and generators for Boolean functions)
 - package-source (script used to build distribution)
@@ -78,6 +133,8 @@ Biddy consists of the following files:
 - biddy-example-independence.c (8 Queens example)
 - biddy-example-independence-usa.c (Independence example)
 - biddy-example-independence-europe.c (Independence example)
+- biddy-example-random.c (Random formulae example)
+- biddy-example-hanoi.c (Tower of Hanoi example)
 
 There are  two C headers,  external and internal. The  external header
 file,  named  biddy.h, defines  features  visible  from outside  the
@@ -85,21 +142,12 @@ package. The internal header file, named biddyInt.h defines features
 used in multiple files inside the package, but not outside.
 
 There  are two  aditional packages  included into  Biddy distribution:
-bddview and Bdd Scout.
 
-bddview is  a pure Tcl/Tk  script for visualization of  BDDs.
+- bddview is a pure Tcl/Tk script for visualization of BDDs.
+- BDD Scout is a demo  application demonstrating the capability of Biddy
+  and bddview.
 
-BDD Scout is a demo  application demonstrating the capability of Biddy
-and bddview.
-
-To compile Biddy library, you can use:
-
-~~~
-biddy> make dynamic "BINDIR = ./bin"
-biddy> make clean "BINDIR = ./bin"
-~~~
-
-More details about building are given in Section 4.
+Details about building are given in Section 4.
 
 3. USING BIDDY LIBRARY
 ----------------------
@@ -127,13 +175,12 @@ IMPORTANT:
 You should define UNIX, MACOSX, or MINGW.
 You should define USE_BIDDY iff you are using Biddy via dynamic library.
 
-```
-\code
+~~~
 #define UNIX
 #define USE_BIDDY
 #include "/path/to/biddy.h"
 
-#define Str2Var(x) (Biddy_GetTopVariable(Biddy_FoaVariable((Biddy_String)x)))
+#define Str2Var(x) (Biddy_GetVariable(Biddy_String)x)
 
 int main() {
   Biddy_Edge f,g,h,r;
@@ -175,23 +222,22 @@ int main() {
 
   Biddy_Exit();
 }
-\endcode
-```
+~~~
 
-### 3.1 NODE MANAGEMENT WITH FORMULAE TAGGING
+### 3.1 NODE MANAGEMENT THROUGH FORMULAE PROTECTING
 
 Biddy includes powerful node management based on formulae tagging.
 There are six user functions to maintain nodes.
 
-### Biddy_AddFormula(name,bdd,count)
+### Biddy_AddFormula(name,bdd,c)
 
 Nodes of the given BDD will be preserved for the given number of cleanings.
 If (name != NULL) then formula is accessible by its name. If formula with
-a given name already exists it is overwritten. If (count == 0) then
+a given name already exists it is overwritten. If (c == 0) then
 formula is persistently preserved and you have to use Biddy_DeleteFormula
 to remove its nodes. There are two macros defined to simplify
-formulae management. Macro Biddy_AddTmpFormula(bdd,count) is defined as
-Biddy_AddFormula(NULL,bdd,count) and macro Biddy_AddPersistentFormula(name,bdd)
+formulae management. Macro Biddy_AddTmpFormula(bdd,c) is defined as
+Biddy_AddFormula(NULL,bdd,c) and macro Biddy_AddPersistentFormula(name,bdd)
 is defined as Biddy_AddFormula(name,bdd,0).
 
 ### Biddy_DeleteFormula(name)
@@ -230,8 +276,7 @@ internal function BiddyRefresh. It is needed to implement user caches.
 
 The first example is a straightforward calculation.
 
-```
-\code
+~~~
 f1 = op(...);
 f2 = op(...);
 g1 = op(f1,f2,...);
@@ -244,47 +289,39 @@ Biddy_Clean(); /* g1 and g2 are still usable, f1 and f2 are obsolete */
 result = op(g1,g2,...);
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_Clean(); /* g1 and g2 are not needed, anymore */
-\endcode
-```
+~~~
 
-If garbage collection is needed also after the calculation of g1, you can
-use the following code after the calculation of g1:
+If additional garbage collection is needed also after the calculation of g1,
+you can use the following code after the calculation of g1:
 
-```
-\code
+~~~
 Biddy_AddTmpFormula(g1,2); /* g1 is preserved for next two cleanings */
 Biddy_Clean(); /* g1 remains preserved for next cleaning */
-\endcode
-```
+~~~
 
 In this approach, f1 and f2 become obsolete after Biddy_Clean, but their
-nodes are not immediately removed (garbage collection is started automatically
-when there are no free nodes in the system).
+nodes are not immediately removed (automatic garbage collection is only
+started when there are no free nodes in the system).
 If garbage collection should be started immediately, you must
 use the following code after the calculation of g1:
 
-```
-\code
+~~~
 Biddy_AddTmpFormula(g1,2); /* g1 is preserved for next two cleanings */
 Biddy_Clean(); /* g1 remains preserved for next cleaning */
 Biddy_Purge(); /* keep only preserved (g1) formulae */
-\endcode
-```
+~~~
 
 Alternatively, you can use the following approach:
 
-```
-\code
+~~~
 Biddy_AddTmpFormula(g1,1); /* g1 is preserved for next cleaning */
 Biddy_Purge(); /* this will not make g1 obsolete */
-\endcode
-```
+~~~
 
 To trigger reordering in this example, you should use Biddy_PurgeAndReorder
 to get the following code:
 
-```
-\code
+~~~
 f1 = op(...);
 f2 = op(...);
 g1 = op(f1,f2,...);
@@ -300,13 +337,11 @@ Biddy_Clean(); /* g1 and g2 are still usable but not preserved */
 result = op(g1,g2,...);
 Biddy_AddPersistentFormula("result",result); /* result is permanently preserved */
 Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (result), perform reordering */
-\endcode
-```
+~~~
 
 The second example is an iterative calculation:
 
-```
-\code
+~~~
 f = op(...);
 result = op(f,...);
 while (!finish) {
@@ -318,14 +353,12 @@ while (!finish) {
 }
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_Clean(); /* temp results are not needed, anymore */
-\endcode
-```
+~~~
 
 If garbage collection is needed also after the calculation of g, you must
 use the following code:
 
-```
-\code
+~~~
 f = op(...);
 result = op(f,...);
 while (!finish) {
@@ -339,13 +372,11 @@ while (!finish) {
 }
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_Clean(); /* temp results are not needed, anymore */
-\endcode
-```
+~~~
 
 To trigger reordering in the second example, you should change code in the following way:
 
-```
-\code
+~~~
 f = op(...);
 result = op(f,...);
 while (!finish) {
@@ -360,14 +391,12 @@ while (!finish) {
 }
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_PurgeAndReorder(NULL); /* keep only preserved formulae (result), perform reordering */
-\endcode
-```
+~~~
 
 The third example is an outline of an implementation of model checking where
 we are trying to benefit from regularly reordering:
 
-```
-\code
+~~~
 sup = Prepare(...);
 Biddy_AddPersistentFormula("sup",sup) /* sup is permanently preserved */
 Z = 0;
@@ -383,14 +412,12 @@ result = Z;
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_DeleteFormula("sup"); /* optional, if you really need to remove sup */
 Biddy_Purge(); /* optional, immediately remove non-preserved nodes */
-\endcode
-```
+~~~
 
 The fourth example is an outline of an implementation of bisimulation
 where we are trying to benefit from regularly reordering:
 
-```
-\code
+~~~
 init = AND(init_p,init_q)
 Biddy_AddPersistentFormula("init",init) /* init is permanently preserved */
 eq = InitialEq(init_p,tr_p,init_q,tr_q,...);
@@ -406,14 +433,12 @@ do {
 if (AND(init,eq)!=0) return false; else return true;
 Biddy_DeleteFormula("init"); /* optional, if you really need to remove init */
 Biddy_Purge(); /* optional, immediately remove non-preserved nodes */
-\endcode
-```
+~~~
 
 The fifth example is an outline of an implementation of parallel composition
 where we are trying to benefit from intensive GC:
 
-```
-\code
+~~~
 sacc = snew = AND(init_1,init_2,...,init_N);
 for (i=1;i<=N;i++) di[i] = 0;
 for (i=1;i<=N;i++) for (j=1;i<=N;j++) dij[i,j] = 0;
@@ -460,24 +485,24 @@ for (i=1;i<=N;i++) for (j=1;j<=N;j++) {
 result = OR(tr1,tr2);
 Biddy_AddPersistentFormula("result",result); /* final result is permanently preserved */
 Biddy_Clean(); /* temp results are not needed, anymore */
-\endcode
-```
+~~~
 
-### 3.3 GARBAGE COLLECTION WITH A FORMULAE COUNTER
+### 3.3 GARBAGE COLLECTION WITH A SYSTEM AGE
 
 Garbage collection is automatically triggered if nodes from all reserved
 blocks of nodes are used. Garbage collection will remove as many
 obsolete nodes as possible.
 
 Biddy does not use reference counter.
-We call the implemented algorithm "GC with a formulae counter".
+We call the implemented algorithm "GC with a system age".
+It is a variant of a mark-and-sweep approach.
 Please note, that it relies on additional structure (Formula table).
 
-Using formulae counter instead of reference counter has
+Using system age instead of reference counter has
 some advantages. It allows GC to be started in any time
 without breaking the ongoing calculation. Thus, there is no need
 to taking care of repeating broken calculations. Moreover,
-the usage of formulae counter instead of reference counter
+the usage of system age instead of reference counter
 removes all the hassle of referencing and dereferencing nodes
 and thus it is favorable in an academic package oriented towards
 simple and readable source code.
@@ -485,29 +510,29 @@ simple and readable source code.
 There are four classes of nodes. Every node belongs to one of
 these classes:
 
-- __fortified__ node (count = 0);
-- __fresh__ node (count = biddyCount);
-- __prolonged__ node (count > biddyCount);
-- __obsolete__ node (0 < count < biddyCount).
+- __fortified__ node (expiry value = 0);
+- __fresh__ node (expiry value = biddySystemAge);
+- __prolonged__ node (expiry value > biddySystemAge);
+- __obsolete__ node (0 < expiry value < biddySystemAge).
 
 Before GC, nodes must be refreshed in such a way that no successor of
-non-obsolete node is obsolete. This can be achieved with relative simple
+a non-obsolete node is obsolete. This can be achieved with relative simple
 loop which will check each node at least once.
 
 There are three internal functions to maintain nodes.
 
 - __BiddyProlongOne__ (one node is prolonged)
 - __BiddyProlongRecursively__ (one node and its successors are prolonged recursively until a non-obsolete node is reached)
-- __BiddyIncCounter__ (all fresh nodes become obsolete nodes)
+- __BiddyIncSystemAge__ (all fresh nodes become obsolete nodes)
 
 There are four functions which can be used by an expert user.
 
-- __Biddy_Garbage__ (explicite garbage collection, remove all obsolete nodes)
-- __Biddy_SwapWithLower__ (explicite swap of two variables, it removes all obsolete and fresh nodes)
-- __Biddy_SwapWithHigher__ (explicite swap of two variables, it removes all obsolete and fresh nodes)
-- __Biddy_Sifting__ (explicite sifting, it removes all obsolete and fresh nodes)
+- __Biddy_Garbage__ (explicite garbage collection call, removes all obsolete nodes)
+- __Biddy_SwapWithLower__ (explicite swap of two variables, removes all obsolete and fresh nodes)
+- __Biddy_SwapWithHigher__ (explicite swap of two variables, removes all obsolete and fresh nodes)
+- __Biddy_Sifting__ (explicite sifting, removes all obsolete and fresh nodes)
 
-These four functions will keep all nodes preserved by Biddy_AddFormula
+These four functions will keep all nodes preserved by Biddy_AddFormula and
 they will not change the class of any node. Please note, that Biddy_Garbage
 can be started in any time whilst Biddy_SwapWithLower, Biddy_SwapWithHigher,
 and Biddy_Sifting will break an ongoing calculation (because they remove
@@ -521,7 +546,7 @@ each node). This facility is used to improve efficiency of garbage
 collection and sifting.
 
 Please node, that node chaining is not determined or limited by
-using formulae tagging or a formulae counter, it is 
+using formulae protecting schema or a system age approach, it is 
 an independent mechanism.
 
 4. BUILDING PACKAGES
@@ -529,46 +554,60 @@ an independent mechanism.
 
 ### Compiling Biddy library
 
+On GNU/Linux, we are using gcc.
+
 ~~~
-biddy> make dynamic "BINDIR = ./bin"
-biddy> make clean "BINDIR = ./bin"
+biddy> make dynamic
+biddy> make clean
 ~~~
 
 Alternatively, you can use:
 
 ~~~
-biddy> make static "BINDIR = ./bin"
-biddy> make debug "BINDIR = ./bin"
-biddy> make profile "BINDIR = ./bin"
+biddy> make static
+biddy> make debug
+biddy> make profile
+~~~
+
+You can use specify the target folder:
+
+~~~
+biddy> make dynamic "BINDIR = ./bin"
+biddy> make clean "BINDIR = ./bin"
 ~~~
 
 On MS Windows, we are using MSYS2.
-Moreover, we are using MPIR library (project dll_mpir_core2)
-which we obtained from http://mpir.org/ .
-
-We have used pacman to prepare the environment:
+We use pacman to prepare the environment:
 
 ~~~
-MSYS shell> pacman -Sy
-MSYS shell> pacman --needed -S bash pacman pacman-mirrors msys2-runtime
-(restart MSYS2 shell)
-MSYS shell> pacman -Su
+MSYS shell> pacman -Syuu
 MSYS shell> pacman -S mingw-w64-i686-gcc
 MSYS shell> pacman -S mingw-w64-x86_64-gcc
 MSYS shell> pacman -S make
 MSYS shell> pacman -S bison
 MSYS shell> pacman -S gdb
 MSYS shell> pacman -S nano
+MSYS shell> pacman -S tar
 MSYS shell> pacman -S subversion
 ~~~
 
 Alternatively, you can use Visual Studio for building.
-A prepared solution consisting of many projects
-is ./VS/Biddy.sln . You need to adapt include and lib folders.
+There is a prepared solution consisting of many projects.
+You need to adapt include and lib folders.
 
-To produce nice setup files, projects based on Advanced Installer
-(http://www.advancedinstaller.com/) are integrated into Visual Studio solution.
+~~~
+./VS/Biddy.sln
+~~~
+
+To produce nice setup files, we use Advanced Installer
+(http://www.advancedinstaller.com/).
 We have been granted a free licence. MANY THANKS!
+
+### Dependencies
+
+On GNU/Linux, we are using libgmp (https://gmplib.org/).
+
+On MS Windows, we are using MPIR library (http://mpir.org/).
 
 ### Creating Biddy library as a zip package
 
@@ -592,7 +631,7 @@ When using this package on GNU/Linux, you have to tell bash about the library:
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
 ~~~
 
-### Create create zip file with source code of complete Biddy project
+### Creating zip file with source code of a complete Biddy project
 
 ~~~
 biddy> ./package-source
@@ -608,9 +647,10 @@ biddy> ./package-deb
 biddy> ./package-rpm
 ~~~
 
+These scripts are intedend to be used on Ubuntu.
 These scripts needs release  number as an argument. Script package-tgz
 must be  invoked before running package-deb.  Debian  packages must be
-created before RPM packages.
+created before RPM packages. 
 
 ./package-tgz should  create orig.tar.gz file  and prepare directories
 for creating debian  and RPM packages. You can  run ./package-tgz only
@@ -716,8 +756,16 @@ https://launchpad.net/~meolic/+archive/ubuntu/biddy
 Also in 2015, sources became available on GitHub
 https://github.com/meolic/biddy
 
-In 2016, Biddy v1.6 was released. Now, formulae are not recursively refreshed
+In 2016, Biddy v1.6 was released. Formulae are not recursively refreshed
 all the time. The size of Node table became resizable.
+
+In 2016, Biddy v1.7 was released. Terminology is changed a lot,
+e.g. "formulae counter" is now "system age". Added support for
+0-sup-BDDs and TZBDDs. Implemented creation and manipulaton of
+non-anonymous managers. Added manipulation of combination sets.
+Sifting does not require removing fresh nodes.
+Many new CUDD-like functions have been added.
+bddview and BDD Scout have been significantly improved.
 
 6. PUBLICATIONS
 ---------------
@@ -728,5 +776,5 @@ If you find our work useful, please, cite us.
   Journal of Software, 7(6), pp. 1358-1366, 2012.
   http://ojs.academypublisher.com/index.php/jsw/article/view/jsw070613581366
 
-- Robert Meolic. __Biddy: An academic BDD package.__
+- Robert Meolic. __Biddy: ???__
   We are preparing a paper for SCP.

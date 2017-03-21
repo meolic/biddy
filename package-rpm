@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 148 $]
-#  Date        [$Date: 2016-03-08 22:03:25 +0100 (tor, 08 mar 2016) $]
+#  Revision    [$Revision: 226 $]
+#  Date        [$Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2016 UM-FERI
+#               Copyright (C) 2006, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify

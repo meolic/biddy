@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutIFIP.c]
-  Revision    [$Revision: 168 $]
-  Date        [$Date: 2016-06-28 22:44:56 +0200 (tor, 28 jun 2016) $]
+  Revision    [$Revision: 244 $]
+  Date        [$Date: 2017-02-14 23:23:32 +0100 (tor, 14 feb 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2015 UM-FERI
+               Copyright (C) 2008, 2017 UM-FERI
                UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
@@ -62,13 +62,14 @@ int SCAN_RESULT; /* used in readln macro */
 
 #define readln(f,s) SCAN_RESULT = fscanf(f," %[^\n] ",s)
 
-static Biddy_String makeFunction(FILE *f, Biddy_String line, Biddy_String prefix);
+static Biddy_String makeFunction(Biddy_Manager MNG, FILE *f, Biddy_String line, Biddy_String prefix);
 static Biddy_String upCase(Biddy_String s);
 
 Biddy_String
 BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
 {
-  Biddy_String line;
+  Biddy_Manager MNG;
+  Biddy_String filenameout,line;
   Biddy_String s1;
   Biddy_String var;
   Biddy_String name,tmpname;
@@ -81,11 +82,10 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   unsigned int len;
   unsigned int i,n;
 
-  for (i=0; i<strlen(filename); i++) filename[i]=toupper(filename[i]);
+  MNG = Bddscout_GetActiveManager();
 
-  /*
-  printf("FILENAME: <%s>\n",filename);
-  */
+  filenameout = strdup(filename);
+  for (i=0; i<strlen(filenameout); i++) filenameout[i]=toupper(filenameout[i]);
 
   line = (Biddy_String) malloc(4096);
 
@@ -93,7 +93,7 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
 
   do {
     readln(f,line);
-  } while (strstr(line, "@BE1") != line);
+  } while (strstr(line,"@BE1") != line);
 
   /* @BE1 - JUST A LABEL */
 
@@ -126,7 +126,16 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
     printf("VARIABLE: <%s>\n",var);
     */
 
-    Biddy_FoaVariable(var);
+    /* FOR OBDD, OFDD, TZBDD, and TZFDD, new varables are added below all others */
+    /* FOR ZBDD and ZFDD, new variables are added above all others */
+
+    Biddy_Managed_AddVariableByName(MNG,var);
+
+    /* DEBUGGING */
+    /*
+    Biddy_Managed_AddVariableByName(MNGOBDD,var);
+    */
+
     var = strtok(NULL," \t)");
   }
 
@@ -137,7 +146,7 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   if (strstr(line,"@sub") == line) {
     readln(f,line);
     do {
-      name = makeFunction(f,line,NULL);
+      name = makeFunction(MNG,f,line,NULL);
       free(name);
     } while (strstr(line,"@out") != line);
   }
@@ -150,11 +159,11 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   readln(f,line);
   do {
     tmpname = strdup("BE1_");
-    len = 4+(unsigned int)strlen(filename)+1;
+    len = 4+(unsigned int)strlen(filenameout)+1;
     tmpname = (Biddy_String) realloc(tmpname,len);
-    strcat(tmpname,filename);
+    strcat(tmpname,filenameout);
 
-    name = makeFunction(f,line,tmpname);
+    name = makeFunction(MNG,f,line,tmpname);
 
     if (!nameTable) {
       nameTable = (Biddy_String *) malloc(sizeof(Biddy_String));
@@ -204,7 +213,16 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
     printf("VARIABLE: <%s>\n",var);
     */
 
-    Biddy_FoaVariable(var);
+    /* FOR OBDD, OFDD, TZBDD, and TZFDD, new varables are added below all others */
+    /* FOR ZBDD and ZFDD, new variables are added above all others */
+
+    Biddy_Managed_AddVariableByName(MNG,var);
+
+    /* DEBUGGING */
+    /*
+    Biddy_Managed_AddVariableByName(MNGOBDD,var);
+    */
+
     var = strtok(NULL," \t)");
   }
 
@@ -215,7 +233,7 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   if (strstr(line,"@sub") == line) {
     readln(f,line);
     do {
-      name = makeFunction(f,line,NULL);
+      name = makeFunction(MNG,f,line,NULL);
       free(name);
     } while (strstr(line,"@out") != line);
   }
@@ -225,11 +243,11 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   readln(f,line);
   do {
     tmpname = strdup("BE2_");
-    len = 4+(unsigned int)strlen(filename)+1;
+    len = 4+(unsigned int)strlen(filenameout)+1;
     tmpname = (Biddy_String) realloc(tmpname,len);
-    strcat(tmpname,filename);
+    strcat(tmpname,filenameout);
 
-    name = makeFunction(f,line,tmpname);
+    name = makeFunction(MNG,f,line,tmpname);
 
     ok = FALSE;
     for (i=0; (i<nameNumber) && (!ok); i++) {
@@ -241,7 +259,7 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
     free(name);
     if (!ok) printf("ERROR: missing function in @BE2");
 
-  } while (strstr(line, "@end") != line);
+  } while (strstr(line,"@end") != line);
 
   /* FINALIZER FOR @BE2 - SHOULD BE EMPTY */
 
@@ -254,9 +272,9 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
 
   /* @DCS */
 
-  if (strstr(line, "@DCS") == line) {
+  if (strstr(line,"@DCS") == line) {
     readln(f,line);
-    name = makeFunction(f,line,(Biddy_String) "DCS");
+    name = makeFunction(MNG,f,line,(Biddy_String) "DCS");
     free(name);
     usedcs = TRUE;
   }
@@ -268,61 +286,65 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   /* CHECK EQUIVALENCE */
 
   if (usedcs) {
-    if (!Biddy_FindFormula((Biddy_String) "DCS",&dcs)) {
+    if (!Biddy_Managed_FindFormula(MNG,(Biddy_String) "DCS",&dcs)) {
       printf("ERROR: missing DCS!\n");
     }
   } else {
-    dcs = Biddy_GetConstantZero();
+    dcs = Biddy_Managed_GetConstantZero(MNG);
   }
 
   ok = TRUE;
   eqvTable = (Biddy_Boolean *) malloc(sizeof(Biddy_Boolean)*nameNumber);
   for (i=0; i<nameNumber; i++) {
-    len = (unsigned int)strlen(filename)+(unsigned int)strlen(nameTable[i])+5+1;
+    len = (unsigned int)strlen(filenameout)+(unsigned int)strlen(nameTable[i])+5+1;
     name = strdup("BE1_");
     name = (Biddy_String) realloc(name,len);
-    strcat(name,filename);
+    strcat(name,filenameout);
     strcat(name,"_");
     strcat(name,nameTable[i]);
-    Biddy_FindFormula(name,&bdd1);
+    Biddy_Managed_FindFormula(MNG,name,&bdd1);
     name[2] = '2';
-    Biddy_FindFormula(name,&bdd2);
-    free(name);
+    Biddy_Managed_FindFormula(MNG,name,&bdd2);
     eqvTable[i] = (
-      Biddy_ITE(dcs,Biddy_GetConstantZero(),bdd1) ==
-        Biddy_ITE(dcs,Biddy_GetConstantZero(),bdd2)
+      Biddy_Managed_ITE(MNG,dcs,Biddy_Managed_GetConstantZero(MNG),bdd1) ==
+        Biddy_Managed_ITE(MNG,dcs,Biddy_Managed_GetConstantZero(MNG),bdd2)
     );
+    free(name);
     if (!eqvTable[i]) ok = FALSE;
   }
 
-  /* GARBAGE COLLECTION IS USED TO KEEP ONLY OUTPUT FUNCTIONS */
-  /* YOU CAN ENABLE VARIANT 1 OR VARIANT 2, OR DISABLE BOTH */
-
-  /* VARIANT 1: USING Biddy_AddFormula AND Biddy_Clean */
+  /* GARBAGE COLLECTION IS USED TO KEEP ONLY OUTPUT FUNCTIONS - THIS IS OPTIONAL */
   /**/
-  Biddy_Purge();
+  Biddy_Managed_Clean(MNG);
+  Biddy_Managed_Purge(MNG);
   /**/
-
-  /* VARIANT 2: USING Biddy_AddPersistentFormula AND Biddy_DeleteIthFormula */
-  /*
-  i = 2;
-  name = Biddy_GetIthFormulaName(i);
-  while (name) {
-    if (strncmp(name,"BE1",3) && strncmp(name,"BE2",3) ) {
-      Biddy_DeleteIthFormula(i);
-    }
-    i++;
-    name = Biddy_GetIthFormulaName(i);
-  }
-  Biddy_Clean();
-  */
 
   report = (Biddy_String) malloc(255);
+#ifdef BDDSCOUTPROFILE
   if (!ok) {
-    sprintf(report,"%s 0 %u %u %u ",Tcl_GetHostName(),Biddy_VariableTableNum(),Biddy_NodeTableMax(),Biddy_NodeTableGCNumber());
+    sprintf(report,"0 %u %u %u ",
+      Biddy_Managed_VariableTableNum(MNG),
+      Biddy_Managed_NodeTableMax(MNG),
+      Biddy_Managed_NodeTableGCNumber(MNG));
   } else {
-    sprintf(report,"%s 1 %u %u %u ",Tcl_GetHostName(),Biddy_VariableTableNum(),Biddy_NodeTableMax(),Biddy_NodeTableGCNumber());
+    sprintf(report,"1 %u %u %u ",
+      Biddy_Managed_VariableTableNum(MNG),
+      Biddy_Managed_NodeTableMax(MNG),
+      Biddy_Managed_NodeTableGCNumber(MNG));
   }
+#else
+  if (!ok) {
+    sprintf(report,"%s 0 %u %u %u ",Tcl_GetHostName(),
+      Biddy_Managed_VariableTableNum(MNG),
+      Biddy_Managed_NodeTableMax(MNG),
+      Biddy_Managed_NodeTableGCNumber(MNG));
+  } else {
+    sprintf(report,"%s 1 %u %u %u ",Tcl_GetHostName(),
+      Biddy_Managed_VariableTableNum(MNG),
+      Biddy_Managed_NodeTableMax(MNG),
+      Biddy_Managed_NodeTableGCNumber(MNG));
+  }
+#endif
 
   for (i=0; i<nameNumber; i++) {
     len = (unsigned int)strlen(report)+(unsigned int)strlen(nameTable[i])+3+1;
@@ -339,18 +361,13 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
 
   free(nameTable);
   free(eqvTable);
-
-  /* DELETE ALL BDDS - FILES ARE BENCHMARKED INDEPENDENTLY */
-  /*
-  Biddy_Exit();
-  Biddy_Init();
-  */
+  free(filenameout);
 
   return report;
 }
 
 static Biddy_String
-makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
+makeFunction(Biddy_Manager MNG, FILE *f, Biddy_String line, Biddy_String prefix)
 {
   Biddy_Edge fun;
   Biddy_String s1,s2,name;
@@ -429,12 +446,19 @@ makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
 
   upCase(s2);
 
+  /* DEBUGGING */
   /*
   printf("FUNCTION NAME: <%s>\n",name);
   printf("FUNCTION DEF: <%s>\n",s2);
   */
 
-  fun = Biddy_Eval1x(s2,(Biddy_LookupFunction) NULL);
+  fun = Biddy_Managed_Eval1x(MNG,s2,(Biddy_LookupFunction) NULL);
+
+  /* PROFILING */
+  /*
+  printf("FUNCTION NAME: <%s>: ",name);
+  printf("%u nodes\n",Biddy_Managed_NodeNumber(MNG,fun));
+  */
   
   if (Biddy_IsNull(fun)) {
     printf("WARNING (bddscoutIFIP): NULL FUNCTION\n");
@@ -442,16 +466,13 @@ makeFunction(FILE *f, Biddy_String line, Biddy_String prefix)
     printf("FUNCTION DEF: <%s>\n",s2);
   }
 
-  /* YOU CAN USE Biddy_AddPersistentFormula INSTEAD OF Biddy_AddFormula */
-  /* YOU CAN USE Biddy_Purge() OR Biddy_PurgeAndReorder(fun) AFTER ADDING A FORMULA */
-
   if (!prefix) {
-    Biddy_AddFormula(name,fun,1);
+    Biddy_Managed_AddFormula(MNG,name,fun,1);
   } else {
     if (!strncmp(prefix,"BE1",3) || !strncmp(prefix,"BE2",3) ) {
-      Biddy_AddPersistentFormula(name,fun);
+      Biddy_Managed_AddPersistentFormula(MNG,name,fun);
     } else {
-      Biddy_AddFormula(name,fun,1);
+      Biddy_Managed_AddFormula(MNG,name,fun,1);
     }
   }
 
@@ -476,6 +497,8 @@ upCase(Biddy_String s)
 /*-----------------------------------------------------------------------*/
 /* TCL related functions                                                 */
 /*-----------------------------------------------------------------------*/
+
+#ifndef BDDSCOUTPROFILE
 
 /**Function****************************************************************
   Synopsis    [Function Bddscoutifip_Init.]
@@ -551,3 +574,5 @@ BddscoutParseIfipCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 
   return TCL_OK;
 }
+
+#endif

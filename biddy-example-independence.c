@@ -1,10 +1,10 @@
-/* $Revision: 172 $ */
-/* $Date: 2016-07-03 15:27:52 +0200 (ned, 03 jul 2016) $ */
+/* $Revision: 253 $ */
+/* $Date: 2017-03-20 09:03:47 +0100 (pon, 20 mar 2017) $ */
 /* This file (biddy-example-independence.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.6 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v1.7 and CUDD v3.0.0 */
 
 /* COMPILE WITH: */
 /* gcc -DNOCONVERGE -DUNIX -DUSE_BIDDY -O2 -o biddy-example-independence biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -lbiddy -lgmp */
@@ -21,6 +21,7 @@
 #  include "biddy.h"
 #  include <string.h>
 #  define BDDNULL NULL
+/* #define Biddy_Inv(f) Biddy_NOT(f) */ /* for compatibility with Biddy v1.6 */
 #endif
 
 #ifdef USE_CUDD
@@ -52,15 +53,15 @@ DdManager *manager;
 #define Biddy_GetThen(f) Cudd_T(f)
 #define Biddy_AddVariable() Cudd_bddNewVar(manager)
 #define Biddy_Not(f) Cudd_Not(f)
+#define Biddy_Inv(f) Cudd_Not(f)
 #define Biddy_And(f,g) Cudd_bddAnd(manager,f,g)
 #define Biddy_Or(f,g) Cudd_bddOr(manager,f,g)
 #define Biddy_Xnor(f,g) Cudd_bddXnor(manager,f,g)
 #define Biddy_Support(f) Cudd_Support(manager,f)
-#define Biddy_VariableNumber(f) Cudd_SupportSize(manager,f)
+#define Biddy_DependentVariableNumber(f) Cudd_SupportSize(manager,f)
 #define Biddy_CountMinterm(f,n) Cudd_CountMinterm(manager,f,n)
 #define Biddy_NodeNumber(f) Cudd_DagSize(f)
 #define Biddy_PrintInfo(s) Cudd_PrintInfo(manager,s)
-#define Biddy_Exit()
 #endif
 
 extern void setDataUSA(unsigned int *size, unsigned int ***usa, unsigned int **order, char **codes);
@@ -116,8 +117,8 @@ int main(int argc, char** argv) {
   /* biddyIteCache.usaSize = MEDIUM_TABLE = 262143 */
   /* biddyEACache.usaSize = SMALL_TABLE = 65535 */
   /* biddyRCCache.usaSize = SMALL_TABLE = 65535 */
-  /* DEFAULT INIT CALL: Biddy_Init() */
-  Biddy_Init();
+  /* DEFAULT INIT CALL: Biddy_InitAnonymous(BIDDYTYPEOBDD) */
+  Biddy_InitAnonymous(BIDDYTYPEOBDD);
 #endif
 
 #ifdef USE_CUDD
@@ -245,20 +246,20 @@ int main(int argc, char** argv) {
     /* SIFTING  */
 #ifdef USE_BIDDY
 #ifdef CONVERGE
-    if (userinput[0] == 's') Biddy_PurgeAndReorder(NULL,TRUE);
+    if (userinput[0] == 's') Biddy_Sifting(NULL,TRUE);
 #ifdef USA_YES
-    if (userinput[0] == 'u') Biddy_PurgeAndReorder(r1,TRUE);
+    if (userinput[0] == 'u') Biddy_Sifting(r1,TRUE);
 #endif
 #ifdef EUROPE_YES
-    if (userinput[0] == 'e') Biddy_PurgeAndReorder(r2,TRUE);
+    if (userinput[0] == 'e') Biddy_Sifting(r2,TRUE);
 #endif
 #else
-    if (userinput[0] == 's') Biddy_PurgeAndReorder(NULL,FALSE);
+    if (userinput[0] == 's') Biddy_Sifting(NULL,FALSE);
 #ifdef USA_YES
-    if (userinput[0] == 'u') Biddy_PurgeAndReorder(r1,FALSE);
+    if (userinput[0] == 'u') Biddy_Sifting(r1,FALSE);
 #endif
 #ifdef EUROPE_YES
-    if (userinput[0] == 'e') Biddy_PurgeAndReorder(r2,FALSE);
+    if (userinput[0] == 'e') Biddy_Sifting(r2,FALSE);
 #endif
 #endif
 #endif
@@ -269,8 +270,8 @@ int main(int argc, char** argv) {
     if (userinput[0] == 's') Cudd_ReduceHeap(manager,CUDD_REORDER_SIFT,0);
 #endif
 #endif
-    n1 = Biddy_VariableNumber(r1);
-    n2 = Biddy_VariableNumber(r2);
+    n1 = Biddy_DependentVariableNumber(r1);
+    n2 = Biddy_DependentVariableNumber(r2);
     if ((userinput[0] == 's')
 #ifdef USA_YES
         || (userinput[0] == 'u')
@@ -335,7 +336,7 @@ int main(int argc, char** argv) {
     printf("Sifting ");
 #endif
 #if (defined USA_YES) || (defined EUROPE_YES)
-    printf("on [s]ystem or Sifting on function for");
+    printf("on [s]ystem or on function for");
 #ifdef USA_YES
     printf(" [u]SA");
 #endif
@@ -344,7 +345,14 @@ int main(int argc, char** argv) {
 #endif
 #endif
     printf(": ");
+#ifdef DOPROFILE
+    if (!strcmp(userinput,"r")) userinput = strdup("x");
+    if (!strcmp(userinput,"s")) userinput = strdup("r");
+    if (!strcmp(userinput,"...")) userinput = strdup("s");
+    printf("DOPROFILE\n");
+#else
     if (!scanf("%s",userinput)) printf("ERROR\n");
+#endif
 #endif
 #ifdef USE_CUDD
     printf("E[x]it or [r]eport or ");
@@ -353,8 +361,16 @@ int main(int argc, char** argv) {
 #else
     printf("Sifting ");
 #endif
-    printf("on [s]ystem: ");
+    printf("on [s]ystem");
+    printf(": ");
+#ifdef DOPROFILE
+    if (!strcmp(userinput,"r")) userinput = strdup("x");
+    if (!strcmp(userinput,"s")) userinput = strdup("r");
+    if (!strcmp(userinput,"...")) userinput = strdup("s");
+    printf("DOPROFILE\n");
+#else
     if (!scanf("%s",userinput)) printf("ERROR\n");
+#endif
 #endif
   }
 
@@ -418,6 +434,7 @@ static Biddy_Edge calculateIndependence(unsigned int size, Biddy_Edge *state, Bi
     tmp = Biddy_Or(r,p);
 #ifdef USE_BIDDY
     Biddy_AddTmpFormula(tmp,1);
+    Biddy_Clean();
 #endif
 #ifdef USE_CUDD
     Cudd_Ref(tmp);
@@ -427,11 +444,11 @@ static Biddy_Edge calculateIndependence(unsigned int size, Biddy_Edge *state, Bi
 #endif
     r = tmp;
 #ifdef USE_BIDDY
-    /* Biddy_PurgeAndReorder(r); */
-    Biddy_Clean();
+    /* Biddy_Sifting(NULL,FALSE); */
+    /* Biddy_Sifting(r,FALSE); */
 #endif
   }
-  return Biddy_Not(r);
+  return Biddy_Inv(r);
 }
 
 /* CALCULATE KERNELS (MAXIMUM INDEPENDENCE SETS) */
@@ -451,6 +468,7 @@ static Biddy_Edge calculateKernels(unsigned int size, Biddy_Edge *state, Biddy_E
     tmp = Biddy_Or(r,p);
 #ifdef USE_BIDDY
     Biddy_AddTmpFormula(tmp,1);
+    Biddy_Clean();
 #endif
 #ifdef USE_CUDD
     Cudd_Ref(tmp);
@@ -460,11 +478,11 @@ static Biddy_Edge calculateKernels(unsigned int size, Biddy_Edge *state, Biddy_E
 #endif
     r = tmp;
 #ifdef USE_BIDDY
-    /* Biddy_PurgeAndReorder(NULL); */
-    Biddy_Clean();
+    /* Biddy_Sifting(NULL,FALSE); */
+    /* Biddy_Sifting(r,FALSE); */
 #endif
   }
-  return Biddy_Not(r);
+  return Biddy_Inv(r);
 }
 
 static void writeOrder(Biddy_Edge f, char *codes, unsigned int *order, unsigned int size) {

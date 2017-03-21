@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddtraces-BIDDY.c]
-  Revision    [$Revision: 119 $]
-  Date        [$Date: 2015-12-24 10:59:37 +0100 (čet, 24 dec 2015) $]
+  Revision    [$Revision: 244 $]
+  Date        [$Date: 2017-02-14 23:23:32 +0100 (tor, 14 feb 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2015 UM-FERI
+               Copyright (C) 2008, 2017 UM-FERI
                UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
@@ -144,6 +144,7 @@ int SCAN_RESULT; /* used in readln macro */
 Biddy_String
 BddscoutRunBddTrace(FILE *f)
 {
+  Biddy_Manager MNG;
   Biddy_String report;
   Biddy_String line,line1,line2,line3,numline;
   Biddy_Boolean quote;
@@ -159,6 +160,8 @@ BddscoutRunBddTrace(FILE *f)
   int result,resultPlain,correct;
   clock_t startTime,endTime;
   double elapsedTime,statTime;
+
+  MNG = Bddscout_GetActiveManager();
 
   report = strdup("");
 
@@ -218,7 +221,7 @@ BddscoutRunBddTrace(FILE *f)
       printf("VARIABLE: <%s>\n",var);
 #endif
 
-      bdd = Biddy_FoaVariable(var);
+      bdd = Biddy_Managed_AddVariableByName(MNG,var); /* PROBABLY NOT CORRECT FOR ZBDDs AND ZFDDs! */
 
       n = getNumber(var);
       if (varnum <= n) {
@@ -354,9 +357,9 @@ BddscoutRunBddTrace(FILE *f)
         } else if (!strncmp("lv_",op1,3)) {
           bdd1 = lvarlist[getNumber(op1)];
         } else if (!strcmp("false",op1)) {
-          bdd1 = Biddy_GetConstantZero();
+          bdd1 = Biddy_Managed_GetConstantZero(MNG);
         } else if (!strcmp("true",op1)) {
-          bdd1 = Biddy_GetConstantOne();
+          bdd1 = Biddy_Managed_GetConstantOne(MNG);
         } else {
           bdd1 = BDDNULL;
           printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -367,9 +370,9 @@ BddscoutRunBddTrace(FILE *f)
         } else if (!strncmp("lv_",op2,3)) {
           bdd2 = lvarlist[getNumber(op2)];
         } else if (!strcmp("false",op2)) {
-          bdd2 = Biddy_GetConstantZero();
+          bdd2 = Biddy_Managed_GetConstantZero(MNG);
         } else if (!strcmp("true",op2)) {
-          bdd2 = Biddy_GetConstantOne();
+          bdd2 = Biddy_Managed_GetConstantOne(MNG);
         } else {
           bdd2 = BDDNULL;
           printf(" ERROR! WRONG VARIABLE NAME <%s>",op2);
@@ -451,7 +454,7 @@ BddscoutRunBddTrace(FILE *f)
             startTime = clock();
 
             if (s1[strlen(T_NEW_INT_LEAF_OP)+1] == '0') {
-              bdd = Biddy_GetConstantZero();
+              bdd = Biddy_Managed_GetConstantZero(MNG);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -461,7 +464,7 @@ BddscoutRunBddTrace(FILE *f)
 #endif
 
             } else if (s1[strlen(T_NEW_INT_LEAF_OP)+1] == '1') {
-              bdd = Biddy_GetConstantOne();
+              bdd = Biddy_Managed_GetConstantOne(MNG);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -485,8 +488,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -511,9 +514,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -524,9 +527,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op2,3)) {
               bdd2 = lvarlist[getNumber(op2)];
             } else if (!strcmp("false",op2)) {
-              bdd2 = Biddy_GetConstantZero();
+              bdd2 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op2)) {
-              bdd2 = Biddy_GetConstantOne();
+              bdd2 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd2 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op2);
@@ -537,9 +540,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op3,3)) {
               bdd3 = lvarlist[getNumber(op3)];
             } else if (!strcmp("false",op3)) {
-              bdd3 = Biddy_GetConstantZero();
+              bdd3 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op3)) {
-              bdd3 = Biddy_GetConstantOne();
+              bdd3 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd3 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op3);
@@ -549,7 +552,7 @@ BddscoutRunBddTrace(FILE *f)
 
             if ((bdd1 != BDDNULL) && (bdd2 != BDDNULL) && (bdd3 != BDDNULL))
             {
-              bdd = Biddy_ITE(bdd1,bdd2,bdd3);
+              bdd = Biddy_Managed_ITE(MNG,bdd1,bdd2,bdd3);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -570,8 +573,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -588,9 +591,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -602,7 +605,7 @@ BddscoutRunBddTrace(FILE *f)
             {
               bdd = bdd1;
               for (i=0;i<varnum;i=i+2) {
-                bdd = Biddy_Compose(bdd,Biddy_GetTopVariable(varlist[i]),varlist[i+1]);
+                bdd = Biddy_Managed_Compose(MNG,bdd,varlist[i+1],Biddy_Managed_GetTopVariable(MNG,varlist[i]));
               }
               if (n != -1) {
                 lvarlist[n] = bdd;
@@ -622,8 +625,8 @@ BddscoutRunBddTrace(FILE *f)
             
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -640,9 +643,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -654,7 +657,7 @@ BddscoutRunBddTrace(FILE *f)
             {
               bdd = bdd1;
               for (i=0;i<varnum;i=i+2) {
-                bdd = Biddy_Compose(bdd,Biddy_GetTopVariable(varlist[i+1]),varlist[i]);
+                bdd = Biddy_Managed_Compose(MNG,bdd,varlist[i],Biddy_Managed_GetTopVariable(MNG,varlist[i+1]));
               }
               if (n != -1) {
                 lvarlist[n] = bdd;
@@ -674,8 +677,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -692,9 +695,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -704,7 +707,7 @@ BddscoutRunBddTrace(FILE *f)
 
             if (bdd1 != BDDNULL)
             {
-              bdd = Biddy_Support(bdd1);
+              bdd = Biddy_Managed_Support(MNG,bdd1);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -723,8 +726,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -745,9 +748,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -758,9 +761,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op2,3)) {
               bdd2 = lvarlist[getNumber(op2)];
             } else if (!strcmp("false",op2)) {
-              bdd2 = Biddy_GetConstantZero();
+              bdd2 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op2)) {
-              bdd2 = Biddy_GetConstantOne();
+              bdd2 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd2 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op2);
@@ -770,7 +773,7 @@ BddscoutRunBddTrace(FILE *f)
 
             if ((bdd1 != BDDNULL) && (bdd2 != BDDNULL))
             {
-              bdd = Biddy_ExistAbstract(bdd1,bdd2);
+              bdd = Biddy_Managed_ExistAbstract(MNG,bdd1,bdd2);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -790,8 +793,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -808,9 +811,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -820,7 +823,7 @@ BddscoutRunBddTrace(FILE *f)
 
             if (bdd1 != BDDNULL)
             {
-              bdd = Biddy_Not(bdd1); /* Biddy_Not IS MACRO */
+              bdd = Biddy_Managed_Not(MNG,bdd1);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -839,8 +842,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -861,9 +864,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -874,9 +877,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op2,3)) {
               bdd2 = lvarlist[getNumber(op2)];
             } else if (!strcmp("false",op2)) {
-              bdd2 = Biddy_GetConstantZero();
+              bdd2 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op2)) {
-              bdd2 = Biddy_GetConstantOne();
+              bdd2 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd2 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op2);
@@ -886,7 +889,7 @@ BddscoutRunBddTrace(FILE *f)
 
             if ((bdd1 != BDDNULL) && (bdd2 != BDDNULL))
             {
-              bdd = Biddy_And(bdd1,bdd2);
+              bdd = Biddy_Managed_And(MNG,bdd1,bdd2);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -906,8 +909,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -928,9 +931,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -941,9 +944,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op2,3)) {
               bdd2 = lvarlist[getNumber(op2)];
             } else if (!strcmp("false",op2)) {
-              bdd2 = Biddy_GetConstantZero();
+              bdd2 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op2)) {
-              bdd2 = Biddy_GetConstantOne();
+              bdd2 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd2 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op2);
@@ -953,7 +956,7 @@ BddscoutRunBddTrace(FILE *f)
 
             if ((bdd1 != BDDNULL) && (bdd2 != BDDNULL))
             {
-              bdd = Biddy_Or(bdd1,bdd2);
+              bdd = Biddy_Managed_Or(MNG,bdd1,bdd2);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -973,8 +976,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -995,9 +998,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -1008,9 +1011,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op2,3)) {
               bdd2 = lvarlist[getNumber(op2)];
             } else if (!strcmp("false",op2)) {
-              bdd2 = Biddy_GetConstantZero();
+              bdd2 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op2)) {
-              bdd2 = Biddy_GetConstantOne();
+              bdd2 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd2 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op2);
@@ -1020,7 +1023,7 @@ BddscoutRunBddTrace(FILE *f)
 
             if ((bdd1 != BDDNULL) && (bdd2 != BDDNULL))
             {
-              bdd = Biddy_Xor(bdd1,bdd2);
+              bdd = Biddy_Managed_Xor(MNG,bdd1,bdd2);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -1040,8 +1043,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -1062,9 +1065,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -1075,9 +1078,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op2,3)) {
               bdd2 = lvarlist[getNumber(op2)];
             } else if (!strcmp("false",op2)) {
-              bdd2 = Biddy_GetConstantZero();
+              bdd2 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op2)) {
-              bdd2 = Biddy_GetConstantOne();
+              bdd2 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd2 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op2);
@@ -1087,7 +1090,7 @@ BddscoutRunBddTrace(FILE *f)
 
             if ((bdd1 != BDDNULL) && (bdd2 != BDDNULL))
             {
-              bdd = Biddy_Simplify(bdd1,bdd2);
+              bdd = Biddy_Managed_Simplify(MNG,bdd1,bdd2);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -1107,8 +1110,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -1133,9 +1136,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op1,3)) {
               bdd1 = lvarlist[getNumber(op1)];
             } else if (!strcmp("false",op1)) {
-              bdd1 = Biddy_GetConstantZero();
+              bdd1 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op1)) {
-              bdd1 = Biddy_GetConstantOne();
+              bdd1 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd1 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op1);
@@ -1146,9 +1149,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op2,3)) {
               bdd2 = lvarlist[getNumber(op2)];
             } else if (!strcmp("false",op2)) {
-              bdd2 = Biddy_GetConstantZero();
+              bdd2 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op2)) {
-              bdd2 = Biddy_GetConstantOne();
+              bdd2 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd2 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op2);
@@ -1159,9 +1162,9 @@ BddscoutRunBddTrace(FILE *f)
             } else if (!strncmp("lv_",op3,3)) {
               bdd3 = lvarlist[getNumber(op3)];
             } else if (!strcmp("false",op3)) {
-              bdd3 = Biddy_GetConstantZero();
+              bdd3 = Biddy_Managed_GetConstantZero(MNG);
             } else if (!strcmp("true",op3)) {
-              bdd3 = Biddy_GetConstantOne();
+              bdd3 = Biddy_Managed_GetConstantOne(MNG);
             } else {
               bdd3 = BDDNULL;
               printf(" ERROR! WRONG VARIABLE NAME <%s>",op3);
@@ -1174,12 +1177,12 @@ BddscoutRunBddTrace(FILE *f)
 
               /* DEBUGGING */
               /*
-              printf("Biddy_Managed_AndAbstract: Function f has %u nodes.\n",Biddy_NodeNumber(bdd2));
-              printf("Biddy_Managed_AndAbstract: Function g has %u nodes.\n",Biddy_NodeNumber(bdd3));
-              printf("Biddy_Managed_AndAbstract: Function cube has %u nodes.\n",Biddy_NodeNumber(bdd1));
+              printf("Biddy_Managed_AndAbstract: Function f has %u nodes.\n",Biddy_Managed_NodeNumber(MNG,bdd2));
+              printf("Biddy_Managed_AndAbstract: Function g has %u nodes.\n",Biddy_Managed_NodeNumber(MNG,bdd3));
+              printf("Biddy_Managed_AndAbstract: Function cube has %u nodes.\n",Biddy_Managed_NodeNumber(MNG,bdd1));
               */
 
-              bdd = Biddy_AndAbstract(bdd2,bdd3,bdd1);
+              bdd = Biddy_Managed_AndAbstract(MNG,bdd2,bdd3,bdd1);
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
@@ -1200,8 +1203,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_NodeNumber(bdd);
-            resultPlain = Biddy_NodeNumberPlain(bdd);
+            result = Biddy_Managed_NodeNumber(MNG,bdd);
+            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -1222,14 +1225,14 @@ BddscoutRunBddTrace(FILE *f)
           }
 
           /* SAVE IN FORMULA TABLE */
-          if (bdd != BDDNULL) Biddy_AddPersistentFormula(var,bdd);
+          if (bdd != BDDNULL) Biddy_Managed_AddPersistentFormula(MNG,var,bdd);
 
           /* DEBUGGING: REPORT ONE RESULT IN DOT FORMAT */
           /*
           if ((bdd != BDDNULL) &&
               ((n == 0) || (n == 0) || (n == 0)))
           {
-            Biddy_WriteDot(var,bdd,var);
+            Biddy_Managed_WriteDot(MNG,var,bdd,var);
           }
           */
 

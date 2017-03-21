@@ -9,7 +9,7 @@
     <ROW Property="ProductCode" Value="1033:{5BD6071F-76DC-4802-80E9-B1857C1540C4} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="BDD Scout"/>
-    <ROW Property="ProductVersion" Value="1.6" Type="32"/>
+    <ROW Property="ProductVersion" Value="1.7.1" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{7F6C1AD3-155E-4138-B41E-3F667E140D09}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -142,7 +142,7 @@
     <ROW File="ztwaalf2.be" Component_="IFIPEX" FileName="ztwaalf2.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\ztwaalf2.be" SelfReg="false" NextFile="alupla20.be"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="bddscout-1-6-Win" Languages="en" InstallationType="4" UseLargeSchema="true" MsiPackageType="x64"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="bddscout-1-7-1-Win" Languages="en" InstallationType="4" UseLargeSchema="true" MsiPackageType="x64"/>
     <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.CacheComponent">
@@ -195,7 +195,7 @@
     <ROW Dialog_="UserExit" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="The [ProductName] [Wizard] was interrupted" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.UserExit#Title" MsiKey="UserExit#Title"/>
     <ROW Dialog_="VerifyReadyDlg" Control="Description" Type="Text" X="25" Y="23" Width="304" Height="20" Attributes="196611" Text="The [Wizard] is ready to begin the BDD Scout installation" Order="800" TextLocId="Control.Text.VerifyReadyDlg#Description" MsiKey="VerifyReadyDlg#Description"/>
     <ROW Dialog_="WelcomeDlg" Control="Title" Type="Text" X="135" Y="20" Width="220" Height="16" Attributes="196611" Text="BDD Scout" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.WelcomeDlg#Title" MsiKey="WelcomeDlg#Title"/>
-    <ROW Dialog_="WelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="BDD Scout is a demo application demonstrating the capability of BDD package Biddy and Tcl/Tk viewer bddview." TextStyle="DlgFont8" Order="600" TextLocId="Control.Text.WelcomeDlg#Description" MsiKey="WelcomeDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="Description" Type="Text" X="135" Y="80" Width="220" Height="20" Attributes="196611" Text="BDD Scout is a demo application demonstrating the capability of BDD package Biddy and Tcl/Tk BDD viewer bddview." TextStyle="DlgFont8" Order="600" TextLocId="Control.Text.WelcomeDlg#Description" MsiKey="WelcomeDlg#Description"/>
     <ROW Dialog_="WelcomeDlg" Control="Text_1" Type="Text" X="135" Y="36" Width="220" Height="16" Attributes="65539" Property="TEXT_1_PROP" Text="Version [ProductVersion]" TextStyle="VerdanaBold13" Order="800"/>
     <ROW Dialog_="WelcomeDlg" Control="Text_2" Type="Text" X="135" Y="106" Width="220" Height="10" Attributes="65539" Property="TEXT_2_PROP" Text="This is free software. See GNU GPL (Version 2)." TextStyle="DlgFont8" Order="900"/>
     <ROW Dialog_="WelcomeDlg" Control="Text_3" Type="Text" X="135" Y="120" Width="220" Height="20" Attributes="65539" Property="TEXT_3_PROP" Text="You need ActiveTcl and graphviz installed on your computer. To start the program click bddscout.tcl in target folder." TextStyle="DlgFont8" Order="1000"/>

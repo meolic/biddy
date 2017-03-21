@@ -3,12 +3,12 @@ Section: math
 Priority: extra
 Maintainer: Robert Meolic <robert.meolic@um.si>
 Build-Depends: debhelper (>= 8.0.0), tcl-dev, tk-dev, libgmp-dev, libbiddy1-dev (>= 1.6)
-Standards-Version: 3.9.3
+Standards-Version: 3.9.7
 
 Package: bddscout
 Section: math
 Architecture: any
-Depends: tcl, tk, bwidget, libbiddy1 (>= 1.6), ${shlibs:Depends}, ${misc:Depends}
+Depends: tcl, tk, bwidget, libbiddy1 (>= 1.7), ${shlibs:Depends}, ${misc:Depends}
 Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  You can move nodes and subgraphs. The zoom-out capability allows you to
@@ -38,7 +38,7 @@ Package: bddscout-ifip
 Section: math
 Architecture: any
 Depends: bddscout (= ${binary:Version}), bddscout-ifip-data (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Description: Visualization of BDDs
+Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
  You can move nodes and subgraphs. The zoom-out capability allows you to
@@ -50,7 +50,7 @@ Package: bddscout-bddtraces
 Section: math
 Architecture: any
 Depends: bddscout (= ${binary:Version}), bddscout-bddtraces-data (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Description: Visualization of BDDs
+Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
  You can move nodes and subgraphs. The zoom-out capability allows you to
@@ -62,7 +62,7 @@ Package: bddscout-bra
 Section: math
 Architecture: any
 Depends: bddscout (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Description: Visualization of BDDs
+Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
  You can move nodes and subgraphs. The zoom-out capability allows you to

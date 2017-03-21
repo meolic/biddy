@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 128 $]
-#  Date        [$Date: 2015-12-31 20:51:37 +0100 (čet, 31 dec 2015) $]
+#  Revision    [$Revision: 258 $]
+#  Date        [$Date: 2017-03-20 22:40:37 +0100 (pon, 20 mar 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2015 UM-FERI
+#               Copyright (C) 2008, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 VERSION=`sed "" VERSION`
 NAME="bddscout"
 OS=`uname | sed "s/_.*//;s/[0-9]//g"`
+DISTRO=$(lsb_release --short --codename)
 
 mkdir -p "../distribution-bddscout"
 
@@ -79,7 +80,7 @@ cp debian/source/* "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"/de
 
 pushd "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 # change distribution name if needed
-dch -M --create --package "$NAME" -v "$VERSION" -D trusty
+dch -M --create --package "$NAME" -v "$VERSION" -D $DISTRO
 cp "debian/changelog" "../changelog.deb"
 popd
 

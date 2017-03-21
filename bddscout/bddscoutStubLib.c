@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutStubLib.c]
-  Revision    [$Revision: 78 $]
-  Date        [$Date: 2015-04-20 23:07:29 +0200 (pon, 20 apr 2015) $]
+  Revision    [$Revision: 226 $]
+  Date        [$Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description [Adapted from http://wiki.tcl.tk/3358]
   SeeAlso     [bddscout.h, bddscout.decls, bddscoutDecls.h, bddscoutStubInit.c]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2015 UM-FERI
+               Copyright (C) 2008, 2017 UM-FERI
                UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify

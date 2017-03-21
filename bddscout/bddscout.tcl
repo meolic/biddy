@@ -7,6 +7,9 @@ exec wish "$0" "$@"
 # exec /usr/bin/wish8.4-X11 "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
+# HELP ON Tcl/Tk + BWidget
+# http://docs.activestate.com/activetcl/8.6/full_toc.html
+
 # ####################################################################
 # OS specific settings
 #
@@ -62,11 +65,11 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 }
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 164 $]
-#  Date        [$Date: 2016-06-19 18:26:23 +0200 (ned, 19 jun 2016) $]
+#  Revision    [$Revision: 251 $]
+#  Date        [$Date: 2017-03-01 21:34:41 +0100 (sre, 01 mar 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2015 UM-FERI
+#               Copyright (C) 2008, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
@@ -154,16 +157,96 @@ lappend auto_path .
 lappend auto_path /usr/lib/bddscout
 
 # ####################################################################
+# Show splash screen
+# ####################################################################
+
+wm withdraw .
+toplevel .splash
+frame .splash.f -width 600 -height 400 -bg WHITE
+pack propagate .splash.f 0
+wm geometry .splash +[expr {([winfo screenwidth .]-600)/2}]+[expr {([winfo screenheight .]-400)/2}]
+wm attributes .splash -topmost yes
+wm overrideredirect .splash 1
+update idletasks
+
+set SPLASHTEXT ""
+label .splash.f.l -text "BDD Scout v1.7" -font [list TkHeadingFont 36] -fg WHITE -bg BLACK
+pack .splash.f.l -expand 1
+label .splash.f.m1 -text "Copyright (C) 2008, 2017 UM-FERI" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
+pack .splash.f.m1 -fill x -expand 0
+label .splash.f.m2 -text "Robert Meolic (robert.meolic@um.si)" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
+pack .splash.f.m2 -fill x -expand 0
+label .splash.f.m3 -text "This is free software!" -font [list TkFixedFont 12 bold] -fg BLACK -bg WHITE
+pack .splash.f.m3 -fill x -expand 0
+label .splash.f.t -textvariable SPLASHTEXT -font [list TkCaptionFont 12] -fg BLACK -bg WHITE
+pack .splash.f.t -fill x -expand 1
+pack .splash.f -expand 1
+update idletasks
+
+# ####################################################################
 # Start Bdd View script
 # ####################################################################
 
 package require bddview
+wm iconify .
+wm title . "BDD Scout v1.7"
+wm iconname . "bddscout"
+update idletasks
+
+# ####################################################################
+# Create and add new window (Input Boolean function)
+# ####################################################################
+
+set INPUT ""
+set inputwin [frame $verticalwindow.inputline -relief flat -highlightthickness 1 -highlightcolor gray80 -bg $COLORBG]
+$verticalwindow add $inputwin -after $horizontalwindow -height 32 -stretch never
+label $inputwin.label -text "Boolean expression (infix +*~^>< format):" -font [list $FONTINFO 10] -relief flat -bg $COLORBG
+entry $inputwin.entry -font [list $FONTLABEL 10] -relief solid -bd 1 -bg $COLORBG -exportselection yes -textvariable INPUT
+pack $inputwin.label -side left -fill y -expand no -padx 2 
+pack $inputwin.entry -side right -fill x -expand yes -padx 2
+bind $inputwin.entry <Return> {parseinput}
+update idletasks
+
+# ####################################################################
+# Create and add new window (Select Boolean function)
+# ####################################################################
+
+set selectwin [frame $mainframe.verticalwindow.horizontalwindow.form -relief flat -highlightthickness 1 -highlightcolor gray80 -bg $COLORBG]
+$mainframe.verticalwindow.horizontalwindow add $selectwin -before $mainwin -width 300 -stretch never
+Tree $selectwin.browser -relief flat -highlightthickness 0 -bg $COLORBG -deltay 24 -selectcommand changeform
+pack $selectwin.browser -fill both -expand yes -padx 0 -pady 0
+update idletasks
+
+# ####################################################################
+# Create and add new window (Variables)
+# ####################################################################
+
+set varwin [frame $mainframe.verticalwindow.horizontalwindow.var -relief flat -highlightthickness 1 -highlightcolor gray80 -bg $COLORBG]
+$mainframe.verticalwindow.horizontalwindow add $varwin -after $mainwin -width 120 -stretch never
+ListBox $varwin.browser -multicolumn no -selectmode none -relief flat -highlightthickness 0 -fg $COLORFG -bg $COLORBG -deltay 24
+pack $varwin.browser -fill both -expand yes -padx 0 -pady 0
+update idletasks
+
+$varwin.browser bindImage <ButtonPress-1> swapwithhigher
+$varwin.browser bindText <Double-Button-1> swapwithhigher
+$varwin.browser bindText <Double-Button-3> swapwithlower
 
 # ####################################################################
 # Load functions written in C
 # ####################################################################
 
-puts -nonewline "Importing BDD Scout library ... "
+after 800
+set SPLASHTEXT "Importing BDD Scout library... "
+update idletasks
+after 400
+.splash.f configure -bg $COLORBG
+.splash.f.m1 configure -fg BLACK -bg $COLORBG
+.splash.f.m2 configure -fg BLACK -bg $COLORBG
+.splash.f.m3 configure -fg BLACK -bg $COLORBG
+.splash.f.t configure -fg BLACK -bg $COLORBG
+update idletasks
+
+puts -nonewline "Importing BDD Scout library... "
 package require bddscout-lib
 bddscout_initPkg
 puts "OK"
@@ -171,18 +254,78 @@ puts "OK"
 # ####################################################################
 # Add new butons to the toolbar
 #
-# IMAGES FOR TOOLBAR ICONS ARE BASE64 ENCODED GIFS (32x32)
+# IMAGES FOR TOOLBAR ICONS ARE BASE64 ENCODED GIFS
 #
-# Images are from Crystal Project by Everaldo Coelho
+# Some images are from Crystal Project by Everaldo Coelho
 #
 # Obtained from:
-# http://www.everaldo.com/crystal/
+# http://www.iconarchive.com/show/crystal-clear-icons-by-everaldo.html
 #
 # License: LGPL
 #
 # --------------------------------------------------------------------
 #
+# Some images are from 
+#
+# Obtained from: iOS 7 Icons Project
+# http://www.iconarchive.com/show/ios7-icons-by-icons8.html
+#
+# License: Linkware (Backlink to http://icons8.com required)
+#
+# Details:
+#
+# The icons are free for personal use and also free for commercial use,
+# but we require linking to our web site.
+# We distribute them under the license called
+# Creative Commons Attribution-NoDerivs 3.0 Unported.
+#
+# --------------------------------------------------------------------
+#
+# Some images are from Boomy toolbar icon set by Milosz Wlazlo
+#
+# Obtained from:
+# http://www.iconarchive.com/category/application/boomy-icons-by-milosz-wlazlo.html
+#
+# License: Free for non-commercial use
+#
+# Details:
+# All icons in the Boomy toolbar package are for personal use only.
+# You may also use the icons in open source and freeware projects as
+# long as you give credits to the author of the icons and link to his
+# website (miloszwl.deviantart.com).
+#
+# The image data may be changed by You in a limited way, only by
+# combining the included icons and adjusting hue, saturation, brightness.
+#
+# --------------------------------------------------------------------
+#
 # ####################################################################
+
+set iconNew {
+R0lGODlhIAAgAPYAAH1VAIBXAIVbAIpeAI1jAZFmAJVqAZtuAJRsCZ1wAZ51
+DKJ0AKh3AKd4AKx8AKR6C7B/AKF6Ea+BAq6FDrODAbmHAL2KAKyEE7SLErqP
+ErWPG76WFraRHL6XHL6YH76YIMKOAMWTAsmVAMeaCsOdHMyjFtWsHMKeJMei
+JMmkJM6pI8OjLcqmKM2rLNGsJdGtK9eyJti2K9y4LcSlMta1Mt28NN2+Ot/B
+PeXBMeHCPdK2QNq9Qt/DS93EUeLFQuTJR+jLROXLS+jOS+vST+XNUuTNWufR
+VenSVOfTWenVW+vZX+rWY+zbZO3dafDfcO/hbfHgZfDibe/icfHkc/PodfHl
+evTrfPfxfvHkgfbugfXqj/fxg/nzhfr1ivz7jfTrkvfxpPv2o/78oPr1q///
+rfz6tv/+uv37wv/+zf/+0///3P//4v//9f///wAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAG4A
+LAAAAAAgACAAAAf+gG6Cg4SFhoeIiRUUEA4NCwsJiZNuIBYWixQUEhIOCweg
+lIUiICAjKjY9Ras9PDYkCQcGooIiIjBIWmNnaWlqv2hmVRgGxaIhIT9gamxs
+a2dgWlVMS0tOHMUFBZQgMWVtbWlhWU5QSkVEPz4/F8UGBASJFiBLbG1mXVdX
+U1FMSkfphjxwB0/RCDBt0Hjxko9fEyVIhhBBEgHegAEEBCCqUMIMmzBcumy5
+QqUfxCNHlNCYseIEhowbaaRZs6VmFir8mCRBgiSJEn9HgJC4eKgChB1pzkyx
+YoWfSSRGeP5ccsTHhQEbKfRQAyZKlClSnlDjeQTJEiZokeRQoPEQoyL+ar4w
+gQIFLUSJQ46gbUKVBoK2hig4KLIGi08lJ4kQCRIkZZMmTIawKID1UCciapoM
+4TlEYpAfjIn8hDzkxADAhRrxSJMENOPPPmL7CJKEycMhHACgJuSAAQ80RnL8
+UBf7xg0bs5HY/sdBwO5BnnacIWK8+PHjyW0zOfJBAABEDBa8IBOkxo0cN4rL
+Fv2k/ZEWpxFBSiGmiPl1oF2LZiIFrJIbCHx3CCQbdLFEDfopxtNZUlSRRRVN
+BHEBAAIW8gkFYCEYxERSndXEUg9KgUQKFB4SywJHVFFDaAChZBYTTyxVhYgy
+BIhIAgmwcEUNwjE2nBBEbPYTXVTVoECJhshpQgEUP8hQgwwuoNCBBhp4gEIL
+PgCZDg4TIFmIAbKQcEMJGTxwAAIFwKMmAhFwkIILJhwZQACHuBOJNgTgSQBG
+3gEQAAAEBDgnnYZko82haarpnHN/UujnnIgguk0ig1Y6SZ60ZKpppoEAADs=
+}
 
 set iconBitmap {
 R0lGODlhIAAgAOf/AAACAAMABQADBgIHFwAPAAUNAAoQEgAZAxwOFQ0aABcV
@@ -259,25 +402,236 @@ L8RIwxlCMiRyxAsQHOHJJXzkogkknlDiiSg33wxLLjJ81EIiglwCySWeNMLH
 guAUuVCR4BJFRBEKK2ikwkeQR/5RQAA7
 }
 
+set iconUp {
+R0lGODlhEAAQAIABAAAAAP///yH5BAEKAAEALAAAAAAQABAAAAIajI+py+0P
+GwCRBisRVtt0z3SfdoyJGaWqWgAAOw==
+}
+
+set iconDown {
+R0lGODlhEAAQAIABAAAAAP///yH5BAEKAAEALAAAAAAQABAAAAIZjI+py+0O
+XoiGMlvvwlkfrlDgNkrmiaZOAQA7
+}
+
+image create photo icon.new.small
+icon.new.small put $iconNew
+
 image create photo icon.bitmap.small
 icon.bitmap.small put $iconBitmap
 
 image create photo icon.pdf.small
 icon.pdf.small put $iconPdf
 
+image create photo icon.up
+icon.up put $iconUp
+
+image create photo icon.down
+icon.down put $iconDown
+
+$bb0 insert 0 -image icon.new.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -helptext "Clear" -command {clear}
+
 set ts1 [Separator $toolbar.ts1 -bg $COLORMENU -orient vertical]
 pack $ts1 -side left -fill y -padx 6 -anchor w
 
 set tb1 [ButtonBox $toolbar.tb1 -bg $COLORMENU -homogeneous 0 -spacing 2 -padx 1 -pady 1]
+
 $tb1 add -image icon.bitmap.$toolbarsize \
-    -highlightthickness 0 -takefocus 0 -relief link -borderwidth 2 -padx 1 -pady 1 \
+    -takefocus 0 -relief flat -borderwidth 0 \
     -helptext "Export to PNG" -command {bddscout_bitmap $mainwin png png16m}
 
 $tb1 add -image icon.pdf.$toolbarsize \
-    -highlightthickness 0 -takefocus 0 -relief link -borderwidth 2 -padx 1 -pady 1 \
+    -takefocus 0 -relief flat -borderwidth 0 \
     -helptext "Export to PDF" -command {bddscout_bitmap $mainwin pdf pdfwrite}
 
 pack $tb1 -side left -anchor w
+
+# ####################################################################
+# Change and convert BDD type
+# ####################################################################
+
+set ACTIVEBDDTYPE ""
+
+if {($OS == "unix")} {
+  frame $toolbar.type -width 180 -height 32 -bg $COLORMENU
+}
+if {($OS == "windows")} {
+  frame $toolbar.type -width 188 -height 32 -bg $COLORMENU
+}
+if {($OS == "Darwin")} {
+  frame $toolbar.type -width 180 -height 32 -bg $COLORMENU
+}
+
+pack propagate $toolbar.type 0
+set bddtype [tk_optionMenu $toolbar.type.menu BDDTYPE \
+    "ROBDD with CE" \
+    "ZBDD with CE" \
+    "TZBDD" \
+]
+$bddtype entryconfigure 0 -command {changetype "BIDDYTYPEOBDD"}
+$bddtype entryconfigure 1 -command {changetype "BIDDYTYPEZBDD"}
+$bddtype entryconfigure 2 -command {changetype "BIDDYTYPETZBDD"}
+
+if {($OS == "unix")} {
+  $toolbar.type.menu configure -relief flat -bd 0 -fg black -bg $COLORMENU \
+      -highlightbackground black -highlightthickness 1\
+      -activebackground $COLORMENU -font [list TkHeadingFont 12]
+  $bddtype configure -relief flat -bd 0 -font [list TkHeadingFont 10] \
+      -fg black -bg $COLORMENU -activeforeground black -activebackground $COLORGRID
+}
+if {($OS == "windows")} {
+  $toolbar.type.menu configure -relief flat -bd 0 -fg black -bg $COLORMENU \
+      -highlightbackground black -highlightthickness 1\
+      -activebackground $COLORMENU -font [list TkHeadingFont 9]
+  $bddtype configure -relief flat -bd 0 -font [list TkHeadingFont 9] \
+      -fg black -bg $COLORMENU -activeforeground black -activebackground $COLORGRID
+}
+if {($OS == "Darwin")} {
+  $toolbar.type.menu configure -relief flat -bd 0 -fg black -bg $COLORMENU \
+      -highlightbackground black -highlightthickness 1\
+      -activebackground $COLORMENU -font [list TkHeadingFont 12]
+  $bddtype configure -relief flat -bd 0 -font [list TkHeadingFont 10] \
+      -fg black -bg $COLORMENU -activeforeground black -activebackground $COLORGRID
+}
+
+pack $toolbar.type.menu -fill both -expand yes -padx 4
+pack $toolbar.type -side left -anchor w -before $bb0
+
+proc bddtypeUp {} {
+  global BDDTYPE
+  global BDDNAME
+  global bddtype
+
+  set type -1
+  if {$BDDTYPE == "ROBDD with CE"} {
+    set type 0
+  } elseif {$BDDTYPE == "ZBDD with CE"} {
+    set type 1
+  } elseif {$BDDTYPE == "TZBDD"} {
+    set type 2
+  }
+  while { $type != -1 } {
+    set type [expr $type - 1]
+    if { $type == 0 } {
+      if { [bddscout_checkFormula "BIDDYTYPEOBDD" $BDDNAME] == 1 } {
+        $bddtype invoke 0
+        set type -1
+      }
+    } elseif { $type == 1 } {
+      if { [bddscout_checkFormula "BIDDYTYPEZBDD" $BDDNAME] == 1 } {
+        $bddtype invoke 1
+        set type -1
+      }
+    } elseif { $type == 2 } {
+      # this is not possible
+    }
+  }
+}
+
+proc bddtypeDown {} {
+  global BDDTYPE
+  global BDDNAME
+  global bddtype
+
+  set type 3
+  if {$BDDTYPE == "ROBDD with CE"} {
+    set type 0
+  } elseif {$BDDTYPE == "ZBDD with CE"} {
+    set type 1
+  } elseif {$BDDTYPE == "TZBDD"} {
+    set type 2
+  }
+  while { $type != 3 } {
+    set type [expr $type + 1]
+    if { $type == 0 } {
+      # this is not possible
+    } elseif { $type == 1 } {
+      if { [bddscout_checkFormula "BIDDYTYPEZBDD" $BDDNAME] == 1 } {
+        $bddtype invoke 1
+        set type 3
+      }
+    } elseif { $type == 2 } {
+      if { [bddscout_checkFormula "BIDDYTYPETZBDD" $BDDNAME] == 1 } {
+        $bddtype invoke 2
+        set type 3
+      }
+    }
+  }
+}
+
+# necessary for GNU/Linux, not needed on MS Windows
+bind $toolbar.type.menu <4> {bddtypeUp}
+bind $toolbar.type.menu <5> {bddtypeDown}
+
+# necessary for MS Windows, not needed on GNU/Linux
+bind $toolbar.type.menu <MouseWheel> {
+  if {%D > 0} {bddtypeUp}
+  if {%D < 0} {bddtypeDown}
+}
+
+proc bddconvertUp {} {
+  global BDDTYPE
+  global bddtype
+
+  if {$BDDTYPE == "ROBDD with CE"} {
+  } elseif {$BDDTYPE == "ZBDD with CE"} {
+    converttype "BIDDYTYPEOBDD" false
+    $bddtype invoke 0
+  } elseif {$BDDTYPE == "TZBDD"} {
+    converttype "BIDDYTYPEZBDD" false
+    $bddtype invoke 1
+  }
+}
+
+proc bddconvertDown {} {
+  global BDDTYPE
+  global bddtype
+
+  if {$BDDTYPE == "ROBDD with CE"} {
+    converttype "BIDDYTYPEZBDD" false
+    $bddtype invoke 1
+  } elseif {$BDDTYPE == "ZBDD with CE"} {
+    converttype "BIDDYTYPETZBDD" false
+    $bddtype invoke 2
+  } elseif {$BDDTYPE == "TZBDD"} {
+  }
+}
+
+# necessary for GNU/Linux, not needed on MS Windows
+bind $toolbar.type.menu <Control-4> {bddconvertUp}
+bind $toolbar.type.menu <Control-5> {bddconvertDown}
+
+# necessary for MS Windows, not needed on GNU/Linux
+bind $toolbar.type.menu <Control-MouseWheel> {
+  if {%D > 0} {bddconvertUp}
+  if {%D < 0} {bddconvertDown}
+}
+
+set formulamenu [menu .formulamenu -tearoff false -relief solid -bd 1 -bg $COLORBG]
+$formulamenu add command
+$formulamenu add command
+$formulamenu add command
+
+$selectwin.browser bindText <ButtonPress-3> {showformulamenu %X %Y}
+
+proc showformulamenu { x y fname } {
+  global formulamenu
+  global BDDNAME
+  if {$fname == $BDDNAME} {
+    $formulamenu entryconfigure 0 -command {converttype "BIDDYTYPEOBDD" false}
+    $formulamenu entryconfigure 1 -command {converttype "BIDDYTYPEZBDD" false}
+    $formulamenu entryconfigure 2 -command {converttype "BIDDYTYPETZBDD" false}
+  } else {
+    set BDDNAME $fname
+    $formulamenu entryconfigure 0 -command {converttype "BIDDYTYPEOBDD" true}
+    $formulamenu entryconfigure 1 -command {converttype "BIDDYTYPEZBDD" true}
+    $formulamenu entryconfigure 2 -command {converttype "BIDDYTYPETZBDD" true}
+  }
+  $formulamenu entryconfigure 0 -label "Draw ROBDD with CE for $fname" -font [list TkHeadingFont 10]
+  $formulamenu entryconfigure 1 -label "Draw ZBDD with CE for $fname" -font [list TkHeadingFont 10]
+  $formulamenu entryconfigure 2 -label "Draw TZBDD for $fname" -font [list TkHeadingFont 10]
+  tk_popup $formulamenu [expr $x+16] [expr $y+8]
+}
 
 # ####################################################################
 # Create menus
@@ -300,7 +654,6 @@ menu .menuFrame.file.menu -font MENUFONT -relief groove -tearoff false
 .menuFrame.file.menu add separator
 .menuFrame.file.menu add command -command menu_file_read_BDD -label "Import BDD ..."
 .menuFrame.file.menu add command -command menu_file_read_BF -label "Import Boolean functions ..."
-.menuFrame.file.menu add command -command menu_file_read_GraphML -label "Import GraphML ..."
 .menuFrame.file.menu add separator
 .menuFrame.file.menu add command -command menu_file_write_BDD -label "Export BDD ..."
 .menuFrame.file.menu add separator
@@ -322,6 +675,8 @@ menu .menuFrame.view.menu -font MENUFONT -relief groove -tearoff false
 .menuFrame.view.menu add command -command menu_view_formulae_byNodeNumber -label "Browse by node number ..."
 .menuFrame.view.menu add command -command menu_view_formulae_byNodeMaxLevel -label "Browse by graph depth ..."
 .menuFrame.view.menu add command -command menu_view_formulae_byNodeAvgLevel -label "Browse by node avg depth ..."
+.menuFrame.view.menu add command -command menu_view_formulae_byPathNumber -label "Browse by path number ..."
+.menuFrame.view.menu add command -command menu_view_formulae_byMintermNumber -label "Browse by minterm number ..."
 
 # ####################################################################
 # Implement commands assigned to menu buttons
@@ -334,6 +689,7 @@ proc menu_file_open {  } {
   if {[string length $filename] != 0} {
     bddview_draw $filename
     constructBDD
+    update_info
 
     #remember last path
     cd [file dirname $filename]
@@ -379,7 +735,6 @@ proc constructBDD { } {
   }
 
   bddscout_constructBDD [llength $variables] [join $variables] [expr [llength $graph] -1] [join [join $graph]]
-  update_info
 }
 
 proc menu_file_read_BDD {  } {
@@ -390,14 +745,8 @@ proc menu_file_read_BDD {  } {
   if {[string length $filename] != 0} {
 
     set bdd [bddscout_readBDD $filename]
+    drawbdd $bdd
     update_info
-
-    set tmpfile "tmp.bddview"
-    if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_writeBDDview $bdd $tmpfile $DOT_EXE]
-      bddview_draw $tmpfile
-      file delete $tmpfile
-    }
 
     #remember last path
     cd [file dirname $filename]
@@ -413,26 +762,12 @@ proc menu_file_read_BF {  } {
   if {[string length $filename] != 0} {
 
     set bdd [bddscout_readBF $filename]
-    puts BDD
+    drawbdd $bdd
     update_info
-
-    set tmpfile "tmp.bddview"
-    if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_writeBDDview $bdd $tmpfile $DOT_EXE]
-      bddview_draw $tmpfile
-      file delete $tmpfile
-    }
 
     #remember last path
     cd [file dirname $filename]
   }
-
-}
-
-proc menu_file_read_GraphML {  } {
-  global mainwin
-
-  not_implemented_yet "GraphML is not supported, yet"
 
 }
 
@@ -447,82 +782,6 @@ proc menu_file_write_BDD {  } {
 
     #remember last path
     cd [file dirname $filename]
-  }
-}
-
-proc menu_view_formulae_byName {  } {
-  global DOT_EXE
-  global OS
-
-  if {[file executable $DOT_EXE] != 1} {
-    not_implemented_yet "Cannot run dot from Graphviz ($DOT_EXE)"
-    return
-  }
-
-  set fname [browse_formulae_byName]
-
-  if {$fname != ""} {
-    set tmpfile "tmp.bddview"
-    set tmpfile [bddscout_writeBDDview $fname $tmpfile $DOT_EXE]
-    bddview_draw $tmpfile
-    file delete $tmpfile
-  }
-}
-
-proc menu_view_formulae_byNodeNumber {  } {
-  global DOT_EXE
-  global OS
-
-  if {[file executable $DOT_EXE] != 1} {
-    not_implemented_yet "Cannot run dot from Graphviz ($DOT_EXE)"
-    return
-  }
-
-  set fname [browse_formulae_byNodeNumber]
-
-  if {$fname != ""} {
-    set tmpfile "tmp.bddview"
-    set tmpfile [bddscout_writeBDDview $fname $tmpfile $DOT_EXE]
-    bddview_draw $tmpfile
-    file delete $tmpfile
-  }
-}
-
-proc menu_view_formulae_byNodeMaxLevel {  } {
-  global DOT_EXE
-  global OS
-
-  if {[file executable $DOT_EXE] != 1} {
-    not_implemented_yet "Cannot run dot from Graphviz ($DOT_EXE)"
-    return
-  }
-
-  set fname [browse_formulae_byNodeMaxLevel]
-
-  if {$fname != ""} {
-    set tmpfile "tmp.bddview"
-    set tmpfile [bddscout_writeBDDview $fname $tmpfile $DOT_EXE]
-    bddview_draw $tmpfile
-    file delete $tmpfile
-  }
-}
-
-proc menu_view_formulae_byNodeAvgLevel {  } {
-  global DOT_EXE
-  global OS
-
-  if {[file executable $DOT_EXE] != 1} {
-    not_implemented_yet "Cannot run dot from Graphviz ($DOT_EXE)"
-    return
-  }
-
-  set fname [browse_formulae_byNodeAvgLevel]
-
-  if {$fname != ""} {
-    set tmpfile "tmp.bddview"
-    set tmpfile [bddscout_writeBDDview $fname $tmpfile $DOT_EXE]
-    bddview_draw $tmpfile
-    file delete $tmpfile
   }
 }
 
@@ -581,13 +840,207 @@ proc menu_system_info {  } {
 # ###############################################################
 # ###############################################################
 
-proc addTree {mylist t root} {
+proc clear { } {
+  bddview_clear
+  bddscout_exitPkg
+  bddscout_initPkg
+  drawbdd "0"
+  update_info
+}
+
+proc changetype { t } {
+  global BDDNAME
+  global ACTIVEBDDTYPE
+
+  if {$t != $ACTIVEBDDTYPE} {
+    # puts "CHANGE TYPE TO $t AND CHECK/DRAW $BDDNAME"
+    bddscout_changeBddType $t
+    set ACTIVEBDDTYPE $t
+    if { ($BDDNAME == "") || ([bddscout_checkFormula $ACTIVEBDDTYPE $BDDNAME] == 0) } {
+     set BDDNAME "0"
+    }
+    drawbdd $BDDNAME
+    update_info
+  }
+}
+
+proc changeform { t fname } {
+  global BDDNAME
+
+  if {$fname != $BDDNAME} {
+    drawbdd $fname
+  }
+}
+
+proc converttype { t fchange} {
+  global BDDNAME
+  global ACTIVEBDDTYPE
+  global bddtype
+
+  if {$t == $ACTIVEBDDTYPE} {
+    if {$fchange == true} {
+      if { [bddscout_checkFormula $ACTIVEBDDTYPE $BDDNAME] == false } {
+        puts "Formula $BDDNAME does not exist!"
+      } else {
+        drawbdd $BDDNAME
+        update_info
+      }
+    }
+  } else {
+    if { [bddscout_checkFormula $t $BDDNAME] == 0 } {
+      # puts "COPY $BDDNAME TO $t"
+      bddscout_copyFormula $BDDNAME $ACTIVEBDDTYPE $t
+    }
+    if {$t == "BIDDYTYPEOBDD"} {$bddtype invoke 0}
+    if {$t == "BIDDYTYPEZBDD"} {$bddtype invoke 1}
+    if {$t == "BIDDYTYPETZBDD"} {$bddtype invoke 2}
+  }
+}
+
+proc parseinput { } {
+  global INPUT
+
+  if {$INPUT != ""} {
+    set name [bddscout_parseInfixInput $INPUT]
+    if {$name != ""} {
+      drawbdd $name
+      update_info
+    }
+  }
+  set INPUT ""
+}
+
+proc drawbdd {fname} {
+  global DOT_EXE
+  global OS
+
+  if {[file executable $DOT_EXE] != 1} {
+    not_implemented_yet "Cannot run dot from Graphviz ($DOT_EXE)"
+    return
+  }
+
+  set fname [lindex $fname 0]
+
+  if {$fname != ""} {
+    set tmpfile "tmp.bddview"
+    set tmpfile [bddscout_writeBDDview $fname $tmpfile $DOT_EXE]
+    bddview_draw $tmpfile
+    file delete $tmpfile
+  }
+}
+
+proc swapwithlower {varname} {
+  global BDDNAME
+
+  if {$varname == ".c."} {set varname "c"}
+  set varname [string map {".AND." "&"} $varname]
+  bddscout_swap_with_lower $varname
+  drawbdd $BDDNAME
+  update_info
+}
+
+proc swapwithhigher {varname} {
+  global BDDNAME
+
+  if {$varname == ".c."} {set varname "c"}
+  set varname [string map {".AND." "&"} $varname]
+  bddscout_swap_with_higher $varname
+  drawbdd $BDDNAME
+  update_info
+}
+
+proc menu_view_formulae_byName {  } {
+  global selectwin
+
+  set fname [browse_formulae_byName]
+  if {$fname != ""} {
+    $selectwin.browser selection clear
+    drawbdd $fname
+  }
+}
+
+proc menu_view_formulae_byNodeNumber {  } {
+  global selectwin
+
+  set fname [browse_formulae_byNodeNumber]
+  if {$fname != ""} {
+    $selectwin.browser selection clear
+    drawbdd $fname
+  }
+}
+
+proc menu_view_formulae_byNodeMaxLevel {  } {
+  global selectwin
+
+  set fname [browse_formulae_byNodeMaxLevel]
+  if {$fname != ""} {
+    $selectwin.browser selection clear
+    drawbdd $fname
+  }
+}
+
+proc menu_view_formulae_byNodeAvgLevel {  } {
+  global selectwin
+
+  set fname [browse_formulae_byNodeAvgLevel]
+  if {$fname != ""} {
+    $selectwin.browser selection clear
+    drawbdd $fname
+  }
+}
+
+proc menu_view_formulae_byPathNumber {  } {
+  global selectwin
+
+  set fname [browse_formulae_byPathNumber]
+  if {$fname != ""} {
+    $selectwin.browser selection clear
+    drawbdd $fname
+  }
+}
+
+proc menu_view_formulae_byMintermNumber {  } {
+  global selectwin
+
+  set fname [browse_formulae_byMintermNumber]
+  if {$fname != ""} {
+    $selectwin.browser selection clear
+    drawbdd $fname
+  }
+}
+
+# ###############################################################
+# ###############################################################
+# ###############################################################
+
+proc addList {mylist t root} {
+  global icon.edit.small
+  global FONTLABEL
+
   set first [lindex $mylist 0]
-  if { [llength $first] == 1 } {
+  while { [llength $first] == 1 } {
+    set nameX [join $first]
+    if {$nameX == "c"} {set nameX ".c."}
+    set nameX [string map {"&" ".AND."} $nameX]
+    $t insert end $nameX -text [join $first] -font [list $FONTLABEL 10] -image icon.down
+    set mylist [lrange $mylist 1 end]
+    set first [lindex $mylist 0]
+  }
+}
+
+proc addTree {mylist t root} {
+  global FONTLABEL
+  global formulamenu
+  
+  set first [lindex $mylist 0]
+  while { [llength $first] == 1 } {
     set nameX [string map {"&" ".AND."} [join $first]]
-    $t insert end $root $nameX -text [join $first]
-    addTree [lrange $mylist 1 end] $t $root
-  } elseif { [llength $first] > 1 } {
+    $t insert end $root $nameX -text [join $first] -font [list $FONTLABEL 10]
+    set mylist [lrange $mylist 1 end]
+    set first [lindex $mylist 0]
+  }
+
+  if { [llength $first] > 0 } {
 
     set firstname [lindex $first 0]
     while {[llength $firstname] > 1} {
@@ -603,7 +1056,8 @@ proc addTree {mylist t root} {
 
     set nameX [string map {"&" ".AND."} "$firstname.$lastname"]
 
-    $t insert end $root $nameX -text "$firstname ... $lastname" -fill darkblue
+#   $t insert end $root $nameX -text "$firstname ... $lastname" -fill darkblue -font [list $FONTLABEL 10]
+    $t insert end $root $nameX -text "$firstname..." -fill darkblue -font [list $FONTLABEL 10]
     addTree $first $t $nameX
     addTree [lrange $mylist 1 end] $t $root
   }
@@ -621,7 +1075,7 @@ proc createTree {f list} {
     set n [llength $list]
   }
 
-  Tree $f.tree
+  Tree $f.tree -deltay 24
 
   if {$list != ""} {
     addTree $list $f.tree root
@@ -684,7 +1138,6 @@ proc browse_variables_byName {  } {
 # ###############################################################
 # ###############################################################
 # ###############################################################
-
 
 proc browse_formulae_byName {  } {
   toplevel .dialog
@@ -874,13 +1327,128 @@ proc browse_formulae_byNodeAvgLevel {  } {
   return $fname
 }
 
+proc browse_formulae_byPathNumber {  } {
+  toplevel .dialog
+  wm title .dialog "Browse formulae by path number"
+  wm iconname .dialog "Browse formulae by path number"
+  wm geometry .dialog 640x480
+  grab set .dialog
+
+  global fname
+  set fname ""
+
+  frame .dialog.browseFormulaeByPathNumber -relief raised
+  pack .dialog.browseFormulaeByPathNumber -expand yes -fill both
+
+  set list [bddscout_listFormulaeByPathNumber]
+  createTree .dialog.browseFormulaeByPathNumber $list
+
+  set x [expr {([winfo screenwidth .]-800)/2}]
+  set y 60
+  wm geometry .dialog +$x+$y
+
+  frame .dialog.browseFormulaeByPathNumber.buttons -relief raised
+
+  button .dialog.browseFormulaeByPathNumber.buttons.view -borderwidth 2 -command {
+    global fname
+    set fname [.dialog.browseFormulaeByPathNumber.tree selection get]
+    if {$fname != ""} {
+      set fname [join $fname]
+      if {[.dialog.browseFormulaeByPathNumber.tree nodes $fname] == ""} {
+        set fname [string map {".AND." "&"} $fname]
+        set fname [string range $fname 0 [expr [string last "(" $fname] -1]]
+        destroy .dialog
+      }
+    }
+  } -relief raised -text "Select" -width 6
+  pack .dialog.browseFormulaeByPathNumber.buttons.view -padx 10 -side left
+
+  button .dialog.browseFormulaeByPathNumber.buttons.cancel -borderwidth 2 -command {
+    destroy .dialog
+  } -relief raised -text "Cancel" -width 6
+  pack .dialog.browseFormulaeByPathNumber.buttons.cancel -padx 10 -side right
+
+  pack .dialog.browseFormulaeByPathNumber.buttons
+
+  tkwait window .dialog
+  return $fname
+}
+
+proc browse_formulae_byMintermNumber {  } {
+  toplevel .dialog
+  wm title .dialog "Browse formulae by minterm number"
+  wm iconname .dialog "Browse formulae by minterm number"
+  wm geometry .dialog 640x480
+  grab set .dialog
+
+  global fname
+  set fname ""
+
+  frame .dialog.browseFormulaeByMintermNumber -relief raised
+  pack .dialog.browseFormulaeByMintermNumber -expand yes -fill both
+
+  set list [bddscout_listFormulaeByMintermNumber]
+  createTree .dialog.browseFormulaeByMintermNumber $list
+
+  set x [expr {([winfo screenwidth .]-800)/2}]
+  set y 60
+  wm geometry .dialog +$x+$y
+
+  frame .dialog.browseFormulaeByMintermNumber.buttons -relief raised
+
+  button .dialog.browseFormulaeByMintermNumber.buttons.view -borderwidth 2 -command {
+    global fname
+    set fname [.dialog.browseFormulaeByMintermNumber.tree selection get]
+    if {$fname != ""} {
+      set fname [join $fname]
+      if {[.dialog.browseFormulaeByMintermNumber.tree nodes $fname] == ""} {
+        set fname [string map {".AND." "&"} $fname]
+        set fname [string range $fname 0 [expr [string last "(" $fname] -1]]
+        destroy .dialog
+      }
+    }
+  } -relief raised -text "Select" -width 6
+  pack .dialog.browseFormulaeByMintermNumber.buttons.view -padx 10 -side left
+
+  button .dialog.browseFormulaeByMintermNumber.buttons.cancel -borderwidth 2 -command {
+    destroy .dialog
+  } -relief raised -text "Cancel" -width 6
+  pack .dialog.browseFormulaeByMintermNumber.buttons.cancel -padx 10 -side right
+
+  pack .dialog.browseFormulaeByMintermNumber.buttons
+
+  tkwait window .dialog
+  return $fname
+}
+
 proc update_info {  } {
+  global BDDNAME
+  global varwin
+  global selectwin
   global bddscoutINFO
   global biddyINFO
+
+  set listName [bddscout_listVariablesByOrder]
+  set num [llength $listName]
+
+  $varwin.browser delete [$varwin.browser items]
+  if {$num > 0} {
+    addList $listName $varwin.browser root
+  }
 
   set listName [bddscout_listFormulaeByName]
   set num [llength $listName]
 
+  $selectwin.browser delete [$selectwin.browser nodes root]
+  if {$num > 0} {
+    addTree $listName $selectwin.browser root
+  }
+
+  if { $BDDNAME != "" } {
+    $selectwin.browser selection set $BDDNAME
+    $selectwin.browser see $BDDNAME
+  }
+ 
   if {($num == 0) || ($num > 99)} {
     set maxnodes "-"
     set maxdepth "-"
@@ -1042,12 +1610,25 @@ if {[catch {package require bddscoutBDDTRACES} errid]} {
 # Final initialization
 # ####################################################################
 
-wm title . "BDD Scout"
-wm iconname . "bddscout"
+set ACTIVEBDDTYPE "BIDDYTYPEOBDD"
+
+wm deiconify .
+update
+
+if { $argc == 0 } {
+  drawbdd "0"
+} else {
+  constructBDD
+}
 
 update_info
 puts "Ready!"
 
-if { $argc != 0 } {
-  constructBDD
+after 200
+set SPLASHTEXT "READY!"
+
+after 500
+for {set a 1.} {$a>0.} {set a [expr $a-0.01]} {
+ wm attributes .splash -alpha $a; update idletasks; after 10
 }
+destroy .splash

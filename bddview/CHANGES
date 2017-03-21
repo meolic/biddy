@@ -1,7 +1,7 @@
 -------------------------------------------------------
 bddview is a part of EST 2nd Edition package since v5.0
 bddview is a part of BDD Scout package since v0.90
-bddview is a part of Biddy package since Nov 14, 2014
+bddview is a part of Biddy package since 2014
 -------------------------------------------------------
 
 bddview, version 0.9
@@ -29,3 +29,15 @@ Changes in 0.97
 Changes in 0.98
 - released on Apr 05, 2013
 - enabled mouse wheel
+
+Changes in 0.99
+- released on Oct 10, 2016
+- support for ZBDDs and ZFDDs
+- support for tagged ZBDDs and tagged ZFDDs
+- added example2.bddview and example3.bddview
+
+Changes in 1.0
+- released on Feb 14, 2017
+- enabled zoom with mouse wheel
+- added fullscreen option
+- added vertical and horizontal panedwindow elements to mainwindow

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 148 $]
-#  Date        [$Date: 2016-03-08 22:03:25 +0100 (tor, 08 mar 2016) $]
+#  Revision    [$Revision: 258 $]
+#  Date        [$Date: 2017-03-20 22:40:37 +0100 (pon, 20 mar 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2016 UM-FERI
+#               Copyright (C) 2006, 2017 UM-FERI
 #               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -27,6 +27,7 @@ VERSION=`sed "" VERSION`
 MAJORVERSION=`cut -c1 VERSION`
 NAME="libbiddy$MAJORVERSION"
 OS=`uname | sed "s/_.*//;s/[0-9]//g"`
+DISTRO=$(lsb_release --short --codename)
 
 mkdir -p "distribution"
 
@@ -47,7 +48,7 @@ mkdir "distribution/version-$VERSION/$NAME-$VERSION"
 
 cp VERSION CHANGES COPYING "distribution/version-$VERSION/$NAME-$VERSION"
 cp README.md "distribution/version-$VERSION/$NAME-$VERSION"
-cp biddy.h biddyInt.h biddyMain.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/$NAME-$VERSION"
+cp biddy.h biddyInt.h biddyMain.c biddyMainGDD.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/$NAME-$VERSION"
 cp Makefile Makefile.Linux "distribution/version-$VERSION/$NAME-$VERSION"
 
 mkdir "distribution/version-$VERSION/$NAME-$VERSION"/debian
@@ -59,7 +60,7 @@ cp debian/source/* "distribution/version-$VERSION/$NAME-$VERSION"/debian/source
 
 pushd "distribution/version-$VERSION/$NAME-$VERSION"
 # change distribution name if needed
-dch -M --create --package "$NAME" -v "$VERSION" -D trusty
+dch -M --create --package "$NAME" -v "$VERSION" -D $DISTRO
 cp "debian/changelog" "../changelog.deb"
 popd
 
