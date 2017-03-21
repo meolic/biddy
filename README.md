@@ -1,3 +1,6 @@
+USER MANUAL
+==========
+
 ### TL;DR
 --------------
 
@@ -759,7 +762,7 @@ https://github.com/meolic/biddy
 In 2016, Biddy v1.6 was released. Formulae are not recursively refreshed
 all the time. The size of Node table became resizable.
 
-In 2017, Biddy v1.7.1 was released. Terminology is changed a lot,
+In 2017, Biddy v1.7 was released. Terminology is changed a lot,
 e.g. "formulae counter" is now "system age". Added support for
 0-sup-BDDs and TZBDDs. Implemented creation and manipulaton of
 non-anonymous managers. Added manipulation of combination sets.
