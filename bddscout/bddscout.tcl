@@ -65,8 +65,8 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 }
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 251 $]
-#  Date        [$Date: 2017-03-01 21:34:41 +0100 (sre, 01 mar 2017) $]
+#  Revision    [$Revision: 274 $]
+#  Date        [$Date: 2017-06-15 15:10:13 +0200 (čet, 15 jun 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2017 UM-FERI
@@ -616,13 +616,14 @@ $selectwin.browser bindText <ButtonPress-3> {showformulamenu %X %Y}
 
 proc showformulamenu { x y fname } {
   global formulamenu
+  global selectwin
   global BDDNAME
   if {$fname == $BDDNAME} {
     $formulamenu entryconfigure 0 -command {converttype "BIDDYTYPEOBDD" false}
     $formulamenu entryconfigure 1 -command {converttype "BIDDYTYPEZBDD" false}
     $formulamenu entryconfigure 2 -command {converttype "BIDDYTYPETZBDD" false}
   } else {
-    set BDDNAME $fname
+    $selectwin.browser selection set $fname
     $formulamenu entryconfigure 0 -command {converttype "BIDDYTYPEOBDD" true}
     $formulamenu entryconfigure 1 -command {converttype "BIDDYTYPEZBDD" true}
     $formulamenu entryconfigure 2 -command {converttype "BIDDYTYPETZBDD" true}
@@ -851,23 +852,31 @@ proc clear { } {
 proc changetype { t } {
   global BDDNAME
   global ACTIVEBDDTYPE
+  global selectwin
+
+  #puts "DEBUG changetype: t = <$t>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 
   if {$t != $ACTIVEBDDTYPE} {
-    # puts "CHANGE TYPE TO $t AND CHECK/DRAW $BDDNAME"
+
     bddscout_changeBddType $t
     set ACTIVEBDDTYPE $t
     if { ($BDDNAME == "") || ([bddscout_checkFormula $ACTIVEBDDTYPE $BDDNAME] == 0) } {
      set BDDNAME "0"
     }
-    drawbdd $BDDNAME
+    set name $BDDNAME
+    set BDDNAME ""
     update_info
+    $selectwin.browser selection set $name
   }
 }
 
 proc changeform { t fname } {
   global BDDNAME
 
-  if {$fname != $BDDNAME} {
+  #puts "DEBUG changeform: fname = <$fname>, BDDNAME = <$BDDNAME>"
+
+  if {($fname != "") && ($fname != $BDDNAME)} {
+    set BDDNAME $fname
     drawbdd $fname
   }
 }
@@ -876,14 +885,19 @@ proc converttype { t fchange} {
   global BDDNAME
   global ACTIVEBDDTYPE
   global bddtype
+  global selectwin
+
+  #puts "DEBUG converttype: t = <$t>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 
   if {$t == $ACTIVEBDDTYPE} {
     if {$fchange == true} {
       if { [bddscout_checkFormula $ACTIVEBDDTYPE $BDDNAME] == false } {
         puts "Formula $BDDNAME does not exist!"
       } else {
-        drawbdd $BDDNAME
+        set name $BDDNAME
+        set BDDNAME ""
         update_info
+        $selectwin.browser selection set $name
       }
     }
   } else {
@@ -899,12 +913,18 @@ proc converttype { t fchange} {
 
 proc parseinput { } {
   global INPUT
+  global BDDNAME
+  global selectwin
 
   if {$INPUT != ""} {
     set name [bddscout_parseInfixInput $INPUT]
+
+    #puts "DEBUG parseinput: <$name>"
+
     if {$name != ""} {
-      drawbdd $name
+      set BDDNAME ""
       update_info
+      $selectwin.browser selection set $name
     }
   }
   set INPUT ""
@@ -913,6 +933,7 @@ proc parseinput { } {
 proc drawbdd {fname} {
   global DOT_EXE
   global OS
+  global ACTIVEBDDTYPE
 
   if {[file executable $DOT_EXE] != 1} {
     not_implemented_yet "Cannot run dot from Graphviz ($DOT_EXE)"
@@ -920,6 +941,8 @@ proc drawbdd {fname} {
   }
 
   set fname [lindex $fname 0]
+
+  #puts "DEBUG drawbdd: <$fname>"
 
   if {$fname != ""} {
     set tmpfile "tmp.bddview"
@@ -932,6 +955,8 @@ proc drawbdd {fname} {
 proc swapwithlower {varname} {
   global BDDNAME
 
+  #puts "DEBUG swapwithlower: <$BDDNAME>"
+
   if {$varname == ".c."} {set varname "c"}
   set varname [string map {".AND." "&"} $varname]
   bddscout_swap_with_lower $varname
@@ -941,6 +966,9 @@ proc swapwithlower {varname} {
 
 proc swapwithhigher {varname} {
   global BDDNAME
+  global ACTIVEBDDTYPE
+
+  #puts "DEBUG swapwithhigher: <$BDDNAME>"
 
   if {$varname == ".c."} {set varname "c"}
   set varname [string map {".AND." "&"} $varname]
@@ -1615,13 +1643,16 @@ set ACTIVEBDDTYPE "BIDDYTYPEOBDD"
 wm deiconify .
 update
 
+set BDDNAME ""
+update_info
+
 if { $argc == 0 } {
-  drawbdd "0"
+  $selectwin.browser selection set "0"
 } else {
   constructBDD
 }
 
-update_info
+#update_info
 puts "Ready!"
 
 after 200

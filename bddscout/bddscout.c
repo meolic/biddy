@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.c]
-  Revision    [$Revision: 260 $]
-  Date        [$Date: 2017-03-20 23:01:02 +0100 (pon, 20 mar 2017) $]
+  Revision    [$Revision: 290 $]
+  Date        [$Date: 2017-07-13 16:28:31 +0200 (čet, 13 jul 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -57,7 +57,7 @@ extern BddscoutStubs bddscoutStubs;
 int SCAN_RESULT; /* used in readln macro */
 
 Biddy_Manager MNGROBDD,MNGZBDD,MNGTZBDD;
-Biddy_Manager MNGACTIVE;
+Biddy_Manager MNGACTIVE = NULL;
 
 /*-----------------------------------------------------------------------*/
 /* Static function prototypes                                            */
@@ -94,6 +94,35 @@ Biddy_Manager
 Bddscout_GetActiveManager()
 {
   return MNGACTIVE;
+}
+
+/**Function****************************************************************
+  Synopsis    [Function Bddscout_ClearActiveManager]
+  Description [Bddscout_ClearActiveManager is used in BDD Scout extensions.]
+  SideEffects []
+  SeeAlso     []
+  ************************************************************************/
+
+void
+Bddscout_ClearActiveManager()
+{
+  if (MNGACTIVE == MNGROBDD) {
+    Biddy_ExitMNG(&MNGROBDD);
+    Biddy_InitMNG(&MNGROBDD,BIDDYTYPEOBDD);
+    MNGACTIVE = MNGROBDD;
+  }
+
+  if (MNGACTIVE == MNGZBDD) {
+    Biddy_ExitMNG(&MNGZBDD);
+    Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
+    MNGACTIVE = MNGZBDD;
+  }
+
+  if (MNGACTIVE == MNGTZBDD) {
+    Biddy_ExitMNG(&MNGTZBDD);
+    Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
+    MNGACTIVE = MNGTZBDD;
+  }
 }
 
 /*-----------------------------------------------------------------------*/
@@ -461,12 +490,12 @@ BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String na
 #endif
 
   if (!Biddy_Managed_FindFormula(MNGACTIVE,name,&f)) {
-    fprintf(stderr,"BddscoutWriteBddview: Function %s does not exists!\n",name);
+    fprintf(stderr,"BddscoutWriteBddview: (%p) Function %s does not exists!\n",MNGACTIVE,name);
     return 0;
   }
 
   if (Biddy_IsNull(f)) {
-    fprintf(stderr,"BddscoutWriteBddview: Problem with Biddy_WriteDot for function %s (f==NULL) !\n",name);
+    fprintf(stderr,"BddscoutWriteBddview: (%p) Problem with Biddy_WriteDot for function %s (f==NULL) !\n",MNGACTIVE,name);
     return 0 ;
   }
 
@@ -1055,6 +1084,9 @@ static int BddscoutInitPkgCmd(ClientData clientData, Tcl_Interp *interp,
 static int BddscoutExitPkgCmd(ClientData clientData, Tcl_Interp *interp,
                           int argc, USECONST char **argv);
 
+static int BddscoutClearPkgCmd(ClientData clientData, Tcl_Interp *interp,
+                          int argc, USECONST char **argv);
+
 static int BddscoutAboutPkgCmd(ClientData clientData, Tcl_Interp *interp,
                           int argc, USECONST char **argv);
 
@@ -1234,6 +1266,9 @@ Bddscout_Init(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "bddscout_exitPkg", BddscoutExitPkgCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
+  Tcl_CreateCommand(interp, "bddscout_clearPkg", BddscoutClearPkgCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
   Tcl_CreateCommand(interp, "bddscout_aboutPkg", BddscoutAboutPkgCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
@@ -1389,7 +1424,7 @@ BddscoutInitPkgCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
   Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
   MNGACTIVE = MNGROBDD;
-
+  
   /* USE THIS TO USE ANONYMOUS MANAGER */
   /*
   MNGACTIVE = NULL;
@@ -1414,6 +1449,21 @@ BddscoutExitPkgCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   Biddy_ExitMNG(&MNGTZBDD);
 
   if (!MNGACTIVE) Biddy_Exit();
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+static int
+BddscoutClearPkgCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+                   USECONST char **argv)
+{
+  if (argc != 1) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  Bddscout_ClearActiveManager();
 
   Tcl_SetResult(interp, (char *) "", TCL_STATIC);
   return TCL_OK;
@@ -1454,13 +1504,13 @@ static int BddscoutChangeBddTypeCmd(ClientData clientData, Tcl_Interp *interp,
   type = strdup(argv[1]);
 
   if (!strcmp(type,"BIDDYTYPEOBDD")) {
-    MNGACTIVE =  MNGROBDD;
+    MNGACTIVE = MNGROBDD;
   }
   else if (!strcmp(type,"BIDDYTYPEZBDD")) {
-    MNGACTIVE =  MNGZBDD;
+    MNGACTIVE = MNGZBDD;
   }
   else if (!strcmp(type,"BIDDYTYPETZBDD")) {
-    MNGACTIVE =  MNGTZBDD;
+    MNGACTIVE = MNGTZBDD;
   }
 
   Tcl_SetResult(interp, (char *) "", TCL_STATIC);
@@ -2094,9 +2144,7 @@ BddscoutSiftingCmd(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  if (Biddy_Managed_GetManagerType(MNGACTIVE) == BIDDYTYPEOBDD) {
-    Biddy_Managed_Sifting(MNGACTIVE,NULL,FALSE);
-  }
+  Biddy_Managed_Sifting(MNGACTIVE,NULL,FALSE);
 
   Tcl_SetResult(interp, (char *) "", TCL_STATIC);
   return TCL_OK;
@@ -2117,10 +2165,8 @@ BddscoutSiftingOnFunctionCmd(ClientData clientData, Tcl_Interp *interp, int argc
 
   s1 = strdup(argv[1]);
 
-  if (Biddy_Managed_GetManagerType(MNGACTIVE) == BIDDYTYPEOBDD) {
-    if (Biddy_Managed_FindFormula(MNGACTIVE,s1,&f)) {
-      Biddy_Managed_Sifting(MNGACTIVE,f,FALSE);
-    }
+  if (Biddy_Managed_FindFormula(MNGACTIVE,s1,&f)) {
+    Biddy_Managed_Sifting(MNGACTIVE,f,FALSE);
   }
 
   free(s1);

@@ -13,8 +13,8 @@
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 255 $]
-    Date        [$Date: 2017-03-20 19:48:30 +0100 (pon, 20 mar 2017) $]
+    Revision    [$Revision: 284 $]
+    Date        [$Date: 2017-07-11 23:55:56 +0200 (tor, 11 jul 2017) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
@@ -65,6 +65,7 @@ See also: biddy.h
 #endif
 
 /* extended stats (YES or NO) */
+/* if YES then you have to use -lm for linking */
 #define BIDDYEXTENDEDSTATS_NO
 
 /* event log (YES or NO) */
@@ -251,10 +252,14 @@ See also: biddy.h
 #define biddySelect2 (*((unsigned short int*)(MNG2[15])))
 
 /* BiddyProlongOne prolonges top node of the given function, since Biddy v1.6 */
-#define BiddyProlongOne(MNG,f,c) if((!(c))||(BiddyN(f)->expiry&&(BiddyN(f)->expiry<(c))))BiddyN(f)->expiry=(c)
+#define BiddyProlongOne(f,c) if((!(c))||(BiddyN(f)->expiry&&(BiddyN(f)->expiry<(c))))BiddyN(f)->expiry=(c)
 
 /* BiddyRefresh prolonges top node of the given function, manager MNG is assumed, since Biddy v1.7 */
 #define BiddyRefresh(f) if(BiddyN(f)->expiry&&(BiddyN(f)->expiry<(biddySystemAge)))BiddyN(f)->expiry=(biddySystemAge)
+#define BiddyDefresh(f) if(BiddyN(f)->expiry&&(BiddyN(f)->expiry>(biddySystemAge)))BiddyN(f)->expiry=(biddySystemAge)
+
+/* BiddyIsSmaller returns TRUE if the first variable is smaller (= lower = previous = above = topmore), manager MNG is assumed, since Biddy v1.7 */
+#define BiddyIsSmaller(fv,gv) GET_ORDER(biddyOrderingTable,fv,gv)
 
 /* BiddyIsOK is intended for debugging, only, manager MNG is assumed, since Biddy v1.7 */
 #define BiddyIsOK(f) (!(BiddyN(f)->expiry) || ((BiddyN(f)->expiry) >= biddySystemAge))
@@ -345,7 +350,7 @@ typedef struct {
   Biddy_Variable next; /* next variable in the global ordering (higher, bottommore) */
   Biddy_Edge variable; /* bdd representing a single positive variable */
   Biddy_Edge element; /* bdd representing a set with a single element, i.e. {{x}} */
-  Biddy_Edge value; /* value: biddyZero = 0, biddyOne = 1. etc. */
+  Biddy_Edge value; /* value: biddyZero = 0, biddyOne = 1, reused in some algorithms */
   Biddy_Boolean selected; /* used to count variables */
 } BiddyVariable;
 
@@ -408,8 +413,10 @@ typedef struct {
   Biddy_Boolean disabled;
   unsigned long long int *search;
   unsigned long long int *find;
+#ifdef BIDDYEXTENDEDSTATS_YES
   unsigned long long int *insert;
   unsigned long long int *overwrite;
+#endif
 } BiddyOp1CacheTable;
 
 /* OP2 Cache = a fixed-size cache table for two-arguments operations */
@@ -424,8 +431,10 @@ typedef struct {
   Biddy_Boolean disabled;
   unsigned long long int *search;
   unsigned long long int *find;
+#ifdef BIDDYEXTENDEDSTATS_YES
   unsigned long long int *insert;
   unsigned long long int *overwrite;
+#endif
 } BiddyOp2CacheTable;
 
 /* OP3 Cache = a fixed-size cache table for three-arguments operations */
@@ -440,8 +449,10 @@ typedef struct {
   Biddy_Boolean disabled;
   unsigned long long int *search;
   unsigned long long int *find;
+#ifdef BIDDYEXTENDEDSTATS_YES
   unsigned long long int *insert;
   unsigned long long int *overwrite;
+#endif
 } BiddyOp3CacheTable;
 
 /* EA Cache = a fixed-size cache table intended for Biddy_E and Biddy_A */

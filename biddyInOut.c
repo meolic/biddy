@@ -13,8 +13,8 @@
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 251 $]
-    Date        [$Date: 2017-03-01 21:34:41 +0100 (sre, 01 mar 2017) $]
+    Revision    [$Revision: 275 $]
+    Date        [$Date: 2017-06-15 18:17:20 +0200 (čet, 15 jun 2017) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net),
                  Jan Kraner (jankristian.kraner@student.um.si),
@@ -134,12 +134,12 @@ typedef struct {
   VerilogNode **nodes; /* array of nodes */
 } VerilogCircuit;
 
-/* the following type is used in Biddy_PrintfSOP() and BiddyWriteSOP() */
+/* the following type is used in Biddy_PrintfSOP() and Biddy_WriteSOP() */
 
 typedef struct VarList {
   struct VarList *next;
   Biddy_Variable v;
-  Biddy_Boolean mark;
+  Biddy_Boolean negative;
 } VarList;
 
 
@@ -162,8 +162,9 @@ static Biddy_Edge evaluate1(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_Str
 static Biddy_Edge evaluateN(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch, Biddy_Edge g, int op, Biddy_LookupFunction lf);
 static int Op(Biddy_String s, int *i, Biddy_String *ch);
 
-/* Function createBddFromBTree() is used in Biddy_Eval2(). */
+/* Functions createVariablesFromBTree and createBddFromBTree() are used in Biddy_Eval2(). */
 
+static void createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree);
 static Biddy_Edge createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i);
 
 /* The following functions are used in Biddy_ReadVerilogFile(). */
@@ -196,7 +197,7 @@ static void WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned i
 /* The following functions are used in Biddy_PrintfSOP() in Biddy_WriteSOP(). */
 
 static void WriteProduct(Biddy_Manager MNG, VarList *l);
-static void WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean mark, VarList *l, unsigned int *maxsize);
+static void WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, VarList *l, unsigned int *maxsize);
 
 /* The following functions are used in Biddy_WriteDot(). */
 
@@ -348,8 +349,51 @@ Biddy_Managed_Eval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf)
 
 /* USE THIS FOR DEBUGGING */
 /*
-static void printBTreeContainer(BTreeContainer *tree);
-static void printPrefixFromBTree(BTreeContainer *tree, int i);
+static void
+printBTreeContainer(BTreeContainer *tree)
+{
+  int i;
+  printf("availableNode=%d\n",tree->availableNode);
+    for (i = tree->availableNode; i >= 0; i--) {
+    printf("[%d]parent=%d,left=%d,right=%d,index=%d,op=%u",i,
+           tree->tnode[i].parent,
+           tree->tnode[i].left,
+           tree->tnode[i].right,
+           tree->tnode[i].index,
+           tree->tnode[i].op
+    );
+    if (tree->tnode[i].name) {
+      printf(",name=%s\n",tree->tnode[i].name);
+    } else {
+      printf("\n");
+    }
+  }
+}
+
+static void
+printPrefixFromBTree(BTreeContainer *tree, int i)
+{
+  if (i == -1) return;
+  if (tree->tnode[i].op == 255) {
+    if (tree->tnode[i].name) {
+      printf("%s",tree->tnode[i].name);
+    } else {
+      printf("NULL");
+    }
+    return;
+  }
+  if (tree->tnode[i].op == 0) printf("(NOT");
+  else if (tree->tnode[i].op == 1) printf("(AND ");
+  else if (tree->tnode[i].op == 2) printf("(BUTNOT ");
+  else if (tree->tnode[i].op == 4) printf("(NOTBUT ");
+  else if (tree->tnode[i].op == 6) printf("(XOR ");
+  else if (tree->tnode[i].op == 7) printf("(OR ");
+  else printf("(? ");
+  printPrefixFromBTree(tree,tree->tnode[i].left);
+  printf(" ");
+  printPrefixFromBTree(tree,tree->tnode[i].right);
+  printf(")");
+}
 */
 
 #ifdef __cplusplus
@@ -507,6 +551,11 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
 
   free(expression);
 
+  /* FOR SOME BDD TYPES, IT IS NECESSARY TO CREATE ALL VARIABLES IN ADVANCE */
+  /* createBddFromBTree DOES NOT STORE TMP RESULTS AS FORMULAE AND THUS */
+  /* TMP RESULTS BECOME WRONG IF NEW VARIABLES ARE ADDED ON-THE-FLY */
+
+  createVariablesFromBTree(MNG,tree);
   fbdd = createBddFromBTree(MNG,tree,tree->tnode[0].right);
 
   for (i = 1023; i >= 0; i--) {
@@ -788,11 +837,21 @@ Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
   for (i = 0; i < variableNumber; i++) numcomb = 2 * numcomb;
   for (i = 0; i < numcomb; i++)
   {
+    /* VARIANT B */
+    /*
     temp = f;
+    */
     for (j = variableNumber - 1; j >= 0; j--)
     {
+      /* VARIANT A */
+      /**/
+      biddyVariableTable.table[variableTable[variableNumber-j-1]].value = (i&(1 << j))?biddyOne:biddyZero;
+      /**/
+      /* VARIANT B */
+      /*
       temp = BiddyManagedRestrict(MNG,
                temp,variableTable[variableNumber-j-1],(i&(1 << j))?TRUE:FALSE);
+      */
       if (i&(1 << j)) {
         printf("%*c",1+(int)strlen(
           Biddy_Managed_GetVariableName(MNG,variableTable[variableNumber-j-1])
@@ -804,7 +863,14 @@ Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
       }
     }
     printf(" :");
+    /* VARIANT A */
+    /**/
+    if (Biddy_Managed_Eval(MNG,f)) printf("1\n"); else printf("0\n");
+    /**/
+    /* VARIANT B */
+    /*
     if (temp == biddyZero) printf("0\n"); else printf("1\n");
+    */
   }
 
   free(variableTable);
@@ -856,11 +922,26 @@ void
 Biddy_Managed_PrintfSOP(Biddy_Manager MNG, Biddy_Edge f)
 {
   unsigned int maxsize = 100;
+  Biddy_Variable top;
+
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  top = BiddyV(f);
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+  }
+  else if (biddyManagerType == BIDDYTYPEZBDD) {
+    while (biddyVariableTable.table[top].prev != biddyVariableTable.num) {
+      top = biddyVariableTable.table[top].prev;
+    }
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    top = Biddy_GetTag(f);
+  }
 
   if (Biddy_IsNull(f)) {
     printf("NULL\n");
   } else {
-    WriteSOP(MNG,f,Biddy_GetMark(f),NULL,&maxsize);
+    WriteSOP(MNG,f,top,Biddy_GetMark(f),NULL,&maxsize);
     printf("\n");
   }
 }
@@ -1286,6 +1367,11 @@ nextCh(Biddy_String s, int *i, Biddy_String *ch)
   j = *i;
   c = s[*i];
 
+  /* DEBUGGING */
+  /*
+  printf("%c",c);
+  */
+  
   if (c == '(') {
     (*i)++;
     strcpy(*ch,"(");
@@ -1308,6 +1394,11 @@ nextCh(Biddy_String s, int *i, Biddy_String *ch)
     (*i)++;
     while (charOK(s[*i])) (*i)++;
     c = s[*i];
+
+    /* DEBUGGING */
+    /*
+    printf("%c",c);
+    */
 
     if ( (c == ' ') || (c == '\t') || (c == '\n') || (c == '(') || (c == ')') ) {
       strncpy(*ch, &(s[j]), *i-j);
@@ -1489,57 +1580,36 @@ Op(Biddy_String s, int *i, Biddy_String *ch)
   return 0;
 }
 
-/* DEBUGGING, ONLY */
-/*
 static void
-printBTreeContainer(BTreeContainer *tree)
+createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree)
 {
   int i;
-  printf("availableNode=%d\n",tree->availableNode);
-    for (i = tree->availableNode; i >= 0; i--) {
-    printf("[%d]parent=%d,left=%d,right=%d,index=%d,op=%u",i,
-           tree->tnode[i].parent,
-           tree->tnode[i].left,
-           tree->tnode[i].right,
-           tree->tnode[i].index,
-           tree->tnode[i].op
-    );
-    if (tree->tnode[i].name) {
-      printf(",name=%s\n",tree->tnode[i].name);
-    } else {
-      printf("\n");
-    }
-  }
-}
-*/
+  Biddy_Edge tmp;
 
-/* DEBUGGING, ONLY */
-/*
-static void
-printPrefixFromBTree(BTreeContainer *tree, int i)
-{
-  if (i == -1) return;
-  if (tree->tnode[i].op == 255) {
-    if (tree->tnode[i].name) {
-      printf("%s",tree->tnode[i].name);
-    } else {
-      printf("NULL");
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    for (i = 0; i <= tree->availableNode; i++) {
+      if (tree->tnode[i].op == 255) {
+        if (tree->tnode[i].name) {
+          if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&tmp))) {
+            Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
+          }
+        }
+      }
     }
-    return;
   }
-  if (tree->tnode[i].op == 0) printf("(NOT");
-  else if (tree->tnode[i].op == 1) printf("(AND ");
-  else if (tree->tnode[i].op == 2) printf("(BUTNOT ");
-  else if (tree->tnode[i].op == 4) printf("(NOTBUT ");
-  else if (tree->tnode[i].op == 6) printf("(XOR ");
-  else if (tree->tnode[i].op == 7) printf("(OR ");
-  else printf("(? ");
-  printPrefixFromBTree(tree,tree->tnode[i].left);
-  printf(" ");
-  printPrefixFromBTree(tree,tree->tnode[i].right);
-  printf(")");
+
+  if (biddyManagerType == BIDDYTYPEZBDD) {
+    for (i = tree->availableNode; i >= 0; i--) {
+      if (tree->tnode[i].op == 255) {
+        if (tree->tnode[i].name) {
+          if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&tmp))) {
+            Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
+          }
+        }
+      }
+    }
+  }
 }
-*/
 
 static Biddy_Edge
 createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i)
@@ -1548,16 +1618,28 @@ createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i)
   if (i == -1) return biddyNull;
   if (tree->tnode[i].op == 255) {
     if (tree->tnode[i].name) {
-      if (!strcmp(tree->tnode[i].name,"0")) return biddyZero;
-      else if (!strcmp(tree->tnode[i].name,"1")) return biddyOne;
+      if (!strcmp(tree->tnode[i].name,"0")) fbdd = biddyZero;
+      else if (!strcmp(tree->tnode[i].name,"1")) fbdd = biddyOne;
       else {
         if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&fbdd))) {
           fbdd = Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
         }
-        return fbdd;
       }
+    } else {
+      fbdd = biddyNull;
     }
-    return biddyNull;
+
+    /* DEBUGGING */
+    /*
+    printf("createBddFromBTree: op == 255\n");
+    printPrefixFromBTree(tree,i);
+    printf("\n");
+    printf("HERE IS fbdd:\n");
+    Biddy_PrintfBDD(fbdd);
+    Biddy_PrintfSOP(fbdd);
+    */
+
+    return fbdd;
   }
   lbdd = createBddFromBTree(MNG,tree,tree->tnode[i].left);
   rbdd = createBddFromBTree(MNG,tree,tree->tnode[i].right);
@@ -1568,6 +1650,23 @@ createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i)
   else if (tree->tnode[i].op == 6) fbdd = Biddy_Managed_Xor(MNG,lbdd,rbdd); /* EXOR */
   else if (tree->tnode[i].op == 7) fbdd = Biddy_Managed_Or(MNG,lbdd,rbdd); /* OR */
   else fbdd = biddyNull;
+
+  /* DEBUGGING */
+  /*
+  printf("createBddFromBTree: op == %u\n",tree->tnode[i].op);
+  printPrefixFromBTree(tree,i);
+  printf("\n");
+  printf("HERE IS lbdd:\n");
+  Biddy_PrintfBDD(lbdd);
+  Biddy_PrintfSOP(lbdd);
+  printf("HERE IS rbdd:\n");
+  Biddy_PrintfBDD(rbdd);
+  Biddy_PrintfSOP(rbdd);
+  printf("HERE IS fbdd:\n");
+  Biddy_PrintfBDD(fbdd);
+  Biddy_PrintfSOP(fbdd);
+  */
+
   return fbdd;
 }
 
@@ -2639,7 +2738,7 @@ WriteProduct(Biddy_Manager MNG, VarList *l)
   if (l) {
     WriteProduct(MNG,l->next);
     printf(" ");
-    if (l->mark) {
+    if (l->negative) {
       printf("*");
     }
     printf("%s",Biddy_Managed_GetVariableName(MNG,l->v));
@@ -2647,13 +2746,36 @@ WriteProduct(Biddy_Manager MNG, VarList *l)
 }
 
 static void
-WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean mark, VarList *l, unsigned int *maxsize)
+WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
+         Biddy_Boolean mark, VarList *l, unsigned int *maxsize)
 {
   VarList tmp;
+  Biddy_Variable v;
 
   if (*maxsize == 0) return; /* SOP to large */
 
-  if (Biddy_IsConstant(f)) {
+  v = BiddyV(f);
+
+  if ((top != v) && (f != biddyZero)) {
+
+    if (biddyManagerType == BIDDYTYPEOBDD) {
+      assert( FALSE );
+    } else if (biddyManagerType == BIDDYTYPEZBDD) {
+      tmp.next = l;
+      tmp.v = top;
+      tmp.negative = TRUE; /* left successor */
+      WriteSOP(MNG,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
+    } else if (biddyManagerType == BIDDYTYPETZBDD) {
+      tmp.next = l;
+      tmp.v = top;
+      tmp.negative = TRUE; /* left successor */
+      WriteSOP(MNG,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
+    } else {
+      return;
+    }
+
+  } else if (v == 0) {
+
     if (!mark) {
       printf("  + ");
       if (l) {
@@ -2668,13 +2790,35 @@ WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean mark, VarList *l, unsign
         printf("  +  0");
       }
     }
+
   } else {
+
     tmp.next = l;
-    tmp.v = BiddyV(f);
-    tmp.mark = TRUE;
-    WriteSOP(MNG,BiddyE(f),(mark ^ Biddy_GetMark(BiddyE(f))),&tmp,maxsize);
-    tmp.mark = FALSE;
-    WriteSOP(MNG,BiddyT(f),(mark ^ Biddy_GetMark(BiddyT(f))),&tmp,maxsize);
+    tmp.v = v;
+    tmp.negative = TRUE; /* left successor */
+
+    if (biddyManagerType == BIDDYTYPEOBDD) {
+      WriteSOP(MNG,BiddyE(f),BiddyV(BiddyE(f)),(mark ^ Biddy_GetMark(BiddyE(f))),&tmp,maxsize);
+    }
+    else if (biddyManagerType == BIDDYTYPEZBDD) {
+      WriteSOP(MNG,BiddyE(f),biddyVariableTable.table[v].next,mark,&tmp,maxsize);
+    }
+    else if (biddyManagerType == BIDDYTYPETZBDD) {
+      WriteSOP(MNG,BiddyE(f),Biddy_GetTag(BiddyE(f)),Biddy_GetMark(BiddyE(f)),&tmp,maxsize);
+    }
+
+    tmp.negative = FALSE; /* right successor */
+
+    if (biddyManagerType == BIDDYTYPEOBDD) {
+      WriteSOP(MNG,BiddyT(f),BiddyV(BiddyT(f)),mark,&tmp,maxsize);
+    }
+    else if (biddyManagerType == BIDDYTYPEZBDD) {
+      WriteSOP(MNG,BiddyT(f),biddyVariableTable.table[v].next,Biddy_GetMark(BiddyT(f)),&tmp,maxsize);
+    }
+    else if (biddyManagerType == BIDDYTYPETZBDD) {
+      WriteSOP(MNG,BiddyT(f),Biddy_GetTag(BiddyT(f)),Biddy_GetMark(BiddyT(f)),&tmp,maxsize);
+    }
+
   }
 }
 

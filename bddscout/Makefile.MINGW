@@ -3,8 +3,8 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 226 $]
-#  Date        [$Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $]
+#  Revision    [$Revision: 272 $]
+#  Date        [$Date: 2017-06-10 12:21:31 +0200 (sob, 10 jun 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2017 UM-FERI
@@ -80,6 +80,7 @@ local:
 	"GMPLIB = $(GMPLIB)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"
+	$(CP) ../bin/*.dll ./bin
 
 # used for packaging
 # add -DUSE_BIDDY and clear GMPLIB if you use dynamically linked Biddy library

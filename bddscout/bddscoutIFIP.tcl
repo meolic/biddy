@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 226 $]
-#  Date        [$Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $]
+#  Revision    [$Revision: 289 $]
+#  Date        [$Date: 2017-07-13 12:27:36 +0200 (čet, 13 jul 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2017 UM-FERI
@@ -100,11 +100,6 @@ proc IFIP_benchmark {  } {
   wm iconname .dialogIFIPbench "IFIP Benchmark"
   grab set .dialogIFIPbench
 
-  bddview_clear
-  bddscout_exitPkg
-  bddscout_initPkg
-  update_info
-
   text .dialogIFIPbench.f -font REPORTFONT -width 120 -height 40 -tabs {250 center 370 center 490 center 610 center 730 center 850 center} -yscrollcommand ".dialogIFIPbench.ys set"
   .dialogIFIPbench.f tag configure bg0 -background azure1
   .dialogIFIPbench.f tag configure bg1 -background azure2
@@ -184,6 +179,8 @@ proc IFIP_benchmark {  } {
   set totalFOA 0
   set totalCMP 0
   set totalADD 0
+
+  bddscout_clearPkg
 
   set i 0
   foreach name $list  {

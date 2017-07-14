@@ -214,3 +214,12 @@ Changes v1.7.1 versus v1.6
 - implemented almost all operations on TZBDDs
 - added Random example
 - added Hanoi example
+
+Changes v1.7.2 versus v1.7.1
+- released on Jul 14, 2017
+- memory management fixed and optimized
+- improved Biddy_Eval2 to produce correct result for ZBDDs and TZBDDs
+- improved Biddy_PrintfSOP to produce correct result for ZBDDs and TZBDDs
+- improved Biddy_Support and Biddy_DependentVariableNumber for ZBDDs and TZBDDs
+- implemented Biddy_Eval
+- implemented variable swapping and sifting for ZBDDs and TZBDDs

@@ -2,7 +2,7 @@ Source: bddscout
 Section: math
 Priority: extra
 Maintainer: Robert Meolic <robert.meolic@um.si>
-Build-Depends: debhelper (>= 8.0.0), tcl-dev, tk-dev, libgmp-dev, libbiddy1-dev (>= 1.6)
+Build-Depends: debhelper (>= 8.0.0), tcl-dev, tk-dev, libgmp-dev, libbiddy1-dev (>= 1.7)
 Standards-Version: 3.9.7
 
 Package: bddscout

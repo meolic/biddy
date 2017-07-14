@@ -1,5 +1,5 @@
-/* $Revision: 244 $ */
-/* $Date: 2017-02-14 23:23:32 +0100 (tor, 14 feb 2017) $ */
+/* $Revision: 279 $ */
+/* $Date: 2017-06-24 23:34:22 +0200 (sob, 24 jun 2017) $ */
 /* This file (biddy-example-random.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -117,11 +117,17 @@ int main() {
       exit(1);
     }
 
-    /* GRAPHVIZ/DOT OUTPUT OF THE RESULT  - DEBUGGING, ONLY */
+    /* TRUTH TABLE FOR THE RESULT  - DEBUGGING, ONLY */
     /*
     if (SIZE < 10) {
       printf("HERE IS A TRUTH TABLE FOR result:\n");
       Biddy_PrintfTable(result);
+    }
+    */
+
+    /* GRAPHVIZ/DOT OUTPUT OF THE RESULT  - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
       Biddy_WriteDot("result.dot",result,"result",-1,FALSE);
       printf("USE 'dot -y -Tpng -O result.dot' to visualize function result.\n");
     }
@@ -442,7 +448,8 @@ int main() {
     printf("OBDD for function result has %u nodes.\n",Biddy_Managed_NodeNumber(MNGOBDD,robdd));
     printf("OBDD without complemented edges for function result has %u nodes (including both constants).\n",Biddy_Managed_NodeNumberPlain(MNGOBDD,robdd));
     printf("OBDD for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGOBDD,robdd));
-    printf("OBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGOBDD,robdd,SIZE));
+    printf("Function represented by OBDD depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGOBDD,robdd));
+    printf("Considering the given set of variables, OBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGOBDD,robdd,SIZE));
     /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
     if (SIZE < 10) {
       Biddy_Managed_WriteDot(MNGOBDD,"obdd.dot",robdd,"obdd",-1,FALSE);
@@ -455,7 +462,8 @@ int main() {
       printf("ZBDD for function result has %u nodes.\n",Biddy_Managed_NodeNumber(MNGZBDD,rzbdd));
       printf("ZBDD without complemented edges for function result has %u nodes (including both constants).\n",Biddy_Managed_NodeNumberPlain(MNGZBDD,rzbdd));
       printf("ZBDD for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGZBDD,rzbdd));
-      printf("ZBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGZBDD,rzbdd,SIZE));
+      printf("Function represented by ZBDD depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGZBDD,rzbdd));
+      printf("Considering the given set of variables, ZBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGZBDD,rzbdd,SIZE));
       /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
       if (SIZE < 10) {
         Biddy_Managed_WriteDot(MNGZBDD,"zbdd.dot",rzbdd,"zbdd",-1,FALSE);
@@ -468,7 +476,8 @@ int main() {
       rtzbdd = Biddy_Copy(MNGTZBDD,result);
       printf("TZBDD for function result has %u nodes.\n",Biddy_Managed_NodeNumber(MNGTZBDD,rtzbdd));
       printf("TZBDD for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGTZBDD,rtzbdd));
-      printf("TZBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGTZBDD,rtzbdd,SIZE));
+      printf("Function represented by TZBDD depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGTZBDD,rtzbdd));
+      printf("Considering the given set of variables, TZBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGTZBDD,rtzbdd,SIZE));
       /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
       if (SIZE < 10) {
         Biddy_Managed_WriteDot(MNGTZBDD,"tzbdd.dot",rtzbdd,"tzbdd",-1,FALSE);
@@ -532,6 +541,25 @@ int main() {
       if ((s1 == s3) && (s1 < s2)) zbddlargest++;
       if ((s2 == s3) && (s2 < s1)) obddlargest++;
       if ((s1 == s2) && (s2 == s3)) allsamesize++;
+
+      /* ZBDD is the smallest */
+      /*
+      if ((s2 < s1) && (s2 < s3)) {
+        printf("OBDD has %u nodes without complemented edges (%u with complemented edges).\n",
+               Biddy_Managed_NodeNumberPlain(MNGOBDD,robdd), Biddy_Managed_NodeNumber(MNGOBDD,robdd));
+        printf("ZBDD has %u nodes without complemented edges (%u with complemented edges).\n",
+               Biddy_Managed_NodeNumberPlain(MNGZBDD,rzbdd), Biddy_Managed_NodeNumber(MNGZBDD,rzbdd));
+        printf("TZBDD has %u nodes without complemented edges.\n",
+               Biddy_Managed_NodeNumber(MNGTZBDD,rtzbdd));
+        Biddy_Managed_PrintfTable(MNGOBDD,robdd);
+        Biddy_Managed_WriteDot(MNGOBDD,"obdd.dot",robdd,"obdd",-1,FALSE);
+        printf("USE 'dot -y -Tpng -O obdd.dot' to visualize OBDD for function result.\n");
+        Biddy_Managed_WriteDot(MNGZBDD,"zbdd.dot",rzbdd,"zbdd",-1,FALSE);
+        printf("USE 'dot -y -Tpng -O zbdd.dot' to visualize ZBDD for function result.\n");
+        Biddy_Managed_WriteDot(MNGTZBDD,"tzbdd.dot",rtzbdd,"tzbdd",-1,FALSE);
+        printf("USE 'dot -y -Tpng -O tzbdd.dot' to visualize TZBDD for function result.\n");
+      }
+      */
 
       Biddy_ExitMNG(&MNGOBDD);
       Biddy_ExitMNG(&MNGZBDD);

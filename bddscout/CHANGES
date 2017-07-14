@@ -70,3 +70,9 @@ Changes v1.7.1 versus v1.6
 - added formula selection window
 - added variable list window
 - BDD Scout now suports ROBDDs, ZBDDs, and TZBDDs
+
+Changes v1.7.2 versus v1.7.1
+- released on Jul 14, 2017
+- input Boolean function and IFIP benchmark are now more roboust
+- thanks to the changes in Biddy, Input Boolean function is now correct for ZBDDs and TZBDDs
+- thanks to the changes in Biddy, variable swapping is now supported for ZBDDs and TZBDDs

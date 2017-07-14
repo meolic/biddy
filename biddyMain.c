@@ -14,8 +14,8 @@ manipulation of boolean functions with ROBDDs.
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyMain.c]
-    Revision    [$Revision: 253 $]
-    Date        [$Date: 2017-03-20 09:03:47 +0100 (pon, 20 mar 2017) $]
+    Revision    [$Revision: 275 $]
+    Date        [$Date: 2017-06-15 18:17:20 +0200 (čet, 15 jun 2017) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
@@ -336,6 +336,7 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
   }
+#ifdef BIDDYEXTENDEDSTATS_YES
   if (!(biddyOPCache.insert = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -344,10 +345,13 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
   }
+#endif
   *(biddyOPCache.search) = 0;
   *(biddyOPCache.find) = 0;
+#ifdef BIDDYEXTENDEDSTATS_YES
   *(biddyOPCache.insert) = 0;
   *(biddyOPCache.overwrite) = 0;
+#endif
   if (!(MNG[9] = (BiddyOp3CacheTable *) malloc(sizeof(BiddyOp3CacheTable)))) {
     fprintf(stderr,"Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -363,6 +367,7 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
   }
+#ifdef BIDDYEXTENDEDSTATS_YES
   if (!(biddyEACache.insert = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -371,10 +376,13 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
   }
+#endif
   *(biddyEACache.search) = 0;
   *(biddyEACache.find) = 0;
+#ifdef BIDDYEXTENDEDSTATS_YES
   *(biddyEACache.insert) = 0;
   *(biddyEACache.overwrite) = 0;
+#endif
   if (!(MNG[10] = (BiddyOp3CacheTable *) malloc(sizeof(BiddyOp3CacheTable)))) {
     fprintf(stderr,"Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -390,6 +398,7 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
   }
+#ifdef BIDDYEXTENDEDSTATS_YES
   if (!(biddyRCCache.insert = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -398,10 +407,13 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
   }
+#endif
   *(biddyRCCache.search) = 0;
   *(biddyRCCache.find) = 0;
+#ifdef BIDDYEXTENDEDSTATS_YES
   *(biddyRCCache.insert) = 0;
   *(biddyRCCache.overwrite) = 0;
+#endif
   if (!(MNG[11] = (BiddyCacheList* *) malloc(sizeof(BiddyCacheList*)))) {
     fprintf(stderr,"Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -442,12 +454,15 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   biddyRCCache.size = SMALL_SIZE;
 
   /* these values are experimentally determined */
-  biddyNodeTable.gcratio = (float) 1.67; /* do not delete nodes if the effect is to small, gcratio */
-  biddyNodeTable.gcratioF = (float) 1.20; /* do not delete nodes if the effect is to small, gcratio */
-  biddyNodeTable.gcratioX = (float) 0.91; /* do not delete nodes if the effect is to small, gcratio */
+  /* gcr=1.67, gcrF=1.20, gcrX=0.91, rr=0.01, rrF=1.45, rrX=0.98 */ /* used in v1.7.1 */
+  /* gcr=1.62, gcrF=1.13, gcrX=0.98, rr=0.01, rrF=1.15, rrX=0.95 */ /* candidate for v1.7.2 */
+  /* gcr=1.64, gcrF=1.40, gcrX=0.80, rr=0.01, rrF=0.76, rrX=0.86 */ /* candidate for v1.7.2 */
+  biddyNodeTable.gcratio = (float) 1.64; /* do not delete nodes if the effect is to small, gcratio */
+  biddyNodeTable.gcratioF = (float) 1.40; /* do not delete nodes if the effect is to small, gcratio */
+  biddyNodeTable.gcratioX = (float) 0.80; /* do not delete nodes if the effect is to small, gcratio */
   biddyNodeTable.resizeratio = (float) 0.01; /* resize Node table if there are to many nodes */
-  biddyNodeTable.resizeratioF = (float) 1.45; /* resize Node table if there are to many nodes */
-  biddyNodeTable.resizeratioX = (float) 0.98; /* resize Node table if there are to many nodes */
+  biddyNodeTable.resizeratioF = (float) 0.76; /* resize Node table if there are to many nodes */
+  biddyNodeTable.resizeratioX = (float) 0.86; /* resize Node table if there are to many nodes */
 
   /* these values are experimentally determined */
   biddyNodeTable.siftingtreshold = 1.05;  /* stop sifting if the size of the system grows to much */
@@ -619,7 +634,10 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
 
   /* INITIALIZATION OF DEFAULT ITE CACHE - USED FOR ITE OPERATION */
   biddyOPCache.disabled = FALSE;
-  *(biddyOPCache.search) = *(biddyOPCache.find) = *(biddyOPCache.overwrite) = 0;
+  *(biddyOPCache.search) = *(biddyOPCache.find) = 0;
+#ifdef BIDDYEXTENDEDSTATS_YES
+  *(biddyOPCache.insert) = *(biddyOPCache.overwrite) = 0;
+#endif
   if (!(biddyOPCache.table = (BiddyOp3Cache *)
   calloc((biddyOPCache.size+1),sizeof(BiddyOp3Cache)))) {
     fprintf(stderr,"Biddy_InitMNG (OP cache): Out of memoy!\n");
@@ -630,7 +648,10 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
 
   /* INITIALIZATION OF DEFAULT EA CACHE - USED FOR QUANTIFICATIONS */
   biddyEACache.disabled = FALSE;
-  *(biddyEACache.search) = *(biddyEACache.find) = *(biddyEACache.overwrite) = 0;
+  *(biddyEACache.search) = *(biddyEACache.find) = 0;
+#ifdef BIDDYEXTENDEDSTATS_YES
+  *(biddyEACache.insert) = *(biddyEACache.overwrite) = 0;
+#endif
   if (!(biddyEACache.table = (BiddyOp3Cache *)
   calloc((biddyEACache.size+1),sizeof(BiddyOp3Cache)))) {
     fprintf(stderr,"Biddy_InitMNG (EA cache): Out of memoy!\n");
@@ -641,7 +662,10 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
 
   /* INITIALIZATION OF DEFAULT RC CACHE - USED FOR RESTRICT AND COMPOSE */
   biddyRCCache.disabled = FALSE;
-  *(biddyRCCache.search) = *(biddyRCCache.find) = *(biddyRCCache.overwrite) = 0;
+  *(biddyRCCache.search) = *(biddyRCCache.find) = 0;
+#ifdef BIDDYEXTENDEDSTATS_YES
+  *(biddyRCCache.insert) = *(biddyRCCache.overwrite) = 0;
+#endif
   if (!(biddyRCCache.table = (BiddyOp3Cache *)
   calloc((biddyRCCache.size+1),sizeof(BiddyOp3Cache)))) {
     fprintf(stderr,"Biddy_InitMNG (RC cache): Out of memoy!\n");
@@ -782,8 +806,10 @@ Biddy_ExitMNG(Biddy_Manager *mng)
     free(biddyOPCache.table);
     free(biddyOPCache.search);
     free(biddyOPCache.find);
+#ifdef BIDDYEXTENDEDSTATS_YES
     free(biddyOPCache.insert);
     free(biddyOPCache.overwrite);
+#endif
 #pragma warning(suppress: 6001)
     free((BiddyOp3CacheTable*)(MNG[8]));
   }
@@ -795,8 +821,10 @@ Biddy_ExitMNG(Biddy_Manager *mng)
     free(biddyEACache.table);
     free(biddyEACache.search);
     free(biddyEACache.find);
+#ifdef BIDDYEXTENDEDSTATS_YES
     free(biddyEACache.insert);
     free(biddyEACache.overwrite);
+#endif
 #pragma warning(suppress: 6001)
     free((BiddyOp3CacheTable*)(MNG[9]));
   }
@@ -808,8 +836,10 @@ Biddy_ExitMNG(Biddy_Manager *mng)
     free(biddyRCCache.table);
     free(biddyRCCache.search);
     free(biddyRCCache.find);
+#ifdef BIDDYEXTENDEDSTATS_YES
     free(biddyRCCache.insert);
     free(biddyRCCache.overwrite);
+#endif
 #pragma warning(suppress: 6001)
     free((BiddyOp3CacheTable*)(MNG[10]));
   }
@@ -4778,7 +4808,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable target, Biddy_Boolean purge,
   deletedFormulae = FALSE;
   for (j = 0; j < biddyFormulaTable.size; j++) {
     if (!biddyFormulaTable.table[j].deleted &&
-        (!biddyFormulaTable.table[j].expiry || biddyFormulaTable.table[j].expiry > biddySystemAge)) {
+        (!biddyFormulaTable.table[j].expiry || biddyFormulaTable.table[j].expiry >= biddySystemAge)) {
 
       /* THIS FORMULA IS OK */
       if (i != j) {
@@ -4790,7 +4820,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable target, Biddy_Boolean purge,
     } else {
 
       /* THIS FORMULA IS DELETED */
-      if (!biddyFormulaTable.table[j].expiry || biddyFormulaTable.table[j].expiry > biddySystemAge) {
+      if (!biddyFormulaTable.table[j].expiry || biddyFormulaTable.table[j].expiry >= biddySystemAge) {
         /* DELETED BUT NON-OBSOLETE FORMULAE */
         deletedFormulae = TRUE;
       }
@@ -4816,7 +4846,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable target, Biddy_Boolean purge,
 
       /* THERE EXIST DELETED BUT NON-OBSOLETE FORMULAE */
 
-      /* ALL PROLONGED AND FORTIFIED NODES BECOME */
+      /* ALL FRESH, PROLONGED, AND FORTIFIED NODES BECOME */
       /* FRESH (deletenow = FALSE) OR OBSOLETE (deletenow = TRUE) */
       /* NOT EFFICIENT! ONLY NODES FROM DELETED FORMULAE SHOULD BE VISITED! */
 
@@ -4829,7 +4859,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable target, Biddy_Boolean purge,
         biddyVariableTable.table[v].lastNode->list = NULL;
         sup = biddyVariableTable.table[v].firstNode;
         while (sup) {
-          if (!sup->expiry || sup->expiry > biddySystemAge) {
+          if (!sup->expiry || sup->expiry >= biddySystemAge) {
             sup->expiry = k;
           }
           sup = (BiddyNode *) sup->list;
@@ -5285,7 +5315,7 @@ Biddy_Managed_AddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f, int c)
   */
 
   if (c == -1) {
-    c += biddySystemAge;
+    c = biddySystemAge;
   }
   else if (c) {
     if ((c+biddySystemAge) < biddySystemAge) {
@@ -6040,6 +6070,7 @@ Biddy_Managed_Sifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
   /* 2. it has max number of nodes */
 
   finish = (varTable[minvar] == 2); /* maybe, we are sifting constant '1' */
+  v = 0;
   if (!finish) {
     if (!f) {
       /* VARIANT 1 */
@@ -8527,18 +8558,17 @@ addOp3Cache(Biddy_Manager MNG, BiddyOp3CacheTable cache, Biddy_Edge a,
 
   p = &cache.table[index];
 
+#ifdef BIDDYEXTENDEDSTATS_YES
   if (!Biddy_IsNull(p->result)) {
-
-    /* this is experimental - not usable */
-    /*
-    if (Biddy_IsSmaller(Biddy_GetTopVariable(r),Biddy_GetTopVariable(p->result))) return;
-    */
-
     /* THE CELL IS NOT EMPTY, THUS THIS IS OVERWRITING */
     (*cache.overwrite)++;
   }
+#endif
 
+#ifdef BIDDYEXTENDEDSTATS_YES
   (*cache.insert)++;
+#endif
+
   p->f = a;
   p->g = b;
   p->h = c;

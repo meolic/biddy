@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 261 $]
-#  Date        [$Date: 2017-03-20 23:15:22 +0100 (pon, 20 mar 2017) $]
+#  Revision    [$Revision: 291 $]
+#  Date        [$Date: 2017-07-13 22:38:39 +0200 (čet, 13 jul 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2017 UM-FERI
@@ -50,11 +50,13 @@
 # OR
 # pbuilder-dist xenial login --save-after-login
 # You will get root prompt and then do the following:
+# apt-get install gnupg2 (seems to be needed for zesty)
+# apt-get install dirmngr (seems to be needed for zesty)
 # apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9018C2C6
 # exit
 
 # 3. You have to get the latest biddy library. Do the following:
-# sudo pbuilder update --override-config --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu trusty main"
+# sudo pbuilder update --override-config --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu xenial main"
 # OR
 # pbuilder-dist xenial update --override-config --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu xenial main"
 # OR
@@ -179,10 +181,10 @@ mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for yakkety
+# create a source distribution for zesty
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=yakkety
+ALTDISTRO=zesty
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -203,7 +205,8 @@ echo "************************"
 echo ""
 
 # all target pbuilder environments must already exists
-# use e.g pbuilder-dist yakkety create
+# use e.g pbuilder-dist zesty create
+# use e.g pbuilder-dist zesty update
 
 echo "BUILDING FOR YOUR DIST: $DIST"
 pbuilder-dist $DISTRO build --buildresult `pwd`/default `pwd`/default/source/*.dsc
@@ -224,7 +227,7 @@ pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/s
 #pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
 #popd
 
-ALTDISTRO=yakkety
+ALTDISTRO=zesty
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 #pushd `pwd`/$ALTDISTRO/source

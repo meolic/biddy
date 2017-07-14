@@ -9,7 +9,7 @@
     <ROW Property="ProductCode" Value="1033:{5BD6071F-76DC-4802-80E9-B1857C1540C4} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="BDD Scout"/>
-    <ROW Property="ProductVersion" Value="1.7.1" Type="32"/>
+    <ROW Property="ProductVersion" Value="1.7.2" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{7F6C1AD3-155E-4138-B41E-3F667E140D09}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -142,7 +142,7 @@
     <ROW File="ztwaalf2.be" Component_="IFIPEX" FileName="ztwaalf2.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\ztwaalf2.be" SelfReg="false" NextFile="alupla20.be"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="bddscout-1-7-1-Win" Languages="en" InstallationType="4" UseLargeSchema="true" MsiPackageType="x64"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="bddscout-1-7-2-Win" Languages="en" InstallationType="4" UseLargeSchema="true" MsiPackageType="x64"/>
     <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.CacheComponent">

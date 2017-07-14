@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutIFIP.c]
-  Revision    [$Revision: 244 $]
-  Date        [$Date: 2017-02-14 23:23:32 +0100 (tor, 14 feb 2017) $]
+  Revision    [$Revision: 289 $]
+  Date        [$Date: 2017-07-13 12:27:36 +0200 (čet, 13 jul 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -55,7 +55,7 @@ int SCAN_RESULT; /* used in readln macro */
 
 /**Function****************************************************************
   Synopsis    [Function Bddscout_BenchmarkIFIP]
-  Description []
+  Description [Produce benchmark results for one file.]
   SideEffects [Implemented long time ago (1995). Not comprehensible.]
   SeeAlso     []
   ************************************************************************/
@@ -83,7 +83,7 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   unsigned int i,n;
 
   MNG = Bddscout_GetActiveManager();
-
+  
   filenameout = strdup(filename);
   for (i=0; i<strlen(filenameout); i++) filenameout[i]=toupper(filenameout[i]);
 
@@ -130,11 +130,6 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
     /* FOR ZBDD and ZFDD, new variables are added above all others */
 
     Biddy_Managed_AddVariableByName(MNG,var);
-
-    /* DEBUGGING */
-    /*
-    Biddy_Managed_AddVariableByName(MNGOBDD,var);
-    */
 
     var = strtok(NULL," \t)");
   }

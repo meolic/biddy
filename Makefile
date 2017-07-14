@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 229 $]
-#  Date        [$Date: 2017-01-07 15:46:42 +0100 (sob, 07 jan 2017) $]
+#  Revision    [$Revision: 269 $]
+#  Date        [$Date: 2017-04-13 16:48:47 +0200 (čet, 13 apr 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2017 UM-FERI
@@ -27,7 +27,6 @@
 
 LIBNAME = LIBNAME
 OS = $(shell uname | sed "s/_.*//;s/[0-9]//g")
-# OS := $(subst MSYS,MINGW,$(OS))
 RM = rm -f
 RMFR = rm -fr
 CP = cp

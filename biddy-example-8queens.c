@@ -1,5 +1,5 @@
-/* $Revision: 253 $ */
-/* $Date: 2017-03-20 09:03:47 +0100 (pon, 20 mar 2017) $ */
+/* $Revision: 272 $ */
+/* $Date: 2017-06-10 12:21:31 +0200 (sob, 10 jun 2017) $ */
 /* This file (biddy-example-8queens.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -7,14 +7,13 @@
 /* This example is compatible with Biddy v1.7 and CUDD v3.0.0 */
 
 /* COMPILE WITH: */
-/* gcc -DREPORT -DEVENTLOG_NONE -DUSE_BIDDY -DUNIX -O2 -o biddy-example-8queens biddy-example-8queens.c -I. -L./bin -lbiddy -lgmp */
+/* gcc -DREPORT -DNOPROFILE -DEVENTLOG_NONE -DUSE_BIDDY -DUNIX -O2 -o biddy-example-8queens biddy-example-8queens.c -I. -L./bin -lbiddy -lgmp */
 /* gcc -DREPORT -DEVENTLOG_NONE -DUSE_CUDD -O2 -o cudd-example-8queens biddy-example-8queens.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 
-/* to enable the 1993 edition of the POSIX.1b standard (IEEE Standard 1003.1b-1993) */
-/* #define _POSIX_C_SOURCE (199309L) */
+/* for stats with more details, use BIDDYEXTENDEDSTATS_YES in biddyInt.h and use -lm for linking */
 
 /* default size, this can be overriden via argument */
-#define SIZE 8
+#define SIZE 9
 #define USE_GARBAGE_COLLECTION
 
 /* for BIDDY there are 3 variants possible: */
@@ -104,42 +103,49 @@ DdManager *manager;
 
 void checkOutOfLimits(unsigned int size, clock_t elapsedtime) {
 #ifdef USE_BIDDY
-  if ((size == 9) && (Biddy_ReadMemoryInUse() > 120000000)) {
-    fprintf(stderr,"9, -1, -1, -1\n");
-    exit(1);
-  }
+  /* LIMIT 1 */
+  /**/
   if ((size == 10) && (Biddy_NodeTableSize() > 4194304)) {
     fprintf(stderr,"10, -1, -1, -1\n");
-    exit(1);
+    exit(0);
   }
-  if ((size == 10) && (Biddy_ReadMemoryInUse() > 300000000)) {
+  /**/
+  /* LIMIT 2 */
+  /**/
+  if ((size == 9) && (Biddy_ReadMemoryInUse() > 120000000)) {
+    fprintf(stderr,"9, -1, -1, -1\n");
+    exit(0);
+  }
+  if ((size == 10) && (Biddy_ReadMemoryInUse() > 350000000)) {
     fprintf(stderr,"10, -1, -1, -1\n");
-    exit(1);
+    exit(0);
   }
-/*
+  /**/
+  /* LIMIT 3 */
+  /*
   if ((size == 10) && ((clock()-elapsedtime)/(1.0*CLOCKS_PER_SEC) > 120.0)) {
     fprintf(stderr,"10, -1, -1, -1\n");
-    exit(1);
+    exit(0);
   }
-*/
+  */
 #endif
 }
 
 int main(int argc, char** argv) {
-  unsigned int i,j,k,n,size,seq,seq1;
+  unsigned int i,j,k,n,size,seq;
   Biddy_Edge **board;
   Biddy_Edge tmp;
   Biddy_Edge t,r;
   Biddy_Edge *fifo1,*LP1;
   Biddy_Edge *fifo2,*LP2;
+#if defined(POSTPONE_FIFO) || defined(POSTPONE_REVERSE_FIFO)
+  unsigned int seq1;
+#endif
 
   clock_t elapsedtime;
-  /* struct timespec elapsedtimex, stoptimex; */
-
-  elapsedtime = clock();
-  /* if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&elapsedtimex) == -1) printf("ERROR WITH clock_gettime!\n"); */
 
   if (argc > 1) {
+#pragma warning(suppress: 6031)
     sscanf(argv[1],"%u",&size);
   } else {
     size = SIZE;
@@ -147,10 +153,16 @@ int main(int argc, char** argv) {
 
   if ((size < 2) || (size > 15)) {
     printf("WRONG SIZE!\n");
-    exit(1);
+    exit(0);
   }
 
   setbuf(stdout, NULL);
+
+#ifdef PROFILE
+  printf("!!!");
+#endif
+
+  elapsedtime = clock();
 
   LP1 = fifo1 = (Biddy_Edge *) malloc((4 * size * size + size) * sizeof(Biddy_Edge));
   LP2 = fifo2 = (Biddy_Edge *) malloc((4 * size * size + size) * sizeof(Biddy_Edge));
@@ -162,6 +174,7 @@ int main(int argc, char** argv) {
 
   board = (Biddy_Edge **) malloc((size+1)*sizeof(Biddy_Edge *));
   for (i=0; i<=size; i++) {
+#pragma warning(suppress: 6011)
     board[i] = (Biddy_Edge *) malloc((size+1)*sizeof(Biddy_Edge));
   }
 
@@ -179,37 +192,55 @@ int main(int argc, char** argv) {
   /* biddyBlockSize = 524288 */
   /* DEFAULT INIT CALL: Biddy_InitAnonymous(BIDDYTYPEOBDD) */
   Biddy_InitAnonymous(BIDDYTYPEOBDD);
-  if (argc == 2) {
+  if ((argc == 1) || (argc == 2)) {
     Biddy_SetManagerParameters(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);
   }
   else if (argc == 8) {
-    unsigned int gcr,gcrF,gcrX;
-    unsigned int rr,rrF,rrX;
-    sscanf(argv[2],"%u",&gcr);
-    sscanf(argv[3],"%u",&gcrF);
-    sscanf(argv[4],"%u",&gcrX);
-    sscanf(argv[5],"%u",&rr);
-    sscanf(argv[6],"%u",&rrF);
-    sscanf(argv[7],"%u",&rrX);
+    int gcr,gcrF,gcrX;
+    int rr,rrF,rrX;
+#pragma warning(suppress: 6031)
+    sscanf(argv[2],"%d",&gcr);
+#pragma warning(suppress: 6031)
+    sscanf(argv[3],"%d",&gcrF);
+#pragma warning(suppress: 6031)
+    sscanf(argv[4],"%d",&gcrX);
+#pragma warning(suppress: 6031)
+    sscanf(argv[5],"%d",&rr);
+#pragma warning(suppress: 6031)
+    sscanf(argv[6],"%d",&rrF);
+#pragma warning(suppress: 6031)
+    sscanf(argv[7],"%d",&rrX);
+#pragma warning(suppress: 4244)
     Biddy_SetManagerParameters(gcr/100.0,gcrF/100.0,gcrX/100.0,rr/100.0,rrF/100.0,rrX/100.0,-1,-1,-1,-1);
   }
   else if (argc == 12) {
-    unsigned int gcr,gcrF,gcrX;
-    unsigned int rr,rrF,rrX;
-    unsigned int st;
-    unsigned int fst;
-    unsigned int cst;
-    unsigned int fcst;
-    sscanf(argv[2],"%u",&gcr);
-    sscanf(argv[3],"%u",&gcrF);
-    sscanf(argv[4],"%u",&gcrX);
-    sscanf(argv[5],"%u",&rr);
-    sscanf(argv[6],"%u",&rrF);
-    sscanf(argv[7],"%u",&rrX);
-    sscanf(argv[8],"%u",&st);
-    sscanf(argv[9],"%u",&fst);
-    sscanf(argv[10],"%u",&cst);
-    sscanf(argv[11],"%u",&fcst);
+    int gcr,gcrF,gcrX;
+    int rr,rrF,rrX;
+    int st;
+    int fst;
+    int cst;
+    int fcst;
+#pragma warning(suppress: 6031)
+    sscanf(argv[2],"%d",&gcr);
+#pragma warning(suppress: 6031)
+    sscanf(argv[3],"%d",&gcrF);
+#pragma warning(suppress: 6031)
+    sscanf(argv[4],"%d",&gcrX);
+#pragma warning(suppress: 6031)
+    sscanf(argv[5],"%d",&rr);
+#pragma warning(suppress: 6031)
+    sscanf(argv[6],"%d",&rrF);
+#pragma warning(suppress: 6031)
+    sscanf(argv[7],"%d",&rrX);
+#pragma warning(suppress: 6031)
+    sscanf(argv[8],"%d",&st);
+#pragma warning(suppress: 6031)
+    sscanf(argv[9],"%d",&fst);
+#pragma warning(suppress: 6031)
+    sscanf(argv[10],"%d",&cst);
+#pragma warning(suppress: 6031)
+    sscanf(argv[11],"%d",&fcst);
+#pragma warning(suppress: 4244)
     Biddy_SetManagerParameters(gcr/100.0,gcrF/100.0,gcrX/100.0,rr/100.0,rrF/100.0,rrX/100.0,st/100.0,fst/100.0,cst/100.0,fcst/100.0);
   }
   else {
@@ -217,7 +248,7 @@ int main(int argc, char** argv) {
     printf("USAGE (short): biddy-example-8queens SIZE GCR GCRF GCRX RR RRF RRX\n");
     printf("USAGE (long): biddy-example-8queens SIZE GCR GCRF GCRX RR RRF RRX ST FST CST FCST\n");
     printf("All parameters should be integer numbers >= 0");
-    exit(1);
+    exit(0);
   }
 #endif
 
@@ -240,6 +271,7 @@ int main(int argc, char** argv) {
 #endif
 
   for (i=1; i<=size; i++) {
+#pragma warning(suppress: 6011)
     board[0][i] = board[i][0] = NULL;
   }
 
@@ -392,10 +424,9 @@ int main(int argc, char** argv) {
   Biddy_AutoGC();
 #endif
 
-  /* PROFILING */
-  /*
+#ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
-  */
+#endif
 
   /* SIFTING AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
   /* IT IS NOT VERY EFFECTIVE FOR THIS PROBLEM */
@@ -508,10 +539,9 @@ int main(int argc, char** argv) {
   Biddy_AutoGC();
 #endif
 
-  /* PROFILING */
-  /*
+#ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
-  */
+#endif
 
   /* SIFTING AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
   /* IT IS NOT VERY EFFECTIVE FOR THIS PROBLEM */
@@ -624,10 +654,9 @@ int main(int argc, char** argv) {
   Biddy_AutoGC();
 #endif
 
-  /* PROFILING */
-  /*
+#ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
-  */
+#endif
 
   /* SIFTING AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
   /* IT IS NOT VERY EFFECTIVE FOR THIS PROBLEM */
@@ -669,6 +698,7 @@ int main(int argc, char** argv) {
         }
       }
       ZF_LOGI("FD_OR");
+#pragma warning(suppress: 6011)
       tmp = Biddy_Or(t,Biddy_Not(board[i][j]));
 #ifdef NOT_POSTPONE
 #ifdef USE_BIDDY
@@ -740,10 +770,9 @@ int main(int argc, char** argv) {
   Biddy_AutoGC();
 #endif
 
-  /* PROFILING */
-  /*
+#ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
-  */
+#endif
 
   /* SIFTING AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
   /* IT IS NOT VERY EFFECTIVE FOR THIS PROBLEM */
@@ -838,10 +867,9 @@ int main(int argc, char** argv) {
 #endif
 #endif
 
-    /* PROFILING */
-    /*
-    checkOutOfLimits(size,elapsedtime);
-    */
+#ifdef PROFILE
+  checkOutOfLimits(size,elapsedtime);
+#endif
 
   }
 
@@ -850,10 +878,9 @@ int main(int argc, char** argv) {
   Biddy_AutoGC();
 #endif
 
-  /* PROFILING */
-  /*
+#ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
-  */
+#endif
 
   /* SIFTING AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
   /* IT IS NOT VERY EFFECTIVE FOR THIS PROBLEM */
@@ -1011,17 +1038,11 @@ int main(int argc, char** argv) {
 
   ZF_LOGI("EXIT");
 
-  /* PROFILING */
-  /*
+#ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
-  */
+#endif
 
   elapsedtime = clock()-elapsedtime;
-
-  /*
-  if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&stoptimex) == -1) printf("ERROR WITH clock_gettime!\n");
-  fprintf(stderr,"clock_gettime() TIME = %.2f\n",(stoptimex.tv_sec-elapsedtimex.tv_sec)+(stoptimex.tv_nsec-elapsedtimex.tv_nsec)/1000000000.0);
-  */
 
   /* RESULT */
 #ifdef REPORT
@@ -1127,7 +1148,7 @@ int main(int argc, char** argv) {
   }
   else {
     fprintf(stderr,"(unknown BDD type)");
-    exit(1);
+    exit(0);
   }
   n = Biddy_DependentVariableNumber(r);
   fprintf(stderr,"Resulting function r has %.0f minterms.\n",Biddy_CountMinterm(r,n));
@@ -1144,23 +1165,38 @@ int main(int argc, char** argv) {
 #endif
 
   /* PROFILING */
-  /*
+  /**/
 #ifdef USE_BIDDY
-  fprintf(stderr,"%2u, ",size);
+  fprintf(stderr,"#%u, ",size);
 #ifdef MINGW
   fprintf(stderr,"%I64u, ",Biddy_ReadMemoryInUse());
 #else
-  fprintf(stderr,"%10llu, ",Biddy_ReadMemoryInUse());
+  fprintf(stderr,"%llu, ",Biddy_ReadMemoryInUse());
 #endif
-  if (Biddy_NodeTableANDORRecursiveNumber()) {
-    fprintf(stderr,"%llu, ",Biddy_NodeTableANDORRecursiveNumber());
+/*
+  if (Biddy_NodeTableFoaNumber()) {
+    fprintf(stderr,"%llu, ",Biddy_NodeTableFoaNumber());
   }
-  fprintf(stderr,"%2u, ",Biddy_NodeTableGCNumber());
+  if (Biddy_NodeTableFindNumber()) {
+    fprintf(stderr,"%llu, ",Biddy_NodeTableFindNumber());
+  }
+  if (Biddy_NodeTableCompareNumber()) {
+    fprintf(stderr,"%llu, ",Biddy_NodeTableCompareNumber());
+  }
+  if (Biddy_NodeTableAddNumber()) {
+    fprintf(stderr,"%llu, ",Biddy_NodeTableAddNumber());
+  }
+*/
+  fprintf(stderr,"%u, ",Biddy_NodeTableGCNumber());
   if (Biddy_NodeTableGCObsoleteNumber()) {
     fprintf(stderr,"%llu, ",Biddy_NodeTableGCObsoleteNumber());
     fprintf(stderr,"%.2f, ",Biddy_NodeTableGCTime()/(1.0*CLOCKS_PER_SEC));
   }
-  fprintf(stderr,"%.2f\n",elapsedtime/(1.0*CLOCKS_PER_SEC));
+  if (Biddy_NodeTableANDORRecursiveNumber()) {
+    fprintf(stderr,"%llu, ",Biddy_NodeTableANDORRecursiveNumber());
+  }
+  fprintf(stderr,"%.2f",elapsedtime/(1.0*CLOCKS_PER_SEC));
+  fprintf(stderr,",\n");
 #endif
 #ifdef USE_CUDD
   fprintf(stderr,"%u, ",size);
@@ -1168,7 +1204,7 @@ int main(int argc, char** argv) {
   fprintf(stderr,"0, ");
   fprintf(stderr,"%.2f\n",elapsedtime/(1.0*CLOCKS_PER_SEC));
 #endif
-  */
+  /**/
 
   /* PROFILING */
   /*

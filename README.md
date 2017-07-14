@@ -40,7 +40,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
 There  are two  aditional packages included into Biddy distribution:
 
 - bddview is a pure Tcl/Tk script for visualization of BDDs,
-- BDD Scout is a demo  application demonstrating the capability of Biddy and bddview.
+- BDD Scout is a demo application demonstrating the capability of Biddy and bddview.
 
 Biddy is free software maintained by Robert Meolic
 (robert.meolic@um.si) at University of Maribor, Slovenia.
@@ -50,8 +50,8 @@ Homepage: http://biddy.meolic.com/
 ### 1. AN OVERVIEW
 --------------
 
-Biddy supports ROBDDs with complemented edges as described in "K.S. Brace,
-R.L. Rudell, R.E. Bryant. Efficient  Implementation  of a  BDD
+Biddy supports ROBDDs with complemented edges as described in "K. S. Brace,
+R. L. Rudell, R. E. Bryant. Efficient  Implementation  of a  BDD
 Package. 27th ACM/IEEE DAC, pages 40-45, 1990".
 
 Biddy supports 0-sup-BDDs with complemented edges as described in
@@ -59,14 +59,14 @@ Biddy supports 0-sup-BDDs with complemented edges as described in
 Problems, 30th ACM/IEEE DAC, pages 272-277, 1993".
 
 Biddy supports TZBDDs (tagged zero-supressed binary decison diagrams)
-as introduced by Robert Meolic in 2016 (to be published).
+as introduced by R. Meolic in 2016 (to be published).
 
 Biddy includes:
 
 - automatic garbage collection with a system age
   (a variant of a mark-and-sweep approach),
 - node management through formulae protecting,
-- variable swapping and sifting algorithm (ROBDDs, only).
+- variable swapping and sifting algorithm (ROBDD, ZBDD, and TZBDD).
 
 Biddy is optimized for efficiency, but it is  mainly oriented towards
 readable and  comprehensible source  code in C.
@@ -259,7 +259,7 @@ to immediately remove all non-preserved nodes.
 ### Biddy_Purge()
 
 Immediately remove all nodes which were not preserved or which are not
-preserved anymore.
+preserved anymore. All formulae without name are deleted.
 Nodes from deleted prolonged formulae and nodes from deleted fortified
 formulae are removed if they are not needed by other formulae.
 Call to Biddy_Purge does not count as cleaning and thus all
@@ -269,11 +269,12 @@ preserved formulae remains preserved for the same number of cleanings.
 
 The same as Biddy_Purge but also trigger reordering on function
 (if BDD is given) or global reordering (if NULL is given).
+Reordering on function is currently supported only for ROBDDs.
 
 ### Biddy_Refresh(bdd)
 
-All obsolete nodes become fresh nodes. This is an external variant of
-internal function BiddyRefresh. It is needed to implement user caches.
+All obsolete nodes in the given bdd become fresh nodes.
+This is needed to implement user caches.
 
 ### 3.2. EXAMPLES OF NODE MANAGEMENT WITH BIDDY
 

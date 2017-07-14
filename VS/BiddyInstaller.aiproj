@@ -15,10 +15,14 @@
     <Name>BiddyInstaller</Name>
     <RootNamespace>BiddyInstaller</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'All' ">
-    <DebugSymbols>false</DebugSymbols>
-    <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
+  <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
+  <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
+  <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
+  <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
+  <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
+  <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
+  <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
   <PropertyGroup Condition=" '$(Configuration)' == 'DefaultBuild' " />
   <ItemGroup>
     <Compile Include="BiddyInstaller.aip">

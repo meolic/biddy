@@ -13,6 +13,6 @@ connect 2 3 l t
 connect 2 7 r t
 connect 3 4 l c
 connect 3 5 r c
-connect 5 6 e 1 1
+connect 5 6 d 1 1
 connect 7 5 l h
 connect 7 8 r h

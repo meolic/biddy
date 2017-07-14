@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.h]
-  Revision    [$Revision: 244 $]
-  Date        [$Date: 2017-02-14 23:23:32 +0100 (tor, 14 feb 2017) $]
+  Revision    [$Revision: 288 $]
+  Date        [$Date: 2017-07-13 11:44:41 +0200 (čet, 13 jul 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description [The file bddscout.h contains some declarations.]
   SeeAlso     []
@@ -116,6 +116,7 @@ extern "C" {
 #endif
 
 EXTERN Biddy_Manager Bddscout_GetActiveManager();
+EXTERN void Bddscout_ClearActiveManager();
 
 #ifdef __cplusplus
 }

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 257 $]
-#  Date        [$Date: 2017-03-20 21:21:22 +0100 (pon, 20 mar 2017) $]
+#  Revision    [$Revision: 290 $]
+#  Date        [$Date: 2017-07-13 16:28:31 +0200 (čet, 13 jul 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2017 UM-FERI
@@ -153,10 +153,10 @@ mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for yakkety
+# create a source distribution for zesty
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=yakkety
+ALTDISTRO=zesty
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -176,8 +176,9 @@ echo "GENERATING DEB PACKAGES "
 echo "************************"
 echo ""
 
-# all target pbuilder environments must already exists
-# use e.g pbuilder-dist yaketty create
+# all target pbuilder environments must already exists and be updated
+# use e.g pbuilder-dist zesty create
+# use e.g pbuilder-dist zesty update
 
 echo "BUILDING FOR YOUR DIST: $DIST"
 pbuilder-dist $DISTRO build --buildresult `pwd`/default `pwd`/default/source/*.dsc
@@ -198,7 +199,7 @@ pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/s
 #pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
 #popd
 
-ALTDISTRO=yakkety
+ALTDISTRO=zesty
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 #pushd `pwd`/$ALTDISTRO/source
