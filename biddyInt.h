@@ -7,20 +7,20 @@
     PackageName [Biddy]
     Synopsis    [Biddy provides data structures and algorithms for the
                  representation and manipulation of Boolean functions with
-                 ROBDDs. A hash table is used for quick search of nodes.
-                 Complement edges decreases the number of nodes. An automatic
-                 garbage collection with a system age is implemented.
-                 Variable swapping and sifting are implemented.]
+                 ROBDDs, 0-sup-BDDs, and TZBDDs. A hash table is used for quick
+                 search of nodes. Complement edges decreases the number of
+                 nodes. An automatic garbage collection with a system age is
+                 implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 284 $]
-    Date        [$Date: 2017-07-11 23:55:56 +0200 (tor, 11 jul 2017) $]
+    Revision    [$Revision: 319 $]
+    Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
-Copyright (C) 2006, 2017 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2017 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -221,35 +221,41 @@ See also: biddy.h
 #define biddyRCCache1 (*((BiddyOp3CacheTable*)(MNG1[10])))
 #define biddyRCCache2 (*((BiddyOp3CacheTable*)(MNG2[10])))
 
+/* Replace Cache in manager MNG, since Biddy v1.7. */
+/* this is typecasted to (BiddyKeywordCacheTable*) and dereferenced */
+#define biddyReplaceCache (*((BiddyKeywordCacheTable*)(MNG[11])))
+#define biddyReplaceCache1 (*((BiddyKeywordCacheTable*)(MNG1[11])))
+#define biddyReplaceCache2 (*((BiddyKeywordCacheTable*)(MNG2[11])))
+
 /* Cache list in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (BiddyCacheList**) and dereferenced */
-#define biddyCacheList (*((BiddyCacheList**)(MNG[11])))
-#define biddyCacheList1 (*((BiddyCacheList**)(MNG1[11])))
-#define biddyCacheList2 (*((BiddyCacheList**)(MNG2[11])))
+#define biddyCacheList (*((BiddyCacheList**)(MNG[12])))
+#define biddyCacheList1 (*((BiddyCacheList**)(MNG1[12])))
+#define biddyCacheList2 (*((BiddyCacheList**)(MNG2[12])))
 
 /* List of free nodes in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (BiddyNode**) and dereferenced */
-#define biddyFreeNodes (*((BiddyNode**)(MNG[12])))
-#define biddyFreeNodes1 (*((BiddyNode**)(MNG1[12])))
-#define biddyFreeNodes2 (*((BiddyNode**)(MNG2[12])))
+#define biddyFreeNodes (*((BiddyNode**)(MNG[13])))
+#define biddyFreeNodes1 (*((BiddyNode**)(MNG1[13])))
+#define biddyFreeNodes2 (*((BiddyNode**)(MNG2[13])))
 
 /* Variable ordering in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (BiddyOrderingTable*) and dereferenced */
-#define biddyOrderingTable (*((BiddyOrderingTable*)(MNG[13])))
-#define biddyOrderingTable1 (*((BiddyOrderingTable*)(MNG1[13])))
-#define biddyOrderingTable2 (*((BiddyOrderingTable*)(MNG2[13])))
+#define biddyOrderingTable (*((BiddyOrderingTable*)(MNG[14])))
+#define biddyOrderingTable1 (*((BiddyOrderingTable*)(MNG1[14])))
+#define biddyOrderingTable2 (*((BiddyOrderingTable*)(MNG2[14])))
 
 /* System age in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (int*) and dereferenced */
-#define biddySystemAge (*((unsigned int*)(MNG[14])))
-#define biddySystemAge1 (*((unsigned int*)(MNG1[14])))
-#define biddySystemAge2 (*((unsigned int*)(MNG2[14])))
+#define biddySystemAge (*((unsigned int*)(MNG[15])))
+#define biddySystemAge1 (*((unsigned int*)(MNG1[15])))
+#define biddySystemAge2 (*((unsigned int*)(MNG2[15])))
 
 /* Node selector in manager MNG, since Biddy v1.6 */
 /* this is typecasted to (int*) and dereferenced */
-#define biddySelect (*((unsigned short int*)(MNG[15])))
-#define biddySelect1 (*((unsigned short int*)(MNG1[15])))
-#define biddySelect2 (*((unsigned short int*)(MNG2[15])))
+#define biddySelect (*((unsigned short int*)(MNG[16])))
+#define biddySelect1 (*((unsigned short int*)(MNG1[16])))
+#define biddySelect2 (*((unsigned short int*)(MNG2[16])))
 
 /* BiddyProlongOne prolonges top node of the given function, since Biddy v1.6 */
 #define BiddyProlongOne(f,c) if((!(c))||(BiddyN(f)->expiry&&(BiddyN(f)->expiry<(c))))BiddyN(f)->expiry=(c)
@@ -461,6 +467,30 @@ typedef struct {
 /* RC Cache = a fixed-size cache table intended for Biddy_Restrict and Biddy_Compose */
 /* Since Biddy v1.5, RC Cache is BiddyOp3Cache where variable is represented by h */
 
+/* Keyword Cache = a fixed-size cache table for one-argument operations */
+/* Since Biddy v1.7, KeywordCache is used for Biddy_ReplaceByKeyword */
+/* TO DO: use it also for other functions, e.g. copyBDD */
+typedef struct {
+  Biddy_Edge f;
+  unsigned int keyword;
+  Biddy_Edge result; /* biddy_null = not valid record! */
+} BiddyKeywordCache;
+
+typedef struct {
+  BiddyKeywordCache *table;
+  Biddy_String *keywordList;
+  unsigned int *keyList;
+  unsigned int keywordNum;
+  unsigned int size;
+  Biddy_Boolean disabled;
+  unsigned long long int *search;
+  unsigned long long int *find;
+#ifdef BIDDYEXTENDEDSTATS_YES
+  unsigned long long int *insert;
+  unsigned long long int *overwrite;
+#endif
+} BiddyKeywordCacheTable;
+
 /* Manager = configuration of a BDD system, since Biddy v1.4 */
 /* All fields in BiddyManager must be pointers or arrays */
 /* Anonymous manager (i.e. anonymous namespace) is created by Biddy_Init */
@@ -482,6 +512,7 @@ typedef struct {
   void *OPcache; /* this is typecasted to (BiddyOp3CacheTable*) */
   void *EAcache; /* this is typecasted to (BiddyOp3CacheTable*) */
   void *RCcache; /* this is typecasted to (BiddyOp3CacheTable*) */
+  void *REPLACEcache; /* this is typecasted to (BiddyKeywordCacheTable*) */
   void *cacheList; /* this is typecasted to (BiddyCacheList*) */
   void *freeNodes; /* this is typecasted to (BiddyNode*) */
   void *ordering; /* this is typecasted to (BiddyOrderingTable*) */
@@ -498,16 +529,15 @@ typedef struct {
   BiddyNode *org; /* original pointer, used when deleting local cache */
   union {
     unsigned int enumerator; /* used in enumerateNodes */
-    unsigned int npSelected; /* used in nodePlainNumber() and pathCount() */
+    unsigned int npSelected; /* used in nodePlainNumber and nodeVarNumber */
     /* NOTE: positiveSelected iff (data.npSelected & 1 != 0) */
     /* NOTE: negativeSelected iff (data.npSelected & 2 != 0) */
-    unsigned int nodeCount; /* used in nodePlainNumber() */
-    unsigned long long int path1Count; /* used in pathCount() */
-    mpz_t mintermCount; /* used in mintermCount(), represented using GMP library */
+    unsigned long long int path1Count; /* used in pathCount */
+    mpz_t mintermCount; /* used in mintermCount, represented using GMP library */
   } data;
   union {
-    unsigned long long int path0Count; /* used in pathCount() */
-    Biddy_Boolean leftmost; /* used in pathCount() */
+    Biddy_Boolean leftmost; /* used in pathCount for ZBDDs, only */
+    unsigned long long int path0Count; /* used in pathCount for OBDDs, only */
   } datax;
 } BiddyLocalInfo;
 
@@ -547,7 +577,7 @@ extern Biddy_Edge BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy
 extern Biddy_Edge BiddyManagedConstrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c);
 extern Biddy_Edge BiddyManagedSimplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c);
 extern Biddy_Edge BiddyManagedSupport(Biddy_Manager MNG, Biddy_Edge f);
-extern Biddy_Edge BiddyManagedReplace(Biddy_Manager MNG, Biddy_Edge f);
+extern Biddy_Edge BiddyManagedReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, const unsigned int key);
 extern Biddy_Edge BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
 
@@ -564,8 +594,6 @@ extern unsigned int BiddyGetSeqByNode(Biddy_Edge root, Biddy_Edge f);
 extern Biddy_Edge BiddyGetNodeBySeq(Biddy_Edge root, unsigned int n);
 extern void BiddySetEnumerator(Biddy_Edge f, unsigned int n);
 extern unsigned int BiddyGetEnumerator(Biddy_Edge f);
-extern void BiddySetNodeCount(Biddy_Edge f, unsigned int value);
-extern unsigned int BiddyGetNodeCount(Biddy_Edge f);
 extern void BiddySetPath0Count(Biddy_Edge f, unsigned long long int value);
 extern unsigned long long int BiddyGetPath0Count(Biddy_Edge f);
 extern void BiddySetPath1Count(Biddy_Edge f, unsigned long long int value);
@@ -590,7 +618,7 @@ extern void BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f);
 /*----------------------------------------------------------------------------*/
 
 extern void BiddyNodeNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n);
-
+extern void BiddyComplementedEdgeNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n);
 extern void BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n);
 
 /*----------------------------------------------------------------------------*/

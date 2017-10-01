@@ -2,11 +2,11 @@
   PackageName [Bdd Scout]
   Synopsis    [Bdd Scout]
 
-  FileName    [bddscout.h]
+  FileName    [bddscoutTcl.h]
   Revision    [$Revision: 319 $]
   Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
-  Description [The file bddscout.h contains declarations.]
+  Description [The file bddscoutTcl.h contains declarations.]
   SeeAlso     []
 
   Copyright   [This file is part of Bdd Scout package.
@@ -31,43 +31,14 @@
 
 /* To inspect DLL use Visual Studio Command Prompt + DUMPBIN /EXPORTS */
 
-#ifndef _BDDSCOUT
-#define _BDDSCOUT
+#ifndef _BDDSCOUTTCL
+#define _BDDSCOUTTCL
 
-#include <biddy.h>
-#include <string.h>
-#include <ctype.h>
+#include <tcl.h>
+#include "bddscout.h"
 
-#ifdef _MSC_VER
-#  include <io.h>
-#  include <process.h>
-#else
-#  include <unistd.h>
-#endif
-
-/* ON MS WINDOWS + MINGW THERE HAS TO BE DEFINED MINGW */
-/* ON GNU/LINUX THERE HAS TO BE DEFINED UNIX */
-/* ON MACOSX THERE HAS TO BE DEFINED MACOSX */
-
-#ifdef UNIX
-#  undef EXTERN
-#  define EXTERN extern
-#  undef DATAEXTERN
-#  define DATAEXTERN extern
-#endif
-
-#ifdef MACOSX
-#  undef EXTERN
-#  define EXTERN extern
-#  undef DATAEXTERN
-#  define DATAEXTERN extern
-#endif
-
-#if defined(MINGW) || defined(_MSC_VER)
-#  undef EXTERN
-#  define EXTERN __declspec (dllexport)
-#  undef DATAEXTERN
-#  define DATAEXTERN extern __declspec (dllexport)
+#ifndef BUILD_BDDSCOUTINIT
+#include "bddscoutDecls.h"
 #endif
 
 /*-----------------------------------------------------------------------*/
@@ -78,13 +49,9 @@
 /* Macro definitions                                                     */
 /*-----------------------------------------------------------------------*/
 
-#define BDDNULL NULL
-
 /*-----------------------------------------------------------------------*/
 /* Type declarations                                                     */
 /*-----------------------------------------------------------------------*/
-
-typedef Biddy_Boolean (*Bddscout_LookupFunction)(Biddy_String,Biddy_Edge*);
 
 /*-----------------------------------------------------------------------*/
 /* Structure declarations                                                */
@@ -98,37 +65,13 @@ typedef Biddy_Boolean (*Bddscout_LookupFunction)(Biddy_String,Biddy_Edge*);
 /* External functions prototypes                                         */
 /*-----------------------------------------------------------------------*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-EXTERN Biddy_Manager Bddscout_GetActiveManager();
-EXTERN void Bddscout_ClearActiveManager();
-EXTERN void Bddscout_ChangeActiveManager(Biddy_String type);
-
-#ifdef __cplusplus
-}
-#endif
+EXTERN int Bddscout_Init(Tcl_Interp *interp);
+EXTERN int Bddscoutbddtraces_Init(Tcl_Interp *interp);
+EXTERN int Bddscoutbra_Init(Tcl_Interp *interp);
+EXTERN int Bddscoutifip_Init(Tcl_Interp *interp);
 
 /*-----------------------------------------------------------------------*/
 /* Internal functions prototypes                                         */
 /*-----------------------------------------------------------------------*/
 
-void BddscoutInit();
-void BddscoutExit();
-Biddy_Boolean BddscoutCheckFormula(Biddy_String type, Biddy_String fname);
-void BddscoutCopyFormula(Biddy_String fname, Biddy_String type1, Biddy_String type2);
-void BddscoutSyncFormula(Biddy_Edge form, Biddy_String name);
-void BddscoutConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4);
-int BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String name);
-void BddscoutListVariablesByPosition(Biddy_String *list);
-void BddscoutListVariablesByName(Biddy_String *list);
-void BddscoutListVariablesByOrder(Biddy_String *list);
-void BddscoutListVariablesByNumber(Biddy_String *list);
-void BddscoutListFormulaByName(Biddy_String *list);
-void BddscoutListFormulaByUIntParameter(Biddy_String *list, unsigned int (*PF)(Biddy_Edge));
-void BddscoutListFormulaByFloatParameter(Biddy_String *list, float (*PF)(Biddy_Edge));
-Biddy_String BddscoutReadBDD(FILE *s);
-Biddy_String BddscoutReadBF(FILE *f);
-
-#endif  /* _BDDSCOUT */
+#endif  /* _BDDSCOUTTCL */

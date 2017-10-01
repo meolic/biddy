@@ -3,12 +3,12 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 226 $]
-#  Date        [$Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $]
+#  Revision    [$Revision: 319 $]
+#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM-FERI
-#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2017 UM FERI
+#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -40,7 +40,7 @@ GCC = gcc
 ifneq (,$(wildcard /usr/bin/tclsh))
 #TCLVERSION := $(shell ls -d1 /usr/include/tcl* | tail -n 1 | sed "s/[^.0-9]//g")
 TCLVERSION := $(shell echo 'puts $$tcl_version' | tclsh)
-TCLINCLUDE = -I/usr/include/tcl$(TCLVERSION)
+TCLINCLUDE = -I/usr/include/tcl$(TCLVERSION) -DUSE_TCL_STUBS
 TCLLIB = -L/home/tcltk86/lib -ltcl$(TCLVERSION)
 TCLSTUBLIB = -L/home/tcltk86/lib -ltclstub$(TCLVERSION)
 TCLTKLIB = -L/home/tcltk86/lib -ltk$(TCLVERSION) -ltcl$(TCLVERSION)
@@ -112,19 +112,17 @@ local:
 	"EXTNAME1 = bddscoutIFIP.so" \
 	"EXTNAME2 = bddscoutBRA.so" \
 	"EXTNAME3 = bddscoutBDDTRACES.so" \
-	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O0 -g3 -DUNIX $(TCLINCLUDE)" \
-	"CCEXT = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O0 -g3 -DUNIX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O0 -g3 -DUNIX" \
 	"LN = $(GCC) -shared -Wl,--version-script=bddscout.map -o" \
-	"LNEXT = $(GCC) -shared -Wl,--version-script=bddscout.map -o" \
 	"AR = ar rcs" \
-	"USECONST = const" \
 	"BINDIR = ./bin" \
 	"BIDDYDIR = .." \
 	"BIDDYLIB = ../../bin" \
 	"BIDDYLIBEXT = ./bddscout.so" \
 	"BDDVIEWDIR = ../bddview" \
-	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"BDDSCOUTSTUBLIB = libbddscoutstub.a" \
 	"GMPLIB = $(GMPLIB)" \
+	"TCLINCLUDE = $(TCLINCLUDE)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"
 
@@ -136,13 +134,11 @@ package:
 	"EXTNAME1 = bddscoutIFIP.so" \
 	"EXTNAME2 = bddscoutBRA.so" \
 	"EXTNAME3 = bddscoutBDDTRACES.so" \
-	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX $(TCLINCLUDE)" \
-	"CCEXT = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"CC = $(GCC) -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -DUNIX" \
 	"LN = $(GCC) -shared -Wl,--version-script=bddscout.map -o" \
-	"LNEXT = $(GCC) -shared -Wl,--version-script=bddscout.map -o" \
 	"AR = ar rcs" \
-	"USECONST = const" \
-	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"BDDSCOUTSTUBLIB = libbddscoutstub.a" \
 	"GMPLIB = $(GMPLIB)" \
+	"TCLINCLUDE = $(TCLINCLUDE)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"

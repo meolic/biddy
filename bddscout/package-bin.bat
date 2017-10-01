@@ -1,12 +1,12 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 226 $
-REM  $Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $
+REM  $Revision: 319 $
+REM  $Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $
 REM
 REM  This file is part of Bdd Scout package.
-REM  Copyright (C) 2008, 2017 UM-FERI
-REM  UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+REM  Copyright (C) 2008, 2017 UM FERI
+REM  UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 REM
 REM  Bdd Scout is free software; you can redistribute it and/or modify
 REM  it under the terms of the GNU General Public License as
@@ -58,7 +58,9 @@ echo *** bddview OK.
 echo *** Building BDD Scout ...
 cd ..\bddscout
 cp bddscout.h %NAME%-%VERSION%
+cp bddscoutTcl.h %NAME%-%VERSION%
 cp bddscout.c %NAME%-%VERSION%
+cp bddscoutTcl.c %NAME%-%VERSION%
 cp bddscoutMain.c %NAME%-%VERSION%
 cp bddscout.tcl %NAME%-%VERSION%
 cp bddscoutDecls.h %NAME%-%VERSION%

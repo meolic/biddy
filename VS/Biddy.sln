@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyStaticLibrary", "Biddy.vcxproj", "{18ACF089-DE22-4905-B15C-8CFFAE5E58BD}"
 EndProject
@@ -9,30 +9,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyDLL", "BiddyDLL.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BDDScout", "BDDScout.vcxproj", "{1EF72236-F84B-41B6-8737-0BD683FB217E}"
 EndProject
-Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "BDDScoutInstaller", "BDDScoutInstaller.aiproj", "{7AEB81AC-7896-42E6-A471-FEA097E1672B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{742B7F34-72BA-4493-8720-DE1CADF4CECF} = {742B7F34-72BA-4493-8720-DE1CADF4CECF}
-		{1EF72236-F84B-41B6-8737-0BD683FB217E} = {1EF72236-F84B-41B6-8737-0BD683FB217E}
-		{F18ECB58-EA47-4923-AB3A-15D1B3C8ED05} = {F18ECB58-EA47-4923-AB3A-15D1B3C8ED05}
-		{18ACF089-DE22-4905-B15C-8CFFAE5E58BD} = {18ACF089-DE22-4905-B15C-8CFFAE5E58BD}
-		{FF0BF4E5-F112-42EE-BCB1-561508480E50} = {FF0BF4E5-F112-42EE-BCB1-561508480E50}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BDDScoutIFIP", "BDDScoutIFIP.vcxproj", "{FF0BF4E5-F112-42EE-BCB1-561508480E50}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BDDScoutBRA", "BDDScoutBRA.vcxproj", "{F18ECB58-EA47-4923-AB3A-15D1B3C8ED05}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BDDScoutBDDTRACES", "BDDScoutBDDTRACES.vcxproj", "{742B7F34-72BA-4493-8720-DE1CADF4CECF}"
-EndProject
-Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "BiddyInstaller", "BiddyInstaller.aiproj", "{EF987825-943E-4765-9A8E-A47E1CD5C470}"
-	ProjectSection(ProjectDependencies) = postProject
-		{8D61DB98-7BBA-42BB-BB75-53B4F942B903} = {8D61DB98-7BBA-42BB-BB75-53B4F942B903}
-	EndProjectSection
-EndProject
-Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "BiddyDevInstaller", "BiddyDevInstaller.aiproj", "{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{8D61DB98-7BBA-42BB-BB75-53B4F942B903} = {8D61DB98-7BBA-42BB-BB75-53B4F942B903}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyExample8Queens", "BiddyExample8Queens.vcxproj", "{79185867-FA21-4F8E-8C26-638D9C9307EF}"
 EndProject
@@ -42,29 +23,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyExampleRandom", "Biddy
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BiddyExampleHanoi", "BiddyExampleHanoi.vcxproj", "{A6B61673-3AC7-471D-9D37-2120F6F1EB92}"
 EndProject
-Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "Biddy32Installer", "Biddy32Installer.aiproj", "{5BD76558-9505-4420-9CD4-E9A164DA5D1E}"
-	ProjectSection(ProjectDependencies) = postProject
-		{8D61DB98-7BBA-42BB-BB75-53B4F942B903} = {8D61DB98-7BBA-42BB-BB75-53B4F942B903}
-	EndProjectSection
-EndProject
-Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "Biddy32DevInstaller", "Biddy32DevInstaller.aiproj", "{1A3F5DA2-02EE-4667-9158-EB59F43702B7}"
-	ProjectSection(ProjectDependencies) = postProject
-		{8D61DB98-7BBA-42BB-BB75-53B4F942B903} = {8D61DB98-7BBA-42BB-BB75-53B4F942B903}
-	EndProjectSection
-EndProject
-Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "BDDScout32Installer", "BDDScout32Installer.aiproj", "{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{742B7F34-72BA-4493-8720-DE1CADF4CECF} = {742B7F34-72BA-4493-8720-DE1CADF4CECF}
-		{1EF72236-F84B-41B6-8737-0BD683FB217E} = {1EF72236-F84B-41B6-8737-0BD683FB217E}
-		{F18ECB58-EA47-4923-AB3A-15D1B3C8ED05} = {F18ECB58-EA47-4923-AB3A-15D1B3C8ED05}
-		{18ACF089-DE22-4905-B15C-8CFFAE5E58BD} = {18ACF089-DE22-4905-B15C-8CFFAE5E58BD}
-		{FF0BF4E5-F112-42EE-BCB1-561508480E50} = {FF0BF4E5-F112-42EE-BCB1-561508480E50}
-	EndProjectSection
-EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -97,14 +56,6 @@ Global
 		{1EF72236-F84B-41B6-8737-0BD683FB217E}.Release|x64.Build.0 = Release|x64
 		{1EF72236-F84B-41B6-8737-0BD683FB217E}.Release|x86.ActiveCfg = Release|Win32
 		{1EF72236-F84B-41B6-8737-0BD683FB217E}.Release|x86.Build.0 = Release|Win32
-		{7AEB81AC-7896-42E6-A471-FEA097E1672B}.Debug|x64.ActiveCfg = DefaultBuild
-		{7AEB81AC-7896-42E6-A471-FEA097E1672B}.Debug|x64.Build.0 = DefaultBuild
-		{7AEB81AC-7896-42E6-A471-FEA097E1672B}.Debug|x86.ActiveCfg = DefaultBuild
-		{7AEB81AC-7896-42E6-A471-FEA097E1672B}.Debug|x86.Build.0 = DefaultBuild
-		{7AEB81AC-7896-42E6-A471-FEA097E1672B}.Release|x64.ActiveCfg = DefaultBuild
-		{7AEB81AC-7896-42E6-A471-FEA097E1672B}.Release|x64.Build.0 = DefaultBuild
-		{7AEB81AC-7896-42E6-A471-FEA097E1672B}.Release|x86.ActiveCfg = DefaultBuild
-		{7AEB81AC-7896-42E6-A471-FEA097E1672B}.Release|x86.Build.0 = DefaultBuild
 		{FF0BF4E5-F112-42EE-BCB1-561508480E50}.Debug|x64.ActiveCfg = Debug|x64
 		{FF0BF4E5-F112-42EE-BCB1-561508480E50}.Debug|x64.Build.0 = Debug|x64
 		{FF0BF4E5-F112-42EE-BCB1-561508480E50}.Debug|x86.ActiveCfg = Debug|Win32
@@ -129,22 +80,6 @@ Global
 		{742B7F34-72BA-4493-8720-DE1CADF4CECF}.Release|x64.Build.0 = Release|x64
 		{742B7F34-72BA-4493-8720-DE1CADF4CECF}.Release|x86.ActiveCfg = Release|Win32
 		{742B7F34-72BA-4493-8720-DE1CADF4CECF}.Release|x86.Build.0 = Release|Win32
-		{EF987825-943E-4765-9A8E-A47E1CD5C470}.Debug|x64.ActiveCfg = DefaultBuild
-		{EF987825-943E-4765-9A8E-A47E1CD5C470}.Debug|x64.Build.0 = DefaultBuild
-		{EF987825-943E-4765-9A8E-A47E1CD5C470}.Debug|x86.ActiveCfg = DefaultBuild
-		{EF987825-943E-4765-9A8E-A47E1CD5C470}.Debug|x86.Build.0 = DefaultBuild
-		{EF987825-943E-4765-9A8E-A47E1CD5C470}.Release|x64.ActiveCfg = DefaultBuild
-		{EF987825-943E-4765-9A8E-A47E1CD5C470}.Release|x64.Build.0 = DefaultBuild
-		{EF987825-943E-4765-9A8E-A47E1CD5C470}.Release|x86.ActiveCfg = DefaultBuild
-		{EF987825-943E-4765-9A8E-A47E1CD5C470}.Release|x86.Build.0 = DefaultBuild
-		{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}.Debug|x64.ActiveCfg = DefaultBuild
-		{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}.Debug|x64.Build.0 = DefaultBuild
-		{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}.Debug|x86.ActiveCfg = DefaultBuild
-		{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}.Debug|x86.Build.0 = DefaultBuild
-		{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}.Release|x64.ActiveCfg = DefaultBuild
-		{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}.Release|x64.Build.0 = DefaultBuild
-		{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}.Release|x86.ActiveCfg = DefaultBuild
-		{7D2B0BA6-1716-45DB-BA24-3420CE5DE06B}.Release|x86.Build.0 = DefaultBuild
 		{79185867-FA21-4F8E-8C26-638D9C9307EF}.Debug|x64.ActiveCfg = Debug|x64
 		{79185867-FA21-4F8E-8C26-638D9C9307EF}.Debug|x64.Build.0 = Debug|x64
 		{79185867-FA21-4F8E-8C26-638D9C9307EF}.Debug|x86.ActiveCfg = Debug|Win32
@@ -177,32 +112,14 @@ Global
 		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Release|x64.Build.0 = Release|x64
 		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Release|x86.ActiveCfg = Release|Win32
 		{A6B61673-3AC7-471D-9D37-2120F6F1EB92}.Release|x86.Build.0 = Release|Win32
-		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Debug|x64.ActiveCfg = DefaultBuild
-		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Debug|x64.Build.0 = DefaultBuild
-		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Debug|x86.ActiveCfg = DefaultBuild
-		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Debug|x86.Build.0 = DefaultBuild
-		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Release|x64.ActiveCfg = DefaultBuild
-		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Release|x64.Build.0 = DefaultBuild
-		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Release|x86.ActiveCfg = DefaultBuild
-		{5BD76558-9505-4420-9CD4-E9A164DA5D1E}.Release|x86.Build.0 = DefaultBuild
-		{1A3F5DA2-02EE-4667-9158-EB59F43702B7}.Debug|x64.ActiveCfg = DefaultBuild
-		{1A3F5DA2-02EE-4667-9158-EB59F43702B7}.Debug|x64.Build.0 = DefaultBuild
-		{1A3F5DA2-02EE-4667-9158-EB59F43702B7}.Debug|x86.ActiveCfg = DefaultBuild
-		{1A3F5DA2-02EE-4667-9158-EB59F43702B7}.Debug|x86.Build.0 = DefaultBuild
-		{1A3F5DA2-02EE-4667-9158-EB59F43702B7}.Release|x64.ActiveCfg = DefaultBuild
-		{1A3F5DA2-02EE-4667-9158-EB59F43702B7}.Release|x64.Build.0 = DefaultBuild
-		{1A3F5DA2-02EE-4667-9158-EB59F43702B7}.Release|x86.ActiveCfg = DefaultBuild
-		{1A3F5DA2-02EE-4667-9158-EB59F43702B7}.Release|x86.Build.0 = DefaultBuild
-		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Debug|x64.ActiveCfg = DefaultBuild
-		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Debug|x64.Build.0 = DefaultBuild
-		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Debug|x86.ActiveCfg = DefaultBuild
-		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Debug|x86.Build.0 = DefaultBuild
-		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Release|x64.ActiveCfg = DefaultBuild
-		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Release|x64.Build.0 = DefaultBuild
-		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Release|x86.ActiveCfg = DefaultBuild
-		{7E4BD1C9-87AC-4EB3-A526-1F53B02A36AA}.Release|x86.Build.0 = DefaultBuild
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {857FD1D9-31DE-405B-86FB-606C05B3C65A}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

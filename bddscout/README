@@ -18,33 +18,29 @@ Homepage: http://biddy.meolic.com/
 BDD Scout consists of the following files:
 
   README		- some notes (general)
-  README.*		- some notes (for different systems)
+  README.*	- some notes (for different systems)
   CHANGES		- history of changes
   COPYING		- license file
   VERSION		- version file
-  Makefile		- Makefile
+  Makefile	- Makefile
   Makefile.Linux	- Makefile for GNU/Linux
   Makefile.MINGW	- Makefile for MS Windows
   Makefile.Darwin	- Makefile for MacOS
-  bddscout.def		- symbols definition for MS Windows
-  bddscout-biddy.def	- symbols definition for MS Windows
   bddscout.h		- header
+  bddscoutTcl.h	- header
   bddscout.c		- main functions
+  bddscoutTcl.c	- tcl related functions
   pkgIndex.tcl		- tcl specific file
   bddscout.tcl		- tcl/tk GUI (an extension of bddview)
-  bddscout.decls	- stub mechanism allows binary extensions
   bddscoutDecls.h	- stub mechanism allows binary extensions
   bddscoutStubInit.c	- stub mechanism allows binary extensions
   bddscoutStubLib.c	- stub mechanism allows binary extensions
-  bddscoutIFIP.def	- bddscout extension (IFIP benchmark)
   bddscoutIFIP.c	- bddscout extension (IFIP benchmark)
   bddscoutIFIP.tcl	- bddscout extension (IFIP benchmark)
   pkgExtensionIFIP.tcl	- bddscout extension (IFIP benchmark)
-  bddscoutBRA.def	- bddscout extension (Best Reordering Algorithm)
   bddscoutBRA.c	- bddscout extension (Best Reordering Algorithm)
   bddscoutBRA.tcl	- bddscout extension (Best Reordering Algorithm)
   pkgExtensionBRA.tcl	- bddscout extension (Best Reordering Algorithm)
-  bddscoutBDDTRACES.def	- bddscout extension (BDD traces)
   bddscoutBDDTRACES.c	- bddscout extension (BDD traces)
   bddscoutBDDTRACES.tcl	- bddscout extension (BDD traces)
   pkgExtensionBDDTRACES.tcl	- bddscout extension (BDD traces)

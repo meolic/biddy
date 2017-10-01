@@ -1,10 +1,10 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 226 $]
-#  Date        [$Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $]
+#  Revision    [$Revision: 319 $]
+#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM-FERI
-#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2017 UM FERI
+#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -137,37 +137,40 @@ $(BINDIR)/example.bf: ./example.bf
 # make objects
 # -----------------------------------------------------------------------
 
-$(BINDIR)/bddscout.o: bddscout.c bddscout.h bddscoutStubInit.c bddscoutStubLib.c
-	$(CC) $(CFLAGS) -DUSE_TCL_STUBS -I$(BIDDYDIR) -o $(BINDIR)/bddscout.o -c bddscout.c -D'USECONST=$(USECONST)'
-	$(CC) $(CFLAGS) -DUSE_TCL_STUBS -I$(BIDDYDIR) -o $(BINDIR)/bddscoutStubInit.o -c bddscoutStubInit.c
-	$(CC) $(CFLAGS) -DUSE_TCL_STUBS -I$(BIDDYDIR) -o $(BINDIR)/bddscoutStubLib.o -c bddscoutStubLib.c
+$(BINDIR)/bddscout.o: bddscout.c bddscout.h
+	$(CC) $(CFLAGS) -I$(BIDDYDIR) -o $(BINDIR)/bddscout.o -c bddscout.c
 
-$(BINDIR)/bddscoutIFIP.o: bddscoutIFIP.c bddscout.h
-	$(CCEXT) $(CFLAGS) -DUSE_TCL_STUBS -I$(BIDDYDIR) -o $(BINDIR)/bddscoutIFIP.o -c bddscoutIFIP.c -D'USECONST=$(USECONST)'
+$(BINDIR)/bddscoutTcl.o: bddscoutTcl.c bddscout.h bddscoutTcl.h bddscoutStubInit.c bddscoutStubLib.c
+	$(CC) $(CFLAGS) $(TCLINCLUDE) -I$(BIDDYDIR) -o $(BINDIR)/bddscoutTcl.o -c bddscoutTcl.c
+	$(CC) $(CFLAGS) $(TCLINCLUDE) -I$(BIDDYDIR) -o $(BINDIR)/bddscoutStubInit.o -c bddscoutStubInit.c
+	$(CC) $(CFLAGS) $(TCLINCLUDE) -I$(BIDDYDIR) -o $(BINDIR)/bddscoutStubLib.o -c bddscoutStubLib.c
 
-$(BINDIR)/bddscoutBRA.o: bddscoutBRA.c bddscout.h
-	$(CCEXT) $(CFLAGS) -DUSE_TCL_STUBS -I$(BIDDYDIR) -o $(BINDIR)/bddscoutBRA.o -c bddscoutBRA.c -D'USECONST=$(USECONST)'
+$(BINDIR)/bddscoutIFIP.o: bddscoutIFIP.c bddscout.h bddscoutTcl.h
+	$(CC) $(CFLAGS) $(TCLINCLUDE) -I$(BIDDYDIR) -o $(BINDIR)/bddscoutIFIP.o -c bddscoutIFIP.c
 
-$(BINDIR)/bddscoutBDDTRACES.o: bddscoutBDDTRACES.c bddscout.h
-	$(CCEXT) $(CFLAGS) -DUSE_TCL_STUBS -I$(BIDDYDIR) -o $(BINDIR)/bddscoutBDDTRACES.o -c bddscoutBDDTRACES.c -D'USECONST=$(USECONST)'
+$(BINDIR)/bddscoutBRA.o: bddscoutBRA.c bddscout.h bddscoutTcl.h
+	$(CC) $(CFLAGS) $(TCLINCLUDE) -I$(BIDDYDIR) -o $(BINDIR)/bddscoutBRA.o -c bddscoutBRA.c
+
+$(BINDIR)/bddscoutBDDTRACES.o: bddscoutBDDTRACES.c bddscout.h bddscoutTcl.h
+	$(CC) $(CFLAGS) $(TCLINCLUDE) -I$(BIDDYDIR) -o $(BINDIR)/bddscoutBDDTRACES.o -c bddscoutBDDTRACES.c
 
 # -----------------------------------------------------------------------
 # make libraries, use tcl/tk
 # -----------------------------------------------------------------------
 
-$(BINDIR)/$(MAINNAME): $(BINDIR)/bddscout.o $(BINDIR)/bddscoutStubInit.o
-	$(CD) $(BINDIR); $(LN) $(MAINNAME) $(CFLAGS) bddscout.o bddscoutStubInit.o -L$(BIDDYLIB) -lbiddy $(GMPLIB) $(TCLSTUBLIB)
-	$(CD) $(BINDIR); $(AR) $(BDDSCOUTLIB) bddscoutStubLib.o
-	$(CC) $(CFLAGS) -o $(BINDIR)/bddscout bddscoutMain.c $(TCLTKLIB)
+$(BINDIR)/$(MAINNAME): $(BINDIR)/bddscout.o $(BINDIR)/bddscoutTcl.o $(BINDIR)/bddscoutStubInit.o
+	$(CD) $(BINDIR); $(LN) $(MAINNAME) $(CFLAGS) bddscout.o bddscoutTcl.o bddscoutStubInit.o -L$(BIDDYLIB) -lbiddy $(GMPLIB) $(TCLSTUBLIB)
+	$(CD) $(BINDIR); $(AR) $(BDDSCOUTSTUBLIB) bddscoutStubLib.o
+	$(CC) $(CFLAGS) $(TCLINCLUDE) -o $(BINDIR)/bddscout bddscoutMain.c $(TCLTKLIB)
 
-$(BINDIR)/$(EXTNAME1): $(BINDIR)/bddscoutIFIP.o $(BINDIR)/$(BDDSCOUTLIB)
-	$(CD) $(BINDIR); $(LNEXT) $(EXTNAME1) $(CFLAGS) bddscoutIFIP.o $(BDDSCOUTLIB) $(BIDDYLIBEXT) $(TCLSTUBLIB)
+$(BINDIR)/$(EXTNAME1): $(BINDIR)/bddscoutIFIP.o $(BINDIR)/$(BDDSCOUTSTUBLIB)
+	$(CD) $(BINDIR); $(LN) $(EXTNAME1) $(CFLAGS) bddscoutIFIP.o $(BDDSCOUTSTUBLIB) $(BIDDYLIBEXT) $(TCLSTUBLIB)
 
-$(BINDIR)/$(EXTNAME2): $(BINDIR)/bddscoutBRA.o $(BINDIR)/$(BDDSCOUTLIB)
-	$(CD) $(BINDIR); $(LNEXT) $(EXTNAME2) $(CFLAGS) bddscoutBRA.o $(BDDSCOUTLIB) $(BIDDYLIBEXT) $(TCLSTUBLIB)
+$(BINDIR)/$(EXTNAME2): $(BINDIR)/bddscoutBRA.o $(BINDIR)/$(BDDSCOUTSTUBLIB)
+	$(CD) $(BINDIR); $(LN) $(EXTNAME2) $(CFLAGS) bddscoutBRA.o $(BDDSCOUTSTUBLIB) $(BIDDYLIBEXT) $(TCLSTUBLIB)
 
-$(BINDIR)/$(EXTNAME3): $(BINDIR)/bddscoutBDDTRACES.o $(BINDIR)/$(BDDSCOUTLIB)
-	$(CD) $(BINDIR); $(LNEXT) $(EXTNAME3) $(CFLAGS) bddscoutBDDTRACES.o $(BDDSCOUTLIB) $(BIDDYLIBEXT) $(TCLSTUBLIB)
+$(BINDIR)/$(EXTNAME3): $(BINDIR)/bddscoutBDDTRACES.o $(BINDIR)/$(BDDSCOUTSTUBLIB)
+	$(CD) $(BINDIR); $(LN) $(EXTNAME3) $(CFLAGS) bddscoutBDDTRACES.o $(BDDSCOUTSTUBLIB) $(BIDDYLIBEXT) $(TCLSTUBLIB)
 
 # -----------------------------------------------------------------------
 # purge = purify source directory, clean = purify bin directory
@@ -179,6 +182,7 @@ purge:
 
 clean:
 	@$(RM) $(BINDIR)/bddscout.o
+	@$(RM) $(BINDIR)/bddscoutTcl.o
 	@$(RM) $(BINDIR)/bddscoutIFIP.o
 	@$(RM) $(BINDIR)/bddscoutBRA.o
 	@$(RM) $(BINDIR)/bddscoutBDDTRACES.o

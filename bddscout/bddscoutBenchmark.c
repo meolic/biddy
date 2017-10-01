@@ -3,15 +3,15 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutBenchmark.c]
-  Revision    [$Revision: 263 $]
-  Date        [$Date: 2017-03-21 09:49:54 +0100 (tor, 21 mar 2017) $]
+  Revision    [$Revision: 319 $]
+  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description [File bddscoutBenchmark.c is used for profiling.]
   SeeAlso     []
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM-FERI
-               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+               Copyright (C) 2008, 2017 UM FERI
+               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as
@@ -29,8 +29,11 @@
                Boston, MA 02110-1301 USA.]
   ************************************************************************/
 
-/* COMPILE WITH: */
-/* gcc -DUNIX -DUSE_BIDDY -O0 -g3 -o bddscoutBenchmark bddscoutBenchmark.c -I.. -L../bin -lbiddy -lgmp */
+/* IF BIDDY IS STATICALLY LINKED COMPILE WITH: */
+/* gcc -DUNIX -O0 -g3 -o bddscoutBenchmark bddscoutBenchmark.c bddscout.c -I.. -L../bin -lbiddy -lgmp */
+
+/* IF BIDDY IS DYNAMICALLY LINKED COMPILE WITH: */
+/* gcc -DUNIX -DUSE_BIDDY -O0 -g3 -o bddscoutBenchmark bddscoutBenchmark.c bddscout.c -I.. -L../bin -lbiddy -lgmp */
 
 /* PROFILE WITH: */
 /*
@@ -38,7 +41,15 @@ perf record ./bddscoutBenchmark
 perf report
 */
 
-#define BDDTYPE BIDDYTYPEOBDD
+#define BDDSCOUTPROFILE
+#include "bddscout.h"
+#include "bddscoutIFIP.c"
+
+Biddy_Manager MNGROBDD,MNGROBDDCE,MNGZBDDCE,MNGTZBDD;
+
+#define BDDTYPE BIDDYTYPEOBDDC
+
+#define IFIPDIR "./IFIP"
 
 #define LIST \
     "cath/add1.be " \
@@ -96,23 +107,65 @@ perf report
     "plasco/table.be " \
     "plasco/werner.be " \
 
-#define BDDSCOUTPROFILE
-#include "bddscoutIFIP.c"
+void doDEBUG1 ()
+{
+  Biddy_Edge f;
+  unsigned int idx;
 
-int main(int argc, char *argv[]) {
+  f = Biddy_Managed_Eval2(MNGTZBDD,"a + b");
+  Biddy_Managed_AddPersistentFormula(MNGTZBDD,"F",f);
+
+  Biddy_Managed_FindFormula(MNGTZBDD,"F",&idx,&f);
+  Biddy_Managed_PrintfBDD(MNGTZBDD,f);
+  printf("\n");
+
+  Biddy_Managed_PrintfSOP(MNGTZBDD,f);
+
+  Biddy_Managed_CopyFormula(MNGTZBDD,MNGZBDDCE,"F");
+
+  Biddy_Managed_FindFormula(MNGZBDDCE,"F",&idx,&f);
+  Biddy_Managed_PrintfBDD(MNGZBDDCE,f);
+  printf("\n");
+
+  Biddy_Managed_PrintfSOP(MNGZBDDCE,f);
+}
+
+void doDEBUG2 ()
+{
+  Biddy_Edge f,g;
+  unsigned int idx;
+
+  f = Biddy_Managed_Eval2(MNGTZBDD,"a + b");
+  Biddy_Managed_AddPersistentFormula(MNGTZBDD,"F",f);
+  g = Biddy_Managed_Eval2(MNGTZBDD,"~a");
+  Biddy_Managed_AddPersistentFormula(MNGTZBDD,"G",g);
+
+  Biddy_Managed_FindFormula(MNGTZBDD,"F",&idx,&f);
+  Biddy_Managed_PrintfBDD(MNGTZBDD,f);
+  Biddy_Managed_PrintfSOP(MNGTZBDD,f);
+  Biddy_Managed_WriteDot(MNGTZBDD,"f.dot",f,"F",-1,FALSE);
+  Biddy_Managed_WriteBddview(MNGTZBDD,"f.bddview",f,"F",NULL);
+
+  Biddy_Managed_FindFormula(MNGTZBDD,"G",&idx,&g);
+  Biddy_Managed_PrintfBDD(MNGTZBDD,g);
+  Biddy_Managed_PrintfSOP(MNGTZBDD,g);
+  Biddy_Managed_WriteDot(MNGTZBDD,"g.dot",g,"G",-1,FALSE);
+  Biddy_Managed_WriteBddview(MNGTZBDD,"g.bddview",g,"G",NULL);
+}
+
+void doIFIP ()
+{
   Biddy_String list,s1,s2;
   FILE *funfile;
   Biddy_String report;
   char *saveptr;
-
-  Biddy_InitAnonymous(BDDTYPE);
-
+  
   list = strdup(LIST);
   s2 = malloc(255);
 
   s1 = strtok_r(list," ",&saveptr);
   while (s1) {
-    sprintf(s2,"/home/meolic/est/biddy/bddscout/IFIP/%s",s1);
+    sprintf(s2,"%s/%s",IFIPDIR,s1);
     printf("%s\n",s2);
     funfile = fopen(s2,"r");
     if (!funfile) {
@@ -128,6 +181,22 @@ int main(int argc, char *argv[]) {
   
   free(list);
   free(s2);
+}
 
+int main(int argc, char *argv[])
+{
+  Biddy_InitMNG(&MNGROBDD,BIDDYTYPEOBDD);
+  Biddy_InitMNG(&MNGROBDDCE,BIDDYTYPEOBDDC);
+  Biddy_InitMNG(&MNGZBDDCE,BIDDYTYPEZBDDC);
+  Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
+  Biddy_InitAnonymous(BDDTYPE);
+
+  doDEBUG2();
+  /* doIFIP(); */
+
+  Biddy_ExitMNG(&MNGROBDD);
+  Biddy_ExitMNG(&MNGROBDDCE);
+  Biddy_ExitMNG(&MNGZBDDCE);
+  Biddy_ExitMNG(&MNGTZBDD);
   Biddy_Exit();
 }

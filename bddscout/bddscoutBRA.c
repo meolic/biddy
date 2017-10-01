@@ -3,15 +3,15 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutBRA.c]
-  Revision    [$Revision: 244 $]
-  Date        [$Date: 2017-02-14 23:23:32 +0100 (tor, 14 feb 2017) $]
+  Revision    [$Revision: 319 $]
+  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM-FERI
-               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+               Copyright (C) 2008, 2017 UM FERI
+               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as
@@ -29,11 +29,11 @@
                Boston, MA 02110-1301 USA.]
   ************************************************************************/
 
+#ifndef BDDSCOUTPROFILE
+#include "bddscoutTcl.h"
+#else
 #include "bddscout.h"
-
-/* on tcl 8.3 use #define USECONST */
-/* on tcl 8.4 use #define USECONST const*/
-/* this is defined in Makefile */
+#endif
 
 /*-----------------------------------------------------------------------*/
 /* Structure declarations                                                */
@@ -58,6 +58,7 @@ BddscoutBRAExhaustive(Biddy_String fname)
   Biddy_Edge f;
   Biddy_Boolean ok;
   Biddy_String report;
+  unsigned int idx;
 
   Biddy_Edge *table;
   int i;
@@ -69,7 +70,7 @@ BddscoutBRAExhaustive(Biddy_String fname)
   /* THIS FUNCTON IS NOT IMPLEMENTED, YET */
   /* NOW, IT WILL ONLY PRESENT STATISTICS FOR CURRENT ORDERING */
 
-  ok = Biddy_Managed_FindFormula(MNG,fname,&f);
+  ok = Biddy_Managed_FindFormula(MNG,fname,&idx,&f);
   if (ok) {
 
     table = (Biddy_Edge *)  malloc(numstat * sizeof(Biddy_Edge));
@@ -109,6 +110,10 @@ BddscoutBRAExhaustive(Biddy_String fname)
 /* TCL related functions                                                 */
 /*-----------------------------------------------------------------------*/
 
+#ifndef BDDSCOUTPROFILE
+
+extern const char *Bddscout_InitStubs(Tcl_Interp *interp, char *version, int exact);
+
 /**Function****************************************************************
   Synopsis    [Function Bddscoutbra_Init.]
   Description [This function is used by Tcl/Tk only.]
@@ -117,27 +122,23 @@ BddscoutBRAExhaustive(Biddy_String fname)
   ************************************************************************/
 
 static int BddscoutBraExhaustiveCmd(ClientData clientData, Tcl_Interp *interp,
-                          int argc, USECONST char **argv);
+                                    int argc, const char **argv);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-EXTERN int
+int
 Bddscoutbra_Init(Tcl_Interp *interp)
 {
 
-#ifdef USE_TCL_STUBS
   if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
     return TCL_ERROR;
   }
-#endif
 
-#ifdef USE_BDDSCOUT_STUBS
   if (Bddscout_InitStubs(interp, (char *) "1.0", 0) == NULL) {
     return TCL_ERROR;
   }
-#endif
 
   Tcl_CreateCommand(interp, "bddscout_bra_exhaustive", BddscoutBraExhaustiveCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
@@ -151,7 +152,7 @@ Bddscoutbra_Init(Tcl_Interp *interp)
 
 static int
 BddscoutBraExhaustiveCmd(ClientData clientData, Tcl_Interp *interp, int argc,
-                    USECONST char **argv)
+                         const char **argv)
 {
   Biddy_String s1;
   Biddy_String report;
@@ -172,3 +173,5 @@ BddscoutBraExhaustiveCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 
   return TCL_OK;
 }
+
+#endif

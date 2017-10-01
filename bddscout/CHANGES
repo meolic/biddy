@@ -76,3 +76,12 @@ Changes v1.7.2 versus v1.7.1
 - input Boolean function and IFIP benchmark are now more roboust
 - thanks to the changes in Biddy, Input Boolean function is now correct for ZBDDs and TZBDDs
 - thanks to the changes in Biddy, variable swapping is now supported for ZBDDs and TZBDDs
+
+Changes v1.7.3 versus v1.7.2
+- released on Oct 1, 2017
+- copyright adapted (UM FERI address changed)
+- source code reorganisation, added bddscoutTcl.h and bddscoutTcl.c
+- thanks to the improved Biddy, OBDDs without complemented edges are now supported
+- TZBDDs are now drawn using terminal 0
+- added tcl commands for all Biddy functions from biddyInOut.c and biddyStat.c
+- tcl commands can be evaluated via input line

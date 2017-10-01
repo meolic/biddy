@@ -1,5 +1,5 @@
-/* $Revision: 272 $ */
-/* $Date: 2017-06-10 12:21:31 +0200 (sob, 10 jun 2017) $ */
+/* $Revision: 300 $ */
+/* $Date: 2017-09-08 15:51:12 +0200 (pet, 08 sep 2017) $ */
 /* This file (biddy-example-8queens.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -7,8 +7,11 @@
 /* This example is compatible with Biddy v1.7 and CUDD v3.0.0 */
 
 /* COMPILE WITH: */
-/* gcc -DREPORT -DNOPROFILE -DEVENTLOG_NONE -DUSE_BIDDY -DUNIX -O2 -o biddy-example-8queens biddy-example-8queens.c -I. -L./bin -lbiddy -lgmp */
-/* gcc -DREPORT -DEVENTLOG_NONE -DUSE_CUDD -O2 -o cudd-example-8queens biddy-example-8queens.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
+/* gcc -DREPORT -DNOPROFILE -DEVENTLOG_NONE -DUSE_BIDDY -DUSE_OBDDC -DUNIX -O2 -o biddy-example-8queens-obdd biddy-example-8queens.c -I. -L./bin -lbiddy -lgmp */
+/* gcc -DREPORT -DNOPROFILE -DEVENTLOG_NONE -DUSE_BIDDY -DUSE_ZBDDC -DUNIX -O2 -o biddy-example-8queens-zbdd biddy-example-8queens.c -I. -L./bin -lbiddy -lgmp */
+/* gcc -DREPORT -DNOPROFILE -DEVENTLOG_NONE -DUSE_BIDDY -DUSE_TZBDD -DUNIX -O2 -o biddy-example-8queens-tzbdd biddy-example-8queens.c -I. -L./bin -lbiddy -lgmp */
+/* gcc -DREPORT -DEVENTLOG_NONE -DUSE_CUDD -DUSE_OBDDC -O2 -o cudd-example-8queens-obdd biddy-example-8queens.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
+/* gcc -DREPORT -DEVENTLOG_NONE -DUSE_CUDD -DUSE_ZBDDC -O2 -o cudd-example-8queens-zbdd biddy-example-8queens.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 
 /* for stats with more details, use BIDDYEXTENDEDSTATS_YES in biddyInt.h and use -lm for linking */
 
@@ -51,7 +54,6 @@
 #ifdef USE_BIDDY
 #  include "biddy.h"
 #  define BDDNULL NULL
-/* #define Biddy_Inv(f) Biddy_NOT(f) */ /* for compatibility with Biddy v1.6 */
 #endif
 
 #ifdef USE_CUDD
@@ -78,40 +80,74 @@ DdManager *manager;
 
 #include <time.h>
 
+#ifdef USE_BIDDY
+#define REF(f) 0
+#define DEREF(f) 0
+#ifdef USE_GARBAGE_COLLECTION
+#define MARK(f) Biddy_AddTmpFormula(f,1)
+#define MARK_N(f,n) Biddy_AddTmpFormula(f,n)
+#define SWEEP() Biddy_Clean()
+#else
+#define MARK(f) 0
+#define MARK_N(f,n) 0
+#define SWEEP() 0
+#endif
+#endif
+
 #ifdef USE_CUDD
+#ifndef USE_ZBDDC
+#ifndef USE_OBDDC
+#define USE_OBDDC
+#endif
+#endif
 #define BIDDYTYPEOBDD 1
-#define BIDDYTYPEZBDD 2
-#define BIDDYTYPETZBDD 3
-#define Biddy_GetManagerType() BIDDYTYPEOBDD
+#define BIDDYTYPEOBDDC 2
+#define BIDDYTYPEZBDD 3
+#define BIDDYTYPEZBDDC 4
+#define BIDDYTYPETZBDD 5
+#define BIDDYTYPETZBDDC 6
+#define MARK(f) 0
+#define MARK_N(f,n) 0
+#define SWEEP() 0
+#ifdef USE_OBDDC
+#define REF(f) Cudd_Ref(f)
+#define DEREF(f) Cudd_RecursiveDeref(manager,f)
+#define Biddy_GetManagerType() BIDDYTYPEOBDDC
 #define Biddy_GetConstantZero() Cudd_ReadLogicZero(manager)
 #define Biddy_GetConstantOne() Cudd_ReadOne(manager)
 #define Biddy_AddVariable() Cudd_bddNewVar(manager)
-#define Biddy_Inv(f) Cudd_Not(f)
 #define Biddy_Not(f) Cudd_Not(f)
 #define Biddy_And(f,g) Cudd_bddAnd(manager,f,g)
 #define Biddy_Or(f,g) Cudd_bddOr(manager,f,g)
-#define Biddy_Xor(f,g) Cudd_bddXor(manager,f,g)
 #define Biddy_DependentVariableNumber(f) Cudd_SupportSize(manager,f)
 #define Biddy_CountMinterm(f,n) Cudd_CountMinterm(manager,f,n)
-#define Biddy_DensityBDD(f,n) Cudd_Density(manager,f,n)
+#elif USE_ZBDDC
+#define REF(f) Cudd_Ref(f)
+#define DEREF(f) Cudd_RecursiveDerefZdd(manager,f)
+#define Biddy_GetManagerType() BIDDYTYPEZBDDC
+#define Biddy_GetConstantZero() Cudd_ReadZero(manager)
+#define Biddy_GetConstantOne() Cudd_ReadZddOne(manager,0)
+#define Biddy_AddVariable() Cudd_zddIthVar(manager,Cudd_ReadZddSize(manager))
+#define Biddy_Not(f) Cudd_zddDiff(manager,Cudd_ReadZddOne(manager,0),f)
+#define Biddy_And(f,g) Cudd_zddIntersect(manager,f,g)
+#define Biddy_Or(f,g) Cudd_zddUnion(manager,f,g)
+#define Biddy_DependentVariableNumber(f) Cudd_ReadZddSize(manager) /* this is not always valid but there is no better option */
+#define Biddy_CountMinterm(f,n) Cudd_zddCountMinterm(manager,f,n)
+#endif
 #define Biddy_NodeNumber(f) Cudd_DagSize(f)
-#define Biddy_PrintInfo(s) Cudd_PrintInfo(manager,s)
+#define Biddy_DensityBDD(f,n) Cudd_Density(manager,f,n)
 #define Biddy_NodeTableNum() Cudd_ReadKeys(manager)
 #define Biddy_NodeTableSize() Cudd_ReadSlots(manager)
 #define Biddy_ReadMemoryInUse() Cudd_ReadMemoryInUse(manager)
+#define Biddy_PrintInfo(s) Cudd_PrintInfo(manager,s)
 #endif
 
 void checkOutOfLimits(unsigned int size, clock_t elapsedtime) {
 #ifdef USE_BIDDY
-  /* LIMIT 1 */
-  /**/
   if ((size == 10) && (Biddy_NodeTableSize() > 4194304)) {
     fprintf(stderr,"10, -1, -1, -1\n");
     exit(0);
   }
-  /**/
-  /* LIMIT 2 */
-  /**/
   if ((size == 9) && (Biddy_ReadMemoryInUse() > 120000000)) {
     fprintf(stderr,"9, -1, -1, -1\n");
     exit(0);
@@ -120,20 +156,12 @@ void checkOutOfLimits(unsigned int size, clock_t elapsedtime) {
     fprintf(stderr,"10, -1, -1, -1\n");
     exit(0);
   }
-  /**/
-  /* LIMIT 3 */
-  /*
-  if ((size == 10) && ((clock()-elapsedtime)/(1.0*CLOCKS_PER_SEC) > 120.0)) {
-    fprintf(stderr,"10, -1, -1, -1\n");
-    exit(0);
-  }
-  */
 #endif
 }
 
 int main(int argc, char** argv) {
   unsigned int i,j,k,n,size,seq;
-  Biddy_Edge **board;
+  Biddy_Edge **board,**board_not;
   Biddy_Edge tmp;
   Biddy_Edge t,r;
   Biddy_Edge *fifo1,*LP1;
@@ -173,9 +201,10 @@ int main(int argc, char** argv) {
 #endif
 
   board = (Biddy_Edge **) malloc((size+1)*sizeof(Biddy_Edge *));
+  board_not = (Biddy_Edge **) malloc((size+1)*sizeof(Biddy_Edge *));
   for (i=0; i<=size; i++) {
-#pragma warning(suppress: 6011)
     board[i] = (Biddy_Edge *) malloc((size+1)*sizeof(Biddy_Edge));
+    board_not[i] = (Biddy_Edge *) malloc((size+1)*sizeof(Biddy_Edge));
   }
 
 #ifdef USE_BIDDY
@@ -190,8 +219,16 @@ int main(int argc, char** argv) {
   /* biddyEACache.size = SMALL_TABLE = 65535 */
   /* biddyRCCache.size = SMALL_TABLE = 65535 */
   /* biddyBlockSize = 524288 */
-  /* DEFAULT INIT CALL: Biddy_InitAnonymous(BIDDYTYPEOBDD) */
-  Biddy_InitAnonymous(BIDDYTYPEOBDD);
+  /* DEFAULT INIT CALL: Biddy_InitAnonymous(BIDDYTYPEOBDDC) */
+#ifdef USE_OBDDC
+  Biddy_InitAnonymous(BIDDYTYPEOBDDC);
+#elif USE_ZBDDC
+  Biddy_InitAnonymous(BIDDYTYPEZBDDC);
+#elif USE_TZBDD
+  Biddy_InitAnonymous(BIDDYTYPETZBDD);
+#else
+  Biddy_InitAnonymous(BIDDYTYPEOBDDC);
+#endif
   if ((argc == 1) || (argc == 2)) {
     Biddy_SetManagerParameters(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);
   }
@@ -212,6 +249,7 @@ int main(int argc, char** argv) {
     sscanf(argv[7],"%d",&rrX);
 #pragma warning(suppress: 4244)
     Biddy_SetManagerParameters(gcr/100.0,gcrF/100.0,gcrX/100.0,rr/100.0,rrF/100.0,rrX/100.0,-1,-1,-1,-1);
+    printf("%d, %d, %d, %d, %d, %d, ",gcr,gcrF,gcrX,rr,rrF,rrX);
   }
   else if (argc == 12) {
     int gcr,gcrF,gcrX;
@@ -242,6 +280,7 @@ int main(int argc, char** argv) {
     sscanf(argv[11],"%d",&fcst);
 #pragma warning(suppress: 4244)
     Biddy_SetManagerParameters(gcr/100.0,gcrF/100.0,gcrX/100.0,rr/100.0,rrF/100.0,rrX/100.0,st/100.0,fst/100.0,cst/100.0,fcst/100.0);
+    printf("%d, %d, %d, %d, %d, %d, ",gcr,gcrF,gcrX,rr,rrF,rrX);
   }
   else {
     printf("Wrong number of parameters!\n");
@@ -273,54 +312,109 @@ int main(int argc, char** argv) {
   for (i=1; i<=size; i++) {
 #pragma warning(suppress: 6011)
     board[0][i] = board[i][0] = NULL;
+    board_not[0][i] = board_not[i][0] = NULL;
   }
 
-  for (i=1; i<=size; i++) {
-    for (j=1; j<=size; j++) {
-      board[i][j] = Biddy_AddVariable();
+  /* create BDD variables */
+  if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC) ||
+      (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
+  {
+    for (i=1; i<=size; i++) {
+      for (j=1; j<=size; j++) {
+        board[i][j] = Biddy_AddVariable();
+        REF(board[i][j]);
+        board_not[i][j] = Biddy_Not(board[i][j]);
+        REF(board_not[i][j]);
+      }
     }
   }
 
-  /* for ZBDDs, by adding new variables all the existing ones are changed */
-  /* after adding the last variable we have to refresh edges in v1 and v2 */
-  /* NOTE: user variables in Biddy start with index 1 */
+  /* for Biddy, ZBDD variables are added in the reverse order to get consistent results */
 #ifdef USE_BIDDY
-  if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
+  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
+  {
     for (i=1; i<=size; i++) {
       for (j=1; j<=size; j++) {
-        board[i][j] = Biddy_GetVariableEdge((i-1)*size+(j-1)+1);
+        board[size-i+1][size-j+1] = Biddy_AddVariable();
+        board_not[size-i+1][size-j+1] = Biddy_Not(board[size-i+1][size-j+1]);
       }
     }
   }
 #endif
-  
-  /* Alternatively, Biddy allows a solution with named variables */
-  /*
+#ifdef USE_CUDD
+  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
   {
-  Biddy_String name;
-  name = malloc(7);
-  for (i=1; i<=size; i++) {
-    for (j=1; j<=size; j++) {
-      sprintf(name,"r%uc%u",i,j);
-      board[i][j] = Biddy_AddVariableByName(name);
-    }
-  }
-  if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
     for (i=1; i<=size; i++) {
       for (j=1; j<=size; j++) {
-        sprintf(name,"r%uc%u",i,j);
-        board[i][j] = Biddy_GetVariableEdge(Biddy_GetVariable(name));
+        board[i][j] = Biddy_AddVariable();
+        REF(board[i][j]);
+        board_not[i][j] = Biddy_Not(board[i][j]);
+        REF(board_not[i][j]);
       }
     }
   }
-  free(name);
+#endif
+
+  /* for ZBDDs, by adding new variables all the existing variables are changed */
+  /* after adding the last variable we have to refresh edges in board[i][j] and board_not[i][j] */
+  /* NOTE: for Biddy, ZBDD variables are added in the reverse order */
+  /* NOTE: for Biddy, user variables start with index 1 */
+  /* NOTE: for CUDD, user variables start with index 0 */
+  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
+  {
+#ifdef USE_BIDDY
+    /* user variables in Biddy start with index 1 */
+    for (i=1; i<=size; i++) {
+      for (j=1; j<=size; j++) {
+        board[i][j] = Biddy_GetVariableEdge(size*size-((i-1)*size+(j-1)));
+        board_not[i][j] = Biddy_Not(board[i][j]);
+      }
+    }
+#endif
+#ifdef USE_CUDD
+    /* user variables in CUDD start with index 0 */
+    for (i=1; i<=size; i++) {
+      for (j=1; j<=size; j++) {
+        DEREF(board[i][j]);
+        board[i][j] = Cudd_zddIthVar(manager,(i-1)*size+(j-1));
+        REF(board[i][j]);
+        DEREF(board_not[i][j]);
+        board_not[i][j] = Biddy_Not(board[i][j]);
+        REF(board_not[i][j]);
+      }
+    }
+#endif
   }
-  */
+
+  /* for TZBDDs, by adding new variables the negations of all the existing variables are changed */
+  /* after adding the last variable we have to refresh edges in board_not[i][j] */
+  /* NOTE: TZBDDs are supported only in Biddy */
+  if ((Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
+  {
+    for (i=1; i<=size; i++) {
+      for (j=1; j<=size; j++) {
+        board_not[i][j] = Biddy_Not(board[i][j]);
+      }
+    }
+  }
+
+/* TO DO: replace Biddy_AddPersistentFormula with the correct MARK_N */
+#ifdef USE_BIDDY
+#ifdef NOT_POSTPONE
+  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC) ||
+      (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
+  {
+    for (i=1; i<=size; i++) {
+      for (j=1; j<=size; j++) {
+        Biddy_AddPersistentFormula(NULL,board_not[i][j]);
+      }
+    }
+  }
+#endif
+#endif
 
   r = Biddy_GetConstantOne();
-#ifdef USE_CUDD
-  Cudd_Ref(r);
-#endif
+  REF(r);
 
   ZF_LOGI("INIT");
 
@@ -334,56 +428,35 @@ int main(int argc, char** argv) {
 #endif
     for (j=1; j<=size; j++) {
       t = Biddy_GetConstantOne();
-#ifdef USE_CUDD
-      Cudd_Ref(t);
-#endif
+      REF(t);
       for (k=1; k<=size; k++) {
         if (k != j) {
           ZF_LOGI("R_AND");
-          tmp = Biddy_And(t,Biddy_Not(board[i][k]));
-#ifdef USE_CUDD
-          Cudd_Ref(tmp);
-          Cudd_RecursiveDeref(manager,t);
-#endif
+          tmp = Biddy_And(t,board_not[i][k]);
+          REF(tmp);
+          DEREF(t);
           t = tmp;
         }
       }
       ZF_LOGI("R_OR");
-      tmp = Biddy_Or(t,Biddy_Not(board[i][j]));
+      tmp = Biddy_Or(t,board_not[i][j]);
 #ifdef NOT_POSTPONE
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-      Biddy_AddTmpFormula(r,1);
-      Biddy_AddTmpFormula(tmp,1);
-      Biddy_Clean();
+      MARK(r);
+      MARK(tmp);
+      SWEEP();
 #endif
-#endif
-#endif
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-#endif
+      REF(tmp);
+      DEREF(t);
       t = tmp;
-
-  /* FREQUENT GC CALLS SEEMS TO BE BENEFICIAL FOR THIS EXAMPLE */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef NOT_POSTPONE
       ZF_LOGI("R_AND");
       tmp = Biddy_And(r,t);
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-      Biddy_AddTmpFormula(tmp,1);
-      Biddy_Clean();
-#endif
-#endif
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-      Cudd_RecursiveDeref(manager,r);
-#endif
+      MARK(tmp);
+      SWEEP();
+      REF(tmp);
+      DEREF(t);
+      DEREF(r);
       r = tmp;
 #else
       *(++LP1) = t;
@@ -391,38 +464,29 @@ int main(int argc, char** argv) {
 
       ZF_LOGI("R_MEM");
 
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
 #ifdef POSTPONE_FIFO
       seq++;
-      Biddy_AddTmpFormula(t,(seq-1)/2);
+      MARK_N(t,(seq-1)/2);
 #endif
 #ifdef POSTPONE_REVERSE_FIFO
       seq++;
-      Biddy_AddTmpFormula(t,(4 * size * size + size - seq)/2);
+      MARK_N(t,(4 * size * size + size - seq)/2);
 #endif
 #ifdef POSTPONE_LIFO
       seq++;
       if (seq == 1) {
-        Biddy_AddTmpFormula(t,seq-1);
+        MARK_N(t,seq-1);
       } else {
-        Biddy_AddTmpFormula(t,seq-2);
+        MARK_N(t,seq-2);
       }
 #endif
 #ifdef POSTPONE_REVERSE_LIFO
       seq++;
-      Biddy_AddTmpFormula(t,(4 * size * size + size) - seq - 1);
-#endif
-#endif
+      MARK_N(t,(4 * size * size + size) - seq - 1);
 #endif
 
     }
   }
-
-  /* EXPLICIT CALL TO GC AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
@@ -453,56 +517,35 @@ int main(int argc, char** argv) {
 #endif
     for (j=1; j<=size; j++) {
       t = Biddy_GetConstantOne();
-#ifdef USE_CUDD
-      Cudd_Ref(t);
-#endif
+      REF(t);
       for (k=1; k<=size; k++) {
         if (k != i) {
           ZF_LOGI("C_AND");
-          tmp = Biddy_And(t,Biddy_Not(board[k][j]));
-#ifdef USE_CUDD
-          Cudd_Ref(tmp);
-          Cudd_RecursiveDeref(manager,t);
-#endif
+          tmp = Biddy_And(t,board_not[k][j]);
+          REF(tmp);
+          DEREF(t);
           t = tmp;
         }
       }
       ZF_LOGI("C_OR");
-      tmp = Biddy_Or(t,Biddy_Not(board[i][j]));
+      tmp = Biddy_Or(t,board_not[i][j]);
 #ifdef NOT_POSTPONE
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-      Biddy_AddTmpFormula(r,1);
-      Biddy_AddTmpFormula(tmp,1);
-      Biddy_Clean();
+      MARK(r);
+      MARK(tmp);
+      SWEEP();
 #endif
-#endif
-#endif
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-#endif
+      REF(tmp);
+      DEREF(t);
       t = tmp;
-
-  /* FREQUENT GC CALLS SEEMS TO BE BENEFICIAL FOR THIS EXAMPLE */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef NOT_POSTPONE
       ZF_LOGI("C_AND");
       tmp = Biddy_And(r,t);
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-       Biddy_AddTmpFormula(tmp,1);
-       Biddy_Clean();
-#endif
-#endif
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-      Cudd_RecursiveDeref(manager,r);
-#endif
+      MARK(tmp);
+      SWEEP();
+      REF(tmp);
+      DEREF(t);
+      DEREF(r);
       r = tmp;
 #else
       *(++LP1) = t;
@@ -510,34 +553,25 @@ int main(int argc, char** argv) {
 
       ZF_LOGI("C_MEM");
 
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
 #ifdef POSTPONE_FIFO
       seq++;
-      Biddy_AddTmpFormula(t,(seq-1)/2);
+      MARK_N(t,(seq-1)/2);
 #endif
 #ifdef POSTPONE_REVERSE_FIFO
       seq++;
-      Biddy_AddTmpFormula(t,(4 * size * size + size - seq)/2);
+      MARK_N(t,(4 * size * size + size - seq)/2);
 #endif
 #ifdef POSTPONE_LIFO
       seq++;
-      Biddy_AddTmpFormula(t,seq-2);
+      MARK_N(t,seq-2);
 #endif
 #ifdef POSTPONE_REVERSE_LIFO
       seq++;
-      Biddy_AddTmpFormula(t,(4 * size * size + size) - seq - 1);
-#endif
-#endif
+      MARK_N(t,(4 * size * size + size) - seq - 1);
 #endif
 
     }
   }
-
-  /* EXPLICIT CALL TO GC AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
@@ -568,56 +602,35 @@ int main(int argc, char** argv) {
 #endif
     for (j=1; j<=size; j++) {
       t = Biddy_GetConstantOne();
-#ifdef USE_CUDD
-      Cudd_Ref(t);
-#endif
+      REF(t);
       for (k=1; k<=size; k++) {
         if ((j+k-i >= 1) && (j+k-i <= size) && (k != i)) {
           ZF_LOGI("RD_AND");
-          tmp = Biddy_And(t,Biddy_Not(board[k][j+k-i]));
-#ifdef USE_CUDD
-          Cudd_Ref(tmp);
-          Cudd_RecursiveDeref(manager,t);
-#endif
+          tmp = Biddy_And(t,board_not[k][j+k-i]);
+          REF(tmp);
+          DEREF(t);
           t = tmp;
         }
       }
       ZF_LOGI("RD_OR");
-      tmp = Biddy_Or(t,Biddy_Not(board[i][j]));
+      tmp = Biddy_Or(t,board_not[i][j]);
 #ifdef NOT_POSTPONE
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-      Biddy_AddTmpFormula(r,1);
-      Biddy_AddTmpFormula(tmp,1);
-      Biddy_Clean();
+      MARK(r);
+      MARK(tmp);
+      SWEEP();
 #endif
-#endif
-#endif
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-#endif
+      REF(tmp);
+      DEREF(t);
       t = tmp;
-
-  /* FREQUENT GC CALLS SEEMS TO BE BENEFICIAL FOR THIS EXAMPLE */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef NOT_POSTPONE
       ZF_LOGI("RD_AND");
       tmp = Biddy_And(r,t);
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-       Biddy_AddTmpFormula(tmp,1);
-       Biddy_Clean();
-#endif
-#endif
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-      Cudd_RecursiveDeref(manager,r);
-#endif
+      MARK(tmp);
+      SWEEP();
+      REF(tmp);
+      DEREF(t);
+      DEREF(r);
       r = tmp;
 #else
       *(++LP1) = t;
@@ -625,34 +638,25 @@ int main(int argc, char** argv) {
 
       ZF_LOGI("RD_MEM");
 
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
 #ifdef POSTPONE_FIFO
       seq++;
-      Biddy_AddTmpFormula(t,(seq-1)/2);
+      MARK_N(t,(seq-1)/2);
 #endif
 #ifdef POSTPONE_REVERSE_FIFO
       seq++;
-      Biddy_AddTmpFormula(t,(4 * size * size + size - seq)/2);
+      MARK_N(t,(4 * size * size + size - seq)/2);
 #endif
 #ifdef POSTPONE_LIFO
       seq++;
-      Biddy_AddTmpFormula(t,seq-2);
+      MARK_N(t,seq-2);
 #endif
 #ifdef POSTPONE_REVERSE_LIFO
       seq++;
-      Biddy_AddTmpFormula(t,(4 * size * size + size) - seq - 1);
-#endif
-#endif
+      MARK_N(t,(4 * size * size + size) - seq - 1);
 #endif
 
     }
   }
-
-  /* EXPLICIT CALL TO GC AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
@@ -683,57 +687,36 @@ int main(int argc, char** argv) {
 #endif
     for (j=1; j<=size; j++) {
       t = Biddy_GetConstantOne();
-#ifdef USE_CUDD
-      Cudd_Ref(t);
-#endif
+      REF(t);
       for (k=1; k<=size; k++) {
         if ((j+i-k >= 1) && (j+i-k <= size) && (k != i)) {
           ZF_LOGI("FD_AND");
-          tmp = Biddy_And(t,Biddy_Not(board[k][j+i-k]));
-#ifdef USE_CUDD
-          Cudd_Ref(tmp);
-          Cudd_RecursiveDeref(manager,t);
-#endif
+          tmp = Biddy_And(t,board_not[k][j+i-k]);
+          REF(tmp);
+          DEREF(t);
           t = tmp;
         }
       }
       ZF_LOGI("FD_OR");
 #pragma warning(suppress: 6011)
-      tmp = Biddy_Or(t,Biddy_Not(board[i][j]));
+      tmp = Biddy_Or(t,board_not[i][j]);
 #ifdef NOT_POSTPONE
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-      Biddy_AddTmpFormula(r,1);
-      Biddy_AddTmpFormula(tmp,1);
-      Biddy_Clean();
+      MARK(r);
+      MARK(tmp);
+      SWEEP();
 #endif
-#endif
-#endif
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-#endif
+      REF(tmp);
+      DEREF(t);
       t = tmp;
-
-  /* FREQUENT GC CALLS SEEMS TO BE BENEFICIAL FOR THIS EXAMPLE */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef NOT_POSTPONE
       ZF_LOGI("FD_AND");
       tmp = Biddy_And(r,t);
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-       Biddy_AddTmpFormula(tmp,1);
-       Biddy_Clean();
-#endif
-#endif
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-      Cudd_RecursiveDeref(manager,r);
-#endif
+      MARK(tmp);
+      SWEEP();
+      REF(tmp);
+      DEREF(t);
+      DEREF(r);
       r = tmp;
 #else
       *(++LP1) = t;
@@ -741,34 +724,25 @@ int main(int argc, char** argv) {
 
       ZF_LOGI("FD_MEM");
 
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
 #ifdef POSTPONE_FIFO
       seq++;
-      Biddy_AddTmpFormula(t,(seq-1)/2);
+      MARK_N(t,(seq-1)/2);
 #endif
 #ifdef POSTPONE_REVERSE_FIFO
       seq++;
-      Biddy_AddTmpFormula(t,(4 * size * size + size - seq)/2);
+      MARK_N(t,(4 * size * size + size - seq)/2);
 #endif
 #ifdef POSTPONE_LIFO
       seq++;
-      Biddy_AddTmpFormula(t,seq-2);
+      MARK_N(t,seq-2);
 #endif
 #ifdef POSTPONE_REVERSE_LIFO
       seq++;
-      Biddy_AddTmpFormula(t,(4 * size * size + size) - seq - 1);
-#endif
-#endif
+      MARK_N(t,(4 * size * size + size) - seq - 1);
 #endif
 
     }
   }
-
-  /* EXPLICIT CALL TO GC AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
@@ -798,38 +772,23 @@ int main(int argc, char** argv) {
     printf("(%d/%d)",i,size);
 #endif
     t = Biddy_GetConstantZero();
-#ifdef USE_CUDD
-    Cudd_Ref(t);
-#endif
+    REF(t);
     for (j=1; j<=size; j++) {
       ZF_LOGI("F_OR");
       tmp = Biddy_Or(t,board[i][j]);
-#ifdef USE_CUDD
-      Cudd_Ref(tmp);
-      Cudd_RecursiveDeref(manager,t);
-#endif
+      REF(tmp);
+      DEREF(t);
       t = tmp;
     }
-
-  /* FREQUENT GC CALLS SEEMS TO BE BENEFICIAL FOR THIS EXAMPLE */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef NOT_POSTPONE
     ZF_LOGI("F_AND");
     tmp = Biddy_And(r,t);
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-    Biddy_AddTmpFormula(tmp,1);
-    Biddy_Clean();
-#endif
-#endif
-#ifdef USE_CUDD
-    Cudd_Ref(tmp);
-    Cudd_RecursiveDeref(manager,t);
-    Cudd_RecursiveDeref(manager,r);
-#endif
+    MARK(tmp);
+    SWEEP();
+    REF(tmp);
+    DEREF(t);
+    DEREF(r);
     r = tmp;
 #else
     *(++LP1) = t;
@@ -837,34 +796,25 @@ int main(int argc, char** argv) {
 
     ZF_LOGI("F_MEM");
 
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
 #ifdef POSTPONE_FIFO
     seq++;
-    Biddy_AddTmpFormula(t,(seq-1)/2);
-    /* printf("(add %d)",(seq-1)/2); */
+    MARK_N(t,(seq-1)/2);
 #endif
 #ifdef POSTPONE_REVERSE_FIFO
     seq++;
-    Biddy_AddTmpFormula(t,(4 * size * size + size - seq)/2);
-    /* printf("(add %d)",(4 * size * size + size - seq)/2); */
+    MARK_N(t,(4 * size * size + size - seq)/2);
 #endif
 #ifdef POSTPONE_LIFO
     seq++;
-    Biddy_AddTmpFormula(t,seq-2);
-    /* printf("(add %d)",seq-2); */
+    MARK_N(t,seq-2);
 #endif
 #ifdef POSTPONE_REVERSE_LIFO
     seq++;
     if (seq == (4 * size *size + size)) {
-      Biddy_AddTmpFormula(t,4 * size * size + size - seq);
-      /* printf("(add %d)",4 * size * size + size - seq); */
+      MARK_N(t,4 * size * size + size - seq);
     } else {
-      Biddy_AddTmpFormula(t,4 * size * size + size - seq - 1);
-      /* printf("(add %d)",4 * size * size + size - seq - 1); */
+      MARK_N(t,4 * size * size + size - seq - 1);
     }
-#endif
-#endif
 #endif
 
 #ifdef PROFILE
@@ -872,11 +822,6 @@ int main(int argc, char** argv) {
 #endif
 
   }
-
-  /* EXPLICIT CALL TO GC AFTER EACH MAJOR PART - IMPLEMENTED FOR BIDDY, ONLY */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
 #ifdef PROFILE
   checkOutOfLimits(size,elapsedtime);
@@ -923,9 +868,7 @@ int main(int argc, char** argv) {
 #ifdef REPORT
   printf("\nPOSTPONED And OPERATIONS USING FIFO\n");
 #endif
-#ifdef USE_CUDD
-  Cudd_RecursiveDeref(manager,r);
-#endif
+  DEREF(r);
   i = 0;
   do {
     LP1++;
@@ -939,30 +882,20 @@ int main(int argc, char** argv) {
       r = *(--LP1);
       if (LP1 == fifo1) {
         *(++LP2) = r;
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-        Biddy_AddTmpFormula(r,seq1+(seq-1)/2);
-        Biddy_Clean();
+        MARK_N(r,seq1+(seq-1)/2);
+        SWEEP();
         seq1--;
-#endif
-#endif
       } else {
         t = *(--LP1);
         ZF_LOGI("P_AND");
         tmp = Biddy_And(r,t);
         *(++LP2) = tmp;
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-        Biddy_AddTmpFormula(tmp,seq1+(seq-1)/2);
-        Biddy_Clean();
+        MARK_N(tmp,seq1+(seq-1)/2);
+        SWEEP();
         seq1--;
-#endif
-#endif
-#ifdef USE_CUDD
-        Cudd_Ref(tmp);
-        Cudd_RecursiveDeref(manager,r);
-        Cudd_RecursiveDeref(manager,t);
-#endif
+        REF(tmp);
+        DEREF(manager,r);
+        DEREF(manager,t);
       }
     }
     fifo1 = fifo2;
@@ -989,9 +922,7 @@ int main(int argc, char** argv) {
 #ifdef REPORT
   printf("\nPOSTPONED And OPERATIONS USING LIFO\n");
 #endif
-#ifdef USE_CUDD
-  Cudd_RecursiveDeref(manager,r);
-#endif
+  DEREF(r);
   i = 0;
   while(LP1 != fifo1) {
     r = *(LP1--);
@@ -999,28 +930,17 @@ int main(int argc, char** argv) {
     ZF_LOGI("P_AND");
     tmp = Biddy_And(r,t);
     *(++LP1) = tmp;
-#ifdef USE_BIDDY
-#ifdef USE_GARBAGE_COLLECTION
-    Biddy_AddTmpFormula(tmp,1);
-    Biddy_Clean();
-#endif
-#endif
-#ifdef USE_CUDD
-    Cudd_Ref(tmp);
-    Cudd_RecursiveDeref(manager,r);
-    Cudd_RecursiveDeref(manager,t);
-#endif
+    MARK(tmp);
+    SWEEP();
+    REF(tmp);
+    DEREF(r);
+    DEREF(t);
   }
   r = *(LP1);
 #endif
 
   free(fifo1);
   free(fifo2);
-
-  /* EXPLICIT CALL TO GC TO MINIMIZE THE RESULT - IMPLEMENTED FOR BIDDY, ONLY */
-#ifdef USE_BIDDY_X
-  Biddy_AutoGC();
-#endif
 
   /* SIFTING TO MINIMIZE THE RESULT - IMPLEMENTED FOR BIDDY, ONLY */
 #ifdef USE_BIDDY
@@ -1063,7 +983,7 @@ int main(int argc, char** argv) {
   {
   Biddy_Manager MNGOBDD;
   Biddy_Edge obdd;
-  Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
+  Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDDC);
   obdd = Biddy_Copy(MNGOBDD,r);
   n = Biddy_Managed_DependentVariableNumber(MNGOBDD,obdd);
   printf("Function represented by the equivalent OBDD depends on %u variables.\n",n);
@@ -1080,7 +1000,7 @@ int main(int argc, char** argv) {
   {
   Biddy_Manager MNGZBDD;
   Biddy_Edge zbdd;
-  Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
+  Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDDC);
   zbdd = Biddy_Copy(MNGZBDD,r);
   printf("ZBDD for function r has %u nodes.\n",Biddy_Managed_NodeNumber(MNGZBDD,zbdd));
   }
@@ -1137,11 +1057,11 @@ int main(int argc, char** argv) {
 
 #ifndef REPORT
   /*
-  if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
-    fprintf(stderr,"(OBDD) ");
+  if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
+    fprintf(stderr,"(OBDDC) ");
   }
-  else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
-    fprintf(stderr,"(ZBDD) ");
+  else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
+    fprintf(stderr,"(ZBDDC) ");
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
     fprintf(stderr,"(TZBDD) ");
@@ -1190,11 +1110,11 @@ int main(int argc, char** argv) {
   fprintf(stderr,"%u, ",Biddy_NodeTableGCNumber());
   if (Biddy_NodeTableGCObsoleteNumber()) {
     fprintf(stderr,"%llu, ",Biddy_NodeTableGCObsoleteNumber());
-    fprintf(stderr,"%.2f, ",Biddy_NodeTableGCTime()/(1.0*CLOCKS_PER_SEC));
   }
   if (Biddy_NodeTableANDORRecursiveNumber()) {
     fprintf(stderr,"%llu, ",Biddy_NodeTableANDORRecursiveNumber());
   }
+  fprintf(stderr,"%.2f, ",Biddy_NodeTableGCTime()/(1.0*CLOCKS_PER_SEC));
   fprintf(stderr,"%.2f",elapsedtime/(1.0*CLOCKS_PER_SEC));
   fprintf(stderr,",\n");
 #endif
@@ -1213,11 +1133,19 @@ int main(int argc, char** argv) {
   */
 
   /* EXIT */
+  for (i=1; i<=size; i++) {
+    for (j=1; j<=size; j++) {
+      DEREF(board[i][j]);
+      DEREF(board_not[i][j]);
+    }
+  }
+  DEREF(r);
+  free(board);
+  free(board_not);
 #ifdef USE_BIDDY
   Biddy_Exit();
 #endif
 #ifdef USE_CUDD
-  Cudd_RecursiveDeref(manager,r);
 #ifdef REPORT
   printf("CUDD: nodes with non-zero reference counts: %d\n",Cudd_CheckZeroRef(manager));
 #endif

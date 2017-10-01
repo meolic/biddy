@@ -1,10 +1,10 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 226 $]
-#  Date        [$Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $]
+#  Revision    [$Revision: 319 $]
+#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM-FERI
-#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2017 UM FERI
+#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -40,13 +40,13 @@ proc menu_bra_swap_with_higher {  } {
   global DOT_EXE
   global BDDNAME
 
-  bddscout_swap_with_higher [browse_variables_byName]
+  biddy_swap_with_higher [browse_variables_byName]
   update_info
 
   if {$BDDNAME != ""} {
     set tmpfile "tmp.bddview"
     if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_writeBDDview $BDDNAME $tmpfile $DOT_EXE]
+      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
       bddview_draw $tmpfile
       file delete $tmpfile
     }
@@ -60,13 +60,13 @@ proc menu_bra_swap_with_lower {  } {
   global DOT_EXE
   global BDDNAME
 
-  bddscout_swap_with_lower [browse_variables_byName]
+  biddy_swap_with_lower [browse_variables_byName]
   update_info
 
   if {$BDDNAME != ""} {
     set tmpfile "tmp.bddview"
     if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_writeBDDview $BDDNAME $tmpfile $DOT_EXE]
+      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
       bddview_draw $tmpfile
       file delete $tmpfile
     }
@@ -80,13 +80,13 @@ proc menu_bra_sifting {  } {
   global DOT_EXE
   global BDDNAME
 
-  bddscout_sifting
+  biddy_sifting
   update_info
 
   if {$BDDNAME != ""} {
     set tmpfile "tmp.bddview"
     if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_writeBDDview $BDDNAME $tmpfile $DOT_EXE]
+      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
       bddview_draw $tmpfile
       file delete $tmpfile
     }
@@ -101,16 +101,16 @@ proc menu_bra_sifting_on_function {  } {
   global BDDNAME
 
   if {$BDDNAME != ""} {
-    bddscout_sifting_on_function $BDDNAME
+    biddy_sifting_on_function $BDDNAME
   } else {
-    bddscout_sifting_on_function [browse_formulae_byNodeNumber]
+    biddy_sifting_on_function [browse_formulae_byNodeNumber]
   }
   update_info
 
   if {$BDDNAME != ""} {
     set tmpfile "tmp.bddview"
     if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_writeBDDview $BDDNAME $tmpfile $DOT_EXE]
+      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
       bddview_draw $tmpfile
       file delete $tmpfile
     }
@@ -181,7 +181,7 @@ proc BRA_exhaustiveStatistic {  } {
   set OS "$tcl_platform(machine) ($tcl_platform(os), $tcl_platform(osVersion)) with tcl $tcl_patchLevel and tk $tk_patchLevel"
 
   set report [bddscout_bra_exhaustive $fname]
-  set totalVar [biddy_variable_num]
+  set totalVar [biddy_variabletable_num]
 
 # TO DO: UPDATE THIS
   set totalFOA 0

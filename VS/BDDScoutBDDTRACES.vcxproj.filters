@@ -26,5 +26,11 @@
     <ClInclude Include="..\bddscout\bddscout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\bddscout\bddscoutDecls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bddscout\bddscoutTcl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

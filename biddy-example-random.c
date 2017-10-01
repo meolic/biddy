@@ -1,5 +1,5 @@
-/* $Revision: 279 $ */
-/* $Date: 2017-06-24 23:34:22 +0200 (sob, 24 jun 2017) $ */
+/* $Revision: 306 $ */
+/* $Date: 2017-09-13 16:00:27 +0200 (sre, 13 sep 2017) $ */
 /* This file (biddy-example-random.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -22,6 +22,8 @@
 
 /* create Boolean function (BOOLEANFUNCTION) or combination set (COMBINATIONSET) */
 #define RANDOMTYPE BOOLEANFUNCTION
+
+/* choose primary BDD type */
 #define BDDTYPE BIDDYTYPEOBDD
 
 int main() {
@@ -41,56 +43,59 @@ int main() {
 
   if (POPULATION == -1) {
 
+    /* ************************************************************* */
+    /* START OF CREATION */
+    /* ************************************************************* */
+
     Biddy_InitAnonymous(BDDTYPE);
 
-    Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
-    Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
+    Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDDC);
+    Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDDC);
     Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
 
-/* for OBDDs, support is the most easiest calculated using AddVariable and AND */
-#if (BDDTYPE == BIDDYTYPEOBDD)
-    printf("Using OBDDs...\n");
-    tmp = Biddy_AddVariable();
-    support = tmp;
-    first = Biddy_GetTopVariable(tmp);
-    for (v=1; v<SIZE; v++) {
+    printf("Using %s...\n",Biddy_GetManagerName());
+   
+    /* for OBDDs, support is the most easiest calculated using AddVariable and AND */
+    if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC)) {
       tmp = Biddy_AddVariable();
-      support = Biddy_And(support,tmp);
+      support = tmp;
+      first = Biddy_GetTopVariable(tmp);
+      for (v=1; v<SIZE; v++) {
+        tmp = Biddy_AddVariable();
+        support = Biddy_And(support,tmp);
+      }
+      last = Biddy_GetTopVariable(tmp);
+      tmp = Biddy_AddVariable();
+      extra = Biddy_GetTopVariable(tmp);
     }
-    last = Biddy_GetTopVariable(tmp);
-    tmp = Biddy_AddVariable();
-    extra = Biddy_GetTopVariable(tmp);
-#endif
 
 /* for ZBDDs, support is the most easiest calculated using AddElement and CHANGE */
-#if (BDDTYPE == BIDDYTYPEZBDD)
-    printf("Using ZBDDs...\n");
-    tmp = Biddy_AddElement();
-    support = tmp;
-    first = Biddy_GetTopVariable(tmp);
-    for (v=1; v<SIZE; v++) {
+    if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
       tmp = Biddy_AddElement();
-      support = Biddy_Change(support,Biddy_GetTopVariable(tmp));
+      support = tmp;
+      first = Biddy_GetTopVariable(tmp);
+      for (v=1; v<SIZE; v++) {
+        tmp = Biddy_AddElement();
+        support = Biddy_Change(support,Biddy_GetTopVariable(tmp));
+      }
+      last = Biddy_GetTopVariable(tmp);
+      tmp = Biddy_AddElement();
+      extra = Biddy_GetTopVariable(tmp);
     }
-    last = Biddy_GetTopVariable(tmp);
-    tmp = Biddy_AddElement();
-    extra = Biddy_GetTopVariable(tmp);
-#endif
 
 /* for TZBDDs, the approaches from OBDDs and ZBDDs are both working, using the first one */
-#if (BDDTYPE == BIDDYTYPETZBDD)
-    printf("Using TZBDDs...\n");
-    tmp = Biddy_AddVariable();
-    support = tmp;
-    first = Biddy_GetTopVariable(tmp);
-    for (v=1; v<SIZE; v++) {
+    if ((Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC)) {
       tmp = Biddy_AddVariable();
-      support = Biddy_And(support,tmp);
+      support = tmp;
+      first = Biddy_GetTopVariable(tmp);
+      for (v=1; v<SIZE; v++) {
+        tmp = Biddy_AddVariable();
+        support = Biddy_And(support,tmp);
+      }
+      last = Biddy_GetTopVariable(tmp);
+      tmp = Biddy_AddVariable();
+      extra = Biddy_GetTopVariable(tmp);
     }
-    last = Biddy_GetTopVariable(tmp);
-    tmp = Biddy_AddVariable();
-    extra = Biddy_GetTopVariable(tmp);
-#endif
 
     /* GRAPHVIZ/DOT OUTPUT OF support - DEBUGGING, ONLY */
     /*
@@ -99,6 +104,8 @@ int main() {
       printf("USE 'dot -y -Tpng -O support.dot' to visualize function support.\n");
     }
     */
+
+    /* GENERATE RANDOM FUNCTION / COMBINATION SET */
 
     result = NULL;
 
@@ -117,26 +124,63 @@ int main() {
       exit(1);
     }
 
-    /* TRUTH TABLE FOR THE RESULT  - DEBUGGING, ONLY */
+    /* TESTING */
+    /*
+    Biddy_Eval0("result B(0)(i(d(0)(y(0)(1)))(d(y(0)(1))(1)))");
+    Biddy_FindFormula("result",&i,&result);
+    Biddy_WriteDot("result.dot",result,"result",-1,FALSE);
+    printf("USE 'dot -y -Tpng -O result.dot' to visualize function result.\n");
+    Biddy_WriteBddview("result.bddview",result,"R",NULL);
+    exit(1);
+    */
+
+    /* DEBUGGING */
+    /*
+    Biddy_Eval0("result 2(3(4(1)(*1))(4(*1)(1)))(3(4(*1)(1))(4(1)(*1)))");
+    Biddy_FindFormula("result",&i,&result);
+    */
+
+    /* TRUTH TABLE AND GRAPH FOR THE RESULT  - DEBUGGING, ONLY */
     /*
     if (SIZE < 10) {
       printf("HERE IS A TRUTH TABLE FOR result:\n");
       Biddy_PrintfTable(result);
     }
-    */
-
-    /* GRAPHVIZ/DOT OUTPUT OF THE RESULT  - DEBUGGING, ONLY */
-    /*
-    if (SIZE < 10) {
-      Biddy_WriteDot("result.dot",result,"result",-1,FALSE);
-      printf("USE 'dot -y -Tpng -O result.dot' to visualize function result.\n");
-    }
+    Biddy_PrintfBDD(result);
     */
 
     printf("Function result has %.0f minterms/combinations.\n",Biddy_CountMinterm(result,SIZE));
     printf("Function result has density = %.2e.\n",Biddy_DensityFunction(result,SIZE));
 
-    /* ***  BEGINNING OF TESTING OPERATIONS *** */
+    /* ************************************************************* */
+    /* START OF TESTING OPERATIONS */
+    /* ************************************************************* */
+
+    /* OPERATION NOT */
+
+    result0 = Biddy_Not(Biddy_Not(result));
+
+    if (result0 != result) {
+      printf("ERROR: Operation NOT is wrong!\n");
+    }
+
+    /* OPERATION ITE */
+
+    result0 = Biddy_And(result,support);
+    result1 = Biddy_Not(Biddy_Or(Biddy_Not(result),Biddy_Not(support)));
+
+    if (result0 != result1) {
+      printf("ERROR: Operation ITE is wrong!\n");
+    }
+
+    /* OPERATIONS LEQ AND GT */
+
+    result0 = Biddy_Leq(result,support);
+    result1 = Biddy_Not(Biddy_Gt(result,support));
+
+    if (result0 != result1) {
+      printf("ERROR: Operations Leq and/or Gt are wrong!\n");
+    }
 
     /* OPERATION SUBSET */
 
@@ -318,26 +362,26 @@ int main() {
 
     /* calculate cube */
 
-#if (BDDTYPE == BIDDYTYPEOBDD)
-    cube = Biddy_GetConstantOne();
-    cube = Biddy_And(cube,Biddy_GetVariableEdge(first));
-    cube = Biddy_And(cube,Biddy_GetVariableEdge(last));
-    cube = Biddy_And(cube,Biddy_GetVariableEdge(extra));
-#endif
+    if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC)) {
+      cube = Biddy_GetConstantOne();
+      cube = Biddy_And(cube,Biddy_GetVariableEdge(first));
+      cube = Biddy_And(cube,Biddy_GetVariableEdge(last));
+      cube = Biddy_And(cube,Biddy_GetVariableEdge(extra));
+    }
 
-#if (BDDTYPE == BIDDYTYPEZBDD)
-    cube = Biddy_GetBaseSet();
-    cube = Biddy_Change(cube,first);
-    cube = Biddy_Change(cube,last);
-    cube = Biddy_Change(cube,extra);
-#endif
+    if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
+      cube = Biddy_GetBaseSet();
+      cube = Biddy_Change(cube,first);
+      cube = Biddy_Change(cube,last);
+      cube = Biddy_Change(cube,extra);
+     }
 
-#if (BDDTYPE == BIDDYTYPETZBDD)
-    cube = Biddy_GetConstantOne();
-    cube = Biddy_And(cube,Biddy_GetVariableEdge(first));
-    cube = Biddy_And(cube,Biddy_GetVariableEdge(last));
-    cube = Biddy_And(cube,Biddy_GetVariableEdge(extra));
-#endif
+    if ((Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC)) {
+      cube = Biddy_GetConstantOne();
+      cube = Biddy_And(cube,Biddy_GetVariableEdge(first));
+      cube = Biddy_And(cube,Biddy_GetVariableEdge(last));
+      cube = Biddy_And(cube,Biddy_GetVariableEdge(extra));
+    }
 
     result1 = Biddy_E(result,first);
     result1 = Biddy_E(result1,last);
@@ -441,47 +485,60 @@ int main() {
       printf("ERROR: result2 for Boolean operations ITE-AND-OR-GT is wrong!\n");
     }
 
-    /* ***  END OF TESTING OPERATIONS *** */
+    /* ************************************************************* */
+    /* START OF CONVERSIONS AND STATISTICS */
+    /* ************************************************************* */
 
-    /* CONVERT THE RESULT INTO OBDDs */
+    printf("%s for function result has %u nodes (including constants).\n",Biddy_GetManagerName(),Biddy_NodeNumber(result));
+    printf("%s for function result has %u plain nodes (including constants).\n",Biddy_GetManagerName(),Biddy_NodeNumberPlain(result));
+    printf("%s for function result has %llu one-paths.\n",Biddy_GetManagerName(),Biddy_CountPaths(result));
+    printf("Function represented by %s depends on %u variables.\n",Biddy_GetManagerName(),Biddy_DependentVariableNumber(result));
+    printf("Considering the given set of variables, %s for function result has %.0f minterms/combinations.\n",Biddy_GetManagerName(),Biddy_CountMinterm(result,SIZE));
+    /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
+    if (SIZE < 10) {
+      Biddy_WriteDot("result.dot",result,"result",-1,FALSE);
+      printf("USE 'dot -y -Tpng -O result.dot' to visualize %s for function result.\n",Biddy_GetManagerName());
+    }
+
+    /* CONVERT THE RESULT INTO OBDDC */
     robdd = Biddy_Copy(MNGOBDD,result);
-    printf("OBDD for function result has %u nodes.\n",Biddy_Managed_NodeNumber(MNGOBDD,robdd));
-    printf("OBDD without complemented edges for function result has %u nodes (including both constants).\n",Biddy_Managed_NodeNumberPlain(MNGOBDD,robdd));
-    printf("OBDD for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGOBDD,robdd));
-    printf("Function represented by OBDD depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGOBDD,robdd));
-    printf("Considering the given set of variables, OBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGOBDD,robdd,SIZE));
+    printf("OBDDC for function result has %u nodes (including the constant).\n",Biddy_Managed_NodeNumber(MNGOBDD,robdd));
+    printf("OBDDC for function result has %u plain nodes (including both constants).\n",Biddy_Managed_NodeNumberPlain(MNGOBDD,robdd));
+    printf("OBDDC for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGOBDD,robdd));
+    printf("Function represented by OBDDC depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGOBDD,robdd));
+    printf("Considering the given set of variables, OBDDC for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGOBDD,robdd,SIZE));
     /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
     if (SIZE < 10) {
       Biddy_Managed_WriteDot(MNGOBDD,"obdd.dot",robdd,"obdd",-1,FALSE);
-      printf("USE 'dot -y -Tpng -O obdd.dot' to visualize OBDD for function result.\n");
+      printf("USE 'dot -y -Tpng -O obdd.dot' to visualize %s for function result.\n",Biddy_Managed_GetManagerName(MNGOBDD));
     }
 
-    /* CONVERT THE RESULT INTO ZBDDs */
-    if (Biddy_GetManagerType() != BIDDYTYPETZBDD) {
+    /* CONVERT THE RESULT INTO ZBDDC */
+    if (Biddy_GetManagerType() != BIDDYTYPETZBDDC) {
       rzbdd = Biddy_Copy(MNGZBDD,result);
-      printf("ZBDD for function result has %u nodes.\n",Biddy_Managed_NodeNumber(MNGZBDD,rzbdd));
-      printf("ZBDD without complemented edges for function result has %u nodes (including both constants).\n",Biddy_Managed_NodeNumberPlain(MNGZBDD,rzbdd));
-      printf("ZBDD for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGZBDD,rzbdd));
-      printf("Function represented by ZBDD depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGZBDD,rzbdd));
-      printf("Considering the given set of variables, ZBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGZBDD,rzbdd,SIZE));
+      printf("ZBDDC for function result has %u nodes (including the constant).\n",Biddy_Managed_NodeNumber(MNGZBDD,rzbdd));
+      printf("ZBDDC for function result has %u plain nodes (including both constants).\n",Biddy_Managed_NodeNumberPlain(MNGZBDD,rzbdd));
+      printf("ZBDDC for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGZBDD,rzbdd));
+      printf("Function represented by ZBDDC depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGZBDD,rzbdd));
+      printf("Considering the given set of variables, ZBDDC for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGZBDD,rzbdd,SIZE));
       /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
       if (SIZE < 10) {
         Biddy_Managed_WriteDot(MNGZBDD,"zbdd.dot",rzbdd,"zbdd",-1,FALSE);
-        printf("USE 'dot -y -Tpng -O zbdd.dot' to visualize ZBDD for function result.\n");
+        printf("USE 'dot -y -Tpng -O zbdd.dot' to visualize %s for function result.\n",Biddy_Managed_GetManagerName(MNGZBDD));
       }
     }
 
-    if (Biddy_GetManagerType() != BIDDYTYPEZBDD) {
+    if (Biddy_GetManagerType() != BIDDYTYPEZBDDC) {
       /* CONVERT THE RESULT INTO TZBDDs */
       rtzbdd = Biddy_Copy(MNGTZBDD,result);
-      printf("TZBDD for function result has %u nodes.\n",Biddy_Managed_NodeNumber(MNGTZBDD,rtzbdd));
+      printf("TZBDD for function result has %u nodes (including the constant).\n",Biddy_Managed_NodeNumber(MNGTZBDD,rtzbdd));
       printf("TZBDD for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGTZBDD,rtzbdd));
       printf("Function represented by TZBDD depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGTZBDD,rtzbdd));
       printf("Considering the given set of variables, TZBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGTZBDD,rtzbdd,SIZE));
       /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
       if (SIZE < 10) {
         Biddy_Managed_WriteDot(MNGTZBDD,"tzbdd.dot",rtzbdd,"tzbdd",-1,FALSE);
-        printf("USE 'dot -y -Tpng -O tzbdd.dot' to visualize TZBDD for function result.\n");
+        printf("USE 'dot -y -Tpng -O tzbdd.dot' to visualize %s for function result.\n",Biddy_Managed_GetManagerName(MNGTZBDD));
       }
     }
 
@@ -501,8 +558,8 @@ int main() {
   
     for (i=0; i<POPULATION; i++) {
 
-      Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
-      Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
+      Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDDC);
+      Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDDC);
       Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
 
       support = Biddy_Managed_GetConstantOne(MNGOBDD);
@@ -542,7 +599,7 @@ int main() {
       if ((s2 == s3) && (s2 < s1)) obddlargest++;
       if ((s1 == s2) && (s2 == s3)) allsamesize++;
 
-      /* ZBDD is the smallest */
+      /* TESTING: if ZBDD is the smallest */
       /*
       if ((s2 < s1) && (s2 < s3)) {
         printf("OBDD has %u nodes without complemented edges (%u with complemented edges).\n",
@@ -553,9 +610,9 @@ int main() {
                Biddy_Managed_NodeNumber(MNGTZBDD,rtzbdd));
         Biddy_Managed_PrintfTable(MNGOBDD,robdd);
         Biddy_Managed_WriteDot(MNGOBDD,"obdd.dot",robdd,"obdd",-1,FALSE);
-        printf("USE 'dot -y -Tpng -O obdd.dot' to visualize OBDD for function result.\n");
+        printf("USE 'dot -y -Tpng -O obdd.dot' to visualize OBDDC for function result.\n");
         Biddy_Managed_WriteDot(MNGZBDD,"zbdd.dot",rzbdd,"zbdd",-1,FALSE);
-        printf("USE 'dot -y -Tpng -O zbdd.dot' to visualize ZBDD for function result.\n");
+        printf("USE 'dot -y -Tpng -O zbdd.dot' to visualize ZBDDC for function result.\n");
         Biddy_Managed_WriteDot(MNGTZBDD,"tzbdd.dot",rtzbdd,"tzbdd",-1,FALSE);
         printf("USE 'dot -y -Tpng -O tzbdd.dot' to visualize TZBDD for function result.\n");
       }

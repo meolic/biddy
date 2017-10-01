@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 258 $]
-#  Date        [$Date: 2017-03-20 22:40:37 +0100 (pon, 20 mar 2017) $]
+#  Revision    [$Revision: 319 $]
+#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM-FERI
-#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2017 UM FERI
+#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -47,7 +47,7 @@ mkdir "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 
 cp VERSION CHANGES COPYING "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp README README.Linux "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
-cp bddscout.h bddscout.c bddscoutMain.c bddscout.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+cp bddscout.h bddscoutTcl.h bddscout.c bddscoutTcl.c bddscoutMain.c bddscout.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp pkgIndex.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp bddscoutIFIP.c bddscoutIFIP.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp pkgExtensionIFIP.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"

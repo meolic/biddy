@@ -9,8 +9,8 @@ package require BWidget
 package provide bddview 1.0
 
 # ############################################
-# $Revision: 248 $
-# $Date: 2017-02-17 22:14:11 +0100 (pet, 17 feb 2017) $
+# $Revision: 317 $
+# $Date: 2017-09-29 15:44:53 +0200 (pet, 29 sep 2017) $
 #
 # This file (bddview.tcl) is a Tcl/Tk script
 # Author: Robert Meolic (robert.meolic@um.si)
@@ -47,6 +47,7 @@ package provide bddview 1.0
 #
 # label <n> <name> <x> <y>
 # node <n> <name> <x> <y>
+# terminal <n> 0 <x> <y>
 # terminal <n> 1 <x> <y>
 # connect <n1> <n2> <type>
 #
@@ -789,6 +790,9 @@ icon.down.small put $iconDown
 image create photo icon.center.small
 icon.center.small put $iconCenter
 
+image create photo icon.iconify.small
+icon.iconify.small put $iconIconify
+
 image create photo icon.fullscreen.small
 icon.fullscreen.small put $iconFullScreen
 set FULLSCREENON icon.fullscreen.small
@@ -796,9 +800,6 @@ set FULLSCREENON icon.fullscreen.small
 image create photo icon.nofullscreen.small
 icon.nofullscreen.small put $iconNoFullScreen
 set FULLSCREENOFF icon.nofullscreen.small
-
-image create photo icon.iconify.small
-icon.iconify.small put $iconIconify
 
 image create photo icon.exit.small
 icon.exit.small put $iconExit
@@ -987,12 +988,12 @@ $bb3 add -text "Grid -" -fg black -bg $COLORBUTTON \
 pack $bb3 -side left -anchor w
 
 set bb4 [ButtonBox $toolbar.bb4 -bg $COLORMENU -homogeneous 0 -spacing 2]
-set FULLSCREENICON [$bb4 add -image icon.fullscreen.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "FullScreen" -command {fullscreen}]
 $bb4 add -image icon.iconify.$toolbarsize \
     -takefocus 0 -relief flat -borderwidth 0 \
     -helptext "Minimize" -command {iconify}
+set FULLSCREENICON [$bb4 add -image icon.fullscreen.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -helptext "FullScreen" -command {fullscreen}]
 $bb4 add -image icon.exit.$toolbarsize \
     -takefocus 0 -relief flat -borderwidth 0 \
     -helptext "Exit" -command {exit}
@@ -1761,10 +1762,10 @@ proc drawinfo {win item x y mode} {
   #puts "DEPTH"
   #puts $DEPTH
 
-  set nodes [expr $nodes + [llength $SELECTED] - [llength $TERMSELECTED] + 1]
+  set nodes [expr $nodes + [llength $SELECTED] - [llength $TERMSELECTED]]
 
   set info1 "Root variable: "
-  set info2 "BDD nodes: "
+  set info2 "Internal BDD nodes: "
   set info3 "BDD terminal depth: "
   set info "$info1$variable\n$info2$nodes\n$info3$TERMDEPTH"
 
@@ -2099,7 +2100,7 @@ proc parsefile {win filename} {
   set f [open $filename r]
 
   while {[gets $f line] >= 0} {
-    if {$line != ""} {
+    if {($line != "") && ([string index $line 0] != "#")} {
 
       set i 0
       set end 0

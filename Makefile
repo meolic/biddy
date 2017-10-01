@@ -1,10 +1,10 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 269 $]
-#  Date        [$Date: 2017-04-13 16:48:47 +0200 (čet, 13 apr 2017) $]
+#  Revision    [$Revision: 319 $]
+#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2017 UM-FERI
-#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2006, 2017 UM FERI
+#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as

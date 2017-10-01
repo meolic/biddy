@@ -3,15 +3,15 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddtraces-cmd.c]
-  Revision    [$Revision: 226 $]
-  Date        [$Date: 2017-01-04 15:45:57 +0100 (sre, 04 jan 2017) $]
+  Revision    [$Revision: 319 $]
+  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM-FERI
-               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+               Copyright (C) 2008, 2017 UM FERI
+               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as

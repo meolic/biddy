@@ -7,14 +7,14 @@
     PackageName [Biddy]
     Synopsis    [Biddy provides data structures and algorithms for the
                  representation and manipulation of Boolean functions with
-                 ROBDDs. A hash table is used for quick search of nodes.
-                 Complement edges decreases the number of nodes. An automatic
-                 garbage collection with a system age is implemented.
-                 Variable swapping and sifting are implemented.]
+                 ROBDDs, 0-sup-BDDs, and TZBDDs. A hash table is used for quick
+                 search of nodes. Complement edges decreases the number of
+                 nodes. An automatic garbage collection with a system age is
+                 implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 275 $]
-    Date        [$Date: 2017-06-15 18:17:20 +0200 (čet, 15 jun 2017) $]
+    Revision    [$Revision: 320 $]
+    Date        [$Date: 2017-10-01 12:02:23 +0200 (ned, 01 okt 2017) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net),
                  Jan Kraner (jankristian.kraner@student.um.si),
@@ -24,7 +24,7 @@
 
 ### Copyright
 
-Copyright (C) 2006, 2017 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2017 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -197,7 +197,9 @@ static void WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned i
 /* The following functions are used in Biddy_PrintfSOP() in Biddy_WriteSOP(). */
 
 static void WriteProduct(Biddy_Manager MNG, VarList *l);
+static void WriteProductx(Biddy_Manager MNG, FILE *s, VarList *l);
 static void WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, VarList *l, unsigned int *maxsize);
+static void WriteSOPx(Biddy_Manager MNG, FILE *s, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, VarList *l, unsigned int *maxsize);
 
 /* The following functions are used in Biddy_WriteDot(). */
 
@@ -245,10 +247,21 @@ Biddy_Managed_Eval0(Biddy_Manager MNG, Biddy_String s)
 
   if (!MNG) MNG = biddyAnonymousManager;
 
-  if (biddyManagerType == BIDDYTYPEOBDD) {
+  if ((biddyManagerType == BIDDYTYPEOBDD) || (biddyManagerType == BIDDYTYPEOBDDC)) {
+    /* IMPLEMENTED */
+  } else if ((biddyManagerType == BIDDYTYPEZBDD) || (biddyManagerType == BIDDYTYPEZBDDC) ||
+              (biddyManagerType == BIDDYTYPETZBDD) || (biddyManagerType == BIDDYTYPETZBDDC))
+  {
+    fprintf(stderr,"Biddy_Eval0: this GDD type is not supported, yet!\n");
+    return NULL;
+  } else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
+              (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
+              (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
+  {
+    fprintf(stderr,"Biddy_Eval0: this GDD type is not supported, yet!\n");
+    return NULL;
   } else {
-    /* NOT IMPLEMENTED, YET */
-    printf("(Biddy_Managed_Eval0) ERROR: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_Eval0: Unsupported GDD type!\n");
     return NULL;
   }
 
@@ -447,13 +460,14 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
     if (currTreePos != -1) {
       tree->availableNode = tree->tnode[tree->availableNode].parent;
     } else {
-      /* printf("ERROR: SOMETHING WRONG WITH tree->availableNode\n"); */
-      break;
+      fprintf(stderr,"ERROR: SOMETHING WRONG WITH tree->availableNode\n");
+      return biddyNull;
     }
     if (j == 0) {
       tree->tnode[oldTreePos].right = currTreePos;
       tree->tnode[currTreePos].parent = oldTreePos;
       tree->tnode[currTreePos].left = -1;
+      if (currS == '!') currS = '~'; /* operator '!' is also allowed for negation */
       if (currS == boolOperators[0]) {
         /* UNARY OPERATOR NOT */
         tree->tnode[currTreePos].op = 0;
@@ -537,6 +551,7 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
 
   if (j == 0) {
     /* printf("ERROR: INCORRECT REQUEST\n"); */
+    return biddyNull;
   }
 
   /*
@@ -697,25 +712,6 @@ Biddy_Managed_PrintfBDD(Biddy_Manager MNG, Biddy_Edge f)
 {
   if (!MNG) MNG = biddyAnonymousManager;
 
-  /* DEBUGGING */
-  /*
-  if (biddyManagerType == BIDDYTYPETZBDD) {
-    Biddy_Variable v,k;
-    Biddy_String vname;
-    printf("DOMAIN\n");
-    v = 0;
-    for (k = 1; k < biddyVariableTable.num; k++) {
-      v = biddyVariableTable.table[v].prev;
-    }
-    for (k = 1; k < biddyVariableTable.num; k++) {
-      vname = Biddy_Managed_GetVariableName(MNG,v);
-      printf("%s,",vname);
-      v = biddyVariableTable.table[v].next;
-    }
-    printf("\n");
-  }
-  */
-
   if (Biddy_IsNull(f)) {
     printf("NULL\n");
   } else {
@@ -823,7 +819,7 @@ Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
   }
 
   /* variableTable is a table of all dependent variables in BDD */
-  if (!(variableTable = (Biddy_Variable *)malloc((variableNumber) * sizeof(Biddy_Variable)))) return;
+  if (!(variableTable = (Biddy_Variable *) malloc((variableNumber) * sizeof(Biddy_Variable)))) return;
   i = 0;
   while (!Biddy_IsConstant(support)) {
     variableTable[i] = Biddy_GetTopVariable(support);
@@ -926,24 +922,58 @@ Biddy_Managed_PrintfSOP(Biddy_Manager MNG, Biddy_Edge f)
 
   if (!MNG) MNG = biddyAnonymousManager;
 
+  if (Biddy_IsNull(f)) {
+    printf("  NULL\n");
+    return;
+  }
+
+  if (Biddy_IsConstant(f)) {
+    if (f == biddyZero) {
+      printf("  + 0\n");
+      return;
+    }
+    else if (f == biddyOne) {
+      printf("  + 1\n");
+      return;
+    }
+  }
+
   top = BiddyV(f);
   if (biddyManagerType == BIDDYTYPEOBDD) {
+    /* IMPLEMENTED */
   }
-  else if (biddyManagerType == BIDDYTYPEZBDD) {
+  else if (biddyManagerType == BIDDYTYPEOBDDC) {
+    /* IMPLEMENTED */
+  }
+  else if (biddyManagerType == BIDDYTYPEZBDDC) {
+    /* IMPLEMENTED */
     while (biddyVariableTable.table[top].prev != biddyVariableTable.num) {
       top = biddyVariableTable.table[top].prev;
     }
   }
   else if (biddyManagerType == BIDDYTYPETZBDD) {
+    /* IMPLEMENTED */
     top = Biddy_GetTag(f);
   }
-
-  if (Biddy_IsNull(f)) {
-    printf("NULL\n");
-  } else {
-    WriteSOP(MNG,f,top,Biddy_GetMark(f),NULL,&maxsize);
-    printf("\n");
+  else if ((biddyManagerType == BIDDYTYPEZBDD) ||
+           (biddyManagerType == BIDDYTYPETZBDDC))
+  {
+    fprintf(stderr,"Biddy_PrintfSOP: this GDD type is not supported, yet!\n");
+    return;
   }
+  else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
+            (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
+            (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
+  {
+    fprintf(stderr,"Biddy_PrintfSOP: this GDD type is not supported, yet!\n");
+    return;
+  }
+  else {
+    fprintf(stderr,"Biddy_PrintfSOP: Unsupported GDD type!\n");
+    return;
+  }
+
+  WriteSOP(MNG,f,top,Biddy_GetMark(f),NULL,&maxsize);
 }
 
 #ifdef __cplusplus
@@ -965,7 +995,92 @@ extern "C" {
 void
 Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
 {
-  return;
+  unsigned int maxsize = 100;
+  Biddy_Variable top;
+  FILE *s;
+
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  if (filename) {
+    s = fopen(filename,"w");
+  } else {
+    s = stdout;
+  }
+  if (!s) return;
+
+  if (Biddy_IsNull(f)) {
+    fprintf(s,"  NULL\n");
+    if (filename) {
+      fclose(s);
+    }
+    return;
+  }
+  
+  if (Biddy_IsConstant(f)) {
+    if (f == biddyZero) {
+      fprintf(s,"  + 0\n");
+      if (filename) {
+        fclose(s);
+      }
+    }
+    else if (f == biddyOne) {
+      fprintf(s,"  + 1\n");
+      if (filename) {
+        fclose(s);
+      }
+    }
+  }
+
+  top = BiddyV(f);
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    /* IMPLEMENTED */
+  }
+  else if (biddyManagerType == BIDDYTYPEOBDDC) {
+    /* IMPLEMENTED */
+  }
+  else if (biddyManagerType == BIDDYTYPEZBDDC) {
+    /* IMPLEMENTED */
+    while (biddyVariableTable.table[top].prev != biddyVariableTable.num) {
+      top = biddyVariableTable.table[top].prev;
+    }
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    /* IMPLEMENTED */
+    top = Biddy_GetTag(f);
+  }
+  else if ((biddyManagerType == BIDDYTYPEZBDD) ||
+           (biddyManagerType == BIDDYTYPETZBDDC))
+  {
+    fprintf(stderr,"Biddy_PrintfSOP: this GDD type is not supported, yet!\n");
+    if (filename) {
+      fclose(s);
+    }
+    return;
+  }
+  else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
+            (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
+            (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
+  {
+    fprintf(stderr,"Biddy_PrintfSOP: this GDD type is not supported, yet!\n");
+    if (filename) {
+      fclose(s);
+    }
+    return;
+  }
+  else {
+    fprintf(stderr,"Biddy_PrintfSOP: Unsupported GDD type!\n");
+    if (filename) {
+      fclose(s);
+    }
+    return;
+  }
+
+  WriteSOPx(MNG,s,f,top,Biddy_GetMark(f),NULL,&maxsize);
+
+  if (filename) {
+    fclose(s);
+  }
+  
 }
 
 #ifdef __cplusplus
@@ -981,6 +1096,7 @@ Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
     The CUDD-like implementation is copyied from CUDD 3.0.
 ### Side effects
     If (id != -1) then id is used instead of <...> for variable names.
+    If (filename == NULL) then output is to stdout.
     Function resets all variables value.
 ### More info
     Macro Biddy_WriteDot(filename,f,label) is defined for use with anonymous
@@ -1006,20 +1122,22 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
 
   if (!MNG) MNG = biddyAnonymousManager;
 
-  assert( filename != NULL );
-
   /* if (id != -1) use it instead of <...> */
 
   if (Biddy_IsNull(f)) {
-    /* printf("ERROR Biddy_Managed_WriteDot: Function is null!\n"); */
-    return 0 ;
+    printf("WARNING (Biddy_Managed_WriteDot): Function is null!\n");
+    return 0;
   }
 
-  s = fopen(filename,"w");
+  if (filename) {
+    s = fopen(filename,"w");
+  } else {
+    s = stdout;
+  }
   if (!s) return 0;
 
   if (Biddy_IsConstant(f)) {
-    n = 1; /* there is one constant node */
+    n = 1; /* there is only one constant node */
   } else {
     BiddyCreateLocalInfo(MNG,f);
     n = enumerateNodes(MNG,f,0); /* this will select all nodes except constant node */
@@ -1031,12 +1149,14 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
 
   if (cudd) {
     fprintf(s,"//GENERATED WITH BIDDY - biddy.meolic.com\n");
-    fprintf(s,"//USE 'dot -y -Tpng -O %s' TO VISUALIZE %s\n",filename,biddyManagerName);
+    if (filename) {
+      fprintf(s,"//USE 'dot -y -Tpng -O %s' TO VISUALIZE %s\n",filename,biddyManagerName);
+    }
     fprintf(s,"digraph \"DD\" {\n");
     /* fprintf(s,"size = \"7.5,10\"\n"); */
-    fprintf(s,"center = true;\nedge [dir = none];\n");
-    fprintf(s,"{ node [shape = plaintext];\n");
-    fprintf(s,"  edge [style = invis];\n");
+    fprintf(s,"center=true;\nedge [dir=none];\n");
+    fprintf(s,"{ node [shape=plaintext];\n");
+    fprintf(s,"  edge [style=invis];\n");
     fprintf(s,"  \"CONST NODES\" [style = invis];\n");
 
     if (!Biddy_IsConstant(f)) {
@@ -1057,101 +1177,112 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
     }
 
     fprintf(s,"\"CONST NODES\"; \n}\n");
-    fprintf(s,"{ rank = same; node [shape = box]; edge [style = invis];\n");
+    fprintf(s,"{ rank=same; node [shape=box]; edge [style=invis];\n");
     fprintf(s,"\"%s\"",label1);
     fprintf(s,"; }\n");
   } else {
     fprintf(s,"//GENERATED WITH BIDDY - biddy.meolic.com\n");
-    fprintf(s,"//USE 'dot -y -Tpng -O %s' TO VISUALIZE %s\n",filename,biddyManagerName);
-    fprintf(s,"digraph BDD {\n");
-    fprintf(s,"  ordering = out;\n");
-    fprintf(s,"  splines = true;\n");
+    if (filename) {
+      fprintf(s,"//USE 'dot -y -Tpng -O %s' TO VISUALIZE %s\n",filename,biddyManagerName);
+    }
+    fprintf(s,"digraph ");
+    if (biddyManagerType == BIDDYTYPEOBDD) fprintf(s,"ROBDD");
+    else if (biddyManagerType == BIDDYTYPEZBDD) fprintf(s,"ZBDD");
+    else if (biddyManagerType == BIDDYTYPETZBDD) fprintf(s,"TZBDD");
+    else if (biddyManagerType == BIDDYTYPEOBDDC) fprintf(s,"ROBDDCE");
+    else if (biddyManagerType == BIDDYTYPEZBDDC) fprintf(s,"ZBDDCE");
+    else if (biddyManagerType == BIDDYTYPETZBDDC) fprintf(s,"TZBDDCE");
+    else fprintf(s,"BDD");
+    fprintf(s," {\n");
+    fprintf(s,"  ordering=out;\n");
+    fprintf(s,"  splines=true;\n");
 #ifdef LEGACY_DOT
 #else
     fprintf(s,"  edge [dir=\"both\"];\n");
 #endif
     fprintf(s,"  edge [arrowhead=\"none\"]\n");
-    fprintf(s,"  node [shape = none, label = \"%s\"] 0;\n",label1);
+    fprintf(s,"  node [shape=none, label=\"%s\"] 0;\n",label1);
   }
 
   WriteDotNodes(MNG,s,f,id,cudd);
-  if (Biddy_GetMark(f)) {
+
+  if (((biddyManagerType == BIDDYTYPEOBDD) ||
+       (biddyManagerType == BIDDYTYPEZBDD) ||
+       (biddyManagerType == BIDDYTYPETZBDD) ||
+       !(Biddy_GetMark(f))))
+  {
     if ((tag = Biddy_GetTag(f))) {
       if (cudd) {
-        /* li = (BiddyLocalInfo *)(BiddyN(f)->list); */
         fprintf(s,"\"%s\"",label1);
         if (Biddy_IsConstant(f)) {
-          fprintf(s," -> \"1\" [style = dotted label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
+          fprintf(s," -> \"1\" [style=solid label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
         } else {
-          fprintf(s," -> \"%p\" [style = dotted label=\"%s\"];\n",BiddyP(f),Biddy_Managed_GetVariableName(MNG,tag));
+          fprintf(s," -> \"%p\" [style=solid label=\"%s\"];\n",BiddyP(f),Biddy_Managed_GetVariableName(MNG,tag));
         }
       } else {
 #ifdef LEGACY_DOT
-        fprintf(s,"  0 -> 1 [style = dotted label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
-#else
-        fprintf(s,"  0 -> 1 [arrowtail=\"none\" arrowhead=\"dot\" label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
-#endif
-      }
-    } else {
-      if (cudd) {
-        /* li = (BiddyLocalInfo *)(BiddyN(f)->list); */
-        fprintf(s,"\"%s\"",label1);
-        if (Biddy_IsConstant(f)) {
-          if (biddyManagerType == BIDDYTYPEZBDD) {
-            fprintf(s," -> \"1\" [style = bold];\n");
-          } else {
-            fprintf(s," -> \"1\" [style = dotted];\n");
-          }
-        } else {
-          if (biddyManagerType == BIDDYTYPEZBDD) {
-            fprintf(s," -> \"%p\" [style = bold];\n",BiddyP(f));
-          } else {
-            fprintf(s," -> \"%p\" [style = dotted];\n",BiddyP(f));
-          }
-        }
-      } else {
-#ifdef LEGACY_DOT
-        if (biddyManagerType == BIDDYTYPEZBDD) {
-          fprintf(s,"  0 -> 1 [style = bold];\n");
-        } else {
-          fprintf(s,"  0 -> 1 [style = dotted];\n");
-        }
-#else
-        fprintf(s,"  0 -> 1 [arrowtail=\"none\" arrowhead=\"dot\"];\n");
-#endif
-      }
-    }
-  } else {
-    if ((tag = Biddy_GetTag(f))) {
-      if (cudd) {
-        /* li = (BiddyLocalInfo *)(BiddyN(f)->list); */
-        fprintf(s,"\"%s\"",label1);
-        if (Biddy_IsConstant(f)) {
-          fprintf(s," -> \"1\" [style = solid label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
-        } else {
-          fprintf(s," -> \"%p\" [style = solid label=\"%s\"];\n",BiddyP(f),Biddy_Managed_GetVariableName(MNG,tag));
-        }
-      } else {
-#ifdef LEGACY_DOT
-        fprintf(s,"  0 -> 1 [style = solid label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
+        fprintf(s,"  0 -> 1 [style=solid label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
 #else
         fprintf(s,"  0 -> 1 [arrowtail=\"none\" label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
 #endif
       }
     } else {
       if (cudd) {
-        /* li = (BiddyLocalInfo *)(BiddyN(f)->list); */
         fprintf(s,"\"%s\"",label1);
         if (Biddy_IsConstant(f)) {
-          fprintf(s," -> \"1\" [style = solid];\n");
+          fprintf(s," -> \"1\" [style=solid];\n");
         } else {
-          fprintf(s," -> \"%p\" [style = solid];\n",BiddyP(f));
+          fprintf(s," -> \"%p\" [style=solid];\n",BiddyP(f));
         }
       } else {
 #ifdef LEGACY_DOT
-        fprintf(s,"  0 -> 1 [style = solid];\n");
+        fprintf(s,"  0 -> 1 [style=solid];\n");
 #else
         fprintf(s,"  0 -> 1 [arrowtail=\"none\"];\n");
+#endif
+      }
+    }
+  } else {
+    if ((tag = Biddy_GetTag(f))) {
+      if (cudd) {
+        fprintf(s,"\"%s\"",label1);
+        if (Biddy_IsConstant(f)) {
+          fprintf(s," -> \"1\" [style=dotted label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
+        } else {
+          fprintf(s," -> \"%p\" [style=dotted label=\"%s\"];\n",BiddyP(f),Biddy_Managed_GetVariableName(MNG,tag));
+        }
+      } else {
+#ifdef LEGACY_DOT
+        fprintf(s,"  0 -> 1 [style=dotted label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
+#else
+        fprintf(s,"  0 -> 1 [arrowtail=\"none\" arrowhead=\"dot\" label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
+#endif
+      }
+    } else {
+      if (cudd) {
+        fprintf(s,"\"%s\"",label1);
+        if (Biddy_IsConstant(f)) {
+          if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+            fprintf(s," -> \"1\" [style=dotted];\n");
+          } else {
+            fprintf(s," -> \"1\" [style=bold];\n");
+          }
+        } else {
+          if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+            fprintf(s," -> \"%p\" [style=dotted];\n",BiddyP(f));
+          } else {
+            fprintf(s," -> \"%p\" [style=bold];\n",BiddyP(f));
+          }
+        }
+      } else {
+#ifdef LEGACY_DOT
+        if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+          fprintf(s,"  0 -> 1 [style=dotted];\n");
+        } else {
+          fprintf(s,"  0 -> 1 [style=bold];\n");
+        }
+#else
+        fprintf(s,"  0 -> 1 [arrowtail=\"none\" arrowhead=\"dot\"];\n");
 #endif
       }
     }
@@ -1166,7 +1297,10 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
   }
 
   fprintf(s,"}\n");
-  fclose(s);
+
+  if (filename) {
+    fclose(s);
+  }
 
   return n;
 }
@@ -1182,7 +1316,7 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
     Output bddview format.
 ### Side effects
     Parameter table is optional, if not NULL then it must contain node names
-    and coordinates.
+    and coordinates. If (filename == NULL) then output is to stdout.
 ### More info
     Macro Biddy_WriteBddview(filename,f,label) is defined for use with anonymous
     manager.
@@ -1204,20 +1338,27 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
 
   if (!MNG) MNG = biddyAnonymousManager;
 
-  assert( filename != NULL );
-
   if (Biddy_IsNull(f)) {
     /* printf("ERROR Biddy_Managed_WriteBddview: Function is null!\n"); */
     return 0 ;
   }
 
-  s = fopen(filename,"w");
-  if (!s) return(0);
+  if (filename) {
+    s = fopen(filename,"w");
+  } else {
+    s = stdout;
+  }
+  if (!s) {
+    printf("ERROR: s = 0\n");
+    return(0);
+  }
+
+  fprintf(s,"#GENERATED WITH BIDDY - biddy.meolic.com\n");
 
   useCoordinates = FALSE;
   if (Biddy_IsConstant(f)) {
 
-    n = 1; /* there is one constant node */
+    n = 1; /* for all BDD types, in memory there is only one constant node */
     if (table) {
       /* use table of nodes given by the user */
       useCoordinates = TRUE;
@@ -1258,18 +1399,59 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
       table[0].isConstant = FALSE;
       li = (BiddyLocalInfo *)(BiddyN(f)->list);
       while (li->back) {
+
+        /* add one node */
         table[li->data.enumerator].id = li->data.enumerator;
         table[li->data.enumerator].label = getname(MNG,li->back);
         table[li->data.enumerator].x = 0;
         table[li->data.enumerator].y = 0;
         table[li->data.enumerator].isConstant = FALSE;
+
+        /* if one or both successors are constant then extra nodes must be added */
         if (Biddy_IsConstant(BiddyE(li->back)) || Biddy_IsConstant(BiddyT(li->back))) {
-          table[li->data.enumerator+1].id = li->data.enumerator+1;
-          table[li->data.enumerator+1].label = getname(MNG,biddyOne);
-          table[li->data.enumerator+1].x = 0;
-          table[li->data.enumerator+1].y = 0;
-          table[li->data.enumerator+1].isConstant = TRUE;
+
+          if (((biddyManagerType == BIDDYTYPEOBDD) ||
+               (biddyManagerType == BIDDYTYPEZBDD) ||
+               (biddyManagerType == BIDDYTYPETZBDD))
+              &&
+              (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
+          {
+            /* two constant nodes only if they are different */
+            unsigned int num;
+            num = 0;
+            if (Biddy_IsConstant(BiddyE(li->back))) {
+              num = 1;
+              table[li->data.enumerator+1].id = li->data.enumerator+1;
+              if (BiddyE(li->back) == biddyZero) {
+                table[li->data.enumerator+1].label = strdup("0");
+              } else {
+                table[li->data.enumerator+1].label = strdup("1");
+              }
+              table[li->data.enumerator+1].x = 0;
+              table[li->data.enumerator+1].y = 0;
+              table[li->data.enumerator+1].isConstant = TRUE;
+            }
+            if (Biddy_IsConstant(BiddyT(li->back))) {
+              table[li->data.enumerator+num+1].id = li->data.enumerator+num+1;
+              if (BiddyT(li->back) == biddyZero) {
+                table[li->data.enumerator+num+1].label = strdup("0");
+              } else {
+                table[li->data.enumerator+num+1].label = strdup("1");
+              }
+              table[li->data.enumerator+num+1].x = 0;
+              table[li->data.enumerator+num+1].y = 0;
+              table[li->data.enumerator+num+1].isConstant = TRUE;
+            }
+          } else {
+            /* only one constant node */
+            table[li->data.enumerator+1].id = li->data.enumerator+1;
+            table[li->data.enumerator+1].label = strdup("1");
+            table[li->data.enumerator+1].x = 0;
+            table[li->data.enumerator+1].y = 0;
+            table[li->data.enumerator+1].isConstant = TRUE;
+          }
         }
+
         li = &li[1]; /* next field in the array */
       }
     }
@@ -1306,12 +1488,22 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
   /* WRITE bddview CONNECTIONS */
 
   fprintf(s,"connect 0 1 ");
-  if (Biddy_GetMark(f)) {
-    fprintf(s,"si");
-  } else {
+  if ((biddyManagerType == BIDDYTYPEOBDD) ||
+      (biddyManagerType == BIDDYTYPEZBDD) ||
+      (biddyManagerType == BIDDYTYPETZBDD))
+  {
     fprintf(s,"s");
   }
-  if ((biddyManagerType == BIDDYTYPETZBDD) || (biddyManagerType == BIDDYTYPETZFDD)) {
+  else {
+    if (Biddy_GetMark(f)) {
+      fprintf(s,"si");
+    } else {
+      fprintf(s,"s");
+    }
+  }
+
+  if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
+  {
     tag = Biddy_GetTag(f);
     fprintf(s," %s\n",Biddy_Managed_GetVariableName(MNG,tag));
   } else {
@@ -1323,7 +1515,9 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
     BiddyDeleteLocalInfo(MNG,f);
   }
 
-  fclose(s);
+  if (filename) {
+    fclose(s);
+  }
 
   return n;
 }
@@ -1418,7 +1612,7 @@ ReadBDD(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch)
   Biddy_String varname;
   Biddy_Edge f,n,e,t;
 
-  assert( biddyManagerType == BIDDYTYPEOBDD );
+  assert( (biddyManagerType == BIDDYTYPEOBDD) || (biddyManagerType == BIDDYTYPEOBDDC) );
 
   nextCh(s,i,ch);
 
@@ -1426,41 +1620,55 @@ ReadBDD(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch)
     inv = FALSE;
   } else {
     inv = TRUE;
-    /* printf("<*>"); */
+    /* printf("<*>\n"); */
     nextCh(s,i,ch);
   }
 
-  /* printf("<%s>",*ch); */
+  /* printf("<%s>\n",*ch); */
 
-  if (strcmp(*ch,"1")) {
+  if (!strcmp(*ch,"0")) {
+    if (inv) {
+      f = biddyOne;
+    } else {
+      f = biddyZero;
+    }
+  } else if (!strcmp(*ch,"1")) {
+    if (inv) {
+      f = biddyZero;
+    } else {
+      f = biddyOne;
+    }
+  } else {
     varname = strdup(*ch);
     n = Biddy_Managed_AddVariableByName(MNG,varname); /* variables should already exist */
     nextCh(s,i,ch);
     if (strcmp(*ch,"(")) {
-      /* printf("ERROR: <%s>\n",*ch); */
+      /**/ printf("ERROR: <%s>\n",*ch); /**/
       return biddyNull;
     }
     e = ReadBDD(MNG,s,i,ch);
     nextCh(s,i,ch);
     if (strcmp(*ch,")")) {
-      /* printf("ERROR: <%s>\n",*ch); */
+      /**/ printf("ERROR: <%s>\n",*ch); /**/
       return biddyNull;
     }
     nextCh(s,i,ch);
     if (strcmp(*ch,"(")) {
-      /* printf("ERROR: <%s>\n",*ch); */
+      /**/ printf("ERROR: <%s>\n",*ch); /**/
       return biddyNull;
     }
     t = ReadBDD(MNG,s,i,ch);
     nextCh(s,i,ch);
     if (strcmp(*ch,")")) {
-      /* printf("ERROR: <%s>\n",*ch); */
+      /**/ printf("ERROR: <%s>\n",*ch); /**/
       return biddyNull;
     }
-    f = Biddy_InvCond(Biddy_Managed_ITE(MNG,n,t,e),inv); /* OBDDs */
+    if (inv) {
+      f = Biddy_Managed_Not(MNG,Biddy_Managed_ITE(MNG,n,t,e));
+    } else {
+      f = Biddy_Managed_ITE(MNG,n,t,e);
+    }
     free(varname);
-  } else {
-    f = Biddy_InvCond(biddyOne,inv); /* OBDDs */
   }
 
   return f;
@@ -1470,6 +1678,7 @@ static Biddy_Edge
 evaluate1(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch,
           Biddy_LookupFunction lf)
 {
+  unsigned int idx;
   Biddy_Edge f;
   int op;
 
@@ -1506,12 +1715,12 @@ evaluate1(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch,
 
   if (charOK(*ch[0])) {
     if (!lf) {
-      if (!Biddy_Managed_FindFormula(MNG,*ch,&f)) {
+      if (!Biddy_Managed_FindFormula(MNG,*ch,&idx,&f)) {
         f = Biddy_Managed_AddVariableByName(MNG,*ch);
       }
     } else {
       if ((!(lf(*ch,&f))) &&
-          (!Biddy_Managed_FindFormula(MNG,*ch,&f))) {
+          (!Biddy_Managed_FindFormula(MNG,*ch,&idx,&f))) {
         f = Biddy_Managed_AddVariableByName(MNG,*ch);
       }
     }
@@ -1584,13 +1793,15 @@ static void
 createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree)
 {
   int i;
+  unsigned int idx;
   Biddy_Edge tmp;
 
-  if (biddyManagerType == BIDDYTYPEOBDD) {
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD))
+  {
     for (i = 0; i <= tree->availableNode; i++) {
       if (tree->tnode[i].op == 255) {
         if (tree->tnode[i].name) {
-          if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&tmp))) {
+          if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&idx,&tmp))) {
             Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
           }
         }
@@ -1598,11 +1809,13 @@ createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree)
     }
   }
 
-  if (biddyManagerType == BIDDYTYPEZBDD) {
+  if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
+      (biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
+  {
     for (i = tree->availableNode; i >= 0; i--) {
       if (tree->tnode[i].op == 255) {
         if (tree->tnode[i].name) {
-          if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&tmp))) {
+          if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&idx,&tmp))) {
             Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
           }
         }
@@ -1614,14 +1827,16 @@ createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree)
 static Biddy_Edge
 createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i)
 {
+  unsigned int idx;
   Biddy_Edge lbdd,rbdd,fbdd;
+
   if (i == -1) return biddyNull;
   if (tree->tnode[i].op == 255) {
     if (tree->tnode[i].name) {
       if (!strcmp(tree->tnode[i].name,"0")) fbdd = biddyZero;
       else if (!strcmp(tree->tnode[i].name,"1")) fbdd = biddyOne;
       else {
-        if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&fbdd))) {
+        if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&idx,&fbdd))) {
           fbdd = Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
         }
       }
@@ -1874,9 +2089,9 @@ parseVerilogFile(FILE *verilogfile, unsigned int *l, VerilogLine ***lt, unsigned
               if (md->wirecount >= WIRENUM) printf("ERROR (parseVerilogFile): WIRENUM TO SMALL\n");
             } else {
               /* DEBUGGING */
-              /**/
+              /*
               printf("WARNING (parseVerilogFile): wire %s already defined as input/output\n",token[j]);
-              /**/
+              */
             }
           }
         }
@@ -2147,27 +2362,35 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, VerilogCircuit *c, Biddy_String p
   Biddy_Edge f;
 
   /* DEBUGGING */
-  /**/
+  /*
   printf("Creating %d primary inputs\n",c->inputcount);
-  /**/
+  */
+
+  /* DEBUGGING */
   /*
   for (i = 0; i < c->inputcount; i++) {
     printf("%s ",c->inputs[i]);
   }
   if (c->inputcount) printf("\n");
   */
-  /**/
+
+  /* DEBUGGING */
+  /*
   printf("Creating %d primary outputs\n",c->outputcount);
-  /**/
+  */
+
+  /* DEBUGGING */
   /*
   for (i = 0; i < c->outputcount; i++) {
     printf("%s ",c->outputs[i]);
   }
   if (c->outputcount) printf("\n");
   */
-  /**/
+
+  /* DEBUGGING */
+  /*
   printf("Creating %d wires\n",c->wirecount);
-  /**/
+  */
 
   /* create all BDD variables - important for ZBDD and TZBDD */
   for (i = 0; i < c->nodecount; i++) {
@@ -2746,31 +2969,74 @@ WriteProduct(Biddy_Manager MNG, VarList *l)
 }
 
 static void
+WriteProductx(Biddy_Manager MNG, FILE *s, VarList *l)
+{
+  if (l) {
+    WriteProductx(MNG,s,l->next);
+    fprintf(s," ");
+    if (l->negative) {
+      fprintf(s,"*");
+    }
+    fprintf(s,"%s",Biddy_Managed_GetVariableName(MNG,l->v));
+  }
+}
+
+static void
 WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
          Biddy_Boolean mark, VarList *l, unsigned int *maxsize)
 {
   VarList tmp;
   Biddy_Variable v;
 
+  assert( !(BiddyIsSmaller(BiddyV(f),top)) );
+
   if (*maxsize == 0) return; /* SOP to large */
 
   v = BiddyV(f);
 
+  /* DEBUGGING */
+  /**/
+  printf("WriteSOP: top = %u (%s), v = %u (%s)\n",top,Biddy_Managed_GetVariableName(MNG,top),v,Biddy_Managed_GetVariableName(MNG,v));
+  /**/
+
   if ((top != v) && (f != biddyZero)) {
 
     if (biddyManagerType == BIDDYTYPEOBDD) {
-      assert( FALSE );
-    } else if (biddyManagerType == BIDDYTYPEZBDD) {
+      /* IMPLEMENTED */
+    } else if (biddyManagerType == BIDDYTYPEOBDDC) {
+      /* IMPLEMENTED */
+    } else if (biddyManagerType == BIDDYTYPEZBDDC) {
+      /* IMPLEMENTED */
       tmp.next = l;
       tmp.v = top;
       tmp.negative = TRUE; /* left successor */
       WriteSOP(MNG,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
     } else if (biddyManagerType == BIDDYTYPETZBDD) {
+      /* IMPLEMENTED */
       tmp.next = l;
       tmp.v = top;
       tmp.negative = TRUE; /* left successor */
+
+      /* DEBUGGING */
+      /**/
+      printf("WriteSOP: top = %u (%s), top.next = %u (%s)\n",top,Biddy_Managed_GetVariableName(MNG,top),
+              biddyVariableTable.table[top].next,Biddy_Managed_GetVariableName(MNG,biddyVariableTable.table[top].next));
+      /**/
+
       WriteSOP(MNG,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
+    } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
+                (biddyManagerType == BIDDYTYPETZBDDC))
+    {
+      fprintf(stderr,"WriteSOP: this GDD type is not supported, yet!\n");
+      return;
+    } else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
+                (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
+                (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
+    {
+      fprintf(stderr,"WriteSOP: this GDD type is not supported, yet!\n");
+      return;
     } else {
+      fprintf(stderr,"WriteSOP: Unsupported GDD type!\n");
       return;
     }
 
@@ -2797,26 +3063,126 @@ WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
     tmp.v = v;
     tmp.negative = TRUE; /* left successor */
 
-    if (biddyManagerType == BIDDYTYPEOBDD) {
+    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
       WriteSOP(MNG,BiddyE(f),BiddyV(BiddyE(f)),(mark ^ Biddy_GetMark(BiddyE(f))),&tmp,maxsize);
     }
-    else if (biddyManagerType == BIDDYTYPEZBDD) {
+    else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
       WriteSOP(MNG,BiddyE(f),biddyVariableTable.table[v].next,mark,&tmp,maxsize);
     }
-    else if (biddyManagerType == BIDDYTYPETZBDD) {
+    else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
       WriteSOP(MNG,BiddyE(f),Biddy_GetTag(BiddyE(f)),Biddy_GetMark(BiddyE(f)),&tmp,maxsize);
     }
 
     tmp.negative = FALSE; /* right successor */
 
-    if (biddyManagerType == BIDDYTYPEOBDD) {
+    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
       WriteSOP(MNG,BiddyT(f),BiddyV(BiddyT(f)),mark,&tmp,maxsize);
     }
-    else if (biddyManagerType == BIDDYTYPEZBDD) {
+    else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
       WriteSOP(MNG,BiddyT(f),biddyVariableTable.table[v].next,Biddy_GetMark(BiddyT(f)),&tmp,maxsize);
     }
-    else if (biddyManagerType == BIDDYTYPETZBDD) {
+    else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
       WriteSOP(MNG,BiddyT(f),Biddy_GetTag(BiddyT(f)),Biddy_GetMark(BiddyT(f)),&tmp,maxsize);
+    }
+
+  }
+}
+
+static void
+WriteSOPx(Biddy_Manager MNG, FILE *s, Biddy_Edge f, Biddy_Variable top,
+         Biddy_Boolean mark, VarList *l, unsigned int *maxsize)
+{
+  VarList tmp;
+  Biddy_Variable v;
+
+  assert( !(BiddyIsSmaller(top,BiddyV(f))) );
+
+  if (*maxsize == 0) return; /* SOP to large */
+
+  v = BiddyV(f);
+
+  /* DEBUGGING */
+  /*
+  printf("WriteSOPx: top = %u (%s), v = %u (%s)\n",top,Biddy_Managed_GetVariableName(MNG,top),v,Biddy_Managed_GetVariableName(MNG,v));
+  */
+
+  if ((top != v) && (f != biddyZero)) {
+
+    if (biddyManagerType == BIDDYTYPEOBDD) {
+      /* IMPLEMENTED */
+    } else if (biddyManagerType == BIDDYTYPEOBDDC) {
+      /* IMPLEMENTED */
+    } else if (biddyManagerType == BIDDYTYPEZBDDC) {
+      /* IMPLEMENTED */
+      tmp.next = l;
+      tmp.v = top;
+      tmp.negative = TRUE; /* left successor */
+      WriteSOPx(MNG,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
+    } else if (biddyManagerType == BIDDYTYPETZBDD) {
+      /* IMPLEMENTED */
+      tmp.next = l;
+      tmp.v = top;
+      tmp.negative = TRUE; /* left successor */
+      WriteSOPx(MNG,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
+    } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
+                (biddyManagerType == BIDDYTYPETZBDDC))
+    {
+      fprintf(stderr,"WriteSOP: this GDD type is not supported, yet!\n");
+      return;
+    } else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
+                (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
+                (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
+    {
+      fprintf(stderr,"WriteSOP: this GDD type is not supported, yet!\n");
+      return;
+    } else {
+      fprintf(stderr,"WriteSOP: Unsupported GDD type!\n");
+      return;
+    }
+
+  } else if (v == 0) {
+
+    if (!mark) {
+      fprintf(s,"  + ");
+      if (l) {
+        WriteProductx(MNG,s,l);
+        fprintf(s,"\n");
+        (*maxsize)--;
+      } else {
+        fprintf(s," 1");
+      }
+    } else {
+      if (!l) {
+        fprintf(s,"  +  0");
+      }
+    }
+
+  } else {
+
+    tmp.next = l;
+    tmp.v = v;
+    tmp.negative = TRUE; /* left successor */
+
+    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+      WriteSOPx(MNG,s,BiddyE(f),BiddyV(BiddyE(f)),(mark ^ Biddy_GetMark(BiddyE(f))),&tmp,maxsize);
+    }
+    else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+      WriteSOPx(MNG,s,BiddyE(f),biddyVariableTable.table[v].next,mark,&tmp,maxsize);
+    }
+    else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+      WriteSOPx(MNG,s,BiddyE(f),Biddy_GetTag(BiddyE(f)),Biddy_GetMark(BiddyE(f)),&tmp,maxsize);
+    }
+
+    tmp.negative = FALSE; /* right successor */
+
+    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+      WriteSOPx(MNG,s,BiddyT(f),BiddyV(BiddyT(f)),mark,&tmp,maxsize);
+    }
+    else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+      WriteSOPx(MNG,s,BiddyT(f),biddyVariableTable.table[v].next,Biddy_GetMark(BiddyT(f)),&tmp,maxsize);
+    }
+    else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+      WriteSOPx(MNG,s,BiddyT(f),Biddy_GetTag(BiddyT(f)),Biddy_GetMark(BiddyT(f)),&tmp,maxsize);
     }
 
   }
@@ -2831,9 +3197,32 @@ enumerateNodes(Biddy_Manager MNG, Biddy_Edge f, unsigned int n)
       Biddy_Managed_SelectNode(MNG,f);
       n++;
       BiddySetEnumerator(f,n);
+
+      /* one or both are constant node */
+      /* every instance of constant node is enumerated */
       if (Biddy_IsConstant(BiddyE(f)) || Biddy_IsConstant(BiddyT(f))) {
-        n++; /* every instance of constant node is enumerated */
+
+        if (((biddyManagerType == BIDDYTYPEOBDD) ||
+             (biddyManagerType == BIDDYTYPEZBDD) ||
+             (biddyManagerType == BIDDYTYPETZBDD))
+            &&
+            (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
+        {
+          /* two constant nodes only if they are different */
+          if (Biddy_IsConstant(BiddyE(f))) {
+            n++;
+          }
+          if (Biddy_IsConstant(BiddyT(f))) {
+            n++;
+          }
+        }
+        else {
+          /* only one constant node */
+          n++;
+        }
+
       }
+
       if (!Biddy_IsConstant(BiddyE(f))) {
         n = enumerateNodes(MNG,BiddyE(f),n);
       }
@@ -2855,21 +3244,36 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
 
   if (Biddy_IsConstant(f)) {
     if (cudd) {
+
       /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotEdges */
       /*
       fprintf(dotfile,"{ rank = same; \"CONST NODES\";\n");
       fprintf(dotfile,"{ node [shape = box label = \"1\"]; ");
       fprintf(dotfile,"\"%p\";\n",biddyOne);
       */
+
       /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotEdges */
       /**/
       fprintf(dotfile,"{ \"CONST NODES\";\n");
       fprintf(dotfile,"{ node [shape = none label = \"1\"];\n");
       fprintf(dotfile,"\"1\";\n");
       /**/
+
       fprintf(dotfile,"}\n}\n");
     } else {
-      fprintf(dotfile, "  node [shape = none, label = \"1\"] %u;\n",1);
+      if ((biddyManagerType == BIDDYTYPEOBDD) ||
+          (biddyManagerType == BIDDYTYPEZBDD) ||
+          (biddyManagerType == BIDDYTYPETZBDD))
+      {
+        if (f == biddyZero) {
+          fprintf(dotfile, "  node [shape = none, label = \"0\"] %u;\n",1);
+        } else {
+          fprintf(dotfile, "  node [shape = none, label = \"1\"] %u;\n",1);
+        }
+      }
+      else {
+        fprintf(dotfile, "  node [shape = none, label = \"1\"] %u;\n",1);
+      }
     }
     return;
   }
@@ -2897,12 +3301,14 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
       li = &li[1]; /* next field in the array */
     }
     Biddy_Managed_ResetVariablesValue(MNG);
+
     /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotEdges */
     /*
     fprintf(dotfile,"{ rank = same; \"CONST NODES\";\n");
     fprintf(dotfile,"{ node [shape = box label = \"1\"]; ");
     fprintf(dotfile,"\"%p\";\n",biddyOne);
     */
+
     /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotEdges */
     /**/
     fprintf(dotfile,"{ \"CONST NODES\";\n");
@@ -2915,6 +3321,7 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
       li = &li[1];
     }
     /**/
+
     fprintf(dotfile,"}\n}\n");
   } else {
     li = (BiddyLocalInfo *)(BiddyN(f)->list);
@@ -2927,8 +3334,35 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
       while ((hash = strchr(name, '#'))) hash[0] = '_';
       fprintf(dotfile,"  node [shape = circle, label = \"%s\"] %u;\n",name,li->data.enumerator);
       free(name);
-      if (Biddy_IsConstant(BiddyE(li->back)) || Biddy_IsConstant(BiddyT(li->back))) {
-        fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+1);
+      if ((biddyManagerType == BIDDYTYPEOBDD) ||
+          (biddyManagerType == BIDDYTYPEZBDD) ||
+          (biddyManagerType == BIDDYTYPETZBDD))
+      {
+        if (BiddyE(li->back) == biddyZero) {
+          fprintf(dotfile,"  node [shape = none, label = \"0\"] %u;\n",li->data.enumerator+1);
+        }
+        else if (Biddy_IsConstant(BiddyE(li->back))) {
+          fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+1);
+        }
+        if (BiddyT(li->back) == biddyZero) {
+          if (Biddy_IsConstant(BiddyE(li->back)) && (Biddy_GetMark(BiddyE(li->back)) != Biddy_GetMark(BiddyT(li->back)))) {
+            fprintf(dotfile,"  node [shape = none, label = \"0\"] %u;\n",li->data.enumerator+2);
+          } else {
+            fprintf(dotfile,"  node [shape = none, label = \"0\"] %u;\n",li->data.enumerator+1);
+          }
+        }
+        else if (Biddy_IsConstant(BiddyT(li->back))) {
+          if (Biddy_IsConstant(BiddyE(li->back)) && (Biddy_GetMark(BiddyE(li->back)) != Biddy_GetMark(BiddyT(li->back)))) {
+            fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+2);
+          } else {
+            fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+1);
+          }
+        }
+      }
+      else {
+        if (Biddy_IsConstant(BiddyE(li->back)) || Biddy_IsConstant(BiddyT(li->back))) {
+          fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+1);
+        }
       }
       li = &li[1]; /* next field in the array */
     }
@@ -2953,86 +3387,110 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
     if (Biddy_GetMark(BiddyE(f))) {
       if ((tag = Biddy_GetTag(BiddyE(f)))) {
         if (cudd) {
+
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
           /*
           fprintf(dotfile,"\"%p\" -> \"%p\" [style = dotted label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyE(f)),Biddy_Managed_GetVariableName(MNG,tag));
           */
+
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
           if (Biddy_IsConstant(BiddyE(f))) {
-            fprintf(dotfile,"\"%p\" -> \"%u\" [style = dotted label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
+            fprintf(dotfile,"\"%p\" -> \"%u\" [style=dotted label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
           } else {
-            fprintf(dotfile,"\"%p\" -> \"%p\" [style = dotted label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyE(f)),Biddy_Managed_GetVariableName(MNG,tag));
+            fprintf(dotfile,"\"%p\" -> \"%p\" [style=dotted label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyE(f)),Biddy_Managed_GetVariableName(MNG,tag));
           }
           /**/
+
         } else {
 #ifdef LEGACY_DOT
-          fprintf(dotfile,"  %u -> %u [style = dotted label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
+          fprintf(dotfile,"  %u -> %u [style=dotted label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
 #else
           fprintf(dotfile,"  %u -> %u [arrowtail=\"odot\" arrowhead=\"dot\" label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
 #endif
         }
       } else {
         if (cudd) {
+
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
           /*
           fprintf(dotfile,"\"%p\" -> \"%p\" [style = dotted];\n",BiddyP(f),BiddyP(BiddyE(f)));
           */
+
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
           if (Biddy_IsConstant(BiddyE(f))) {
-            fprintf(dotfile,"\"%p\" -> \"%u\" [style = dotted];\n",BiddyP(f),n2);
+            fprintf(dotfile,"\"%p\" -> \"%u\" [style=dotted];\n",BiddyP(f),n2);
           } else {
-            fprintf(dotfile,"\"%p\" -> \"%p\" [style = dotted];\n",BiddyP(f),BiddyP(BiddyE(f)));
+            fprintf(dotfile,"\"%p\" -> \"%p\" [style=dotted];\n",BiddyP(f),BiddyP(BiddyE(f)));
           }
           /**/
+
         } else {
+          if ((biddyManagerType == BIDDYTYPEOBDD) ||
+              (biddyManagerType == BIDDYTYPEZBDD) ||
+              (biddyManagerType == BIDDYTYPETZBDD))
+          {
 #ifdef LEGACY_DOT
-          fprintf(dotfile,"  %u -> %u [style = dotted];\n",n1,n2);
+            fprintf(dotfile,"  %u -> %u [style=dashed];\n",n1,n2);
 #else
-          fprintf(dotfile,"  %u -> %u [arrowtail=\"odot\" arrowhead=\"dot\"];\n",n1,n2);
+            fprintf(dotfile,"  %u -> %u [arrowtail=\"odot\"];\n",n1,n2);
 #endif
+          }
+          else {
+#ifdef LEGACY_DOT
+            fprintf(dotfile,"  %u -> %u [style=dotted];\n",n1,n2);
+#else
+            fprintf(dotfile,"  %u -> %u [arrowtail=\"odot\" arrowhead=\"dot\"];\n",n1,n2);
+#endif
+          }
         }
       }
     } else {
       if ((tag = Biddy_GetTag(BiddyE(f)))) {
         if (cudd) {
+
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
           /*
           fprintf(dotfile,"\"%p\" -> \"%p\" [style = dashed label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyE(f)),Biddy_Managed_GetVariableName(MNG,tag));
           */
+
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
           if (Biddy_IsConstant(BiddyE(f))) {
-            fprintf(dotfile,"\"%p\" -> \"%u\" [style = dashed label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
+            fprintf(dotfile,"\"%p\" -> \"%u\" [style=dashed label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
           } else {
-            fprintf(dotfile,"\"%p\" -> \"%p\" [style = dashed label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyE(f)),Biddy_Managed_GetVariableName(MNG,tag));
+            fprintf(dotfile,"\"%p\" -> \"%p\" [style=dashed label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyE(f)),Biddy_Managed_GetVariableName(MNG,tag));
           }
           /**/
+
         } else {
 #ifdef LEGACY_DOT
-          fprintf(dotfile,"  %u -> %u [style = dashed label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
+          fprintf(dotfile,"  %u -> %u [style=dashed label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
 #else
           fprintf(dotfile,"  %u -> %u [arrowtail=\"odot\" label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
 #endif
         }
       } else {
         if (cudd) {
+
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
           /*
           fprintf(dotfile,"\"%p\" -> \"%p\" [style = dashed];\n",BiddyP(f),BiddyP(BiddyE(f)));
           */
+
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
           if (Biddy_IsConstant(BiddyE(f))) {
-            fprintf(dotfile,"\"%p\" -> \"%u\" [style = dashed];\n",BiddyP(f),n2);
+            fprintf(dotfile,"\"%p\" -> \"%u\" [style=dashed];\n",BiddyP(f),n2);
           } else {
-            fprintf(dotfile,"\"%p\" -> \"%p\" [style = dashed];\n",BiddyP(f),BiddyP(BiddyE(f)));
+            fprintf(dotfile,"\"%p\" -> \"%p\" [style=dashed];\n",BiddyP(f),BiddyP(BiddyE(f)));
           }
           /**/
+
         } else {
 #ifdef LEGACY_DOT
-        fprintf(dotfile,"  %u -> %u [style = dashed];\n",n1,n2);
+        fprintf(dotfile,"  %u -> %u [style=dashed];\n",n1,n2);
 #else
         fprintf(dotfile,"  %u -> %u [arrowtail=\"odot\"];\n",n1,n2);
 #endif
@@ -3041,61 +3499,91 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
     }
 
     if (Biddy_IsConstant(BiddyT(f))) {
-      n2 = n1 + 1;
+      if (((biddyManagerType == BIDDYTYPEOBDD) ||
+           (biddyManagerType == BIDDYTYPEZBDD) ||
+           (biddyManagerType == BIDDYTYPETZBDD))
+          && (Biddy_IsConstant(BiddyE(f))) 
+          && (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
+      {
+        n2 = n1 + 2;
+      }
+      else {
+        n2 = n1 + 1;
+      }
     } else {
       n2 = BiddyGetEnumerator(BiddyT(f));
     }
     if (Biddy_GetMark(BiddyT(f))) {
       if ((tag = Biddy_GetTag(BiddyT(f)))) {
         if (cudd) {
+
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
           /*
           fprintf(dotfile,"\"%p\" -> \"%p\" [style = bold label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyT(f)),Biddy_Managed_GetVariableName(MNG,tag));
           */
+
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
           if (Biddy_IsConstant(BiddyT(f))) {
-            fprintf(dotfile,"\"%p\" -> \"%u\" [style = bold label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
+            fprintf(dotfile,"\"%p\" -> \"%u\" [style=bold label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
           } else {
-            fprintf(dotfile,"\"%p\" -> \"%p\" [style = bold label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyT(f)),Biddy_Managed_GetVariableName(MNG,tag));
+            fprintf(dotfile,"\"%p\" -> \"%p\" [style=bold label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyT(f)),Biddy_Managed_GetVariableName(MNG,tag));
           }
           /**/
+
         } else {
 #ifdef LEGACY_DOT
-          fprintf(dotfile,"  %d -> %d [style = bold label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
+          fprintf(dotfile,"  %d -> %d [style=bold label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
 #else
           fprintf(dotfile,"  %d -> %d [arrowtail=\"invempty\" arrowhead=\"dot\" label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
 #endif
         }
       } else {
         if (cudd) {
+
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
           /*
           fprintf(dotfile,"\"%p\" -> \"%p\" [style = bold];\n",BiddyP(f),BiddyP(BiddyT(f)));
           */
+
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
           if (Biddy_IsConstant(BiddyT(f))) {
-            fprintf(dotfile,"\"%p\" -> \"%u\" [style = bold];\n",BiddyP(f),n2);
+            fprintf(dotfile,"\"%p\" -> \"%u\" [style=bold];\n",BiddyP(f),n2);
           } else {
-            fprintf(dotfile,"\"%p\" -> \"%p\" [style = bold];\n",BiddyP(f),BiddyP(BiddyT(f)));
+            fprintf(dotfile,"\"%p\" -> \"%p\" [style=bold];\n",BiddyP(f),BiddyP(BiddyT(f)));
           }
           /**/
+
         } else {
+          if ((biddyManagerType == BIDDYTYPEOBDD) ||
+              (biddyManagerType == BIDDYTYPEZBDD) ||
+              (biddyManagerType == BIDDYTYPETZBDD))
+          {
 #ifdef LEGACY_DOT
-          fprintf(dotfile,"  %d -> %d [style = bold];\n",n1,n2);
+            fprintf(dotfile,"  %d -> %d;\n",n1,n2);
 #else
-          fprintf(dotfile,"  %d -> %d [arrowtail=\"invempty\" arrowhead=\"dot\"];\n",n1,n2);
+            fprintf(dotfile,"  %d -> %d [arrowtail=\"invempty\"];\n",n1,n2);
 #endif
+          }
+          else {
+#ifdef LEGACY_DOT
+            fprintf(dotfile,"  %d -> %d [style=bold];\n",n1,n2);
+#else
+            fprintf(dotfile,"  %d -> %d [arrowtail=\"invempty\" arrowhead=\"dot\"];\n",n1,n2);
+#endif
+          }
         }
       }
     } else {
       if ((tag = Biddy_GetTag(BiddyT(f)))) {
         if (cudd) {
+
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
           /*
           fprintf(dotfile,"\"%p\" -> \"%p\" [label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyT(f)),Biddy_Managed_GetVariableName(MNG,tag));
           */
+
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
           if (Biddy_IsConstant(BiddyT(f))) {
@@ -3104,6 +3592,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
             fprintf(dotfile,"\"%p\" -> \"%p\" [label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyT(f)),Biddy_Managed_GetVariableName(MNG,tag));
           }
           /**/
+
         } else {
 #ifdef LEGACY_DOT
           fprintf(dotfile,"  %d -> %d [label=\"%s\"];\n",n1,n2,Biddy_Managed_GetVariableName(MNG,tag));
@@ -3113,11 +3602,13 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
         }
       } else {
         if (cudd) {
+
         /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
         /*
         fprintf(dotfile,"\"%p\" -> \"%p\";\n",BiddyP(f),BiddyP(BiddyT(f)));
         */
         /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
+
         /**/
         if (Biddy_IsConstant(BiddyT(f))) {
           fprintf(dotfile,"\"%p\" -> \"%u\";\n",BiddyP(f),n2);
@@ -3125,9 +3616,10 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
           fprintf(dotfile,"\"%p\" -> \"%p\";\n",BiddyP(f),BiddyP(BiddyT(f)));
         }
         /**/
+
         } else {
 #ifdef LEGACY_DOT
-          fprintf(dotfile,"  %d -> %d;\n",n1,n2);
+          fprintf(dotfile,"  %d -> %d [style=solid];\n",n1,n2);
 #else
           fprintf(dotfile,"  %d -> %d [arrowtail=\"invempty\"];\n",n1,n2);
 #endif
@@ -3150,7 +3642,77 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
     Biddy_Managed_SelectNode(MNG,f);
     n1 = BiddyGetEnumerator(f);
 
-    if (BiddyP(BiddyE(f)) == BiddyP(BiddyT(f))) {
+    /* if successors are equal then double line is possible */
+    if ((BiddyP(BiddyE(f)) != BiddyP(BiddyT(f))) ||
+         (((biddyManagerType == BIDDYTYPEOBDD) ||
+          (biddyManagerType == BIDDYTYPEZBDD) ||
+          (biddyManagerType == BIDDYTYPETZBDD))
+          &&
+          (Biddy_GetMark((BiddyE(f))) != Biddy_GetMark((BiddyT(f)))))
+       )
+    {
+
+      unsigned int num;
+
+      /* SINGLE LINE */
+
+      num = 0;
+      if (Biddy_IsConstant(BiddyE(f))) {
+        n2 = n1 + 1;
+        num = 1;
+      } else {
+        n2 = BiddyGetEnumerator(BiddyE(f));
+      }
+      fprintf(funfile,"connect %d %d ",n1,n2);
+      if ((biddyManagerType == BIDDYTYPEOBDD) ||
+          (biddyManagerType == BIDDYTYPEZBDD) ||
+          (biddyManagerType == BIDDYTYPETZBDD))
+      {
+        fprintf(funfile,"l");  
+      }
+      else {
+        if (Biddy_GetMark((BiddyE(f)))) {
+          fprintf(funfile,"li");
+        } else {
+          fprintf(funfile,"l");
+        }
+      }
+      if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
+      {
+        tag1 = Biddy_GetTag(BiddyE(f));
+        fprintf(funfile," %s\n",Biddy_Managed_GetVariableName(MNG,tag1));
+      } else {
+        fprintf(funfile,"\n");
+      }
+
+      if (Biddy_IsConstant(BiddyT(f))) {
+        n2 = n1 + num + 1;
+      } else {
+        n2 = BiddyGetEnumerator(BiddyT(f));
+      }
+      fprintf(funfile,"connect %d %d ",n1,n2);
+      if ((biddyManagerType == BIDDYTYPEOBDD) ||
+          (biddyManagerType == BIDDYTYPEZBDD) ||
+          (biddyManagerType == BIDDYTYPETZBDD))
+      {
+        fprintf(funfile,"r");
+      }
+      else {
+        if (Biddy_GetMark((BiddyT(f)))) {
+          fprintf(funfile,"ri");
+        } else {
+          fprintf(funfile,"r");
+        }
+      }
+      if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
+      {
+        tag2 = Biddy_GetTag(BiddyT(f));
+        fprintf(funfile," %s\n",Biddy_Managed_GetVariableName(MNG,tag2));
+      } else {
+        fprintf(funfile,"\n");
+      }
+
+    } else {
 
       /* DOUBLE LINE */
 
@@ -3174,50 +3736,11 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
           fprintf(funfile,"e");
         }
       }
-      if ((biddyManagerType == BIDDYTYPETZBDD) || (biddyManagerType == BIDDYTYPETZFDD)) {
+      if (biddyManagerType == BIDDYTYPETZBDDC)
+      {
         tag1 = Biddy_GetTag(BiddyE(f));
         tag2 = Biddy_GetTag(BiddyT(f));
         fprintf(funfile," %s %s\n",Biddy_Managed_GetVariableName(MNG,tag1),Biddy_Managed_GetVariableName(MNG,tag2));
-      } else {
-        fprintf(funfile,"\n");
-      }
-
-    } else {
-
-      /* SINGLE LINE */
-
-      if (Biddy_IsConstant(BiddyE(f))) {
-        n2 = n1 + 1;
-      } else {
-        n2 = BiddyGetEnumerator(BiddyE(f));
-      }
-      fprintf(funfile,"connect %d %d ",n1,n2);
-      if (Biddy_GetMark((BiddyE(f)))) {
-        fprintf(funfile,"li");
-      } else {
-        fprintf(funfile,"l");
-      }
-      if ((biddyManagerType == BIDDYTYPETZBDD) || (biddyManagerType == BIDDYTYPETZFDD)) {
-        tag1 = Biddy_GetTag(BiddyE(f));
-        fprintf(funfile," %s\n",Biddy_Managed_GetVariableName(MNG,tag1));
-      } else {
-        fprintf(funfile,"\n");
-      }
-
-      if (Biddy_IsConstant(BiddyT(f))) {
-        n2 = n1 + 1;
-      } else {
-        n2 = BiddyGetEnumerator(BiddyT(f));
-      }
-      fprintf(funfile,"connect %d %d ",n1,n2);
-      if (Biddy_GetMark((BiddyT(f)))) {
-        fprintf(funfile,"ri");
-      } else {
-        fprintf(funfile,"r");
-      }
-      if ((biddyManagerType == BIDDYTYPETZBDD) || (biddyManagerType == BIDDYTYPETZFDD)) {
-        tag2 = Biddy_GetTag(BiddyT(f));
-        fprintf(funfile," %s\n",Biddy_Managed_GetVariableName(MNG,tag2));
       } else {
         fprintf(funfile,"\n");
       }

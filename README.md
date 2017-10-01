@@ -5,8 +5,8 @@ USER MANUAL
 --------------
 
 Biddy is a multi-platform academic Binary Decision Diagrams package.
-It supports ROBDDs with complemented edges, 0-sup-BDDs with
-complemented edges, and TZBDDs.
+It supports plain ROBDDs, ROBDDs with complemented edges,
+0-sup-BDDs with complemented edges, and plain TZBDDs.
 
 Biddy is capable of all the typical operations regarding
 Boolean functions and BDDs.
@@ -120,7 +120,7 @@ Biddy consists of the following files:
 - Makefile.Darwin (Makefile definitions for MacOS)
 - biddy.h (header)
 - biddyInt.h (header)
-- biddyMain.c (main functions, ROBDDs only, deprecated)
+- biddyMain.c (legacy file, ROBDDs with CE only, deprecated)
 - biddyMainGDD.c (main functions)
 - biddyStat.c (functions for statistic)
 - biddyInOut.c (parsers and generators for Boolean functions)
@@ -138,6 +138,7 @@ Biddy consists of the following files:
 - biddy-example-independence-europe.c (Independence example)
 - biddy-example-random.c (Random formulae example)
 - biddy-example-hanoi.c (Tower of Hanoi example)
+- biddy-example-dictionary.c (Dictionary example)
 
 There are  two C headers,  external and internal. The  external header
 file,  named  biddy.h, defines  features  visible  from outside  the

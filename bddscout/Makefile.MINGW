@@ -3,12 +3,12 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 272 $]
-#  Date        [$Date: 2017-06-10 12:21:31 +0200 (sob, 10 jun 2017) $]
+#  Revision    [$Revision: 319 $]
+#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM-FERI
-#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2017 UM FERI
+#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -43,7 +43,7 @@ BDDPATH = C:/msys64/home/Robert/biddy/bin
 
 # -ltk should be written before -ltcl
 TCLVERSION = $(shell echo 'puts $$tcl_version' | "$(TCLBASE)/bin/tclsh" | sed "s/[.]//g")
-TCLINCLUDE = -I\"$(TCLBASE)/include\" -DTCL
+TCLINCLUDE = -I\"$(TCLBASE)/include\" -DUSE_TCL_STUBS
 TCLSTUBLIB = -L\"$(TCLBASE)/lib\" -ltclstub$(TCLVERSION)
 TCLTKLIB = -L\"$(TCLBASE)/lib\" -ltk$(TCLVERSION) -ltcl$(TCLVERSION)
 
@@ -53,50 +53,49 @@ TCLTKLIB = -L\"$(TCLBASE)/lib\" -ltk$(TCLVERSION) -ltcl$(TCLVERSION)
 # use 64-bit version of MPIR
 MPIRDLLPATH = C:/msys64/home/Robert/mpir-mingw-2.7.2
 
-GMPLIB = -L"$(MPIRDLLPATH)/lib" -lmpir
+# use this with a statically linked Biddy library
+GMPLIB = -L"$(MPIRDLLPATH)/lib" -Wl,-Bdynamic -lmpir
+
+# use this with a dinamically linked Biddy library
+#GMPLIB =
 
 all: local
 
 # used for local testing (../bin must contain statically linked Biddy library)
-# add -DUSE_BIDDY and clear GMPLIB if you use dynamically linked Biddy library
+# add -DUSE_BIDDY, clear GMPLIB, and change BIDDYLIB if you want to use dynamically linked Biddy library
 local:
 	@$(MAKE) local -f Makefile \
 	"MAINNAME = bddscout.dll" \
 	"EXTNAME1 = bddscoutIFIP.dll" \
 	"EXTNAME2 = bddscoutBRA.dll" \
 	"EXTNAME3 = bddscoutBDDTRACES.dll" \
-	"CC = $(GCC) -O0 -g -DMINGW $(TCLINCLUDE)" \
-	"CCEXT = $(GCC) -O0 -g -DMINGW -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"CC = $(GCC) -O0 -g -DMINGW" \
 	"LN = $(GCC) -shared -o" \
-	"LNEXT = $(GCC) -shared -o" \
 	"AR = $(AR) rcs" \
-	"USECONST = const" \
 	"BINDIR = ./bin" \
 	"BIDDYDIR = .." \
-	"BIDDYLIB = ../../bin" \
+	"BIDDYLIB = ../../bin -Wl,-Bstatic" \
 	"BIDDYLIBEXT = -L. -lbddscout" \
 	"BDDVIEWDIR = ../bddview" \
-	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"BDDSCOUTSTUBLIB = libbddscoutstub.a" \
 	"GMPLIB = $(GMPLIB)" \
+	"TCLINCLUDE = $(TCLINCLUDE)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"
 	$(CP) ../bin/*.dll ./bin
 
 # used for packaging
-# add -DUSE_BIDDY and clear GMPLIB if you use dynamically linked Biddy library
 package:
 	@$(MAKE) package -f Makefile \
 	"MAINNAME = bddscout.dll" \
 	"EXTNAME1 = bddscoutIFIP.dll" \
 	"EXTNAME2 = bddscoutBRA.dll" \
 	"EXTNAME3 = bddscoutBDDTRACES.dll" \
-	"CC = $(GCC) -O2 -DMINGW $(TCLINCLUDE)" \
-	"CCEXT = $(GCC) -O2 -DMINGW -DUSE_BDDSCOUT_STUBS $(TCLINCLUDE)" \
+	"CC = $(GCC) -O2 -DMINGW" \
 	"LN = $(GCC) -shared -o" \
-	"LNEXT = $(GCC) -shared -o" \
 	"AR = $(AR) rcs" \
-	"USECONST = const" \
-	"BDDSCOUTLIB = libbddscoutstub.a" \
+	"BDDSCOUTSTUBLIB = libbddscoutstub.a" \
 	"GMPLIB = $(GMPLIB)" \
+	"TCLINCLUDE = $(TCLINCLUDE)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"

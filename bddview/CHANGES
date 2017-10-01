@@ -41,3 +41,7 @@ Changes in 1.0
 - enabled zoom with mouse wheel
 - added fullscreen option
 - added vertical and horizontal panedwindow elements to mainwindow
+
+Changes in 1.1
+- released on Oct 1, 2017
+- line started with '#' is now a comment

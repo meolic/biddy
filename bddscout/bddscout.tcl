@@ -65,12 +65,12 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 }
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 274 $]
-#  Date        [$Date: 2017-06-15 15:10:13 +0200 (čet, 15 jun 2017) $]
+#  Revision    [$Revision: 320 $]
+#  Date        [$Date: 2017-10-01 12:02:23 +0200 (ned, 01 okt 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM-FERI
-#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2017 UM FERI
+#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -140,11 +140,9 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 # KNOWN BUGS:
 #
 # - BDD construction does not preserve variable ordering
-#
 #   therefore, constructed BDD may not be identical
 #   to the one being showed, e.g. different node number
-#
-#   you can redraw BDD (Browse By Name) to see, what is
+#   you can redraw BDD (e.g. Browse By Name) to see, what is
 #   really stored in the memory
 #
 
@@ -170,9 +168,9 @@ wm overrideredirect .splash 1
 update idletasks
 
 set SPLASHTEXT ""
-label .splash.f.l -text "BDD Scout v1.7" -font [list TkHeadingFont 36] -fg WHITE -bg BLACK
+label .splash.f.l -text "BDD Scout v1.7.3" -font [list TkHeadingFont 36] -fg WHITE -bg BLACK
 pack .splash.f.l -expand 1
-label .splash.f.m1 -text "Copyright (C) 2008, 2017 UM-FERI" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
+label .splash.f.m1 -text "Copyright (C) 2008, 2017 UM FERI" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
 pack .splash.f.m1 -fill x -expand 0
 label .splash.f.m2 -text "Robert Meolic (robert.meolic@um.si)" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
 pack .splash.f.m2 -fill x -expand 0
@@ -189,7 +187,7 @@ update idletasks
 
 package require bddview
 wm iconify .
-wm title . "BDD Scout v1.7"
+wm title . "BDD Scout v1.7.3"
 wm iconname . "bddscout"
 update idletasks
 
@@ -198,11 +196,56 @@ update idletasks
 # ####################################################################
 
 set INPUT ""
+set INPUTTYPE 0
 set inputwin [frame $verticalwindow.inputline -relief flat -highlightthickness 1 -highlightcolor gray80 -bg $COLORBG]
 $verticalwindow add $inputwin -after $horizontalwindow -height 32 -stretch never
-label $inputwin.label -text "Boolean expression (infix +*~^>< format):" -font [list $FONTINFO 10] -relief flat -bg $COLORBG
 entry $inputwin.entry -font [list $FONTLABEL 10] -relief solid -bd 1 -bg $COLORBG -exportselection yes -textvariable INPUT
-pack $inputwin.label -side left -fill y -expand no -padx 2 
+
+#label $inputwin.label -text "Boolean expression (infix +*~^>< format):" -font [list $FONTINFO 10] -relief flat -bg $COLORBG
+#pack $inputwin.label -side left -fill y -expand no -padx 2 
+#pack $inputwin.entry -side right -fill x -expand yes -padx 2
+#bind $inputwin.entry <Return> {parseinput}
+#update idletasks
+
+if {($OS == "unix")} {
+  frame $inputwin.label -width 300 -height 32 -bg $COLORBG
+}
+if {($OS == "windows")} {
+  frame $inputwin.label -width 300 -height 32 -bg $COLORBG
+}
+if {($OS == "Darwin")} {
+  frame $inputwin.label -width 300 -height 32 -bg $COLORBG
+}
+
+pack propagate $inputwin.label 0
+set inputtype [tk_optionMenu $inputwin.label.menu INPUTTYPETEXT \
+    "Boolean expression (infix +*~^>< format):" \
+    "Tcl command (e.g. biddy_printf_sop F):" \
+]
+$inputtype entryconfigure 0 -command {set INPUTTYPE 0}
+$inputtype entryconfigure 1 -command {set INPUTTYPE 1}
+
+if {($OS == "unix")} {
+  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -highlightthickness 0 -indicatoron 0 -anchor e -font [list $FONTINFO 10] -activebackground $COLORBG
+  $inputtype configure -relief flat -bd 0 -font [list $FONTINFO 12] \
+      -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID
+}
+if {($OS == "windows")} {
+  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -highlightthickness 0 -indicatoron 0 -anchor e -font [list $FONTINFO 8] -activebackground $COLORBG 
+  $inputtype configure -relief flat -bd 0 -font [list $FONTINFO 10] \
+      -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID
+}
+if {($OS == "Darwin")} {
+  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -highlightthickness 0 -indicatoron 0 -anchor e -font [list $FONTINFO 10] -activebackground $COLORBG
+  $inputtype configure -relief flat -bd 0 -font [list $FONTINFO 12] \
+      -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID
+}
+
+pack $inputwin.label.menu -fill both -expand yes
+pack $inputwin.label -side left -fill y -expand no
 pack $inputwin.entry -side right -fill x -expand yes -padx 2
 bind $inputwin.entry <Return> {parseinput}
 update idletasks
@@ -429,7 +472,7 @@ icon.down put $iconDown
 
 $bb0 insert 0 -image icon.new.$toolbarsize \
     -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Clear" -command {clear}
+    -helptext "Clear all" -command {clear}
 
 set ts1 [Separator $toolbar.ts1 -bg $COLORMENU -orient vertical]
 pack $ts1 -side left -fill y -padx 6 -anchor w
@@ -464,13 +507,15 @@ if {($OS == "Darwin")} {
 
 pack propagate $toolbar.type 0
 set bddtype [tk_optionMenu $toolbar.type.menu BDDTYPE \
+    "ROBDD" \
     "ROBDD with CE" \
     "ZBDD with CE" \
     "TZBDD" \
 ]
 $bddtype entryconfigure 0 -command {changetype "BIDDYTYPEOBDD"}
-$bddtype entryconfigure 1 -command {changetype "BIDDYTYPEZBDD"}
-$bddtype entryconfigure 2 -command {changetype "BIDDYTYPETZBDD"}
+$bddtype entryconfigure 1 -command {changetype "BIDDYTYPEOBDDC"}
+$bddtype entryconfigure 2 -command {changetype "BIDDYTYPEZBDDC"}
+$bddtype entryconfigure 3 -command {changetype "BIDDYTYPETZBDD"}
 
 if {($OS == "unix")} {
   $toolbar.type.menu configure -relief flat -bd 0 -fg black -bg $COLORMENU \
@@ -503,26 +548,33 @@ proc bddtypeUp {} {
   global bddtype
 
   set type -1
-  if {$BDDTYPE == "ROBDD with CE"} {
+  if {$BDDTYPE == "ROBDD"} {
     set type 0
-  } elseif {$BDDTYPE == "ZBDD with CE"} {
+  } elseif {$BDDTYPE == "ROBDD with CE"} {
     set type 1
-  } elseif {$BDDTYPE == "TZBDD"} {
+  } elseif {$BDDTYPE == "ZBDD with CE"} {
     set type 2
+  } elseif {$BDDTYPE == "TZBDD"} {
+    set type 3
   }
   while { $type != -1 } {
     set type [expr $type - 1]
     if { $type == 0 } {
-      if { [bddscout_checkFormula "BIDDYTYPEOBDD" $BDDNAME] == 1 } {
+      if { [bddscout_check_formula "BIDDYTYPEOBDD" $BDDNAME] == 1 } {
         $bddtype invoke 0
         set type -1
       }
     } elseif { $type == 1 } {
-      if { [bddscout_checkFormula "BIDDYTYPEZBDD" $BDDNAME] == 1 } {
+      if { [bddscout_check_formula "BIDDYTYPEOBDDC" $BDDNAME] == 1 } {
         $bddtype invoke 1
         set type -1
       }
     } elseif { $type == 2 } {
+      if { [bddscout_check_formula "BIDDYTYPEZBDDC" $BDDNAME] == 1 } {
+        $bddtype invoke 2
+        set type -1
+      }
+    } elseif { $type == 3 } {
       # this is not possible
     }
   }
@@ -533,27 +585,34 @@ proc bddtypeDown {} {
   global BDDNAME
   global bddtype
 
-  set type 3
-  if {$BDDTYPE == "ROBDD with CE"} {
+  set type 4
+  if {$BDDTYPE == "ROBDD"} {
     set type 0
-  } elseif {$BDDTYPE == "ZBDD with CE"} {
+  } elseif {$BDDTYPE == "ROBDD with CE"} {
     set type 1
-  } elseif {$BDDTYPE == "TZBDD"} {
+  } elseif {$BDDTYPE == "ZBDD with CE"} {
     set type 2
+  } elseif {$BDDTYPE == "TZBDD"} {
+    set type 3
   }
-  while { $type != 3 } {
+  while { $type != 4 } {
     set type [expr $type + 1]
     if { $type == 0 } {
       # this is not possible
     } elseif { $type == 1 } {
-      if { [bddscout_checkFormula "BIDDYTYPEZBDD" $BDDNAME] == 1 } {
+      if { [bddscout_check_formula "BIDDYTYPEOBDDC" $BDDNAME] == 1 } {
         $bddtype invoke 1
-        set type 3
+        set type 4
       }
     } elseif { $type == 2 } {
-      if { [bddscout_checkFormula "BIDDYTYPETZBDD" $BDDNAME] == 1 } {
+      if { [bddscout_check_formula "BIDDYTYPEZBDDC" $BDDNAME] == 1 } {
         $bddtype invoke 2
-        set type 3
+        set type 4
+      }
+    } elseif { $type == 3 } {
+      if { [bddscout_check_formula "BIDDYTYPETZBDD" $BDDNAME] == 1 } {
+        $bddtype invoke 3
+        set type 4
       }
     }
   }
@@ -573,13 +632,16 @@ proc bddconvertUp {} {
   global BDDTYPE
   global bddtype
 
-  if {$BDDTYPE == "ROBDD with CE"} {
-  } elseif {$BDDTYPE == "ZBDD with CE"} {
+  if {$BDDTYPE == "ROBDD"} {
+  } elseif {$BDDTYPE == "ROBDD with CE"} {
     converttype "BIDDYTYPEOBDD" false
     $bddtype invoke 0
-  } elseif {$BDDTYPE == "TZBDD"} {
-    converttype "BIDDYTYPEZBDD" false
+  } elseif {$BDDTYPE == "ZBDD with CE"} {
+    converttype "BIDDYTYPEOBDDC" false
     $bddtype invoke 1
+  } elseif {$BDDTYPE == "TZBDD"} {
+    converttype "BIDDYTYPEZBDDC" false
+    $bddtype invoke 2
   }
 }
 
@@ -587,12 +649,15 @@ proc bddconvertDown {} {
   global BDDTYPE
   global bddtype
 
-  if {$BDDTYPE == "ROBDD with CE"} {
-    converttype "BIDDYTYPEZBDD" false
+  if {$BDDTYPE == "ROBDD"} {
+    converttype "BIDDYTYPEOBDDC" false
     $bddtype invoke 1
+  } elseif {$BDDTYPE == "ROBDD with CE"} {
+    converttype "BIDDYTYPEZBDDC" false
+    $bddtype invoke 2
   } elseif {$BDDTYPE == "ZBDD with CE"} {
     converttype "BIDDYTYPETZBDD" false
-    $bddtype invoke 2
+    $bddtype invoke 3
   } elseif {$BDDTYPE == "TZBDD"} {
   }
 }
@@ -607,7 +672,9 @@ bind $toolbar.type.menu <Control-MouseWheel> {
   if {%D < 0} {bddconvertDown}
 }
 
+# you should call "add command" as many times as you have entries
 set formulamenu [menu .formulamenu -tearoff false -relief solid -bd 1 -bg $COLORBG]
+$formulamenu add command
 $formulamenu add command
 $formulamenu add command
 $formulamenu add command
@@ -620,17 +687,20 @@ proc showformulamenu { x y fname } {
   global BDDNAME
   if {$fname == $BDDNAME} {
     $formulamenu entryconfigure 0 -command {converttype "BIDDYTYPEOBDD" false}
-    $formulamenu entryconfigure 1 -command {converttype "BIDDYTYPEZBDD" false}
-    $formulamenu entryconfigure 2 -command {converttype "BIDDYTYPETZBDD" false}
+    $formulamenu entryconfigure 1 -command {converttype "BIDDYTYPEOBDDC" false}
+    $formulamenu entryconfigure 2 -command {converttype "BIDDYTYPEZBDDC" false}
+    $formulamenu entryconfigure 3 -command {converttype "BIDDYTYPETZBDD" false}
   } else {
     $selectwin.browser selection set $fname
     $formulamenu entryconfigure 0 -command {converttype "BIDDYTYPEOBDD" true}
-    $formulamenu entryconfigure 1 -command {converttype "BIDDYTYPEZBDD" true}
-    $formulamenu entryconfigure 2 -command {converttype "BIDDYTYPETZBDD" true}
+    $formulamenu entryconfigure 1 -command {converttype "BIDDYTYPEOBDDC" true}
+    $formulamenu entryconfigure 2 -command {converttype "BIDDYTYPEZBDDC" true}
+    $formulamenu entryconfigure 3 -command {converttype "BIDDYTYPETZBDD" true}
   }
-  $formulamenu entryconfigure 0 -label "Draw ROBDD with CE for $fname" -font [list TkHeadingFont 10]
-  $formulamenu entryconfigure 1 -label "Draw ZBDD with CE for $fname" -font [list TkHeadingFont 10]
-  $formulamenu entryconfigure 2 -label "Draw TZBDD for $fname" -font [list TkHeadingFont 10]
+  $formulamenu entryconfigure 0 -label "Draw ROBDD for $fname" -font [list TkHeadingFont 10]
+  $formulamenu entryconfigure 1 -label "Draw ROBDD with CE for $fname" -font [list TkHeadingFont 10]
+  $formulamenu entryconfigure 2 -label "Draw ZBDD with CE for $fname" -font [list TkHeadingFont 10]
+  $formulamenu entryconfigure 3 -label "Draw TZBDD for $fname" -font [list TkHeadingFont 10]
   tk_popup $formulamenu [expr $x+16] [expr $y+8]
 }
 
@@ -652,6 +722,8 @@ menu .menuFrame.file.menu -font MENUFONT -relief groove -tearoff false
 
 .menuFrame.file.menu add command -command menu_file_open -label "Open ..."
 .menuFrame.file.menu add command -command {bddview_saveas $mainwin} -label "Save As ..."
+.menuFrame.file.menu add separator
+.menuFrame.file.menu add command -command menu_file_run_tclscript -label "Run tcl script ..."
 .menuFrame.file.menu add separator
 .menuFrame.file.menu add command -command menu_file_read_BDD -label "Import BDD ..."
 .menuFrame.file.menu add command -command menu_file_read_BF -label "Import Boolean functions ..."
@@ -697,6 +769,18 @@ proc menu_file_open {  } {
   }
 }
 
+proc menu_file_run_tclscript {  } {
+  global mainwin
+
+  set filename [tk_getOpenFile -title "Select tcl script" -parent $mainwin]
+  if {[string length $filename] != 0} {
+    source $filename
+
+    #remember last path
+    cd [file dirname $filename]
+  }
+}
+
 proc constructBDD { } {
   global BDDNAME
   global BDD
@@ -735,7 +819,7 @@ proc constructBDD { } {
     }
   }
 
-  bddscout_constructBDD [llength $variables] [join $variables] [expr [llength $graph] -1] [join [join $graph]]
+  bddscout_construct [llength $variables] [join $variables] [expr [llength $graph] -1] [join [join $graph]]
 }
 
 proc menu_file_read_BDD {  } {
@@ -745,7 +829,7 @@ proc menu_file_read_BDD {  } {
   set filename [tk_getOpenFile -title "Import BDD" -parent $mainwin]
   if {[string length $filename] != 0} {
 
-    set bdd [bddscout_readBDD $filename]
+    set bdd [bddscout_read_bdd $filename]
     drawbdd $bdd
     update_info
 
@@ -762,7 +846,7 @@ proc menu_file_read_BF {  } {
   set filename [tk_getOpenFile -title "Import Boolean functions" -parent $mainwin]
   if {[string length $filename] != 0} {
 
-    set bdd [bddscout_readBF $filename]
+    set bdd [bddscout_read_bf $filename]
     drawbdd $bdd
     update_info
 
@@ -779,7 +863,7 @@ proc menu_file_write_BDD {  } {
   set filename [tk_getSaveFile -title "Export BDD" -parent $mainwin]
   if {[string length $filename] != 0} {
 
-    bddscout_writeBDD $filename $BDDNAME
+    biddy_write_bdd $filename $BDDNAME
 
     #remember last path
     cd [file dirname $filename]
@@ -838,15 +922,55 @@ proc menu_system_info {  } {
 }
 
 # ###############################################################
+# THIS CODE IS FROM Donal Fellows.
+# Unfortunatelly, not working for me.
+# https://stackoverflow.com/questions/14530354/stdout-redirection
+# ###############################################################
+
+# Use a class to simplify the capture code
+oo::class create CapturingTransform {
+    variable var
+    constructor {varName} {
+        # Make an alias from the instance variable to the global variable
+        my eval [list upvar \#0 $varName var]
+    }
+    method initialize {handle mode} {
+        if {$mode ne "write"} {error "can't handle reading"}
+        return {finalize initialize write}
+    }
+    method finalize {handle} {
+        # Do nothing, but mandatory that it exists
+    }
+
+    method write {handle bytes} {
+        append var $bytes
+        # Return the empty string, as we are swallowing the bytes
+        return ""
+    }
+}
+
+# ###############################################################
 # ###############################################################
 # ###############################################################
 
 proc clear { } {
+  global BDDNAME
+  global ACTIVEBDDTYPE
+  global selectwin
+
   bddview_clear
+  set t $ACTIVEBDDTYPE
+  set BDDNAME ""
+  update_info
+
   bddscout_exitPkg
   bddscout_initPkg
-  drawbdd "0"
+  # this should be compatible with MNGACTIVE in bddscout.c */
+  set ACTIVEBDDTYPE "BIDDYTYPEOBDD"
   update_info
+
+  changetype $t
+  $selectwin.browser selection set "0"
 }
 
 proc changetype { t } {
@@ -854,20 +978,25 @@ proc changetype { t } {
   global ACTIVEBDDTYPE
   global selectwin
 
-  #puts "DEBUG changetype: t = <$t>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
+  #puts "DEBUG changetype IN: t = <$t>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 
   if {$t != $ACTIVEBDDTYPE} {
 
-    bddscout_changeBddType $t
+    bddscout_change_type $t
     set ACTIVEBDDTYPE $t
-    if { ($BDDNAME == "") || ([bddscout_checkFormula $ACTIVEBDDTYPE $BDDNAME] == 0) } {
+
+    if { ($BDDNAME == "") || ([bddscout_check_formula $ACTIVEBDDTYPE $BDDNAME] == 0) } {
      set BDDNAME "0"
     }
     set name $BDDNAME
     set BDDNAME ""
     update_info
+
     $selectwin.browser selection set $name
+
   }
+
+  #puts "DEBUG changetype OUT: t = <$t>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 }
 
 proc changeform { t fname } {
@@ -887,11 +1016,11 @@ proc converttype { t fchange} {
   global bddtype
   global selectwin
 
-  #puts "DEBUG converttype: t = <$t>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
+  #puts "DEBUG converttype IN: t = <$t>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 
   if {$t == $ACTIVEBDDTYPE} {
     if {$fchange == true} {
-      if { [bddscout_checkFormula $ACTIVEBDDTYPE $BDDNAME] == false } {
+      if { [bddscout_check_formula $ACTIVEBDDTYPE $BDDNAME] == false } {
         puts "Formula $BDDNAME does not exist!"
       } else {
         set name $BDDNAME
@@ -901,31 +1030,97 @@ proc converttype { t fchange} {
       }
     }
   } else {
-    if { [bddscout_checkFormula $t $BDDNAME] == 0 } {
-      # puts "COPY $BDDNAME TO $t"
-      bddscout_copyFormula $BDDNAME $ACTIVEBDDTYPE $t
+    if { [bddscout_check_formula $t $BDDNAME] == 0 } {
+      #puts "DEBUG converttype: COPY $BDDNAME FROM $ACTIVEBDDTYPE TO $t"
+      bddscout_copy_formula $BDDNAME $ACTIVEBDDTYPE $t
     }
     if {$t == "BIDDYTYPEOBDD"} {$bddtype invoke 0}
-    if {$t == "BIDDYTYPEZBDD"} {$bddtype invoke 1}
-    if {$t == "BIDDYTYPETZBDD"} {$bddtype invoke 2}
+    if {$t == "BIDDYTYPEOBDDC"} {$bddtype invoke 1}
+    if {$t == "BIDDYTYPEZBDDC"} {$bddtype invoke 2}
+    if {$t == "BIDDYTYPETZBDD"} {$bddtype invoke 3}
   }
+
+  #puts "DEBUG converttype OUT: t = <$t>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 }
 
 proc parseinput { } {
   global INPUT
+  global INPUTTYPE
   global BDDNAME
   global selectwin
 
   if {$INPUT != ""} {
-    set name [bddscout_parseInfixInput $INPUT]
 
-    #puts "DEBUG parseinput: <$name>"
-
-    if {$name != ""} {
-      set BDDNAME ""
-      update_info
-      $selectwin.browser selection set $name
+    set TRYCMD 0
+    if {($INPUT == "biddy_node_number") ||
+        ($INPUT == "biddy_node_max_level") ||
+        ($INPUT == "biddy_node_avg_level") ||
+        ($INPUT == "biddy_node_number_plain") ||
+        ($INPUT == "biddy_dependent_variable_number") ||
+        ($INPUT == "biddy_count_complemented") ||
+        ($INPUT == "biddy_count_paths") ||
+        ($INPUT == "biddy_count_minterm") ||
+        ($INPUT == "biddy_density_function") ||
+        ($INPUT == "biddy_density_bdd") ||
+        ($INPUT == "biddy_printf_bdd") ||
+        ($INPUT == "biddy_printf_table") ||
+        ($INPUT == "biddy_printf_sop")
+    } then {
+      set INPUT "$INPUT $BDDNAME"
+      set TRYCMD 1
     }
+
+    if {($INPUTTYPE == 0) && ($TRYCMD == 0)} {
+
+      set name [bddscout_parse_input_infix $INPUT]
+
+      #puts "DEBUG parseinput: <$name>"
+
+      if {$name != ""} {
+        set BDDNAME ""
+        update_info
+        $selectwin.browser selection set $name
+      } else {
+        set TRYCMD 2
+      }
+      
+    }
+
+    if {($INPUTTYPE == 1) || ($TRYCMD == 1)} {
+
+      #set mystdout ""
+      #chan push stdout [CapturingTransform new mystdout]
+      set result [eval $INPUT]
+      #chan pop stdout
+
+      if {$result != ""} {
+
+        toplevel .result
+        wm title .result "RESULT"
+        wm iconname .result "RESULT"
+        grab set .result
+
+        message .result.m -width 800 -text "$INPUT\n$result\n"
+        pack .result.m -fill both -expand yes
+
+#        set x [expr {([winfo screenwidth .]-[.result.m cget -width])/2}]
+#        set y [expr {([winfo screenheight .])/2}]
+#        wm geometry .result +$x+$y
+
+        frame .result.buttons -relief raised
+
+        button .result.buttons.ok -borderwidth 2 -command {
+          destroy .result
+        } -relief raised -text "OK" -width 6
+        pack .result.buttons.ok -padx 10 -side left
+
+        pack .result.buttons
+
+        tkwait window .result
+      }
+
+    }
+
   }
   set INPUT ""
 }
@@ -946,7 +1141,7 @@ proc drawbdd {fname} {
 
   if {$fname != ""} {
     set tmpfile "tmp.bddview"
-    set tmpfile [bddscout_writeBDDview $fname $tmpfile $DOT_EXE]
+    set tmpfile [bddscout_write_bddview $fname $tmpfile $DOT_EXE]
     bddview_draw $tmpfile
     file delete $tmpfile
   }
@@ -959,7 +1154,7 @@ proc swapwithlower {varname} {
 
   if {$varname == ".c."} {set varname "c"}
   set varname [string map {".AND." "&"} $varname]
-  bddscout_swap_with_lower $varname
+  biddy_swap_with_lower $varname
   drawbdd $BDDNAME
   update_info
 }
@@ -972,7 +1167,7 @@ proc swapwithhigher {varname} {
 
   if {$varname == ".c."} {set varname "c"}
   set varname [string map {".AND." "&"} $varname]
-  bddscout_swap_with_higher $varname
+  biddy_swap_with_higher $varname
   drawbdd $BDDNAME
   update_info
 }
@@ -1129,7 +1324,7 @@ proc browse_variables_byName {  } {
   frame .dialog.browseVariablesByName -relief raised
   pack .dialog.browseVariablesByName -expand yes -fill both
 
-  set list [bddscout_listVariablesByName]
+  set list [bddscout_list_variables_by_name]
   createTree .dialog.browseVariablesByName $list
 
   set x [expr {([winfo screenwidth .]-800)/2}]
@@ -1180,7 +1375,7 @@ proc browse_formulae_byName {  } {
   frame .dialog.browseFormulaeByName -relief raised
   pack .dialog.browseFormulaeByName -expand yes -fill both
 
-  set list [bddscout_listFormulaeByName]
+  set list [bddscout_list_formulae_by_name]
   createTree .dialog.browseFormulaeByName $list
 
   set x [expr {([winfo screenwidth .]-800)/2}]
@@ -1227,7 +1422,7 @@ proc browse_formulae_byNodeNumber {  } {
   frame .dialog.browseFormulaeByNodeNumber -relief raised
   pack .dialog.browseFormulaeByNodeNumber -expand yes -fill both
 
-  set list [bddscout_listFormulaeByNodeNumber]
+  set list [bddscout_list_formulae_by_node_number]
   createTree .dialog.browseFormulaeByNodeNumber $list
 
   set x [expr {([winfo screenwidth .]-800)/2}]
@@ -1274,7 +1469,7 @@ proc browse_formulae_byNodeMaxLevel {  } {
   frame .dialog.browseFormulaeByNodeMaxLevel -relief raised
   pack .dialog.browseFormulaeByNodeMaxLevel -expand yes -fill both
 
-  set list [bddscout_listFormulaeByNodeMaxLevel]
+  set list [bddscout_list_formulae_by_node_max_level]
   createTree .dialog.browseFormulaeByNodeMaxLevel $list
 
   frame .dialog.browseFormulaeByNodeMaxLevel.buttons -relief raised
@@ -1321,7 +1516,7 @@ proc browse_formulae_byNodeAvgLevel {  } {
   frame .dialog.browseFormulaeByNodeAvgLevel -relief raised
   pack .dialog.browseFormulaeByNodeAvgLevel -expand yes -fill both
 
-  set list [bddscout_listFormulaeByNodeAvgLevel]
+  set list [bddscout_list_formulae_by_node_avg_level]
   createTree .dialog.browseFormulaeByNodeAvgLevel $list
 
   frame .dialog.browseFormulaeByNodeAvgLevel.buttons -relief raised
@@ -1368,7 +1563,7 @@ proc browse_formulae_byPathNumber {  } {
   frame .dialog.browseFormulaeByPathNumber -relief raised
   pack .dialog.browseFormulaeByPathNumber -expand yes -fill both
 
-  set list [bddscout_listFormulaeByPathNumber]
+  set list [bddscout_list_formulae_by_path_number]
   createTree .dialog.browseFormulaeByPathNumber $list
 
   set x [expr {([winfo screenwidth .]-800)/2}]
@@ -1415,7 +1610,7 @@ proc browse_formulae_byMintermNumber {  } {
   frame .dialog.browseFormulaeByMintermNumber -relief raised
   pack .dialog.browseFormulaeByMintermNumber -expand yes -fill both
 
-  set list [bddscout_listFormulaeByMintermNumber]
+  set list [bddscout_list_formulae_by_minterm_number]
   createTree .dialog.browseFormulaeByMintermNumber $list
 
   set x [expr {([winfo screenwidth .]-800)/2}]
@@ -1456,7 +1651,9 @@ proc update_info {  } {
   global bddscoutINFO
   global biddyINFO
 
-  set listName [bddscout_listVariablesByOrder]
+  #puts "DEBUG update_info START"
+
+  set listName [bddscout_list_variables_by_order]
   set num [llength $listName]
 
   $varwin.browser delete [$varwin.browser items]
@@ -1464,7 +1661,7 @@ proc update_info {  } {
     addList $listName $varwin.browser root
   }
 
-  set listName [bddscout_listFormulaeByName]
+  set listName [bddscout_list_formulae_by_name]
   set num [llength $listName]
 
   $selectwin.browser delete [$selectwin.browser nodes root]
@@ -1483,9 +1680,9 @@ proc update_info {  } {
     set avgdepth "-"
   } else {
 
-    set listNumber [bddscout_listFormulaeByNodeNumber]
-    set listMax [bddscout_listFormulaeByNodeMaxLevel]
-    set listAvg [bddscout_listFormulaeByNodeAvgLevel]
+    set listNumber [bddscout_list_formulae_by_node_number]
+    set listMax [bddscout_list_formulae_by_node_max_level]
+    set listAvg [bddscout_list_formulae_by_node_avg_level]
 
     set f [join [lindex $listNumber end]]
     set maxnodes [string range $f 0 [expr [string last "(" $f] -1]]
@@ -1520,24 +1717,26 @@ proc update_info {  } {
   set bddscoutINFO [join $list]
 
   set list [list \
-    "\nBiddy_VariableTableNum = " [biddy_variable_num] \
-    "\nBiddy_NodeTableSize = " [biddy_table_size] \
-    "\nBiddy_NodeTableMax = " [biddy_table_max] \
-    "\nBiddy_NodeTableNum = " [biddy_table_number] \
-    "\nBiddy_NodeTableGenerated = " [biddy_table_generated] \
-    "\nBiddy_NodeTableBlockNumber = " [biddy_block_number] \
-    "\nBiddy_NodeTableGarbageNumber = " [biddy_garbage_number] \
-    "\nBiddy_NodeSwapNumber = " [biddy_swap_number] \
-    "\nBiddy_NodeSiftingNumber = " [biddy_sifting_number] \
-    "\nBiddy_ListUsed = " [biddy_list_used] \
-    "\nBiddy_ListMaxLength = " [biddy_list_max_length] \
-    "\nBiddy_ListAvgLength = " [biddy_list_avg_length] \
-    "\nBiddy_IteCacheSearch = " [biddy_cache_ITE_search] \
-    "\nBiddy_IteCacheFind = " [biddy_cache_ITE_find] \
-    "\nBiddy_IteCacheOverwrite = " [biddy_cache_ITE_overwrite] \
+    "\nbiddy_variabletable_num = " [biddy_variabletable_num] \
+    "\biddy_nodetable_size = " [biddy_nodetable_size] \
+    "\nbiddy_nodetable_block_number = " [biddy_nodetable_block_number] \
+    "\nbiddy_nodetable_generated = " [biddy_nodetable_generated] \
+    "\nbiddy_nodetable_max = " [biddy_nodetable_max] \
+    "\nbiddy_nodetable_num = " [biddy_nodetable_num] \
+    "\nbiddy_nodetable_gc_number = " [biddy_nodetable_gc_number] \
+    "\nbiddy_nodetable_swap_number = " [biddy_nodetable_swap_number] \
+    "\nbiddy_nodetable_sifting_number = " [biddy_nodetable_sifting_number] \
+    "\nbiddy_list_used = " [biddy_list_used] \
+    "\nbiddy_list_max_length = " [biddy_list_max_length] \
+    "\nbiddy_list_avg_length = " [biddy_list_avg_length] \
+    "\nbiddy_opcache_search = " [biddy_opcache_search] \
+    "\nbiddy_opcache_find = " [biddy_opcache_find] \
+    "\nbiddy_opcache_overwrite = " [biddy_opcache_overwrite] \
   ]
 
   set biddyINFO [join $list]
+
+  #puts "DEBUG update_info FINISH"
 }
 
 proc findData { f list} {
@@ -1638,6 +1837,7 @@ if {[catch {package require bddscoutBDDTRACES} errid]} {
 # Final initialization
 # ####################################################################
 
+# this should be compatible with MNGACTIVE in bddscout.c */
 set ACTIVEBDDTYPE "BIDDYTYPEOBDD"
 
 wm deiconify .

@@ -1,10 +1,10 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 289 $]
-#  Date        [$Date: 2017-07-13 12:27:36 +0200 (čet, 13 jul 2017) $]
+#  Revision    [$Revision: 319 $]
+#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM-FERI
-#               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2017 UM FERI
+#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -47,22 +47,29 @@ proc menu_ifip_benchmark {  } {
   wm title .warning "WARNING"
   wm iconname .warning "WARNING"
   grab set .warning
+  global IFIPOK
 
-  message .warning.m -width 200 -text "All functions will be deleted and BDD package will be reset."
+  set IFIPOK 0
+
+  message .warning.m -width 640 -text "All functions will be deleted and BDD package will be reset.\n"
   pack .warning.m -fill both -expand yes
 
-  set x [expr {([winfo screenwidth .]-[.warning.m cget -width])/2}]
-  set y [expr {([winfo screenheight .])/2}]
-  wm geometry .warning +$x+$y
+#  set x [expr {([winfo screenwidth .]-[.warning.m cget -width])/2}]
+#  set y [expr {([winfo screenheight .])/2}]
+#  wm geometry .warning +$x+$y
 
   frame .warning.buttons -relief raised
 
   button .warning.buttons.cancel -borderwidth 2 -command {
+    global IFIPOK
+    set IFIPOK 0
     destroy .warning
   } -relief raised -text "Cancel" -width 6
   pack .warning.buttons.cancel -padx 10 -side left
 
   button .warning.buttons.ok -borderwidth 2 -command {
+    global IFIPOK
+    set IFIPOK 1
     destroy .warning
   } -relief raised -text "OK" -width 6
   pack .warning.buttons.ok -padx 10 -side left
@@ -70,7 +77,10 @@ proc menu_ifip_benchmark {  } {
   pack .warning.buttons
 
   tkwait window .warning
-  IFIP_benchmark
+
+  if {$IFIPOK == 1} {
+    IFIP_benchmark
+  }
 }
 
 proc IFIP_benchmark {  } {
@@ -180,6 +190,7 @@ proc IFIP_benchmark {  } {
   set totalCMP 0
   set totalADD 0
 
+  bddview_clear
   bddscout_clearPkg
 
   set i 0

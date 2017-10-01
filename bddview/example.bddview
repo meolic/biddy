@@ -1,18 +1,25 @@
-label 0 "Biddy" 100.0 10
-node 1 "B" 100 60
-node 2 "i" 100 125
-node 3 "d" 50 175
-terminal 4 1 50 240
-node 5 "y" 100 225
-terminal 6 1 100 290
-node 7 "d" 150 175
-terminal 8 1 150 240
+# Robert Meolic, 2017
+# An example of ROBDD
+# Biddy = B * ~i * d * y + B * i * ~d * y + B * i * d
+label 0 "Biddy" 40.0 1.0
+node 1 "B" 40.0 73.0
+node 2 "0" 9.0 145.0
+node 3 "i" 72.0 145.0
+node 4 "d" 45.0 217.0
+node 5 "0" 9.0 289.0
+node 6 "y" 72.0 289.0
+node 7 "0" 36.0 361.0
+terminal 8 1 108.0 361.0
+node 9 "d" 99.0 217.0
+terminal 10 1 135.0 289.0
 connect 0 1 s
-connect 1 2 d
-connect 2 3 l
-connect 2 7 r
+connect 1 2 l
+connect 1 3 r
 connect 3 4 l
-connect 3 5 r
-connect 5 6 d
-connect 7 5 l
-connect 7 8 r
+connect 3 9 r
+connect 4 5 l
+connect 4 6 r
+connect 6 7 l
+connect 6 8 r
+connect 9 6 l
+connect 9 10 r

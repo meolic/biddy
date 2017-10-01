@@ -3,15 +3,15 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutIFIP.c]
-  Revision    [$Revision: 289 $]
-  Date        [$Date: 2017-07-13 12:27:36 +0200 (čet, 13 jul 2017) $]
+  Revision    [$Revision: 319 $]
+  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM-FERI
-               UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+               Copyright (C) 2008, 2017 UM FERI
+               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as
@@ -29,11 +29,11 @@
                Boston, MA 02110-1301 USA.]
   ************************************************************************/
 
+#ifndef BDDSCOUTPROFILE
+#include "bddscoutTcl.h"
+#else
 #include "bddscout.h"
-
-/* on tcl 8.3 use #define USECONST */
-/* on tcl 8.4 use #define USECONST const*/
-/* this is defined in Makefile */
+#endif
 
 /*-----------------------------------------------------------------------*/
 /* Structure declarations                                                */
@@ -81,6 +81,7 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   Biddy_String report;
   unsigned int len;
   unsigned int i,n;
+  unsigned int idx;
 
   MNG = Bddscout_GetActiveManager();
   
@@ -126,8 +127,8 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
     printf("VARIABLE: <%s>\n",var);
     */
 
-    /* FOR OBDD, OFDD, TZBDD, and TZFDD, new varables are added below all others */
-    /* FOR ZBDD and ZFDD, new variables are added above all others */
+    /* FOR OBDD and OFDD new variables are added below all others */
+    /* FOR ZBDD, ZFDD, TZBDD, and TZFDD, new variables are added above all others */
 
     Biddy_Managed_AddVariableByName(MNG,var);
 
@@ -208,8 +209,8 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
     printf("VARIABLE: <%s>\n",var);
     */
 
-    /* FOR OBDD, OFDD, TZBDD, and TZFDD, new varables are added below all others */
-    /* FOR ZBDD and ZFDD, new variables are added above all others */
+    /* FOR OBDD and OFDD new variables are added below all others */
+    /* FOR ZBDD, ZFDD, TZBDD, and TZFDD, new variables are added above all others */
 
     Biddy_Managed_AddVariableByName(MNG,var);
 
@@ -281,7 +282,7 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
   /* CHECK EQUIVALENCE */
 
   if (usedcs) {
-    if (!Biddy_Managed_FindFormula(MNG,(Biddy_String) "DCS",&dcs)) {
+    if (!Biddy_Managed_FindFormula(MNG,(Biddy_String) "DCS",&idx,&dcs)) {
       printf("ERROR: missing DCS!\n");
     }
   } else {
@@ -297,9 +298,9 @@ BddscoutBenchmarkIFIP(FILE *f, Biddy_String filename)
     strcat(name,filenameout);
     strcat(name,"_");
     strcat(name,nameTable[i]);
-    Biddy_Managed_FindFormula(MNG,name,&bdd1);
+    Biddy_Managed_FindFormula(MNG,name,&idx,&bdd1);
     name[2] = '2';
-    Biddy_Managed_FindFormula(MNG,name,&bdd2);
+    Biddy_Managed_FindFormula(MNG,name,&idx,&bdd2);
     eqvTable[i] = (
       Biddy_Managed_ITE(MNG,dcs,Biddy_Managed_GetConstantZero(MNG),bdd1) ==
         Biddy_Managed_ITE(MNG,dcs,Biddy_Managed_GetConstantZero(MNG),bdd2)
@@ -495,6 +496,8 @@ upCase(Biddy_String s)
 
 #ifndef BDDSCOUTPROFILE
 
+extern const char *Bddscout_InitStubs(Tcl_Interp *interp, char *version, int exact);
+
 /**Function****************************************************************
   Synopsis    [Function Bddscoutifip_Init.]
   Description [This function is used by Tcl/Tk only.]
@@ -503,27 +506,23 @@ upCase(Biddy_String s)
   ************************************************************************/
 
 static int BddscoutParseIfipCmd(ClientData clientData, Tcl_Interp *interp,
-                          int argc, USECONST char **argv);
+                                int argc, const char **argv);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-EXTERN int
+int
 Bddscoutifip_Init(Tcl_Interp *interp)
 {
 
-#ifdef USE_TCL_STUBS
   if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
     return TCL_ERROR;
   }
-#endif
 
-#ifdef USE_BDDSCOUT_STUBS
   if (Bddscout_InitStubs(interp, (char *) "1.0", 0) == NULL) {
     return TCL_ERROR;
   }
-#endif
 
   Tcl_CreateCommand(interp, "bddscout_parseIFIP", BddscoutParseIfipCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
@@ -537,7 +536,7 @@ Bddscoutifip_Init(Tcl_Interp *interp)
 
 static int
 BddscoutParseIfipCmd(ClientData clientData, Tcl_Interp *interp, int argc,
-                    USECONST char **argv)
+                     const char **argv)
 {
   Biddy_String s1,s2;
   FILE *funfile;

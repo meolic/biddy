@@ -1,5 +1,5 @@
-/* $Revision: 290 $ */
-/* $Date: 2017-07-13 16:28:31 +0200 (čet, 13 jul 2017) $ */
+/* $Revision: 300 $ */
+/* $Date: 2017-09-08 15:51:12 +0200 (pet, 08 sep 2017) $ */
 /* This file (biddy-example-independence.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -21,7 +21,6 @@
 #  include "biddy.h"
 #  include <string.h>
 #  define BDDNULL NULL
-/* #define Biddy_Inv(f) Biddy_NOT(f) */ /* for compatibility with Biddy v1.6 */
 #endif
 
 #ifdef USE_CUDD
@@ -49,20 +48,27 @@ DdManager *manager;
 #include <time.h>
 
 #ifdef USE_CUDD
+#define BIDDYTYPEOBDD 1
+#define BIDDYTYPEOBDDC 2
+#define BIDDYTYPEZBDD 3
+#define BIDDYTYPEZBDDC 4
+#define BIDDYTYPETZBDD 5
+#define BIDDYTYPETZBDDC 6
+#define Biddy_GetManagerType() BIDDYTYPEOBDDC
 #define Biddy_GetConstantZero() Cudd_ReadLogicZero(manager)
 #define Biddy_GetConstantOne() Cudd_ReadOne(manager)
-#define Biddy_GetElse(f) Cudd_E(f)
-#define Biddy_GetThen(f) Cudd_T(f)
 #define Biddy_AddVariable() Cudd_bddNewVar(manager)
 #define Biddy_Not(f) Cudd_Not(f)
-#define Biddy_Inv(f) Cudd_Not(f)
 #define Biddy_And(f,g) Cudd_bddAnd(manager,f,g)
 #define Biddy_Or(f,g) Cudd_bddOr(manager,f,g)
+#define Biddy_Xor(f,g) Cudd_bddXor(manager,f,g)
 #define Biddy_Xnor(f,g) Cudd_bddXnor(manager,f,g)
 #define Biddy_Support(f) Cudd_Support(manager,f)
 #define Biddy_DependentVariableNumber(f) Cudd_SupportSize(manager,f)
 #define Biddy_CountMinterm(f,n) Cudd_CountMinterm(manager,f,n)
 #define Biddy_NodeNumber(f) Cudd_DagSize(f)
+#define Biddy_NodeTableNum() Cudd_ReadKeys(manager)
+#define Biddy_NodeTableSize() Cudd_ReadSlots(manager)
 #define Biddy_PrintInfo(s) Cudd_PrintInfo(manager,s)
 #endif
 
@@ -113,16 +119,16 @@ int main(int argc, char** argv) {
 
 #ifdef USE_BIDDY
   /* There is only one unique table in Biddy */
-  /* There are three caches in Biddy */
+  /* There are several caches in Biddy */
   /* Unique table grows over the time */
   /* The max number of variables is hardcoded in biddyInt. h */
-  /* biddyVariableTable.usaSize = BIDDYVARMAX = 2048 */
+  /* biddyVariableTable.size = BIDDYVARMAX = 2048 */
   /* The following constants are hardcoded in biddyMain.c */
-  /* biddyIteCache.usaSize = MEDIUM_TABLE = 262143 */
-  /* biddyEACache.usaSize = SMALL_TABLE = 65535 */
-  /* biddyRCCache.usaSize = SMALL_TABLE = 65535 */
-  /* DEFAULT INIT CALL: Biddy_InitAnonymous(BIDDYTYPEOBDD) */
-  Biddy_InitAnonymous(BIDDYTYPEOBDD);
+  /* biddyIteCache.size = MEDIUM_TABLE = 262143 */
+  /* biddyEACache.size = SMALL_TABLE = 65535 */
+  /* biddyRCCache.size = SMALL_TABLE = 65535 */
+  /* DEFAULT INIT CALL: Biddy_InitAnonymous(BIDDYTYPEOBDDC) */
+  Biddy_InitAnonymous(BIDDYTYPEOBDDC);
   if (argc == 1) {
     Biddy_SetManagerParameters(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);
   }
@@ -136,6 +142,7 @@ int main(int argc, char** argv) {
     sscanf(argv[5],"%d",&rrF);
     sscanf(argv[6],"%d",&rrX);
     Biddy_SetManagerParameters(gcr/100.0,gcrF/100.0,gcrX/100.0,rr/100.0,rrF/100.0,rrX/100.0,-1,-1,-1,-1);
+    printf("%d, %d, %d, %d, %d, %d, ",gcr,gcrF,gcrX,rr,rrF,rrX);
   }
   else if (argc == 11) {
     int gcr,gcrF,gcrX;
@@ -155,6 +162,7 @@ int main(int argc, char** argv) {
     sscanf(argv[9],"%d",&cst);
     sscanf(argv[10],"%d",&fcst);
     Biddy_SetManagerParameters(gcr/100.0,gcrF/100.0,gcrX/100.0,rr/100.0,rrF/100.0,rrX/100.0,st/100.0,fst/100.0,cst/100.0,fcst/100.0);
+    printf("%d, %d, %d, %d, %d, %d, ",gcr,gcrF,gcrX,rr,rrF,rrX);
   }
   else {
     printf("Wrong number of parameters!\n");
@@ -167,11 +175,11 @@ int main(int argc, char** argv) {
   /* There is only one cache in CUDD */
   /* Subtables grow over the time, you can set limit for fast unique table growth */
   /* Cudd_SetLooseUpTo(manager,1048576) */
-  /* Cache can grow over the time, you can set the max usaSize */
+  /* Cache can grow over the time, you can set the max size */
   /* Cudd_SetMaxCacheHard(manager,262144) */
   /* These two constants are hardcoded in v3.0.0 */
-  /* CUDD_UNIQUE_SLOTS = 256 (default initial usaSize of each subtable) */
-  /* CUDD_CACHE_SLOTS = 262144 (default initial usaSize of cache table) */
+  /* CUDD_UNIQUE_SLOTS = 256 (default initial size of each subtable) */
+  /* CUDD_CACHE_SLOTS = 262144 (default initial size of cache table) */
   /* DEFAULT INIT CALL: Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0) */
   manager = Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0);
   Cudd_SetMaxCacheHard(manager,262144);
@@ -187,33 +195,76 @@ int main(int argc, char** argv) {
   europeState = (Biddy_Edge *) malloc(europeSize*sizeof(Biddy_Edge *));
 #endif
 
-  i = 0;
-  complete = FALSE;
-  while (!complete) {
-    complete = TRUE;
-    tmp = Biddy_AddVariable();
+  /* create BDD variables */
+  if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC) ||
+      (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDD))
+  {
+
+    i = 0;
+    complete = FALSE;
+    while (!complete) {
+      complete = TRUE;
+      tmp = Biddy_AddVariable();
 #ifdef USA_YES
-    if (i < usaSize) {
-      usaState[usaOrder[i]] = tmp;
-    }
-    complete = complete && (i >= (usaSize-1));
+      if (i < usaSize) {
+        usaState[usaOrder[i]] = tmp;
+      }
+      complete = complete && (i >= (usaSize-1));
 #endif
 #ifdef EUROPE_YES
-    if (i < europeSize) {
-      europeState[europeOrder[i]] = tmp;
-    }
-    complete = complete && (i >= (europeSize-1));
+      if (i < europeSize) {
+        europeState[europeOrder[i]] = tmp;
+      }
+      complete = complete && (i >= (europeSize-1));
 #endif
-    i++;
+      i++;
+    }
+#ifdef USE_BIDDY
+    Biddy_Purge(); /* remove unnecessary nodes, this is useful only for ZBDDs */
+#endif
+
   }
 
   /* for ZBDDs, by adding new variables all the existing ones are changed */
   /* after adding the last variable we have to refresh them all */
-  /* Additionaly, for ZBDD the order of variables is reverted to get consistent results */
-  /* usaState[i] and europeState[i] are single variable, not necessary to explicitly preserve */
-  /* NOTE: user variables in Biddy start with index 1 */
+  /* NOTE: for Biddy, ZBDD variables are added in the reverse order to get consistent results */
+  /* NOTE: for CUDD, usaState[0] = europeState[0] and it is first added */
+  /* NOTE: for Biddy, usaState[0] = europeState[0] and it is last added */
+  /* NOTE: for Biddy, user variables start with index 1 */
+  /* NOTE: for CUDD, user variables start with index 0 */
+  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
+  {
+
+    i = 0;
+    complete = FALSE;
+    while (!complete) {
+      complete = TRUE;
+      tmp = Biddy_AddVariable();
+#ifdef USA_YES
+      if (i < usaSize) {
+#ifdef USE_CUDD
+        usaState[usaOrder[i]] = tmp;
+#endif
 #ifdef USE_BIDDY
-  if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
+        usaState[usaSize-usaOrder[i]-1] = tmp;
+#endif
+      }
+      complete = complete && (i >= (usaSize-1));
+#endif
+#ifdef EUROPE_YES
+      if (i < europeSize) {
+#ifdef USE_CUDD
+        europeState[europeOrder[i]] = tmp;
+#endif
+#ifdef USE_BIDDY
+        europeState[europeSize-europeOrder[i]-1] = tmp;
+#endif
+      }
+      complete = complete && (i >= (europeSize-1));
+#endif
+      i++;
+    }
+#ifdef USE_BIDDY
     i = 0;
     complete = FALSE;
     while (!complete) {
@@ -221,22 +272,45 @@ int main(int argc, char** argv) {
 #ifdef USA_YES
       if (i < usaSize) {
         usaState[usaOrder[i]] = Biddy_GetVariableEdge(usaSize-i);
-        /* Biddy_AddTmpFormula(usaState[usaOrder[i]],0); */
       }
       complete = complete && (i >= (usaSize-1));
 #endif
 #ifdef EUROPE_YES
       if (i < europeSize) {
         europeState[europeOrder[i]] = Biddy_GetVariableEdge(europeSize-i);
-        /* Biddy_AddTmpFormula(europeState[europeOrder[i]],0); */
       }
       complete = complete && (i >= (europeSize-1));
 #endif
       i++;
     }
-    Biddy_Purge(); /* remove unnecessary nodes */
-  }
+    Biddy_Purge(); /* remove unnecessary nodes, this is useful only for ZBDDs */
 #endif
+#ifdef USE_CUDD
+    i = 0;
+    complete = FALSE;
+    while (!complete) {
+      complete = TRUE;
+#ifdef USA_YES
+      if (i < usaSize) {
+        Cudd_RecursiveDeref(manager,usaState[usaOrder[i]]);
+        usaState[usaOrder[i]] = Cudd_zddIthVar(manager,i);
+        Cudd_Ref(usaState[usaOrder[i]]);
+      }
+      complete = complete && (i >= (usaSize-1));
+#endif
+#ifdef EUROPE_YES
+      if (i < europeSize) {
+        Cudd_RecursiveDeref(manager,europeState[europeOrder[i]]);
+        europeState[europeOrder[i]] = Cudd_zddIthVar(manager,i);
+        Cudd_Ref(europeState[europeOrder[i]]);
+      }
+      complete = complete && (i >= (europeSize-1));
+#endif
+      i++;
+    }
+#endif
+
+  }
 
   /* HERE, BDD OPERATIONS START AND THUS WE START TO MEASURE THE TIME */
   elapsedtime = clock();
@@ -339,10 +413,10 @@ int main(int argc, char** argv) {
 #endif
     /* for TZBDD, sifting may change top node! */
 #ifdef USA_YES
-    if (!Biddy_FindFormula((Biddy_String)"usa",&r1)) exit(99);
+    if (!Biddy_FindFormula((Biddy_String)"usa",&i,&r1)) exit(99);
 #endif
 #ifdef EUROPE_YES
-    if (!Biddy_FindFormula((Biddy_String)"europe",&r2)) exit(99);
+    if (!Biddy_FindFormula((Biddy_String)"europe",&i,&r2)) exit(99);
 #endif
 #endif
 #ifdef USE_CUDD
@@ -402,10 +476,10 @@ int main(int argc, char** argv) {
     printf("Resulting function r1/r2 has %.0f/%.0f minterms.\n",Biddy_CountMinterm(r1,n1),Biddy_CountMinterm(r2,n2));
     printf("BDD system has %u nodes.\n",Biddy_NodeTableNum());
 #ifdef USE_BIDDY
-    if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
-      printf("OBDD");
-    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
-      printf("ZBDD");
+    if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
+      printf("OBDDC");
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
+      printf("ZBDDC");
     } else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
       printf("TZBDD");
     }
@@ -592,7 +666,7 @@ static Biddy_Edge calculateKernels(unsigned int size, Biddy_Edge *state, Biddy_E
 #endif
     r = tmp;
   }
-  return Biddy_Inv(r);
+  return Biddy_Not(r);
 }
 
 static void writeOrder(Biddy_Edge f, char *codes, unsigned int *order, unsigned int size) {
@@ -610,11 +684,11 @@ static void writeOrder(Biddy_Edge f, char *codes, unsigned int *order, unsigned 
   tmp = Biddy_Support(f);
   while (!Biddy_IsConstant(tmp)) {
     /* In Biddy, the first user variable is at index [1] */
-    if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
+    if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC)) {
       ivar = Biddy_GetTopVariable(tmp)-1;
-    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
+    } else if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
       ivar = size - Biddy_GetTopVariable(tmp);
-    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+    } else if ((Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC)) {
       ivar = Biddy_GetTopVariable(tmp)-1;
     }
     k = 3*(order[ivar]);

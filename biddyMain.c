@@ -14,14 +14,14 @@ manipulation of boolean functions with ROBDDs.
                  Variable swapping and sifting are implemented.]
 
     FileName    [biddyMain.c]
-    Revision    [$Revision: 275 $]
-    Date        [$Date: 2017-06-15 18:17:20 +0200 (čet, 15 jun 2017) $]
+    Revision    [$Revision: 319 $]
+    Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
-Copyright (C) 2006, 2017 UM-FERI, Smetanova ulica 17, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2017 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;

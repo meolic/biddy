@@ -223,3 +223,16 @@ Changes v1.7.2 versus v1.7.1
 - improved Biddy_Support and Biddy_DependentVariableNumber for ZBDDs and TZBDDs
 - implemented Biddy_Eval
 - implemented variable swapping and sifting for ZBDDs and TZBDDs
+
+Changes v1.7.3 versus v1.7.2
+- released on Oct 1, 2017
+- copyright adapted (UM FERI address changed)
+- fixed Biddy_Support and Biddy_Compose for ZBDDs
+- fixed Biddy_NodeNumberPlain and Biddy_CountPaths
+- fixed conversion from TZBDDs to ZBDDs
+- added Keyword cache and Replace cache
+- added Biddy_GetManagerName and Biddy_ChangeVariableName
+- improved Biddy_Replace and Biddy_Change
+- improved operations on the Formula table
+- implemented all operations on OBDDs without complemented edges
+- added Dictionary example
