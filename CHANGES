@@ -11,9 +11,9 @@ was the first one, which was also distributed separately
 from EST.
 
 Biddy is used by:
-- Bdd Scout (http://lms.uni-mb.si/biddy/)
-- EST 1st Edition (http://lms.uni-mb.si/EST/)
-- EST 2nd Edition (http://lms.uni-mb.si/EST/)
+- Bdd Scout (http://biddy.meolic.com/)
+- EST 1st Edition (http://est.meolic.com/)
+- EST 2nd Edition (http://est.meolic.com/)
 ----------------------------------------------------------
 
 Biddy v0.9, was integrated into EST 1st Edition v1.4
@@ -236,3 +236,21 @@ Changes v1.7.3 versus v1.7.2
 - improved operations on the Formula table
 - implemented all operations on OBDDs without complemented edges
 - added Dictionary example
+
+Changes v1.7.4 versus v1.7.3
+- released on Dec 18, 2017
+- biddyMain.c renamed to biddyLegacy.c, this is not the main branch anymore
+- biddyMainGDD.c renamed to biddyMain.c, this is now the main branch
+- added biddyOp.c which brings together functions for operations on BDDs
+- fixed variable swapping for TZBDDs
+- improved sifting on function, now it works for ZBDDs and TZBDDs as well
+- improved Biddy_Leq for ZBDDs and TZBDDs
+- changed macros for formulae protection schema
+- variables can have userdata associated with them
+- Biddy_Random renamed to Biddy_RandomFunction, Biddy_NodeNumber renamed to
+  Biddy_CountNodes, some other statistical functions renamed as well
+- added Biddy_SetVariableData, Biddy_GetVariableData, Biddy_ClearVariablesData
+- added Biddy_GetLowestVariable, Biddy_GetIthVariable, Biddy_GetVariableValue
+- added Biddy_IsLowest and Biddy_IsHighest
+- added Biddy_CreateMinterm and Biddy_CreateFunction
+- added Biddy_MinimizeBDD and Biddy_MaximizeBDD

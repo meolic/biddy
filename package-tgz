@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 364 $]
+#  Date        [$Date: 2017-12-18 10:53:04 +0100 (pon, 18 dec 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2017 UM FERI
@@ -48,7 +48,7 @@ mkdir "distribution/version-$VERSION/$NAME-$VERSION"
 
 cp VERSION CHANGES COPYING "distribution/version-$VERSION/$NAME-$VERSION"
 cp README.md "distribution/version-$VERSION/$NAME-$VERSION"
-cp biddy.h biddyInt.h biddyMain.c biddyMainGDD.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/$NAME-$VERSION"
+cp biddy.h biddyInt.h biddyMain.c biddyOp.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/$NAME-$VERSION"
 cp Makefile Makefile.Linux "distribution/version-$VERSION/$NAME-$VERSION"
 
 mkdir "distribution/version-$VERSION/$NAME-$VERSION"/debian

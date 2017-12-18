@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 364 $]
+#  Date        [$Date: 2017-12-18 10:53:04 +0100 (pon, 18 dec 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2017 UM FERI
@@ -37,9 +37,14 @@
 
 # We are using pdebuild which uses pbuilder. Initialize pbuilder as follows:
 # IMPORTANT: DO UPDATE AFTER IMPORTING biddy IN THE LOCAL REPOSITORY
-# 1. install pbuilder
-# 2. sudo pbuilder create
-# 3. sudo pbuilder update
+
+# 1A. If using pdebuild then initialize pbuilder as follows:
+# sudo pbuilder create
+# sudo pbuilder update
+
+# 1B. If using pbuilder-dist then initialize pbuilder as follows:
+# pbuilder-dist xenial create
+# pbuilder-dist xenial update
 
 # We are using biddy in other projects thus we upload the resulting deb files
 # cd ~/est/biddy/distribution/version-1.X/release-Y/
@@ -107,7 +112,7 @@ cp debian/rules "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/d
 cp debian/source/format "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian/source"
 
 cp VERSION README.md CHANGES "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
-cp biddy.h biddyInt.h biddyMain.c biddyMainGDD.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp biddy.h biddyInt.h biddyMain.c biddyOp.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 cp Makefile Makefile.Linux "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 
 pushd "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
@@ -153,10 +158,10 @@ mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for zesty
+# create a source distribution for artful
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=zesty
+ALTDISTRO=artful
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -177,8 +182,8 @@ echo "************************"
 echo ""
 
 # all target pbuilder environments must already exists and be updated
-# use e.g pbuilder-dist zesty create
-# use e.g pbuilder-dist zesty update
+# use e.g pbuilder-dist artful create
+# use e.g pbuilder-dist artful update
 
 echo "BUILDING FOR YOUR DIST: $DIST"
 pbuilder-dist $DISTRO build --buildresult `pwd`/default `pwd`/default/source/*.dsc
@@ -199,7 +204,7 @@ pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/s
 #pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
 #popd
 
-ALTDISTRO=zesty
+ALTDISTRO=artful
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 #pushd `pwd`/$ALTDISTRO/source

@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 320 $]
-    Date        [$Date: 2017-10-01 12:02:23 +0200 (ned, 01 okt 2017) $]
+    Revision    [$Revision: 355 $]
+    Date        [$Date: 2017-12-12 22:57:11 +0100 (tor, 12 dec 2017) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net),
                  Jan Kraner (jankristian.kraner@student.um.si),
@@ -808,7 +808,7 @@ Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
   /* variableNumber is the number of dependent variables in BDD */
   variableNumber = 0;
   temp = support;
-  while (!Biddy_IsConstant(temp)) {
+  while (!Biddy_IsTerminal(temp)) {
     variableNumber++;
     temp = BiddyT(temp);
   }
@@ -821,7 +821,7 @@ Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
   /* variableTable is a table of all dependent variables in BDD */
   if (!(variableTable = (Biddy_Variable *) malloc((variableNumber) * sizeof(Biddy_Variable)))) return;
   i = 0;
-  while (!Biddy_IsConstant(support)) {
+  while (!Biddy_IsTerminal(support)) {
     variableTable[i] = Biddy_GetTopVariable(support);
     printf("|%s",Biddy_Managed_GetVariableName(MNG,variableTable[i]));
     support = BiddyT(support);
@@ -927,7 +927,7 @@ Biddy_Managed_PrintfSOP(Biddy_Manager MNG, Biddy_Edge f)
     return;
   }
 
-  if (Biddy_IsConstant(f)) {
+  if (Biddy_IsTerminal(f)) {
     if (f == biddyZero) {
       printf("  + 0\n");
       return;
@@ -1016,7 +1016,7 @@ Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
     return;
   }
   
-  if (Biddy_IsConstant(f)) {
+  if (Biddy_IsTerminal(f)) {
     if (f == biddyZero) {
       fprintf(s,"  + 0\n");
       if (filename) {
@@ -1136,11 +1136,11 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
   }
   if (!s) return 0;
 
-  if (Biddy_IsConstant(f)) {
-    n = 1; /* there is only one constant node */
+  if (Biddy_IsTerminal(f)) {
+    n = 1; /* there is only one terminal node */
   } else {
     BiddyCreateLocalInfo(MNG,f);
-    n = enumerateNodes(MNG,f,0); /* this will select all nodes except constant node */
+    n = enumerateNodes(MNG,f,0); /* this will select all nodes except terminal node */
     Biddy_Managed_DeselectAll(MNG);
   }
 
@@ -1159,7 +1159,7 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
     fprintf(s,"  edge [style=invis];\n");
     fprintf(s,"  \"CONST NODES\" [style = invis];\n");
 
-    if (!Biddy_IsConstant(f)) {
+    if (!Biddy_IsTerminal(f)) {
       li = (BiddyLocalInfo *)(BiddyN(f)->list);
       Biddy_Managed_ResetVariablesValue(MNG);
       while (li->back) {
@@ -1211,10 +1211,10 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
        (biddyManagerType == BIDDYTYPETZBDD) ||
        !(Biddy_GetMark(f))))
   {
-    if ((tag = Biddy_GetTag(f))) {
+    if ((f != biddyZero) && (tag = Biddy_GetTag(f))) {
       if (cudd) {
         fprintf(s,"\"%s\"",label1);
-        if (Biddy_IsConstant(f)) {
+        if (Biddy_IsTerminal(f)) {
           fprintf(s," -> \"1\" [style=solid label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
         } else {
           fprintf(s," -> \"%p\" [style=solid label=\"%s\"];\n",BiddyP(f),Biddy_Managed_GetVariableName(MNG,tag));
@@ -1229,7 +1229,7 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
     } else {
       if (cudd) {
         fprintf(s,"\"%s\"",label1);
-        if (Biddy_IsConstant(f)) {
+        if (Biddy_IsTerminal(f)) {
           fprintf(s," -> \"1\" [style=solid];\n");
         } else {
           fprintf(s," -> \"%p\" [style=solid];\n",BiddyP(f));
@@ -1243,10 +1243,10 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
       }
     }
   } else {
-    if ((tag = Biddy_GetTag(f))) {
+    if ((f != biddyZero) && (tag = Biddy_GetTag(f))) {
       if (cudd) {
         fprintf(s,"\"%s\"",label1);
-        if (Biddy_IsConstant(f)) {
+        if (Biddy_IsTerminal(f)) {
           fprintf(s," -> \"1\" [style=dotted label=\"%s\"];\n",Biddy_Managed_GetVariableName(MNG,tag));
         } else {
           fprintf(s," -> \"%p\" [style=dotted label=\"%s\"];\n",BiddyP(f),Biddy_Managed_GetVariableName(MNG,tag));
@@ -1261,7 +1261,7 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
     } else {
       if (cudd) {
         fprintf(s,"\"%s\"",label1);
-        if (Biddy_IsConstant(f)) {
+        if (Biddy_IsTerminal(f)) {
           if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
             fprintf(s," -> \"1\" [style=dotted];\n");
           } else {
@@ -1290,9 +1290,9 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
 
   free(label1);
 
-  WriteDotEdges(MNG,s,f,cudd); /* this will select all nodes except constant node */
+  WriteDotEdges(MNG,s,f,cudd); /* this will select all nodes except terminal node */
 
-  if (!Biddy_IsConstant(f)) {
+  if (!Biddy_IsTerminal(f)) {
     BiddyDeleteLocalInfo(MNG,f);
   }
 
@@ -1356,14 +1356,14 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
   fprintf(s,"#GENERATED WITH BIDDY - biddy.meolic.com\n");
 
   useCoordinates = FALSE;
-  if (Biddy_IsConstant(f)) {
+  if (Biddy_IsTerminal(f)) {
 
-    n = 1; /* for all BDD types, in memory there is only one constant node */
+    n = 1; /* for all BDD types, in memory there is only one terminal node */
     if (table) {
       /* use table of nodes given by the user */
       useCoordinates = TRUE;
     } else {
-      n = 1; /* there is one constant node */
+      n = 1; /* there is one terminal node */
       table = (Biddy_XY *) malloc((n+1) * sizeof(Biddy_XY)); /* n = nodes, add one label */
       if (!table) return 0;
       table[0].id = 0;
@@ -1381,7 +1381,7 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
   } else {
 
     BiddyCreateLocalInfo(MNG,f);
-    n = enumerateNodes(MNG,f,0); /* this will select all nodes except constant node */
+    n = enumerateNodes(MNG,f,0); /* this will select all nodes except terminal node */
     Biddy_Managed_DeselectAll(MNG);
 
     if (table) {
@@ -1407,8 +1407,8 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
         table[li->data.enumerator].y = 0;
         table[li->data.enumerator].isConstant = FALSE;
 
-        /* if one or both successors are constant then extra nodes must be added */
-        if (Biddy_IsConstant(BiddyE(li->back)) || Biddy_IsConstant(BiddyT(li->back))) {
+        /* if one or both successors are terminal node then extra nodes must be added */
+        if (Biddy_IsTerminal(BiddyE(li->back)) || Biddy_IsTerminal(BiddyT(li->back))) {
 
           if (((biddyManagerType == BIDDYTYPEOBDD) ||
                (biddyManagerType == BIDDYTYPEZBDD) ||
@@ -1416,10 +1416,10 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
               &&
               (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
           {
-            /* two constant nodes only if they are different */
+            /* two terminal nodes only if they are different */
             unsigned int num;
             num = 0;
-            if (Biddy_IsConstant(BiddyE(li->back))) {
+            if (Biddy_IsTerminal(BiddyE(li->back))) {
               num = 1;
               table[li->data.enumerator+1].id = li->data.enumerator+1;
               if (BiddyE(li->back) == biddyZero) {
@@ -1431,7 +1431,7 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
               table[li->data.enumerator+1].y = 0;
               table[li->data.enumerator+1].isConstant = TRUE;
             }
-            if (Biddy_IsConstant(BiddyT(li->back))) {
+            if (Biddy_IsTerminal(BiddyT(li->back))) {
               table[li->data.enumerator+num+1].id = li->data.enumerator+num+1;
               if (BiddyT(li->back) == biddyZero) {
                 table[li->data.enumerator+num+1].label = strdup("0");
@@ -1443,7 +1443,7 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
               table[li->data.enumerator+num+1].isConstant = TRUE;
             }
           } else {
-            /* only one constant node */
+            /* only one terminal node */
             table[li->data.enumerator+1].id = li->data.enumerator+1;
             table[li->data.enumerator+1].label = strdup("1");
             table[li->data.enumerator+1].x = 0;
@@ -1504,14 +1504,18 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
 
   if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
   {
-    tag = Biddy_GetTag(f);
-    fprintf(s," %s\n",Biddy_Managed_GetVariableName(MNG,tag));
+    if (f == biddyZero) {
+      fprintf(s," 0\n");
+    } else {
+      tag = Biddy_GetTag(f);
+      fprintf(s," %s\n",Biddy_Managed_GetVariableName(MNG,tag));
+    }
   } else {
     fprintf(s,"\n");
   }
 
-  if (!Biddy_IsConstant(f)) {
-    WriteBddviewConnections(MNG,s,f); /* this will select all nodes except constant node */
+  if (!Biddy_IsTerminal(f)) {
+    WriteBddviewConnections(MNG,s,f); /* this will select all nodes except terminal node */
     BiddyDeleteLocalInfo(MNG,f);
   }
 
@@ -2576,7 +2580,7 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, VerilogCircuit *c, Biddy_String p
 
     c->wires[i]->bdd = f;
 
-    Biddy_Managed_AddTmpFormula(MNG,f,c->wires[i]->ttl);
+    Biddy_Managed_KeepFormulaProlonged(MNG,f,c->wires[i]->ttl);
     Biddy_Managed_Clean(MNG);
   }
 
@@ -2597,8 +2601,8 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, VerilogCircuit *c, Biddy_String p
     f = getWireByName(c,c->outputs[i])->bdd;
     printf("%s - %d nodes / %d nodes without complement edge\n",
       c->outputs[i],
-      Biddy_Managed_NodeNumber(MNG,f),
-      Biddy_Managed_NodeNumberPlain(MNG,f)
+      Biddy_Managed_CountNodes(MNG,f),
+      Biddy_Managed_CountNodesPlain(MNG,f)
     );
   }
   */
@@ -2607,7 +2611,7 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, VerilogCircuit *c, Biddy_String p
   j = 0;
   for (i = 0; i < c->outputcount; i++) {
     f = getWireByName(c,c->outputs[i])->bdd;
-    j = j + Biddy_Managed_NodeNumber(MNG,f);
+    j = j + Biddy_Managed_CountNodes(MNG,f);
   }
   printf("The sum of BDD sizes for all outputs: %u\n",j);
   /**/
@@ -2906,7 +2910,7 @@ WriteBDD(Biddy_Manager MNG, Biddy_Edge f)
   var = Biddy_Managed_GetTopVariableName(MNG,f);
   printf("%s",var);
 
-  if (!Biddy_IsConstant(f)) {
+  if (!Biddy_IsTerminal(f)) {
     printf("(");
     WriteBDD(MNG,BiddyE(f));
     printf(")(");
@@ -2931,7 +2935,7 @@ WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned int *line)
 
   *line = *line + (unsigned int)strlen(var);
 
-  if (!Biddy_IsConstant(f)) {
+  if (!Biddy_IsTerminal(f)) {
     if (*line >= 80) {
       fprintf(funfile,"\n");
       *line = 0;
@@ -2995,9 +2999,9 @@ WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
   v = BiddyV(f);
 
   /* DEBUGGING */
-  /**/
+  /*
   printf("WriteSOP: top = %u (%s), v = %u (%s)\n",top,Biddy_Managed_GetVariableName(MNG,top),v,Biddy_Managed_GetVariableName(MNG,v));
-  /**/
+  */
 
   if ((top != v) && (f != biddyZero)) {
 
@@ -3018,10 +3022,10 @@ WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
       tmp.negative = TRUE; /* left successor */
 
       /* DEBUGGING */
-      /**/
+      /*
       printf("WriteSOP: top = %u (%s), top.next = %u (%s)\n",top,Biddy_Managed_GetVariableName(MNG,top),
               biddyVariableTable.table[top].next,Biddy_Managed_GetVariableName(MNG,biddyVariableTable.table[top].next));
-      /**/
+      */
 
       WriteSOP(MNG,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
     } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
@@ -3192,15 +3196,15 @@ static unsigned int
 enumerateNodes(Biddy_Manager MNG, Biddy_Edge f, unsigned int n)
 {
   if (!Biddy_Managed_IsSelected(MNG,f)) {
-    if (Biddy_IsConstant(f)) {
+    if (Biddy_IsTerminal(f)) {
     } else {
       Biddy_Managed_SelectNode(MNG,f);
       n++;
       BiddySetEnumerator(f,n);
 
-      /* one or both are constant node */
-      /* every instance of constant node is enumerated */
-      if (Biddy_IsConstant(BiddyE(f)) || Biddy_IsConstant(BiddyT(f))) {
+      /* one or both are terminal node */
+      /* every instance of terminal node is enumerated */
+      if (Biddy_IsTerminal(BiddyE(f)) || Biddy_IsTerminal(BiddyT(f))) {
 
         if (((biddyManagerType == BIDDYTYPEOBDD) ||
              (biddyManagerType == BIDDYTYPEZBDD) ||
@@ -3208,25 +3212,25 @@ enumerateNodes(Biddy_Manager MNG, Biddy_Edge f, unsigned int n)
             &&
             (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
         {
-          /* two constant nodes only if they are different */
-          if (Biddy_IsConstant(BiddyE(f))) {
+          /* two terminal nodes only if they are different */
+          if (Biddy_IsTerminal(BiddyE(f))) {
             n++;
           }
-          if (Biddy_IsConstant(BiddyT(f))) {
+          if (Biddy_IsTerminal(BiddyT(f))) {
             n++;
           }
         }
         else {
-          /* only one constant node */
+          /* only one terminal node */
           n++;
         }
 
       }
 
-      if (!Biddy_IsConstant(BiddyE(f))) {
+      if (!Biddy_IsTerminal(BiddyE(f))) {
         n = enumerateNodes(MNG,BiddyE(f),n);
       }
-      if (!Biddy_IsConstant(BiddyT(f))) {
+      if (!Biddy_IsTerminal(BiddyT(f))) {
         n = enumerateNodes(MNG,BiddyT(f),n);
       }
     }
@@ -3242,7 +3246,7 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
   Biddy_Variable v;
   BiddyLocalInfo *li2;
 
-  if (Biddy_IsConstant(f)) {
+  if (Biddy_IsTerminal(f)) {
     if (cudd) {
 
       /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotEdges */
@@ -3315,7 +3319,7 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
     fprintf(dotfile,"{ node [shape = none label = \"1\"];\n");
     li = (BiddyLocalInfo *)(BiddyN(f)->list);
     while (li->back) {
-      if (Biddy_IsConstant(BiddyE(li->back)) || Biddy_IsConstant(BiddyT(li->back))) {
+      if (Biddy_IsTerminal(BiddyE(li->back)) || Biddy_IsTerminal(BiddyT(li->back))) {
         fprintf(dotfile,"\"%u\";\n",li->data.enumerator+1);
       }
       li = &li[1];
@@ -3341,18 +3345,18 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
         if (BiddyE(li->back) == biddyZero) {
           fprintf(dotfile,"  node [shape = none, label = \"0\"] %u;\n",li->data.enumerator+1);
         }
-        else if (Biddy_IsConstant(BiddyE(li->back))) {
+        else if (Biddy_IsTerminal(BiddyE(li->back))) {
           fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+1);
         }
         if (BiddyT(li->back) == biddyZero) {
-          if (Biddy_IsConstant(BiddyE(li->back)) && (Biddy_GetMark(BiddyE(li->back)) != Biddy_GetMark(BiddyT(li->back)))) {
+          if (Biddy_IsTerminal(BiddyE(li->back)) && (Biddy_GetMark(BiddyE(li->back)) != Biddy_GetMark(BiddyT(li->back)))) {
             fprintf(dotfile,"  node [shape = none, label = \"0\"] %u;\n",li->data.enumerator+2);
           } else {
             fprintf(dotfile,"  node [shape = none, label = \"0\"] %u;\n",li->data.enumerator+1);
           }
         }
-        else if (Biddy_IsConstant(BiddyT(li->back))) {
-          if (Biddy_IsConstant(BiddyE(li->back)) && (Biddy_GetMark(BiddyE(li->back)) != Biddy_GetMark(BiddyT(li->back)))) {
+        else if (Biddy_IsTerminal(BiddyT(li->back))) {
+          if (Biddy_IsTerminal(BiddyE(li->back)) && (Biddy_GetMark(BiddyE(li->back)) != Biddy_GetMark(BiddyT(li->back)))) {
             fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+2);
           } else {
             fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+1);
@@ -3360,7 +3364,7 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
         }
       }
       else {
-        if (Biddy_IsConstant(BiddyE(li->back)) || Biddy_IsConstant(BiddyT(li->back))) {
+        if (Biddy_IsTerminal(BiddyE(li->back)) || Biddy_IsTerminal(BiddyT(li->back))) {
           fprintf(dotfile,"  node [shape = none, label = \"1\"] %u;\n",li->data.enumerator+1);
         }
       }
@@ -3375,17 +3379,17 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
   unsigned int n1,n2;
   Biddy_Variable tag;
 
-  if (!Biddy_IsConstant(f) && !Biddy_Managed_IsSelected(MNG,f)) {
+  if (!Biddy_IsTerminal(f) && !Biddy_Managed_IsSelected(MNG,f)) {
     Biddy_Managed_SelectNode(MNG,f);
     n1 = BiddyGetEnumerator(f);
 
-    if (Biddy_IsConstant(BiddyE(f))) {
+    if (Biddy_IsTerminal(BiddyE(f))) {
       n2 = n1 + 1;
     } else {
       n2 = BiddyGetEnumerator(BiddyE(f));
     }
     if (Biddy_GetMark(BiddyE(f))) {
-      if ((tag = Biddy_GetTag(BiddyE(f)))) {
+      if ((BiddyE(f) != biddyZero) && (tag = Biddy_GetTag(BiddyE(f)))) {
         if (cudd) {
 
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
@@ -3395,7 +3399,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
 
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
-          if (Biddy_IsConstant(BiddyE(f))) {
+          if (Biddy_IsTerminal(BiddyE(f))) {
             fprintf(dotfile,"\"%p\" -> \"%u\" [style=dotted label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
           } else {
             fprintf(dotfile,"\"%p\" -> \"%p\" [style=dotted label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyE(f)),Biddy_Managed_GetVariableName(MNG,tag));
@@ -3419,7 +3423,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
 
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
-          if (Biddy_IsConstant(BiddyE(f))) {
+          if (Biddy_IsTerminal(BiddyE(f))) {
             fprintf(dotfile,"\"%p\" -> \"%u\" [style=dotted];\n",BiddyP(f),n2);
           } else {
             fprintf(dotfile,"\"%p\" -> \"%p\" [style=dotted];\n",BiddyP(f),BiddyP(BiddyE(f)));
@@ -3447,7 +3451,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
         }
       }
     } else {
-      if ((tag = Biddy_GetTag(BiddyE(f)))) {
+      if ((BiddyE(f) != biddyZero) && (tag = Biddy_GetTag(BiddyE(f)))) {
         if (cudd) {
 
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
@@ -3457,7 +3461,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
 
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
-          if (Biddy_IsConstant(BiddyE(f))) {
+          if (Biddy_IsTerminal(BiddyE(f))) {
             fprintf(dotfile,"\"%p\" -> \"%u\" [style=dashed label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
           } else {
             fprintf(dotfile,"\"%p\" -> \"%p\" [style=dashed label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyE(f)),Biddy_Managed_GetVariableName(MNG,tag));
@@ -3481,7 +3485,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
 
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
-          if (Biddy_IsConstant(BiddyE(f))) {
+          if (Biddy_IsTerminal(BiddyE(f))) {
             fprintf(dotfile,"\"%p\" -> \"%u\" [style=dashed];\n",BiddyP(f),n2);
           } else {
             fprintf(dotfile,"\"%p\" -> \"%p\" [style=dashed];\n",BiddyP(f),BiddyP(BiddyE(f)));
@@ -3498,11 +3502,11 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
       }
     }
 
-    if (Biddy_IsConstant(BiddyT(f))) {
+    if (Biddy_IsTerminal(BiddyT(f))) {
       if (((biddyManagerType == BIDDYTYPEOBDD) ||
            (biddyManagerType == BIDDYTYPEZBDD) ||
            (biddyManagerType == BIDDYTYPETZBDD))
-          && (Biddy_IsConstant(BiddyE(f))) 
+          && (Biddy_IsTerminal(BiddyE(f))) 
           && (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
       {
         n2 = n1 + 2;
@@ -3514,7 +3518,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
       n2 = BiddyGetEnumerator(BiddyT(f));
     }
     if (Biddy_GetMark(BiddyT(f))) {
-      if ((tag = Biddy_GetTag(BiddyT(f)))) {
+      if ((BiddyT(f) != biddyZero) && (tag = Biddy_GetTag(BiddyT(f)))) {
         if (cudd) {
 
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
@@ -3524,7 +3528,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
 
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
-          if (Biddy_IsConstant(BiddyT(f))) {
+          if (Biddy_IsTerminal(BiddyT(f))) {
             fprintf(dotfile,"\"%p\" -> \"%u\" [style=bold label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
           } else {
             fprintf(dotfile,"\"%p\" -> \"%p\" [style=bold label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyT(f)),Biddy_Managed_GetVariableName(MNG,tag));
@@ -3548,7 +3552,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
 
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
-          if (Biddy_IsConstant(BiddyT(f))) {
+          if (Biddy_IsTerminal(BiddyT(f))) {
             fprintf(dotfile,"\"%p\" -> \"%u\" [style=bold];\n",BiddyP(f),n2);
           } else {
             fprintf(dotfile,"\"%p\" -> \"%p\" [style=bold];\n",BiddyP(f),BiddyP(BiddyT(f)));
@@ -3576,7 +3580,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
         }
       }
     } else {
-      if ((tag = Biddy_GetTag(BiddyT(f)))) {
+      if ((BiddyT(f) != biddyZero) && (tag = Biddy_GetTag(BiddyT(f)))) {
         if (cudd) {
 
           /* VARIANT 1 - THIS SHOULD BE COMBINED WITH VARIANT 1 IN WriteDotNodes */
@@ -3586,7 +3590,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
 
           /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
           /**/
-          if (Biddy_IsConstant(BiddyT(f))) {
+          if (Biddy_IsTerminal(BiddyT(f))) {
             fprintf(dotfile,"\"%p\" -> \"%u\" [label=\"%s\"];\n",BiddyP(f),n2,Biddy_Managed_GetVariableName(MNG,tag));
           } else {
             fprintf(dotfile,"\"%p\" -> \"%p\" [label=\"%s\"];\n",BiddyP(f),BiddyP(BiddyT(f)),Biddy_Managed_GetVariableName(MNG,tag));
@@ -3610,7 +3614,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
         /* VARIANT 2 - THIS SHOULD BE COMBINED WITH VARIANT 2 IN WriteDotNodes */
 
         /**/
-        if (Biddy_IsConstant(BiddyT(f))) {
+        if (Biddy_IsTerminal(BiddyT(f))) {
           fprintf(dotfile,"\"%p\" -> \"%u\";\n",BiddyP(f),n2);
         } else {
           fprintf(dotfile,"\"%p\" -> \"%p\";\n",BiddyP(f),BiddyP(BiddyT(f)));
@@ -3638,7 +3642,7 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
   int n1,n2;
   Biddy_Variable tag1,tag2;
 
-  if (!Biddy_IsConstant(f) && !Biddy_Managed_IsSelected(MNG,f)) {
+  if (!Biddy_IsTerminal(f) && !Biddy_Managed_IsSelected(MNG,f)) {
     Biddy_Managed_SelectNode(MNG,f);
     n1 = BiddyGetEnumerator(f);
 
@@ -3657,7 +3661,7 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
       /* SINGLE LINE */
 
       num = 0;
-      if (Biddy_IsConstant(BiddyE(f))) {
+      if (Biddy_IsTerminal(BiddyE(f))) {
         n2 = n1 + 1;
         num = 1;
       } else {
@@ -3679,13 +3683,17 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
       }
       if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
       {
-        tag1 = Biddy_GetTag(BiddyE(f));
-        fprintf(funfile," %s\n",Biddy_Managed_GetVariableName(MNG,tag1));
+        if (BiddyE(f) == biddyZero) {
+          fprintf(funfile," 0\n");
+        } else {
+          tag1 = Biddy_GetTag(BiddyE(f));
+          fprintf(funfile," %s\n",Biddy_Managed_GetVariableName(MNG,tag1));
+        }
       } else {
         fprintf(funfile,"\n");
       }
 
-      if (Biddy_IsConstant(BiddyT(f))) {
+      if (Biddy_IsTerminal(BiddyT(f))) {
         n2 = n1 + num + 1;
       } else {
         n2 = BiddyGetEnumerator(BiddyT(f));
@@ -3706,8 +3714,12 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
       }
       if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
       {
-        tag2 = Biddy_GetTag(BiddyT(f));
-        fprintf(funfile," %s\n",Biddy_Managed_GetVariableName(MNG,tag2));
+        if (BiddyT(f) == biddyZero) {
+          fprintf(funfile," 0\n");
+        } else {
+          tag2 = Biddy_GetTag(BiddyT(f));
+          fprintf(funfile," %s\n",Biddy_Managed_GetVariableName(MNG,tag2));
+        }
       } else {
         fprintf(funfile,"\n");
       }
@@ -3716,7 +3728,7 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
 
       /* DOUBLE LINE */
 
-      if (Biddy_IsConstant(BiddyE(f))) {
+      if (Biddy_IsTerminal(BiddyE(f))) {
         n2 = n1 + 1;
       } else {
         n2 = BiddyGetEnumerator(BiddyE(f));
@@ -3736,7 +3748,7 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
           fprintf(funfile,"e");
         }
       }
-      if (biddyManagerType == BIDDYTYPETZBDDC)
+      if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
       {
         tag1 = Biddy_GetTag(BiddyE(f));
         tag2 = Biddy_GetTag(BiddyT(f));

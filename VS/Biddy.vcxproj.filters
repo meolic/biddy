@@ -21,7 +21,10 @@
     <ClCompile Include="..\biddyStat.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\biddyMainGDD.c">
+    <ClCompile Include="..\biddyMain.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\biddyOp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

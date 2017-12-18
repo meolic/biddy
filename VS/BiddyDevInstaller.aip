@@ -9,7 +9,7 @@
     <ROW Property="ProductCode" Value="1033:{543EED6C-BC43-4A3D-A241-C02F4A692D92} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="Biddy"/>
-    <ROW Property="ProductVersion" Value="1.7.3" Type="32"/>
+    <ROW Property="ProductVersion" Value="1.7.4" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{9114E74E-3ADB-4DCA-B313-21788E423B75}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -49,7 +49,7 @@
     <ROW File="mpir.lib" Component_="biddy" FileName="mpir.lib" Attributes="0" SourcePath="..\..\..\..\..\Users\Robert\Documents\mpir-dll-2.7.2\mpir.lib" SelfReg="false" NextFile="biddydll.lib"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="biddy-dev-1-7-3-Win" Languages="en" InstallationType="4" UseLargeSchema="true" MsiPackageType="x64"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="biddy-dev-1-7-4-Win" Languages="en" InstallationType="4" UseLargeSchema="true" MsiPackageType="x64"/>
     <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.CacheComponent">

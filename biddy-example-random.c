@@ -1,5 +1,5 @@
-/* $Revision: 306 $ */
-/* $Date: 2017-09-13 16:00:27 +0200 (sre, 13 sep 2017) $ */
+/* $Revision: 353 $ */
+/* $Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $ */
 /* This file (biddy-example-random.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -7,7 +7,7 @@
 /* This example is compatible with Biddy v1.7 */
 
 /* COMPILE WITH: */
-/* gcc -DUNIX -O2 -o biddy-example-random biddy-example-random.c -I. -L./bin -lbiddy -lgmp */
+/* gcc -DUNIX -O2 -o biddy-example-random biddy-example-random.c -I. -L./bin -static -lbiddy -lgmp */
 
 /* this example creates and converts random BDDs */
 
@@ -16,7 +16,12 @@
 #define BOOLEANFUNCTION 1
 #define COMBINATIONSET 2
 
-#define POPULATION -1
+/* (POPULATION == -2): create one random function, only */
+/* (POPULATION == -1): create one random function and perform tests */
+/* (POPULATION == 0): not allowed */
+/* (POPULATION > 0): create many random function and get statistics */
+#define POPULATION -2
+
 #define SIZE 4
 #define RATIO 0.5
 
@@ -24,7 +29,7 @@
 #define RANDOMTYPE BOOLEANFUNCTION
 
 /* choose primary BDD type */
-#define BDDTYPE BIDDYTYPEOBDD
+#define BDDTYPE BIDDYTYPEOBDDC
 
 int main() {
   Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD;
@@ -41,7 +46,11 @@ int main() {
   unsigned int obddlargest,zbddlargest,tzbddlargest;
   unsigned int allsamesize;
 
-  if (POPULATION == -1) {
+  if (POPULATION == 0) {
+    exit(1);
+  }
+
+  if ((POPULATION == -1) || (POPULATION == -2)) {
 
     /* ************************************************************* */
     /* START OF CREATION */
@@ -111,7 +120,7 @@ int main() {
 
 #if (RANDOMTYPE == BOOLEANFUNCTION)
     printf("Generating random Boolean function...\n");
-    result = Biddy_Random(support,RATIO);
+    result = Biddy_RandomFunction(support,RATIO);
 #endif
 
 #if (RANDOMTYPE == COMBINATIONSET)
@@ -149,8 +158,10 @@ int main() {
     Biddy_PrintfBDD(result);
     */
 
-    printf("Function result has %.0f minterms/combinations.\n",Biddy_CountMinterm(result,SIZE));
-    printf("Function result has density = %.2e.\n",Biddy_DensityFunction(result,SIZE));
+    printf("Function result has %.0f minterms/combinations.\n",Biddy_CountMinterms(result,SIZE));
+    printf("Function result has density = %.2e.\n",Biddy_DensityOfFunction(result,SIZE));
+
+    if (POPULATION == -2) exit(1);
 
     /* ************************************************************* */
     /* START OF TESTING OPERATIONS */
@@ -164,19 +175,63 @@ int main() {
       printf("ERROR: Operation NOT is wrong!\n");
     }
 
-    /* OPERATION ITE */
+    /* OPERATIONS AND/OR */
 
     result0 = Biddy_And(result,support);
     result1 = Biddy_Not(Biddy_Or(Biddy_Not(result),Biddy_Not(support)));
 
     if (result0 != result1) {
-      printf("ERROR: Operation ITE is wrong!\n");
+      printf("ERROR: Operations AND/OR are wrong!\n");
+    }
+
+    /* OPERATIONS ITE/XOR */
+
+    result0 = Biddy_ITE(result,Biddy_Not(support),support);
+    result1 = Biddy_Xor(result,support);
+
+    if (result0 != result1) {
+      printf("ERROR: Operations ITE and/or XOR are wrong!\n");
     }
 
     /* OPERATIONS LEQ AND GT */
 
     result0 = Biddy_Leq(result,support);
+    result1 = Biddy_Or(Biddy_Not(result),support);
+
+    if (result0 != result1) {
+      printf("ERROR: Operation Leq is wrong!\n");
+    }
+
+    result0 = Biddy_Leq(support,result);
+    result1 = Biddy_Or(Biddy_Not(support),result);
+
+    if (result0 != result1) {
+      printf("ERROR: Operation Leq is wrong!\n");
+    }
+
+    result0 = Biddy_Gt(result,support);
+    result1 = Biddy_And(result,Biddy_Not(support));
+
+    if (result0 != result1) {
+      printf("ERROR: Operation Gt is wrong!\n");
+    }
+
+    result0 = Biddy_Gt(support,result);
+    result1 = Biddy_And(support,Biddy_Not(result));
+
+    if (result0 != result1) {
+      printf("ERROR: Operation Gt is wrong!\n");
+    }
+
+    result0 = Biddy_Leq(result,support);
     result1 = Biddy_Not(Biddy_Gt(result,support));
+
+    if (result0 != result1) {
+      printf("ERROR: Operations Leq and/or Gt are wrong!\n");
+    }
+
+    result0 = Biddy_Leq(support,result);
+    result1 = Biddy_Not(Biddy_Gt(support,result));
 
     if (result0 != result1) {
       printf("ERROR: Operations Leq and/or Gt are wrong!\n");
@@ -197,12 +252,12 @@ int main() {
     }
     */
 
-    printf("Function result has %.0f minterms/combinations where first variable/element is NEGATIVE/ABSENT.\n",Biddy_CountMinterm(result0,SIZE));
-    printf("Function result has %.0f minterms/combinations where first variable/element is POSITIVE/PRESENT.\n",Biddy_CountMinterm(result1,SIZE));
+    printf("Function result has %.0f minterms/combinations where first variable/element is NEGATIVE/ABSENT.\n",Biddy_CountMinterms(result0,SIZE));
+    printf("Function result has %.0f minterms/combinations where first variable/element is POSITIVE/PRESENT.\n",Biddy_CountMinterms(result1,SIZE));
 
-    s1 = (unsigned int) Biddy_CountMinterm(result,SIZE);
-    s2 = (unsigned int) Biddy_CountMinterm(result0,SIZE);
-    s3 = (unsigned int) Biddy_CountMinterm(result1,SIZE);
+    s1 = (unsigned int) Biddy_CountMinterms(result,SIZE);
+    s2 = (unsigned int) Biddy_CountMinterms(result0,SIZE);
+    s3 = (unsigned int) Biddy_CountMinterms(result1,SIZE);
 
     if (s1 != (s2 + s3)) {
       printf("ERROR: Operation Subset is wrong!\n");
@@ -221,12 +276,12 @@ int main() {
     }
     */
 
-    printf("Function result has %.0f minterms/combinations where last variable/element is NEGATIVE/ABSENT.\n",Biddy_CountMinterm(result0,SIZE));
-    printf("Function result has %.0f minterms/combinations where last variable/element is POSITIVE/PRESENT.\n",Biddy_CountMinterm(result1,SIZE));
+    printf("Function result has %.0f minterms/combinations where last variable/element is NEGATIVE/ABSENT.\n",Biddy_CountMinterms(result0,SIZE));
+    printf("Function result has %.0f minterms/combinations where last variable/element is POSITIVE/PRESENT.\n",Biddy_CountMinterms(result1,SIZE));
 
-    s1 = (unsigned int) Biddy_CountMinterm(result,SIZE);
-    s2 = (unsigned int) Biddy_CountMinterm(result0,SIZE);
-    s3 = (unsigned int) Biddy_CountMinterm(result1,SIZE);
+    s1 = (unsigned int) Biddy_CountMinterms(result,SIZE);
+    s2 = (unsigned int) Biddy_CountMinterms(result0,SIZE);
+    s3 = (unsigned int) Biddy_CountMinterms(result1,SIZE);
 
     if (s1 != (s2 + s3)) {
       printf("ERROR: Operation Subset is wrong!\n");
@@ -237,8 +292,8 @@ int main() {
     result0 = Biddy_Restrict(result,first,FALSE);
     result1 = Biddy_Restrict(result,first,TRUE);
 
-    printf("If first variable is restricted to FALSE, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result0,SIZE));
-    printf("If first variable is restricted to TRUE, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result1,SIZE));
+    printf("If first variable is restricted to FALSE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result0,SIZE));
+    printf("If first variable is restricted to TRUE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
 
     /* GRAPHVIZ/DOT OUTPUT OF RESULT0 AND RESULT1  - DEBUGGING, ONLY */
     /*
@@ -250,9 +305,9 @@ int main() {
     }
     */
 
-    s1 = (unsigned int) Biddy_CountMinterm(result,SIZE);
-    s2 = (unsigned int) Biddy_CountMinterm(result0,SIZE);
-    s3 = (unsigned int) Biddy_CountMinterm(result1,SIZE);
+    s1 = (unsigned int) Biddy_CountMinterms(result,SIZE);
+    s2 = (unsigned int) Biddy_CountMinterms(result0,SIZE);
+    s3 = (unsigned int) Biddy_CountMinterms(result1,SIZE);
 
     if ((s1 + s1) != (s2 + s3)) {
       printf("ERROR: Operation Restrict is wrong!\n");
@@ -271,12 +326,12 @@ int main() {
     }
     */
 
-    printf("If last variable is restricted to FALSE, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result0,SIZE));
-    printf("If last variable is restricted to TRUE, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result1,SIZE));
+    printf("If last variable is restricted to FALSE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result0,SIZE));
+    printf("If last variable is restricted to TRUE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
 
-    s1 = (unsigned int) Biddy_CountMinterm(result,SIZE);
-    s2 = (unsigned int) Biddy_CountMinterm(result0,SIZE);
-    s3 = (unsigned int) Biddy_CountMinterm(result1,SIZE);
+    s1 = (unsigned int) Biddy_CountMinterms(result,SIZE);
+    s2 = (unsigned int) Biddy_CountMinterms(result0,SIZE);
+    s3 = (unsigned int) Biddy_CountMinterms(result1,SIZE);
 
     if ((s1 + s1) != (s2 + s3)) {
       printf("ERROR: Operation Restrict is wrong!\n");
@@ -313,8 +368,8 @@ int main() {
     result0 = Biddy_E(result,first);
     result1 = Biddy_A(result,first);
 
-    printf("After the existential quantification of first variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result0,SIZE));
-    printf("After the universal quantification of first variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result1,SIZE));
+    printf("After the existential quantification of first variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result0,SIZE));
+    printf("After the universal quantification of first variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
 
     /* GRAPHVIZ/DOT OUTPUT OF RESULT0 AND RESULT1  - DEBUGGING, ONLY */
     /*
@@ -326,9 +381,9 @@ int main() {
     }
     */
 
-    s1 = (unsigned int) Biddy_CountMinterm(result,SIZE);
-    s2 = (unsigned int) Biddy_CountMinterm(result0,SIZE);
-    s3 = (unsigned int) Biddy_CountMinterm(result1,SIZE);
+    s1 = (unsigned int) Biddy_CountMinterms(result,SIZE);
+    s2 = (unsigned int) Biddy_CountMinterms(result0,SIZE);
+    s3 = (unsigned int) Biddy_CountMinterms(result1,SIZE);
 
     if ((s1 + s1) != (s2 + s3)) {
       printf("ERROR: Operation Quantification is wrong!\n");
@@ -347,12 +402,12 @@ int main() {
     }
     */
 
-    printf("After the existential quantification of last variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result0,SIZE));
-    printf("After the universal quantification of last variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result1,SIZE));
+    printf("After the existential quantification of last variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result0,SIZE));
+    printf("After the universal quantification of last variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
 
-    s1 = (unsigned int) Biddy_CountMinterm(result,SIZE);
-    s2 = (unsigned int) Biddy_CountMinterm(result0,SIZE);
-    s3 = (unsigned int) Biddy_CountMinterm(result1,SIZE);
+    s1 = (unsigned int) Biddy_CountMinterms(result,SIZE);
+    s2 = (unsigned int) Biddy_CountMinterms(result0,SIZE);
+    s3 = (unsigned int) Biddy_CountMinterms(result1,SIZE);
 
     if ((s1 + s1) != (s2 + s3)) {
       printf("ERROR: Operation Quantification is wrong!\n");
@@ -387,7 +442,7 @@ int main() {
     result1 = Biddy_E(result1,last);
     result2 = Biddy_ExistAbstract(result,cube);
 
-    printf("After the existential abstraction of first and last variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result2,SIZE));
+    printf("After the existential abstraction of first and last variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result2,SIZE));
 
     /* GRAPHVIZ/DOT OUTPUT OF RESULT1 - DEBUGGING, ONLY */
     /*
@@ -405,7 +460,7 @@ int main() {
     result1 = Biddy_A(result1,last);
     result2 = Biddy_UnivAbstract(result,cube);
 
-    printf("After the universal abstraction of first and last variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result2,SIZE));
+    printf("After the universal abstraction of first and last variable, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result2,SIZE));
 
     /* GRAPHVIZ/DOT OUTPUT OF RESULT1  - DEBUGGING, ONLY */
     /*
@@ -425,7 +480,7 @@ int main() {
     result2 = Biddy_ExistAbstract(result2,cube);
     result1 = Biddy_AndAbstract(result0,result1,cube);
 
-    printf("After the first user-defined abstraction, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result1,SIZE));
+    printf("After the first user-defined abstraction, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
 
     if (result1 != result2) {
       printf("ERROR: Operation Abstraction is wrong!\n");
@@ -435,7 +490,7 @@ int main() {
     result1 = Biddy_A(Biddy_Not(result),last);
     result1 = Biddy_AndAbstract(result0,result1,cube);
 
-    printf("After the second user-defined abstraction, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result1,SIZE));
+    printf("After the second user-defined abstraction, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
 
     if (result1 != Biddy_GetConstantZero()) {
       printf("ERROR: Operation Abstraction is wrong!\n");
@@ -446,8 +501,8 @@ int main() {
     result1 = Biddy_ITE(Biddy_E(result,first),Biddy_E(result,last),Biddy_A(result,last));
     result2 = Biddy_ITE(Biddy_A(result,first),Biddy_E(result,last),Biddy_A(result,last));
 
-    printf("After the first ITE, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result1,SIZE));
-    printf("After the second ITE, function result has %.0f minterms/combinations\n",Biddy_CountMinterm(result2,SIZE));
+    printf("After the first ITE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
+    printf("After the second ITE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result2,SIZE));
 
     /* GRAPHVIZ/DOT OUTPUT OF RESULT1 AND RESULT2 - DEBUGGING, ONLY */
     /*
@@ -489,11 +544,11 @@ int main() {
     /* START OF CONVERSIONS AND STATISTICS */
     /* ************************************************************* */
 
-    printf("%s for function result has %u nodes (including constants).\n",Biddy_GetManagerName(),Biddy_NodeNumber(result));
-    printf("%s for function result has %u plain nodes (including constants).\n",Biddy_GetManagerName(),Biddy_NodeNumberPlain(result));
+    printf("%s for function result has %u nodes (including terminals).\n",Biddy_GetManagerName(),Biddy_CountNodes(result));
+    printf("%s for function result has %u plain nodes (including terminals).\n",Biddy_GetManagerName(),Biddy_CountNodesPlain(result));
     printf("%s for function result has %llu one-paths.\n",Biddy_GetManagerName(),Biddy_CountPaths(result));
     printf("Function represented by %s depends on %u variables.\n",Biddy_GetManagerName(),Biddy_DependentVariableNumber(result));
-    printf("Considering the given set of variables, %s for function result has %.0f minterms/combinations.\n",Biddy_GetManagerName(),Biddy_CountMinterm(result,SIZE));
+    printf("Considering the given set of variables, %s for function result has %.0f minterms/combinations.\n",Biddy_GetManagerName(),Biddy_CountMinterms(result,SIZE));
     /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
     if (SIZE < 10) {
       Biddy_WriteDot("result.dot",result,"result",-1,FALSE);
@@ -502,11 +557,11 @@ int main() {
 
     /* CONVERT THE RESULT INTO OBDDC */
     robdd = Biddy_Copy(MNGOBDD,result);
-    printf("OBDDC for function result has %u nodes (including the constant).\n",Biddy_Managed_NodeNumber(MNGOBDD,robdd));
-    printf("OBDDC for function result has %u plain nodes (including both constants).\n",Biddy_Managed_NodeNumberPlain(MNGOBDD,robdd));
+    printf("OBDDC for function result has %u nodes (including terminal).\n",Biddy_Managed_CountNodes(MNGOBDD,robdd));
+    printf("OBDDC for function result has %u plain nodes (including both terminals).\n",Biddy_Managed_CountNodesPlain(MNGOBDD,robdd));
     printf("OBDDC for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGOBDD,robdd));
     printf("Function represented by OBDDC depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGOBDD,robdd));
-    printf("Considering the given set of variables, OBDDC for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGOBDD,robdd,SIZE));
+    printf("Considering the given set of variables, OBDDC for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDD,robdd,SIZE));
     /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
     if (SIZE < 10) {
       Biddy_Managed_WriteDot(MNGOBDD,"obdd.dot",robdd,"obdd",-1,FALSE);
@@ -516,11 +571,11 @@ int main() {
     /* CONVERT THE RESULT INTO ZBDDC */
     if (Biddy_GetManagerType() != BIDDYTYPETZBDDC) {
       rzbdd = Biddy_Copy(MNGZBDD,result);
-      printf("ZBDDC for function result has %u nodes (including the constant).\n",Biddy_Managed_NodeNumber(MNGZBDD,rzbdd));
-      printf("ZBDDC for function result has %u plain nodes (including both constants).\n",Biddy_Managed_NodeNumberPlain(MNGZBDD,rzbdd));
+      printf("ZBDDC for function result has %u nodes (including terminal).\n",Biddy_Managed_CountNodes(MNGZBDD,rzbdd));
+      printf("ZBDDC for function result has %u plain nodes (including both terminals).\n",Biddy_Managed_CountNodesPlain(MNGZBDD,rzbdd));
       printf("ZBDDC for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGZBDD,rzbdd));
       printf("Function represented by ZBDDC depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGZBDD,rzbdd));
-      printf("Considering the given set of variables, ZBDDC for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGZBDD,rzbdd,SIZE));
+      printf("Considering the given set of variables, ZBDDC for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDD,rzbdd,SIZE));
       /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
       if (SIZE < 10) {
         Biddy_Managed_WriteDot(MNGZBDD,"zbdd.dot",rzbdd,"zbdd",-1,FALSE);
@@ -531,10 +586,10 @@ int main() {
     if (Biddy_GetManagerType() != BIDDYTYPEZBDDC) {
       /* CONVERT THE RESULT INTO TZBDDs */
       rtzbdd = Biddy_Copy(MNGTZBDD,result);
-      printf("TZBDD for function result has %u nodes (including the constant).\n",Biddy_Managed_NodeNumber(MNGTZBDD,rtzbdd));
+      printf("TZBDD for function result has %u nodes (including the terminal).\n",Biddy_Managed_CountNodes(MNGTZBDD,rtzbdd));
       printf("TZBDD for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGTZBDD,rtzbdd));
       printf("Function represented by TZBDD depends on %u variables.\n",Biddy_Managed_DependentVariableNumber(MNGTZBDD,rtzbdd));
-      printf("Considering the given set of variables, TZBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterm(MNGTZBDD,rtzbdd,SIZE));
+      printf("Considering the given set of variables, TZBDD for function result has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGTZBDD,rtzbdd,SIZE));
       /* GRAPHVIZ/DOT OUTPUT OF THE RESULT */
       if (SIZE < 10) {
         Biddy_Managed_WriteDot(MNGTZBDD,"tzbdd.dot",rtzbdd,"tzbdd",-1,FALSE);
@@ -567,13 +622,13 @@ int main() {
         support = Biddy_Managed_And(MNGOBDD,support,Biddy_Managed_AddVariable(MNGOBDD));
       }
 
-      robdd = Biddy_Managed_Random(MNGOBDD,support,RATIO);
+      robdd = Biddy_Managed_RandomFunction(MNGOBDD,support,RATIO);
       rzbdd = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,robdd);
       rtzbdd = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,robdd);
 
-      s1 = Biddy_Managed_NodeNumber(MNGOBDD,robdd);
-      s2 = Biddy_Managed_NodeNumber(MNGZBDD,rzbdd);
-      s3 = Biddy_Managed_NodeNumber(MNGTZBDD,rtzbdd);
+      s1 = Biddy_Managed_CountNodes(MNGOBDD,robdd);
+      s2 = Biddy_Managed_CountNodes(MNGZBDD,rzbdd);
+      s3 = Biddy_Managed_CountNodes(MNGTZBDD,rtzbdd);
 
       obddsize += s1;
       zbddsize += s2;
@@ -603,11 +658,11 @@ int main() {
       /*
       if ((s2 < s1) && (s2 < s3)) {
         printf("OBDD has %u nodes without complemented edges (%u with complemented edges).\n",
-               Biddy_Managed_NodeNumberPlain(MNGOBDD,robdd), Biddy_Managed_NodeNumber(MNGOBDD,robdd));
+               Biddy_Managed_CountNodesPlain(MNGOBDD,robdd), Biddy_Managed_CountNodes(MNGOBDD,robdd));
         printf("ZBDD has %u nodes without complemented edges (%u with complemented edges).\n",
-               Biddy_Managed_NodeNumberPlain(MNGZBDD,rzbdd), Biddy_Managed_NodeNumber(MNGZBDD,rzbdd));
+               Biddy_Managed_CountNodesPlain(MNGZBDD,rzbdd), Biddy_Managed_CountNodes(MNGZBDD,rzbdd));
         printf("TZBDD has %u nodes without complemented edges.\n",
-               Biddy_Managed_NodeNumber(MNGTZBDD,rtzbdd));
+               Biddy_Managed_CountNodes(MNGTZBDD,rtzbdd));
         Biddy_Managed_PrintfTable(MNGOBDD,robdd);
         Biddy_Managed_WriteDot(MNGOBDD,"obdd.dot",robdd,"obdd",-1,FALSE);
         printf("USE 'dot -y -Tpng -O obdd.dot' to visualize OBDDC for function result.\n");

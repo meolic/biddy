@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 328 $]
+#  Date        [$Date: 2017-10-16 14:49:43 +0200 (pon, 16 okt 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2017 UM FERI
@@ -90,11 +90,11 @@ $(BINDIR):
 # -----------------------------------------------------------------------
 # make library
 
-#$(BINDIR)/biddyMain.o: biddyMain.c biddy.h biddyInt.h
-#	$(CC) -o $(BINDIR)/biddyMain.o -c biddyMain.c -D'BIDDYVERSION="$(BIDDYVERSION)"'
+$(BINDIR)/biddyMain.o: biddyMain.c biddy.h biddyInt.h
+	$(CC) -o $(BINDIR)/biddyMain.o -c biddyMain.c -D'BIDDYVERSION="$(BIDDYVERSION)"'
 
-$(BINDIR)/biddyMain.o: biddyMainGDD.c biddy.h biddyInt.h
-	$(CC) -o $(BINDIR)/biddyMain.o -c biddyMainGDD.c -D'BIDDYVERSION="$(BIDDYVERSION)"'
+$(BINDIR)/biddyOp.o: biddyOp.c biddy.h biddyInt.h
+	$(CC) -o $(BINDIR)/biddyOp.o -c biddyOp.c
 
 $(BINDIR)/biddyStat.o: biddyStat.c biddy.h biddyInt.h
 	$(CC) -o $(BINDIR)/biddyStat.o -c biddyStat.c
@@ -105,8 +105,8 @@ $(BINDIR)/biddyInOut.o: biddyInOut.c biddy.h biddyInt.h
 #$(BINDIR)/biddy4cudd.o: biddy4cudd.c biddy.h biddyInt.h biddy4cudd.h
 #	$(CC) -o $(BINDIR)/biddy4cudd.o -c biddy4cudd.c
 
-$(BINDIR)/$(LIBNAME): $(BINDIR)/biddyMain.o $(BINDIR)/biddyStat.o $(BINDIR)/biddyInOut.o
-	$(CD) $(BINDIR); $(LN) $(LIBNAME) biddyMain.o biddyStat.o biddyInOut.o $(LIBGMP)
+$(BINDIR)/$(LIBNAME): $(BINDIR)/biddyMain.o $(BINDIR)/biddyOp.o $(BINDIR)/biddyStat.o $(BINDIR)/biddyInOut.o
+	$(CD) $(BINDIR); $(LN) $(LIBNAME) biddyMain.o biddyOp.o biddyStat.o biddyInOut.o $(LIBGMP)
 
 # -----------------------------------------------------------------------
 # purge = purify source directory, clean = purify bin directory
@@ -132,6 +132,7 @@ purgevs:
 
 clean:
 	@$(RM) $(BINDIR)/biddyMain.o
+	@$(RM) $(BINDIR)/biddyOp.o
 	@$(RM) $(BINDIR)/biddyStat.o
 	@$(RM) $(BINDIR)/biddyInOut.o
 #	@$(RM) $(BINDIR)/biddy4cudd.o

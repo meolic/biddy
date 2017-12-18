@@ -65,8 +65,8 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 }
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 320 $]
-#  Date        [$Date: 2017-10-01 12:02:23 +0200 (ned, 01 okt 2017) $]
+#  Revision    [$Revision: 356 $]
+#  Date        [$Date: 2017-12-13 22:30:46 +0100 (sre, 13 dec 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2017 UM FERI
@@ -168,7 +168,7 @@ wm overrideredirect .splash 1
 update idletasks
 
 set SPLASHTEXT ""
-label .splash.f.l -text "BDD Scout v1.7.3" -font [list TkHeadingFont 36] -fg WHITE -bg BLACK
+label .splash.f.l -text "BDD Scout v1.7.4a" -font [list TkHeadingFont 36] -fg WHITE -bg BLACK
 pack .splash.f.l -expand 1
 label .splash.f.m1 -text "Copyright (C) 2008, 2017 UM FERI" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
 pack .splash.f.m1 -fill x -expand 0
@@ -187,7 +187,7 @@ update idletasks
 
 package require bddview
 wm iconify .
-wm title . "BDD Scout v1.7.3"
+wm title . "BDD Scout v1.7.4a"
 wm iconname . "bddscout"
 update idletasks
 
@@ -1052,16 +1052,16 @@ proc parseinput { } {
   if {$INPUT != ""} {
 
     set TRYCMD 0
-    if {($INPUT == "biddy_node_number") ||
-        ($INPUT == "biddy_node_max_level") ||
-        ($INPUT == "biddy_node_avg_level") ||
-        ($INPUT == "biddy_node_number_plain") ||
+    if {($INPUT == "biddy_count_nodes") ||
+        ($INPUT == "biddy_max_level") ||
+        ($INPUT == "biddy_avg_level") ||
+        ($INPUT == "biddy_count_nodes_plain") ||
         ($INPUT == "biddy_dependent_variable_number") ||
-        ($INPUT == "biddy_count_complemented") ||
+        ($INPUT == "biddy_count_complemented_edges") ||
         ($INPUT == "biddy_count_paths") ||
-        ($INPUT == "biddy_count_minterm") ||
-        ($INPUT == "biddy_density_function") ||
-        ($INPUT == "biddy_density_bdd") ||
+        ($INPUT == "biddy_count_minterms") ||
+        ($INPUT == "biddy_density_of_function") ||
+        ($INPUT == "biddy_density_of_bdd") ||
         ($INPUT == "biddy_printf_bdd") ||
         ($INPUT == "biddy_printf_table") ||
         ($INPUT == "biddy_printf_sop")
@@ -1088,10 +1088,8 @@ proc parseinput { } {
 
     if {($INPUTTYPE == 1) || ($TRYCMD == 1)} {
 
-      #set mystdout ""
-      #chan push stdout [CapturingTransform new mystdout]
       set result [eval $INPUT]
-      #chan pop stdout
+      update_info
 
       if {$result != ""} {
 

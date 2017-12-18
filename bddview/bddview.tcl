@@ -9,8 +9,8 @@ package require BWidget
 package provide bddview 1.0
 
 # ############################################
-# $Revision: 317 $
-# $Date: 2017-09-29 15:44:53 +0200 (pet, 29 sep 2017) $
+# $Revision: 334 $
+# $Date: 2017-10-30 20:53:56 +0100 (pon, 30 okt 2017) $
 #
 # This file (bddview.tcl) is a Tcl/Tk script
 # Author: Robert Meolic (robert.meolic@um.si)
@@ -1967,10 +1967,12 @@ proc connect {win num1 num2 type tag1 tag2} {
 
     set item [lindex [array get BDD "n$num1"] 1]
 
+    if {$tag1 == "0"} { set tag1 "" }
     if {$tag1 != ""} {
       set tag1 "#$tag1"
     }
 
+    if {$tag2 == "0"} { set tag2 "" }
     if {$tag2 != ""} {
       set tag2 "#$tag2"
     }

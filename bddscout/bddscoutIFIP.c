@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutIFIP.c]
-  Revision    [$Revision: 319 $]
-  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+  Revision    [$Revision: 353 $]
+  Date        [$Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -453,7 +453,7 @@ makeFunction(Biddy_Manager MNG, FILE *f, Biddy_String line, Biddy_String prefix)
   /* PROFILING */
   /*
   printf("FUNCTION NAME: <%s>: ",name);
-  printf("%u nodes\n",Biddy_Managed_NodeNumber(MNG,fun));
+  printf("%u nodes\n",Biddy_Managed_CountNodes(MNG,fun));
   */
   
   if (Biddy_IsNull(fun)) {

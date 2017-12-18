@@ -85,3 +85,9 @@ Changes v1.7.3 versus v1.7.2
 - TZBDDs are now drawn using terminal 0
 - added tcl commands for all Biddy functions from biddyInOut.c and biddyStat.c
 - tcl commands can be evaluated via input line
+
+Changes v1.7.4 versus v1.7.3
+- released on Dec 18, 2017
+- fixed drawing of TZBDDs
+- thanks to the improved Biddy, sifting on function is now working for ZBDDs and TZBDDs
+- added tcl commands for all Biddy functions from biddyOp.c

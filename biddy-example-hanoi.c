@@ -1,5 +1,5 @@
-/* $Revision: 309 $ */
-/* $Date: 2017-09-21 08:18:54 +0200 (čet, 21 sep 2017) $ */
+/* $Revision: 353 $ */
+/* $Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $ */
 /* This file (biddy-example-hanoi.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -9,19 +9,20 @@
 /* Prof. Edmund Clarke */
 /* http://www.cs.cmu.edu/~emc/15817-s05/ */
 
-/* The code using CUDD package is original */
+/* The code using CUDD package is copyed from the original */
 /* The code using Biddy package was added by Robert Meolic */
 
 /* This example is compatible with Biddy v1.7 and CUDD v3.0.0 */
+/* This example uses biddy-cudd.h and biddy-cudd.c */
 
 /* COMPILE WITH: */
-/* gcc -DREPORT -DUNIX -DUSE_BIDDY -DUSE_OBDDC -O2 -o biddy-example-hanoi-obdd biddy-example-hanoi.c -I. -L./bin -lbiddy -lgmp */
-/* gcc -DREPORT -DUNIX -DUSE_BIDDY -DUSE_ZBDDC -O2 -o biddy-example-hanoi-zbdd biddy-example-hanoi.c -I. -L./bin -lbiddy -lgmp */
-/* gcc -DREPORT -DUNIX -DUSE_BIDDY -DUSE_TZBDD -O2 -o biddy-example-hanoi-tzbdd biddy-example-hanoi.c -I. -L./bin -lbiddy -lgmp */
-/* gcc -DREPORT -DUSE_CUDD -DUSE_OBDDC -O2 -o cudd-example-hanoi-obdd biddy-example-hanoi.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
-/* gcc -DREPORT -DUSE_CUDD -DUSE_ZBDDC -O2 -o cudd-example-hanoi-zbdd biddy-example-hanoi.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
+/* gcc -DREPORT -DUNIX -DBIDDY -DOBDD -O2 -o biddy-example-hanoi-obdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
+/* gcc -DREPORT -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-hanoi-obddc biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
+/* gcc -DREPORT -DUNIX -DBIDDY -DZBDDC -O2 -o biddy-example-hanoi-zbddc biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
+/* gcc -DREPORT -DUNIX -DBIDDY -DTZBDD -O2 -o biddy-example-hanoi-tzbdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
+/* gcc -DREPORT -DCUDD -DOBDDC -O2 -o cudd-example-hanoi-obddc biddy-example-hanoi.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 
-/* Here are original comments */
+/* Here are the original comments */
 /*
 This example essentially illustrates reachability computation, which
 is one of the core operations inside a model checker.  In model
@@ -47,85 +48,12 @@ repeat till you hit the initial state.
 #define MAXSIZE 16
 #define SIZE 10
 
-#ifdef USE_BIDDY
-#  include "biddy.h"
-#  define BDDNULL NULL
-/* #define Biddy_Inv(f) Biddy_NOT(f) */ /* for compatibility with Biddy v1.6 */
-#endif
-
-#ifdef USE_CUDD
-#  include <stdio.h>
-#  include <stdlib.h>
-#  include <stdint.h>
-#  include <string.h>
-#  include <ctype.h>
-#  include <stdarg.h>
-#  include <math.h>
-#  include "cudd.h"
-#  define BDDNULL NULL
-#  ifndef TRUE
-#    define TRUE (0 == 0)
-#  endif
-#  ifndef FALSE
-#    define FALSE !TRUE
-#  endif
-typedef char *Biddy_String;
-typedef char Biddy_Boolean;
-typedef DdNode *Biddy_Edge;
-DdManager * manager;   /* BDD Manager */
-#endif
-
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 #include <time.h>
 
-#ifdef USE_CUDD
-#ifndef USE_ZBDDC
-#ifndef USE_OBDDC
-#define USE_OBDDC
-#endif
-#endif
-#define BIDDYTYPEOBDD 1
-#define BIDDYTYPEOBDDC 2
-#define BIDDYTYPEZBDD 3
-#define BIDDYTYPEZBDDC 4
-#define BIDDYTYPETZBDD 5
-#define BIDDYTYPETZBDDC 6
-#ifdef USE_OBDDC
-#define Biddy_GetManagerType() BIDDYTYPEOBDDC
-#define Biddy_GetConstantZero() Cudd_ReadLogicZero(manager)
-#define Biddy_GetConstantOne() Cudd_ReadOne(manager)
-#define Biddy_AddVariable() Cudd_bddNewVar(manager)
-#define Biddy_Not(f) Cudd_Not(f)
-#define Biddy_And(f,g) Cudd_bddAnd(manager,f,g)
-#define Biddy_Or(f,g) Cudd_bddOr(manager,f,g)
-#define Biddy_Xor(f,g) Cudd_bddXor(manager,f,g)
-#define Biddy_Xnor(f,g) Cudd_bddXnor(manager,f,g)
-#define Biddy_Compose(f,g,v) Cudd_bddCompose(manager,f,g,v-1)
-#define Biddy_AndAbstract(f,g,c) Cudd_bddAndAbstract(manager,f,g,c)
-#define Biddy_DependentVariableNumber(f) Cudd_SupportSize(manager,f)
-#define Biddy_CountMinterm(f,n) Cudd_CountMinterm(manager,f,n)
-#elif USE_ZBDDC
-#define Biddy_GetManagerType() BIDDYTYPEZBDDC
-#define Biddy_GetConstantZero() Cudd_ReadZero(manager)
-#define Biddy_GetConstantOne() Cudd_ReadZddOne(manager,0)
-#define Biddy_AddVariable() Cudd_zddIthVar(manager,Cudd_ReadZddSize(manager))
-#define Biddy_Not(f) Cudd_zddDiff(manager,Cudd_ReadZddOne(manager,0),f)
-#define Biddy_And(f,g) Cudd_zddIntersect(manager,f,g)
-#define Biddy_Or(f,g) Cudd_zddUnion(manager,f,g)
-#define Biddy_Xor(f,g) Cudd_
-#define Biddy_Xnor(f,g) Cudd_
-#define Biddy_Compose(f,g,v) Cudd_
-#define Biddy_AndAbstract(f,g,c) Cudd_
-#define Biddy_DependentVariableNumber(f) Cudd_ReadZddSize(manager) /* this is not always valid but there is no better option */
-#define Biddy_CountMinterm(f,n) Cudd_zddCountMinterm(manager,f,n)
-#endif
-#define Biddy_ChangeVariableName(v,name) 0
-#define Biddy_NodeNumber(f) Cudd_DagSize(f)
-#define Biddy_DensityBDD(f,n) Cudd_Density(manager,f,n)
-#define Biddy_NodeTableNum() Cudd_ReadKeys(manager)
-#define Biddy_NodeTableSize() Cudd_ReadSlots(manager)
-#define Biddy_ReadMemoryInUse() Cudd_ReadMemoryInUse(manager)
-#define Biddy_PrintInfo(s) Cudd_PrintInfo(manager,s)
-#endif
+#include "biddy-cudd.h"
 
 Biddy_Edge v1[MAXSIZE][3];  /* the current state */
 Biddy_Edge v2[MAXSIZE][3];  /* the next state */
@@ -163,38 +91,25 @@ int main(int argc, char** argv) {
   setbuf(stdout,NULL);
   elapsedtime = clock();
 
-  /* initialize the BDD manager with default options */
+#include "biddy-cudd.c" /* this will initialize BDD manager */
 
-#ifdef USE_BIDDY
-  printf("Using Biddy");
-  /* DEFAULT INIT CALL: Biddy_InitAnonymous(BIDDYTYPEOBDDC) */
-#ifdef USE_OBDDC
-  Biddy_InitAnonymous(BIDDYTYPEOBDDC);
-#elif USE_ZBDDC
-  Biddy_InitAnonymous(BIDDYTYPEZBDDC);
-#elif USE_TZBDD
-  Biddy_InitAnonymous(BIDDYTYPETZBDD);
-#else
-  Biddy_InitAnonymous(BIDDYTYPEOBDDC);
-#endif
-#endif
-
-#ifdef USE_CUDD
-  printf("Using CUDD");
-  /* DEFAULT INIT CALL: Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0) */
-  manager = Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0);
+#ifdef CUDD
   /* Cudd_SetMaxCacheHard(manager,262144); */
   /* Cudd_AutodynEnable(manager,CUDD_REORDER_SAME); */
 #endif
 
-  if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
-    printf(" (OBDDC)...\n");
+  printf("%s",Biddy_GetManagerName());
+  if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
+    printf(" (OBDD)\n");
+  }
+  else if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
+    printf(" (OBDDC)\n");
   }
   else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
-    printf(" (ZBDDC)...\n");
+    printf(" (ZBDDC)\n");
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    printf(" (TZBDD)...\n");
+    printf(" (TZBDD)\n");
   }
   else {
     printf(" (unknown)... EXIT!\n");
@@ -204,8 +119,15 @@ int main(int argc, char** argv) {
   /* create BDD variables */
   /* the current and next state variables are interleaved */
   /* this is usually a good ordering to start with */
-  if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC) ||
-      (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
+  /* Biddy allows state names, in CUDD we simply ignore them */
+  /* NOTE for Biddy: ZBDD and TZBDD variables are added in the reverse order by default */
+
+#ifdef BIDDY
+  if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC))
+#endif
+#ifdef CUDD
+  if (TRUE)
+#endif
   {
     char name[5];
     name[0] = name[1] = name[2] = name[3] = name[4] = 0;
@@ -220,13 +142,20 @@ int main(int argc, char** argv) {
         v2[i][j] = Biddy_AddVariable();
         name[0] = 'N';
         Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
+        REF(v1[i][j]);
+        REF(v2[i][j]);
       }
     }
   }
 
-  /* for Biddy, ZBDD variables are added in the reverse order to get consistent results */
-  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
-#ifdef USE_BIDDY
+#ifdef BIDDY
+  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC) ||
+      (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
+#endif
+#ifdef CUDD
+  if (FALSE)
+#endif
+  {
     char name[5];
     name[0] = name[1] = name[2] = name[3] = name[4] = 0;
     for(i=0;i<size;i++) {
@@ -240,151 +169,147 @@ int main(int argc, char** argv) {
         v1[size-i-1][3-j-1] = Biddy_AddVariable();
         name[0] = 'C';
         Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
+        REF(v2[size-i-1][3-j-1]);
+        REF(v1[size-i-1][3-j-1]);
       }
     }
-#endif
-#ifdef USE_CUDD
-    for(i=0;i<size;i++) {
-      for(j=0;j<3;j++) {
-        v1[i][j] = Biddy_AddVariable();
-        v2[i][j] = Biddy_AddVariable();
-      }
-    }
-#endif
   }
 
-  /* for ZBDDs, by adding new variables all the existing ones are changed */
-  /* after adding the last variable we have to refresh edges in v1 and v2 */
-  /* NOTE: for Biddy, ZBDD variables are added in the reverse order */
-  /* NOTE: user variables in Biddy start with index 1 */
-  /* NOTE: for CUDD, user variables start with index 0 */
+  /* For ZBDDs, by adding new variables all the existing ones are changed. */
+  /* Thus, after adding the last variable we have to refresh the array of variables. */
+  /* NOTE: Biddy_GetVariableEdge returns variables by the creation time, not by the order used in the BDD */
+  /* NOTE for Biddy: user variables start with index 1 */
+  /* NOTE for CUDD: user variables start with index 0 */
+
   if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
-#ifdef USE_BIDDY
     for(i=0;i<size;i++) {
       for(j=0;j<3;j++) {
+#ifdef BIDDY
+        /* variable edges in Biddy never become obsolete */
         v1[i][j] = Biddy_GetVariableEdge(2*(size*3-(i*3+j)));
         v2[i][j] = Biddy_GetVariableEdge(2*(size*3-(i*3+j))-1);
-      }
-    }
 #endif
-#ifdef USE_CUDD
-    for(i=0;i<size;i++) {
-      for(j=0;j<3;j++) {
+#ifdef CUDD
+        /* variable edges in CUDD are referenced - this is required for ZBDDs */
+        DEREF(v1[i][j]);
+        DEREF(v2[i][j]);
         v1[i][j] = Cudd_zddIthVar(manager,2*(i*3+j));
         v2[i][j] = Cudd_zddIthVar(manager,2*(i*3+j)+1);
+        REF(v1[i][j]);
+        REF(v2[i][j]);
+#endif
       }
     }
-#endif
   }
+
+  /* DEBUGGING */
+  /**/
+#ifdef BIDDY
+  {
+  Biddy_Variable v;
+  v = 0;
+  do {
+    v = Biddy_GetPrevVariable(v);
+  } while (!(Biddy_IsLowest(v)));
+  do {
+    printf("[%s]",Biddy_GetVariableName(v));
+    v = Biddy_GetNextVariable(v);
+  } while (v != 0);
+  printf("\n");
+  }
+#endif
+  /**/
 
   /* in the initial state, all the disks are in tower 0 */
 
   I = Biddy_GetConstantOne();
-#ifdef USE_CUDD
-  Cudd_Ref(I);
-#endif
+  REF(I);
   for(i=0;i<size;i++) {
     tmp1 = Biddy_And(I,v1[i][0]);
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,I);
-#endif
+    REF(tmp1);
+    DEREF(I);
     I = tmp1;
   }
   for(i=0;i<size;i++) {
     tmp1 = Biddy_And(I,Biddy_Not(v1[i][1]));
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,I);
-#endif
+    REF(tmp1);
+    DEREF(I);
     I = tmp1;
   }
   for(i=0;i<size;i++) {
     tmp1 = Biddy_And(I,Biddy_Not(v1[i][2]));
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,I);
-#endif
+    REF(tmp1);
+    DEREF(I);
     I = tmp1;
   }
 
-#ifdef USE_BIDDY
-  Biddy_AddTmpFormula(I,1);
-  Biddy_Clean();
-#endif
+  MARK(I);
+  SWEEP();
 
   /* in the final state, we want all the disks in tower 2 */
 
   E = Biddy_GetConstantOne();
-#ifdef USE_CUDD
-  Cudd_Ref(E);
-#endif
+  REF(E);
   for(i=0;i<size;i++) {
     tmp1 = Biddy_And(E,v1[i][2]);
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,E);
-#endif
+    REF(tmp1);
+    DEREF(E);
     E = tmp1;
   }
 
   for(i=0;i<size;i++) {
     tmp1 = Biddy_And(E,Biddy_Not(v1[i][0]));
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,E);
-#endif
+    REF(tmp1);
+    DEREF(E);
     E = tmp1;
   }
 
   for(i=0;i<size;i++) {
     tmp1 = Biddy_And(E,Biddy_Not(v1[i][1]));
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,E);
-#endif
+    REF(tmp1);
+    DEREF(E);
     E = tmp1;
   }
 
   NOT_E = Biddy_Not(E);
+  REF(NOT_E);
+  DEREF(E);
 
-#ifdef USE_BIDDY
-  Biddy_AddTmpFormula(I,1);
-  Biddy_AddTmpFormula(NOT_E,1);
-  Biddy_Clean();
-#endif
+  /* E is not needed anymore, only NOT_E is used further */
+
+  MARK(I);
+  MARK(NOT_E);
+  SWEEP();
 
   /* the transition relation is the disjunction of all possible moves */
 
   T = Biddy_GetConstantZero();
-#ifdef USE_CUDD
-  Cudd_Ref(T);
-#endif
+  REF(T);
 
   for(i=0;i<size;i++) {
     for(j=0;j<3;j++) {
+
       tmp1 = make_a_move(size,i,j,(j+1)%3);
+
       tmp2 = Biddy_Or(T,tmp1);
-#ifdef USE_CUDD
-      Cudd_Ref(tmp2);
-      Cudd_RecursiveDeref(manager,tmp1);
-      Cudd_RecursiveDeref(manager,T);
-#endif
+      REF(tmp2);
+      DEREF(tmp1);
+      DEREF(T);
       T = tmp2;
+
       tmp1 = make_a_move(size,i,j,(j+2)%3);
+
       tmp2 = Biddy_Or(T,tmp1);
-#ifdef USE_CUDD
-      Cudd_Ref(tmp2);
-      Cudd_RecursiveDeref(manager,tmp1);
-      Cudd_RecursiveDeref(manager,T);
-#endif
+      REF(tmp2);
+      DEREF(tmp1);
+      DEREF(T);
       T = tmp2;
-#ifdef USE_BIDDY
-      Biddy_AddTmpFormula(I,1);
-      Biddy_AddTmpFormula(NOT_E,1);
-      Biddy_AddTmpFormula(T,1);
-      Biddy_Clean();
-#endif
+
+      MARK(I);
+      MARK(NOT_E);
+      MARK(T);
+      SWEEP();
+
     }
   }
 
@@ -393,22 +318,18 @@ int main(int argc, char** argv) {
       (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
   {
     cube = Biddy_GetConstantOne();
-#ifdef USE_CUDD
-    Cudd_Ref(cube);
-#endif
+    REF(cube);
     for(i=0;i<size;i++) {
       for(j=0;j<3;j++) {
         tmp1 = Biddy_And(cube,v1[i][j]);
-#ifdef USE_CUDD
-        Cudd_Ref(tmp1);
-        Cudd_RecursiveDeref(manager,cube);
-#endif
+        REF(tmp1);
+        DEREF(cube);
         cube = tmp1;
       }
     }
   }
   else if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
-#ifdef USE_BIDDY
+#ifdef BIDDY
     cube = Biddy_GetBaseSet();
     for(i=0;i<size;i++) {
       for(j=0;j<3;j++) {
@@ -419,27 +340,23 @@ int main(int argc, char** argv) {
       }
     }
 #endif
-#ifdef USE_CUDD
+#ifdef CUDD
     /* NOT IMPLEMENTED, YET */
 #endif
   }
 
-#ifdef USE_BIDDY
-  Biddy_AddTmpFormula(I,1);
-  Biddy_AddTmpFormula(NOT_E,1);
-  Biddy_AddTmpFormula(T,1);
-  Biddy_AddTmpFormula(cube,1);
-  Biddy_Clean();
-#endif
+  MARK(I);
+  MARK(NOT_E);
+  MARK(T);
+  MARK(cube);
+  SWEEP();
 
   found = 0;
   num_steps = 0;
 
   /* R contains the states reached so far, initialized to I */
   R = I;
-#ifdef USE_CUDD
-  Cudd_Ref(R);
-#endif
+  REF(R);
 
   /* fixed point computation */
   while(1) {
@@ -448,84 +365,70 @@ int main(int argc, char** argv) {
     if (num_steps % (size*size) == 0) {
       printf(
         "R in while loop (num_steps=%u): %u variables, %.0f minterms, %u nodes.\n",
-        num_steps,3*size,Biddy_CountMinterm(R,3*size),Biddy_NodeNumber(R)
+        num_steps,Biddy_DependentVariableNumber(R),Biddy_CountMinterms(R,3*size),Biddy_CountNodes(R)
       );
     }
 #endif
 
-#ifdef USE_BIDDY
-    Biddy_AddTmpFormula(R,1);
-    Biddy_AddTmpFormula(NOT_E,1);
-    Biddy_AddTmpFormula(T,1);
-    Biddy_AddTmpFormula(cube,1);
-    Biddy_Clean();
-#endif
+    MARK(R);
+    MARK(NOT_E);
+    MARK(T);
+    MARK(cube);
+    SWEEP();
 
     /* check if we reached the goal state */
-    tmp1 = Biddy_Or(NOT_E,R);
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-#endif
+    tmp1 = Biddy_Or(NOT_E,R); 
     if (tmp1 == Biddy_GetConstantOne()) {
       found = 1;   /* goal reached */
       break;
     }
-#ifdef USE_CUDD
-    Cudd_RecursiveDeref(manager,tmp1);
-#endif
 
     /* compute the successors of the current state */
     image = compute_image(size,R,T,cube);
     num_steps++;
 
+    /* DEBUGGING */
+    /*
+    printf(
+      "image (num_steps=%u): %u variables, %.0f minterms, %u nodes.\n",
+      num_steps,Biddy_DependentVariableNumber(image),Biddy_CountMinterms(image,3*size),Biddy_CountNodes(image)
+    );
+    */
+
     /* check if we reached a new state */
     /* NOTE: fixed point check, easy with BDDs as they are canonical */
-    tmp1 = Biddy_Or(Biddy_Not(image),R);
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-#endif
-    if (tmp1 == Biddy_GetConstantOne())
+    tmp1 = Biddy_Not(image);
+    REF(tmp1);
+    tmp2 = Biddy_Or(tmp1,R);
+    REF(tmp2);
+    DEREF(tmp1);
+    if (tmp2 == Biddy_GetConstantOne()) {
+      DEREF(tmp2);
+      DEREF(image);
       break;  /* no new state reached */
-#ifdef USE_CUDD
-    Cudd_RecursiveDeref(manager,tmp1);
-#endif
+    }
+    DEREF(tmp2);
 
     /* add the new states to the reached set */
     tmp1 = Biddy_Or(image,R);
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,R);
-    Cudd_RecursiveDeref(manager,image);
-#endif
-
+    REF(tmp1);
+    DEREF(image);
+    DEREF(R);
     R = tmp1;
+
   }
 
 #ifdef REPORT
-    printf(
-      "R in while loop (num_steps=%u): %u variables, %.0f minterms, %u nodes.\n",
-      num_steps,3*size,Biddy_CountMinterm(R,3*size),Biddy_NodeNumber(R)
-    );
+  printf(
+    "R after while loop (num_steps=%u): %u variables, %.0f minterms, %u nodes.\n",
+    num_steps,Biddy_DependentVariableNumber(R),Biddy_CountMinterms(R,3*size),Biddy_CountNodes(R)
+  );
 #endif
 
   /* DUMP RESULT USING GRAPHVIZ/DOT */
   /*
-#ifdef USE_BIDDY
-  Biddy_WriteDot("hanoi-biddy.dot",image,"r",-1,FALSE);
-#elif USE_CUDD
-  {
-  FILE * fp;
-  fp = fopen("hanoi-cudd.dot","w");
-  Cudd_DumpDot(manager,1,&image,NULL,NULL,fp);
-  fclose(fp);
-  }
-#endif
+  Biddy_WriteDot("hanoi.dot",R,"R",-1,FALSE);
   */
-
-#ifdef USE_CUDD
-  Cudd_RecursiveDeref(manager,tmp1);
-  Cudd_RecursiveDeref(manager,image);
-#endif
 
   elapsedtime = clock()-elapsedtime;
 
@@ -544,28 +447,32 @@ int main(int argc, char** argv) {
 
   fprintf(stderr,"clock() TIME = %.2f\n",elapsedtime/(1.0*CLOCKS_PER_SEC));
 
-  /* free BDDs and the manager */
-
   /* EXIT */
-#ifdef USE_BIDDY
-  Biddy_Exit();
-#endif
-#ifdef USE_CUDD
-  Cudd_RecursiveDeref(manager,cube);
-  Cudd_RecursiveDeref(manager,I);
-  Cudd_RecursiveDeref(manager,T);
-  Cudd_RecursiveDeref(manager,E);
+
+  DEREF(I);
+  DEREF(NOT_E);
+  DEREF(T);
+  DEREF(cube);
+  DEREF(R);
+  for(i=0;i<size;i++) {
+    for(j=0;j<3;j++) {
+      DEREF(v1[i][j]);
+      DEREF(v2[i][j]);
+    }
+  }
+
 #ifdef REPORT
+#ifdef CUDD
   printf("CUDD: nodes with non-zero reference counts: %d\n",Cudd_CheckZeroRef(manager));
 #endif
-  Cudd_Quit(manager);
 #endif
 
+  Biddy_Exit();
 }
 
 /* returns a BDD representing move of disk i from tower j to tower k */
 Biddy_Edge make_a_move(unsigned int size, unsigned int i, unsigned int j,
-                       unsigned int k)
+                        unsigned int k)
 {
   Biddy_Edge result;
   unsigned int l,m;
@@ -573,49 +480,37 @@ Biddy_Edge make_a_move(unsigned int size, unsigned int i, unsigned int j,
   Biddy_Edge tmp2;
 
   result = v1[i][j];  /* disk i is in tower j */
-#ifdef USE_CUDD
-  Cudd_Ref(result);
-#endif
+  REF(result);
 
   /* this loop enforces that there is no smaller disk in tower j or tower k */
   /* no smaller disk in tower j implies that the disk at hand is at the top */
   /* no smaller disk in tower k implies that we can move the disk to tower k */
-  for(l=i-1;l>=0;l--) {
+  for(l=0;l<i;l++) {
     tmp1 = Biddy_And(result,Biddy_Not(v1[l][j]));
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,result);
-#endif
+    REF(tmp1);
+    DEREF(result);
     result = tmp1;
 
     tmp1 = Biddy_And(result,Biddy_Not(v1[l][k]));
-#ifdef USE_CUDD
-    Cudd_Ref(tmp1);
-    Cudd_RecursiveDeref(manager,result);
-#endif
+    REF(tmp1);
+    DEREF(result);
     result = tmp1;
   }
 
   /* move the current disk to tower k */
   tmp1 = Biddy_And(result,v2[i][k]);
-#ifdef USE_CUDD
-  Cudd_Ref(tmp1);
-  Cudd_RecursiveDeref(manager,result);
-#endif
+  REF(tmp1);
+  DEREF(result);
   result = tmp1;
 
   tmp1 = Biddy_And(result,Biddy_Not(v2[i][(k+1)%3]));
-#ifdef USE_CUDD
-  Cudd_Ref(tmp1);
-  Cudd_RecursiveDeref(manager,result);
-#endif
+  REF(tmp1);
+  DEREF(result);
   result = tmp1;
 
   tmp1 = Biddy_And(result,Biddy_Not(v2[i][(k+2)%3]));
-#ifdef USE_CUDD
-  Cudd_Ref(tmp1);
-  Cudd_RecursiveDeref(manager,result);
-#endif
+  REF(tmp1);
+  DEREF(result);
   result = tmp1;
 
   /* the other disks stay where they are */
@@ -624,16 +519,12 @@ Biddy_Edge make_a_move(unsigned int size, unsigned int i, unsigned int j,
       for(m=0;m<3;m++) {
 
         tmp1 = Biddy_Xnor(v1[l][m],v2[l][m]);
-#ifdef USE_CUDD
-        Cudd_Ref(tmp1);
-#endif
+        REF(tmp1);
 
         tmp2 = Biddy_And(result,tmp1);
-#ifdef USE_CUDD
-        Cudd_Ref(tmp2);
-        Cudd_RecursiveDeref(manager,result);
-        Cudd_RecursiveDeref(manager,tmp1);
-#endif
+        REF(tmp2);
+        DEREF(result);
+        DEREF(tmp1);
 
         result = tmp2;
       }
@@ -646,7 +537,7 @@ Biddy_Edge make_a_move(unsigned int size, unsigned int i, unsigned int j,
 /* given a set of states R and a transition relation T, returns the BDD */
 /* for the states that can be reached in one step from R following T */
 Biddy_Edge compute_image(unsigned int size, Biddy_Edge R, Biddy_Edge T,
-                         Biddy_Edge cube)
+                          Biddy_Edge cube)
 {
   Biddy_Edge result;
   unsigned int i;
@@ -656,15 +547,13 @@ Biddy_Edge compute_image(unsigned int size, Biddy_Edge R, Biddy_Edge T,
   /* the following Cudd function computes the conjunction of R and T; */
   /* and quantifies out the variables in cube ( the current state variables ) */
   result = Biddy_AndAbstract(R,T,cube);
-#ifdef USE_CUDD
-  Cudd_Ref(result);
-#endif
+  REF(result);
 
   /* DEBUGGING, ONLY */
   /*
   printf(
     "compute_image after ANDABSTRACT: i=%d, j=%d, %u variables, %.0f minterms, %u nodes.\n",
-    i,j,3*size,Biddy_CountMinterm(result,3*size),Biddy_NodeNumber(result)
+    i,j,3*size,Biddy_CountMinterms(result,3*size),Biddy_CountNodes(result)
   );
   */
 
@@ -674,36 +563,36 @@ Biddy_Edge compute_image(unsigned int size, Biddy_Edge R, Biddy_Edge T,
       /* compose replaces v2[i][j] with v1[i][j] */
       /* original: Cudd_bddCompose(manager,result,v1[i][j],2*(i*3+j)+1) */
       /* for Biddy, user variables start with index 1 */
-      /* for Biddy, OBDD and TZBDD variables have been generated in the following order: */
-      /* (0)=v1[0][0], (1)=v2[0][0], (2)=v1[0][1], (3)=v2[0][1],..., (2*size*3-1)=v2[size-1][2] */
-      /* for Biddy, ZBDD variables have been generated in the following order: */
-      /* (1)=v2[size-1][2], (2)=v1[size-1][2], (3)=v2[size-1][1], (4)=v1[size-1][1],..., (2*size*3)=v1[0][0] */
+      /* for Biddy, OBDD variables have been generated in the following order: */
+      /* (1)=v1[0][0], (2)=v2[0][0], (3)=v1[0][1], (4)=v2[0][1],..., (2*3*size)=v2[size-1][2] */
+      /* for Biddy, ZBDD and TZBDD variables have been generated in the following order: */
+      /* (1)=v2[size-1][2], (2)=v1[size-1][2], (3)=v2[size-1][1], (4)=v1[size-1][1],..., (2*3*size)=v1[0][0] */
       /* for CUDD, user variables start with index 0 */
       /* for CUDD, OBDD and ZBDD variables have been generated in the following order: */
-      /* (0)=v1[0][0], (1)=v2[0][0], (2)=v1[0][1], (3)=v2[0][1],..., (2*size*3-1)=v2[size-1][2] */
-#ifdef USE_BIDDY
-      if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC) ||
-          (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
+      /* (0)=v1[0][0], (1)=v2[0][0], (2)=v1[0][1], (3)=v2[0][1],..., (2*3*size-1)=v2[size-1][2] */
+#ifdef BIDDY
+      if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC))
       {
         tmp1 = Biddy_Compose(result,v1[i][j],2*(i*3+j)+2);
       }
-      else if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
+      else if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC) ||
+                (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
       {
         tmp1 = Biddy_Compose(result,v1[i][j],2*(size*3-(i*3+j))-1);
       }
 #endif
-#ifdef USE_CUDD
+#ifdef CUDD
       tmp1 = Biddy_Compose(result,v1[i][j],2*(i*3+j)+1);
-      Cudd_Ref(tmp1);
-      Cudd_RecursiveDeref(manager,result);
 #endif
+      REF(tmp1);
+      DEREF(result);
       result = tmp1;
 
       /* DEBUGGING, ONLY */
       /*
       printf(
         "compute_image: i=%d, j=%d, %u variables, %.0f minterms, %u nodes.\n",
-        i,j,3*size,Biddy_CountMinterm(result,3*size),Biddy_NodeNumber(result)
+        i,j,3*size,Biddy_CountMinterms(result,3*size),Biddy_CountNodes(result)
       );
       */
 

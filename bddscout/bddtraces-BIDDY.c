@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddtraces-BIDDY.c]
-  Revision    [$Revision: 319 $]
-  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+  Revision    [$Revision: 353 $]
+  Date        [$Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -488,8 +488,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -573,8 +573,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -625,8 +625,8 @@ BddscoutRunBddTrace(FILE *f)
             
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -677,8 +677,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -726,8 +726,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -793,8 +793,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -842,8 +842,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -909,8 +909,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -976,8 +976,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -1043,8 +1043,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -1110,8 +1110,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);
@@ -1177,9 +1177,9 @@ BddscoutRunBddTrace(FILE *f)
 
               /* DEBUGGING */
               /*
-              printf("Biddy_Managed_AndAbstract: Function f has %u nodes.\n",Biddy_Managed_NodeNumber(MNG,bdd2));
-              printf("Biddy_Managed_AndAbstract: Function g has %u nodes.\n",Biddy_Managed_NodeNumber(MNG,bdd3));
-              printf("Biddy_Managed_AndAbstract: Function cube has %u nodes.\n",Biddy_Managed_NodeNumber(MNG,bdd1));
+              printf("Biddy_Managed_AndAbstract: Function f has %u nodes.\n",Biddy_Managed_CountNodes(MNG,bdd2));
+              printf("Biddy_Managed_AndAbstract: Function g has %u nodes.\n",Biddy_Managed_CountNodes(MNG,bdd3));
+              printf("Biddy_Managed_AndAbstract: Function cube has %u nodes.\n",Biddy_Managed_CountNodes(MNG,bdd1));
               */
 
               bdd = Biddy_Managed_AndAbstract(MNG,bdd2,bdd3,bdd1);
@@ -1203,8 +1203,8 @@ BddscoutRunBddTrace(FILE *f)
 
             startTime = clock();
 
-            result = Biddy_Managed_NodeNumber(MNG,bdd);
-            resultPlain = Biddy_Managed_NodeNumberPlain(MNG,bdd);
+            result = Biddy_Managed_CountNodes(MNG,bdd);
+            resultPlain = Biddy_Managed_CountNodesPlain(MNG,bdd);
 
             endTime = clock();
             statTime = (endTime - startTime) / (1.0 * CLOCKS_PER_SEC);

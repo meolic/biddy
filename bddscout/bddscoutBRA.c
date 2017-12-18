@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutBRA.c]
-  Revision    [$Revision: 319 $]
-  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+  Revision    [$Revision: 353 $]
+  Date        [$Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
@@ -85,9 +85,9 @@ BddscoutBRAExhaustive(Biddy_String fname)
 
       /* HERE, WE OBTAIN STATISTICS */
       sprintf(line,"%s-%02d %d %d %.4f ",fname,i,
-              Biddy_Managed_NodeNumber(MNG,table[i]),
-              Biddy_Managed_NodeMaxLevel(MNG,table[i]),
-              Biddy_Managed_NodeAvgLevel(MNG,table[i]));
+              Biddy_Managed_CountNodes(MNG,table[i]),
+              Biddy_Managed_MaxLevel(MNG,table[i]),
+              Biddy_Managed_AvgLevel(MNG,table[i]));
       report = (Biddy_String) realloc(report,strlen(report)+strlen(line)+1);
       strcat(report,line);
       free(line);

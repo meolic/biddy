@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 364 $]
+#  Date        [$Date: 2017-12-18 10:53:04 +0100 (pon, 18 dec 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2017 UM FERI
@@ -50,8 +50,8 @@
 # OR
 # pbuilder-dist xenial login --save-after-login
 # You will get root prompt and then do the following:
-# apt-get install gnupg2 (seems to be needed for zesty)
-# apt-get install dirmngr (seems to be needed for zesty)
+# apt-get install gnupg2 (this seems to be needed for artful)
+# apt-get install dirmngr (this seems to be needed for artful)
 # apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9018C2C6
 # exit
 
@@ -181,10 +181,10 @@ mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for zesty
+# create a source distribution for artful
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=zesty
+ALTDISTRO=artful
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -205,8 +205,8 @@ echo "************************"
 echo ""
 
 # all target pbuilder environments must already exists
-# use e.g pbuilder-dist zesty create
-# use e.g pbuilder-dist zesty update
+# use e.g pbuilder-dist artful create
+# use e.g pbuilder-dist artful update
 
 echo "BUILDING FOR YOUR DIST: $DIST"
 pbuilder-dist $DISTRO build --buildresult `pwd`/default `pwd`/default/source/*.dsc
@@ -227,7 +227,7 @@ pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/s
 #pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
 #popd
 
-ALTDISTRO=zesty
+ALTDISTRO=artful
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 #pushd `pwd`/$ALTDISTRO/source

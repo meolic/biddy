@@ -1,6 +1,6 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 348 $]
+#  Date        [$Date: 2017-11-21 21:37:00 +0100 (tor, 21 nov 2017) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2017 UM FERI
@@ -31,6 +31,9 @@ menu .menuFrame.bra.menu -font MENUFONT -relief groove -tearoff false
 .menuFrame.bra.menu add separator
 .menuFrame.bra.menu add command -command menu_bra_sifting -label "Sifting"
 .menuFrame.bra.menu add command -command menu_bra_sifting_on_function -label "Sifting on function"
+.menuFrame.bra.menu add separator
+.menuFrame.bra.menu add command -command menu_bra_minimize -label "Minimize BDD"
+.menuFrame.bra.menu add command -command menu_bra_maximize -label "Maximize BDD"
 .menuFrame.bra.menu add separator
 .menuFrame.bra.menu add command -command menu_bra_exhaustive -label "Exhaustive statistic"
 
@@ -104,6 +107,54 @@ proc menu_bra_sifting_on_function {  } {
     biddy_sifting_on_function $BDDNAME
   } else {
     biddy_sifting_on_function [browse_formulae_byNodeNumber]
+  }
+  update_info
+
+  if {$BDDNAME != ""} {
+    set tmpfile "tmp.bddview"
+    if {[file executable $DOT_EXE] == 1} {
+      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
+      bddview_draw $tmpfile
+      file delete $tmpfile
+    }
+
+  }
+}
+
+proc menu_bra_minimize {  } {
+  global mainwin
+  global OS
+  global DOT_EXE
+  global BDDNAME
+
+  if {$BDDNAME != ""} {
+    biddy_minimize $BDDNAME
+  } else {
+    biddy_minimize [browse_formulae_byNodeNumber]
+  }
+  update_info
+
+  if {$BDDNAME != ""} {
+    set tmpfile "tmp.bddview"
+    if {[file executable $DOT_EXE] == 1} {
+      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
+      bddview_draw $tmpfile
+      file delete $tmpfile
+    }
+
+  }
+}
+
+proc menu_bra_maximize {  } {
+  global mainwin
+  global OS
+  global DOT_EXE
+  global BDDNAME
+
+  if {$BDDNAME != ""} {
+    biddy_maximize $BDDNAME
+  } else {
+    biddy_maximize [browse_formulae_byNodeNumber]
   }
   update_info
 

@@ -1,8 +1,8 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 319 $
-REM  $Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $
+REM  $Revision: 366 $
+REM  $Date: 2017-12-18 13:13:02 +0100 (pon, 18 dec 2017) $
 REM
 REM  This file is part of Biddy.
 REM  Copyright (C) 2006, 2017 UM FERI
@@ -33,7 +33,6 @@ FOR /F "USEBACKQ" %%T IN (`TYPE VERSION`) DO SET VVERSION=%%T
 SET VERSION=%VVERSION:.=-%
 SET MYZIP="C:\Program Files\7-Zip\7z.exe" a
 SET SFX="C:\Program Files\7-Zip\7zsd_All_x64.sfx"
-SET MPIRDLL="C:\Users\Robert\Documents\mpir-dll-2.7.2\mpir.dll"
 
 rm -f %NAME%-bin-%VERSION%-Win.7z
 rm -f %NAME%-bin-%VERSION%-Win.exe
@@ -48,9 +47,22 @@ make clean "BINDIR = ../biddy/%NAME%-%VERSION%"
 cp COPYING ./%NAME%-%VERSION%/
 cp CHANGES ./%NAME%-%VERSION%/CHANGES
 cp biddy.h ./%NAME%-%VERSION%/
-cp %MPIRDLL% ./%NAME%-%VERSION%/
+
+REM mpir.dll IS USED FOR BUILDING WITH Visual Studio, ONLY.
+REM libmpir-16.dll IS USED FOR BUILDING WITH MINGW
+REM libmpir-16.dll IS COPIED TO TARGET FOLDER BY Makefile.MINGW
+REM SET MPIRDLL="C:\Users\Robert\Documents\mpir-dll-2.7.2\mpir.dll"
+REM cp %MPIRDLL% ./%NAME%-%VERSION%/
 
 %MYZIP% %NAME%-%VERSION%-Win.7z .\%NAME%-%VERSION%\* -x!.\%NAME%-%VERSION%\*.h -x!.\%NAME%-%VERSION%\*.a -x!.\%NAME%-%VERSION%\*.lib
+
+cp biddy-cudd.h biddy-cudd.c ./%NAME%-%VERSION%/
+cp biddy-example-8queens.c ./%NAME%-%VERSION%/
+cp biddy-example-independence.c biddy-example-independence-europe.c biddy-example-independence-usa.c biddy-example-independence-test.c ./%NAME%-%VERSION%/
+cp biddy-example-hanoi.c ./%NAME%-%VERSION%/
+cp biddy-example-dictionary.c ./%NAME%-%VERSION%/
+cp biddy-example-bra.c ./%NAME%-%VERSION%/
+
 %MYZIP% %NAME%-dev-%VERSION%-Win.7z .\%NAME%-%VERSION%\*
 
 echo "Creating %NAME%-bin-%VERSION%-Win.exe ..."

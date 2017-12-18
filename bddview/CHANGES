@@ -45,3 +45,7 @@ Changes in 1.0
 Changes in 1.1
 - released on Oct 1, 2017
 - line started with '#' is now a comment
+
+Changes in 1.2
+- released on Dec 18, 2017
+- to support correct drawing of TZBDDs, tag "0" is not shown

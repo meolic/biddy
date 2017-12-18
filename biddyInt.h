@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 319 $]
-    Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+    Revision    [$Revision: 360 $]
+    Date        [$Date: 2017-12-16 09:23:48 +0100 (sob, 16 dec 2017) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
@@ -99,7 +99,9 @@ See also: biddy.h
 /* For TZBDDs and TZFDDs, the limit is 65536 variables on 64-bit architecture */
 /* If there are more than 32768 variables then some macros in biddy.h must be changed */
 /* BIDDY IS NOT EFFICIENT WITH MANY VARIABLES! */
+/* #define BIDDYVARMAX 1024 */
 #define BIDDYVARMAX 2048
+/* #define BIDDYVARMAX 4096 */
 
 /*----------------------------------------------------------------------------*/
 /* Macro definitions                                                          */
@@ -267,6 +269,12 @@ See also: biddy.h
 /* BiddyIsSmaller returns TRUE if the first variable is smaller (= lower = previous = above = topmore), manager MNG is assumed, since Biddy v1.7 */
 #define BiddyIsSmaller(fv,gv) GET_ORDER(biddyOrderingTable,fv,gv)
 
+/* BiddyIsLowest returns TRUE if the variable is the lowest one (lowest = topmost), manager MNG is assumed, since Biddy v1.7 */
+#define BiddyIsLowest(v) (biddyVariableTable.table[v].prev >= biddyVariableTable.num)
+
+/* BiddyIsHighest returns TRUE if the variable is the highest one ignoring the terminal node (highest = bottommost), manager MNG is assumed, since Biddy v1.7 */
+#define BiddyIsHighest(v) (biddyVariableTable.table[v].next == 0)
+
 /* BiddyIsOK is intended for debugging, only, manager MNG is assumed, since Biddy v1.7 */
 #define BiddyIsOK(f) (!(BiddyN(f)->expiry) || ((BiddyN(f)->expiry) >= biddySystemAge))
 /* #define BiddyIsOK(f) ((!(BiddyN(f)->expiry) || ((BiddyN(f)->expiry) >= biddySystemAge)) && checkFunctionOrdering(MNG,f)) */
@@ -322,9 +330,7 @@ typedef struct {
   float resizeratioF; /* resize Node table if there are to many nodes */
   float resizeratioX; /* resize Node table if there are to many nodes */
   float siftingtreshold; /* stop sifting if the size of the system grows to much */
-  float fsiftingtreshold; /* stop sifting if the size of the function grows to much */
   float convergesiftingtreshold;  /* stop one step of converging sifting if the size of the system grows to much */
-  float fconvergesiftingtreshold; /* stop one step of converging sifting if the size of the function grows to much */
 
 #ifdef BIDDYEXTENDEDSTATS_YES
   unsigned long long int foa; /* number of calls to Biddy_FoaNode */
@@ -358,6 +364,7 @@ typedef struct {
   Biddy_Edge element; /* bdd representing a set with a single element, i.e. {{x}} */
   Biddy_Edge value; /* value: biddyZero = 0, biddyOne = 1, reused in some algorithms */
   Biddy_Boolean selected; /* used to count variables */
+  void *data; /* can be used to associate various user data with every variable */
 } BiddyVariable;
 
 typedef struct {
@@ -375,7 +382,7 @@ typedef struct {
 
 /* ORDERING TABLE = TWO-DIMENSIONAL MATRIX OF BITS */
 /* ordering table is used to define variable ordering. */
-/* constants 0 and 1 have max order */
+/* constant variable 1 has max order */
 /* USABLE ONLY AS AN IRREFLEXIVE TRANSITIVE RELATION */
 /* MATRIX'S DIMENSION IN BITS = (VARMAX) x (VARMAX) */
 /* orderingtable[X,Y]==1 iff variabe X is smaller than variable Y */
@@ -529,6 +536,7 @@ typedef struct {
   BiddyNode *org; /* original pointer, used when deleting local cache */
   union {
     unsigned int enumerator; /* used in enumerateNodes */
+    BiddyNode *copy; /* used in BiddyCopy */
     unsigned int npSelected; /* used in nodePlainNumber and nodeVarNumber */
     /* NOTE: positiveSelected iff (data.npSelected & 1 != 0) */
     /* NOTE: negativeSelected iff (data.npSelected & 2 != 0) */
@@ -555,6 +563,61 @@ extern BiddyLocalInfo *biddyLocalInfo; /* reference to Local Info */
 
 #define BiddyManagedFoaNode(MNG,v,pf,pt,garbageAllowed) BiddyManagedTaggedFoaNode(MNG,v,pf,pt,v,garbageAllowed)
 extern Biddy_Edge BiddyManagedTaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt, Biddy_Variable ptag, Biddy_Boolean garbageAllowed);
+
+extern void BiddyIncSystemAge(Biddy_Manager MNG);
+extern void BiddyDecSystemAge(Biddy_Manager MNG);
+void BiddyCompactSystemAge(Biddy_Manager MNG);
+extern void BiddyProlongRecursively(Biddy_Manager MNG, Biddy_Edge f, unsigned int c, Biddy_Variable target);
+extern Biddy_Variable BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
+extern void BiddyDeleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
+extern unsigned int BiddyGetSeqByNode(Biddy_Edge root, Biddy_Edge f);
+extern Biddy_Edge BiddyGetNodeBySeq(Biddy_Edge root, unsigned int n);
+extern void BiddySetEnumerator(Biddy_Edge f, unsigned int n);
+extern unsigned int BiddyGetEnumerator(Biddy_Edge f);
+extern void BiddySetCopy(Biddy_Edge f, BiddyNode *n);
+extern BiddyNode * BiddyGetCopy(Biddy_Edge f);
+extern void BiddySetPath0Count(Biddy_Edge f, unsigned long long int value);
+extern unsigned long long int BiddyGetPath0Count(Biddy_Edge f);
+extern void BiddySetPath1Count(Biddy_Edge f, unsigned long long int value);
+extern unsigned long long int BiddyGetPath1Count(Biddy_Edge f);
+extern void BiddySetLeftmost(Biddy_Edge f, Biddy_Boolean value);
+extern Biddy_Boolean BiddyGetLeftmost(Biddy_Edge f);
+extern void BiddySetMintermCount(Biddy_Edge f, mpz_t value);
+extern void BiddyGetMintermCount(Biddy_Edge f, mpz_t result);
+extern void BiddySelectNP(Biddy_Edge f);
+extern Biddy_Boolean BiddyIsSelectedNP(Biddy_Edge f);
+extern Biddy_Boolean BiddyGlobalSifting(Biddy_Manager MNG, Biddy_Boolean converge);
+extern Biddy_Boolean BiddySiftingOnFunction(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge);
+extern Biddy_Boolean BiddySiftingOnFunctionDirect(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge);
+extern void BiddySetOrdering(Biddy_Manager MNG, BiddyOrderingTable ordering);
+extern void BiddySetOrderingByData(Biddy_Manager MNG, BiddyOrderingTable ordering);
+extern Biddy_Edge BiddyCopy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
+extern Biddy_Edge BiddyCopyOBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
+extern Biddy_Edge BiddyCopyZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
+extern Biddy_Edge BiddyCopyTZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
+extern Biddy_Edge BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
+
+extern void BiddyOPGarbage(Biddy_Manager MNG);
+extern void BiddyOPGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v);
+extern void BiddyOPGarbageDeleteAll(Biddy_Manager MNG);
+extern void BiddyEAGarbage(Biddy_Manager MNG);
+extern void BiddyEAGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v);
+extern void BiddyEAGarbageDeleteAll(Biddy_Manager MNG);
+extern void BiddyRCGarbage(Biddy_Manager MNG);
+extern void BiddyRCGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v);
+extern void BiddyRCGarbageDeleteAll(Biddy_Manager MNG);
+extern void BiddyReplaceGarbage(Biddy_Manager MNG);
+extern void BiddyReplaceGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v);
+extern void BiddyReplaceGarbageDeleteAll(Biddy_Manager MNG);
+
+extern void BiddySystemReport(Biddy_Manager MNG);
+extern void BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f);
+extern void BiddyDebugNode(Biddy_Manager MNG, BiddyNode *node);
+extern void BiddyDebugEdge(Biddy_Manager MNG, Biddy_Edge edge);
+
+/*----------------------------------------------------------------------------*/
+/* Prototypes for internal functions defined in biddyOp.c                     */
+/*----------------------------------------------------------------------------*/
 
 extern Biddy_Edge BiddyManagedNot(const Biddy_Manager MNG, const Biddy_Edge f);
 extern Biddy_Edge BiddyManagedITE(const Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h);
@@ -584,34 +647,6 @@ extern Biddy_Edge BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Vari
 #define BiddyManagedUnion(MNG,f,g) BiddyManagedOr(MNG,f,g)
 #define BiddyManagedIntersect(MNG,f,g) BiddyManagedAnd(MNG,f,g)
 #define BiddyManagedDiff(MNG,f,g) BiddyManagedGt(MNG,g,f)
-
-extern void BiddyIncSystemAge(Biddy_Manager MNG);
-extern void BiddyDecSystemAge(Biddy_Manager MNG);
-extern void BiddyProlongRecursively(Biddy_Manager MNG, Biddy_Edge f, unsigned int c);
-extern Biddy_Variable BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
-extern void BiddyDeleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
-extern unsigned int BiddyGetSeqByNode(Biddy_Edge root, Biddy_Edge f);
-extern Biddy_Edge BiddyGetNodeBySeq(Biddy_Edge root, unsigned int n);
-extern void BiddySetEnumerator(Biddy_Edge f, unsigned int n);
-extern unsigned int BiddyGetEnumerator(Biddy_Edge f);
-extern void BiddySetPath0Count(Biddy_Edge f, unsigned long long int value);
-extern unsigned long long int BiddyGetPath0Count(Biddy_Edge f);
-extern void BiddySetPath1Count(Biddy_Edge f, unsigned long long int value);
-extern unsigned long long int BiddyGetPath1Count(Biddy_Edge f);
-extern void BiddySetLeftmost(Biddy_Edge f, Biddy_Boolean value);
-extern Biddy_Boolean BiddyGetLeftmost(Biddy_Edge f);
-extern void BiddySetMintermCount(Biddy_Edge f, mpz_t value);
-extern void BiddyGetMintermCount(Biddy_Edge f, mpz_t result);
-extern void BiddySelectNP(Biddy_Edge f);
-extern Biddy_Boolean BiddyIsSelectedNP(Biddy_Edge f);
-extern Biddy_Edge BiddyCopy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
-extern Biddy_Edge BiddyCopyOBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
-extern Biddy_Edge BiddyCopyZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
-extern Biddy_Edge BiddyCopyTZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
-extern Biddy_Edge BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
-
-extern void BiddySystemReport(Biddy_Manager MNG);
-extern void BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f);
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes for internal functions defined in biddyStat.c                   */

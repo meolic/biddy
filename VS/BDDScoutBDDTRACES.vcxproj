@@ -22,7 +22,7 @@
     <ProjectGuid>{742B7F34-72BA-4493-8720-DE1CADF4CECF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>BDDScoutBDDTRACES</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>BDDScoutBDDTRACES</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

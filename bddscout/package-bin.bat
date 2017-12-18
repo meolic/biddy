@@ -1,8 +1,8 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 319 $
-REM  $Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $
+REM  $Revision: 367 $
+REM  $Date: 2017-12-18 14:16:55 +0100 (pon, 18 dec 2017) $
 REM
 REM  This file is part of Bdd Scout package.
 REM  Copyright (C) 2008, 2017 UM FERI
@@ -108,7 +108,7 @@ cp README %NAME%-%VERSION%
 cp README.MINGW %NAME%-%VERSION%
 echo *** BDD Scout OK.
 
-%MYZIP% %NAME%-%VERSION%-Win.7z %NAME%-%VERSION%\*
+%MYZIP% %NAME%-%VERSION%-Win.7z %NAME%-%VERSION%\*  -x!%NAME%-%VERSION%\lib*.*
 %MYZIP% %NAME%-%VERSION%-Win.7z IFIP\* -x!?svn -xr!?svn\*
 %MYZIP% %NAME%-%VERSION%-Win.7z BDDTRACES\* -x!?svn -xr!?svn\*
 

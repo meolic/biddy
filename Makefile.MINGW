@@ -3,8 +3,8 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 325 $]
+#  Date        [$Date: 2017-10-10 10:10:59 +0200 (tor, 10 okt 2017) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2017 UM FERI
@@ -25,6 +25,9 @@
 #               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #               Boston, MA 02110-1301 USA.]
 
+# To inspect DLL use Visual Studio Command Prompt + DUMPBIN /EXPORTS
+# To inspect DLL dependencies use MSYS2 + ldd *.dll
+
 BIDDYVERSION = `cat ./VERSION`
 
 MKDIR = mkdir -p
@@ -33,11 +36,11 @@ RM = rm -f
 GCC = gcc
 AR = ar
 
-# use 32-bit version of MPIR
-#MPIRDLLPATH = "C:/msys64/home/Robert/mpir-mingw32-2.7.2"
-
 # use 64-bit version of MPIR
 MPIRDLLPATH = "C:/msys64/home/Robert/mpir-mingw-2.7.2"
+
+# use 32-bit version of MPIR
+#MPIRDLLPATH = "C:/msys64/home/Robert/mpir-mingw32-2.7.2"
 
 LIBGMP = -L$(MPIRDLLPATH)/lib -lmpir
 
