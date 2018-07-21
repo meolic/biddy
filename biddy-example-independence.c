@@ -1,10 +1,10 @@
-/* $Revision: 362 $ */
-/* $Date: 2017-12-17 17:01:16 +0100 (ned, 17 dec 2017) $ */
+/* $Revision: 456 $ */
+/* $Date: 2018-07-14 21:11:41 +0200 (sob, 14 jul 2018) $ */
 /* This file (biddy-example-independence.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.7 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 
 /* COMPILE WITH: */
 /* gcc -DNOCONVERGE -DNOPROFILE -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-independence biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -static -lbiddy -lgmp */
@@ -125,14 +125,23 @@ int main(int argc, char** argv) {
   europeState = (Biddy_Edge *) malloc(europeSize*sizeof(Biddy_Edge *));
 #endif
 
-  /* CREATE BDD VARIABLES */
+  /* DEBUGGING */
+  /*
+  printf("Before creating variables:\n");
+  printf("  biddyZero has %u nodes.\n",Biddy_CountNodes(Biddy_GetConstantZero()));
+  printf("  biddyZero has %u complemented edges.\n",Biddy_CountComplementedEdges(Biddy_GetConstantZero()));
+  printf("  biddyOne has %u nodes.\n",Biddy_CountNodes(Biddy_GetConstantOne()));
+  printf("  biddyOne has %u complemented edges.\n",Biddy_CountComplementedEdges(Biddy_GetConstantOne()));
+  */
+
+  /* CREATE OBDD VARIABLES */
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC))
   {
     i = 0;
     complete = FALSE;
     while (!complete) {
       complete = TRUE;
-      tmp = Biddy_AddVariable();
+      tmp = Biddy_AddVariableEdge();
 #ifdef USA_YES
       if (i < usaSize) {
         usaState[usaOrder[i]] = tmp;
@@ -150,8 +159,9 @@ int main(int argc, char** argv) {
       i++;
     }
   }
-  
-  /* NOTE for Biddy: ZBDD and TZBDD variables are added in the reverse order by default */
+
+  /* CREATE ZBDD OR TZBDD VARIABLES */
+  /* NOTE for Biddy: ZBDDs and TZBDDs variables are added in the reverse order by default */
   /* NOTE for Biddy: usaState[0] = europeState[0] and it is last added */
   /* NOTE for CUDD: usaState[0] = europeState[0] and it is first added */
   if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC) ||
@@ -161,7 +171,7 @@ int main(int argc, char** argv) {
     complete = FALSE;
     while (!complete) {
       complete = TRUE;
-      tmp = Biddy_AddVariable();
+      tmp = Biddy_AddVariableEdge();
 #ifdef USA_YES
       if (i < usaSize) {
 #ifdef CUDD
@@ -194,6 +204,7 @@ int main(int argc, char** argv) {
   /* Thus, after adding the last variable we have to refresh the array of variables. */
   /* NOTE: Biddy_GetVariableEdge returns variables by the creation time, not by the order used in the BDD */
   /* NOTE for Biddy: user variables start with index 1 */
+  /* NOTE for Biddy: variables have been created in the reverse order */
   /* NOTE for CUDD: user variables start with index 0 */
   if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
   {
@@ -228,7 +239,7 @@ int main(int argc, char** argv) {
 #ifdef USA_YES
       if (i < usaSize) {
         DEREF(usaState[usaOrder[i]]);
-        usaState[usaOrder[i]] = Cudd_zddIthVar(manager,i);
+        usaState[usaOrder[i]] = Biddy_GetVariableEdge(i);
         REF(usaState[usaOrder[i]]);
       }
       complete = complete && (i >= (usaSize-1));
@@ -236,7 +247,7 @@ int main(int argc, char** argv) {
 #ifdef EUROPE_YES
       if (i < europeSize) {
         DEREF(europeState[europeOrder[i]]);
-        europeState[europeOrder[i]] = Cudd_zddIthVar(manager,i);
+        europeState[europeOrder[i]] = Biddy_GetVariableEdge(i);
         REF(europeState[europeOrder[i]]);
       }
       complete = complete && (i >= (europeSize-1));
@@ -246,6 +257,15 @@ int main(int argc, char** argv) {
 #endif
 
   }
+  
+  /* DEBUGGING */
+  /*
+  printf("After creating variables:\n");
+  printf("  biddyZero has %u nodes.\n",Biddy_CountNodes(Biddy_GetConstantZero()));
+  printf("  biddyZero has %u complemented edges.\n",Biddy_CountComplementedEdges(Biddy_GetConstantZero()));
+  printf("  biddyOne has %u nodes.\n",Biddy_CountNodes(Biddy_GetConstantOne()));
+  printf("  biddyOne has %u complemented edges.\n",Biddy_CountComplementedEdges(Biddy_GetConstantOne()));
+  */
 
   /* HERE, BDD OPERATIONS START AND THUS WE START TO MEASURE THE TIME */
   elapsedtime = clock();
@@ -336,7 +356,7 @@ int main(int argc, char** argv) {
 #endif
 #endif
 #endif
-    /* Biddy only: for TZBDD, sifting may change top node! */
+    /* Biddy only: for TZBDDs, sifting may change top node! */
 #ifdef BIDDY
 #ifdef USA_YES
     if (!Biddy_FindFormula((Biddy_String)"usa",&i,&r1)) exit(99);
@@ -346,8 +366,8 @@ int main(int argc, char** argv) {
 #endif
 #endif
 
-    n1 = Biddy_DependentVariableNumber(r1);
-    n2 = Biddy_DependentVariableNumber(r2);
+    n1 = Biddy_DependentVariableNumber(r1,FALSE);
+    n2 = Biddy_DependentVariableNumber(r2,FALSE);
 
     if ((userinput[0] == 's')
 #ifdef BIDDY
@@ -398,11 +418,18 @@ int main(int argc, char** argv) {
     printf("System has %u nodes / %lu live nodes.\n",Biddy_NodeTableNum(),Biddy_NodeTableNumLive());
 #ifdef BIDDY
     printf("%s",Biddy_GetManagerName());
-    printf(" for resulting function r1/r2 has %u/%u nodes (%u/%u nodes if using complement edges).\n",
-           Biddy_CountNodesPlain(r1),Biddy_CountNodesPlain(r2),Biddy_CountNodes(r1),Biddy_CountNodes(r2));
+    printf(" for resulting function r1/r2 has %u/%u nodes (%u/%u plain nodes).\n",
+           Biddy_CountNodes(r1),Biddy_CountNodes(r2),Biddy_CountNodesPlain(r1),Biddy_CountNodesPlain(r2));
+    if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
+    {
+      printf("%s",Biddy_GetManagerName());
+      printf(" for resulting function r1/r2 has %u/%u complemented edges.\n",
+             Biddy_CountComplementedEdges(r1),Biddy_CountComplementedEdges(r2));
+    }
 #endif
 #ifdef CUDD
-    printf("BDD for resulting function r1/r2 has %u/%u nodes (using complement edges).\n",Biddy_CountNodes(r1),Biddy_CountNodes(r2));
+    printf("BDD for resulting function r1/r2 has %u/%u nodes (using complement edges).\n",
+           Biddy_CountNodes(r1),Biddy_CountNodes(r2));
 #endif
 #ifdef BIDDY
     printf("Variable swaps performed so far: %u\n",Biddy_NodeTableSwapNumber());
@@ -466,23 +493,27 @@ int main(int argc, char** argv) {
   /* PROFILING */
   memoryinuse = Biddy_ReadMemoryInUse();
 #ifdef MINGW
-  fprintf(stderr,"%I64u, %u",memoryinuse,Biddy_NodeTableDRTime());
+  printf("%I64u, %u",memoryinuse,Biddy_NodeTableDRTime());
 #else
-  fprintf(stderr,"%llu, %u",memoryinuse,(unsigned int)Biddy_NodeTableDRTime());
+  printf("%llu, %u",memoryinuse,(unsigned int)Biddy_NodeTableDRTime());
 #endif
   printf(", %u/%u",Biddy_CountNodes(r1),Biddy_CountNodes(r2));
-  fprintf(stderr,"\n");
+  printf("\n");
 
   /* EXIT */
 
   DEREF(r1);
   DEREF(r2);
+#ifdef USA_YES
   for (i=0; i<usaSize; i++) {
     DEREF(usaState[i]);
   }
+#endif
+#ifdef EUROPE_YES
   for (i=0; i<europeSize; i++) {
     DEREF(europeState[i]);
   }
+#endif
 
 #ifdef CUDD
   printf("CUDD: nodes with non-zero reference counts: %d\n",Cudd_CheckZeroRef(manager));

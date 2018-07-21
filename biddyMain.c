@@ -2,7 +2,7 @@
 \file biddyMain.c
 \brief File biddyMain.c contains main functions for representation and
 manipulation of boolean functions with various types of Binary Decision
-Diagrams (GDD = general decision diagrams).
+Diagrams.
 
 ### Description
 
@@ -10,18 +10,18 @@ Diagrams (GDD = general decision diagrams).
     Synopsis    [Biddy provides data structures and algorithms for the
                  representation and manipulation of Boolean functions with
                  ROBDDs, 0-sup-BDDs, and TZBDDs. A hash table is used for quick
-             		 search of nodes. Complement edges decreases the number of
-		             nodes. An automatic garbage collection with a system age is
+                 search of nodes. Complement edges decreases the number of
+                 nodes. An automatic garbage collection with a system age is
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyMain.c]
-    Revision    [$Revision: 362 $]
-    Date        [$Date: 2017-12-17 17:01:16 +0100 (ned, 17 dec 2017) $]
+    Revision    [$Revision: 458 $]
+    Date        [$Date: 2018-07-18 13:53:04 +0200 (sre, 18 jul 2018) $]
     Authors     [Robert Meolic (robert.meolic@um.si)]
 
 ### Copyright
 
-Copyright (C) 2006, 2017 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2018 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -113,37 +113,36 @@ Biddy_Manager biddyAnonymousManager /* anonymous manager */
 BiddyLocalInfo *biddyLocalInfo /* local info table */
        = NULL;
 
-Biddy_Edge debug_edge = NULL; /* debugging, only */
-
-
+/* Biddy_Edge debug_edge = NULL; */ /* debugging, only */
 /* Biddy_Boolean biddySiftingActive = FALSE; */ /* debugging, only */
 
 /*----------------------------------------------------------------------------*/
 /* Static function prototypes                                                 */
 /*----------------------------------------------------------------------------*/
 
-static Biddy_Boolean checkFunctionOrdering(Biddy_Manager MNG, Biddy_Edge f);
-static Biddy_Variable getGlobalOrdering(Biddy_Manager MNG, Biddy_Variable v);
 static Biddy_Boolean isEqv(Biddy_Manager MNG1, Biddy_Edge f1, Biddy_Manager MNG2, Biddy_Edge f2);
+static BiddyLocalInfo * createLocalInfo(Biddy_Manager MNG, Biddy_Edge f, BiddyLocalInfo *c);
+static void deleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
 static inline unsigned int nodeTableHash(Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt, unsigned int size);
 static inline void addNodeTable(Biddy_Manager MNG, unsigned int hash, BiddyNode *node, BiddyNode *sup1);
 static inline BiddyNode *findNodeTable(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt, BiddyNode **thesup);
 static Biddy_Edge addVariableElement(Biddy_Manager MNG, Biddy_String x);
+static void evalProbability(Biddy_Manager MNG, Biddy_Edge f,  double *c1, double *c0, Biddy_Boolean *leftmost);
+static Biddy_Boolean checkFunctionOrdering(Biddy_Manager MNG, Biddy_Edge f);
+static Biddy_Variable getGlobalOrdering(Biddy_Manager MNG, Biddy_Variable v);
 static Biddy_Variable swapWithHigher(Biddy_Manager MNG, Biddy_Variable v, Biddy_Boolean *active);
 static Biddy_Variable swapWithLower(Biddy_Manager MNG, Biddy_Variable v, Biddy_Boolean *active);
 static void swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high, Biddy_Boolean *active);
 static void oneSwap(Biddy_Manager MNG, BiddyNode *sup, Biddy_Variable low, Biddy_Variable high, Biddy_Edge *u0, Biddy_Edge *u1);
 static void oneSwapEdge(Biddy_Manager MNG, Biddy_Edge sup, Biddy_Variable low, Biddy_Variable high, Biddy_Edge *u, Biddy_Boolean *active);
 static void nullOrdering(BiddyOrderingTable table);
+static void alphabeticOrdering(Biddy_Manager MNG, BiddyOrderingTable table);
 static void nodeNumberOrdering(Biddy_Manager MNG, Biddy_Edge f, unsigned int *i, BiddyOrderingTable ordering);
-static void sjtinit(Biddy_Manager MNG);
-static void sjtexit(Biddy_Manager MNG);
-static Biddy_Boolean sjt(Biddy_Manager MNG);
+static void reorderVariables(Biddy_Manager MNG, int numV, BiddyVariableOrder *tableV, int numN, BiddyNodeList *tableN, int id);
+static void constructBDD(Biddy_Manager MNG, int numN, BiddyNodeList *tableN, int id);
 static void warshall(BiddyOrderingTable table, Biddy_Variable varnum);
 static void writeBDD(Biddy_Manager MNG, Biddy_Edge f);
 static void writeORDER(Biddy_Manager MNG);
-static BiddyLocalInfo * createLocalInfo(Biddy_Manager MNG, Biddy_Edge f, BiddyLocalInfo *c);
-static void deleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
 static void debugNode(Biddy_Manager MNG, BiddyNode *node);
 static void debugEdge(Biddy_Manager MNG, Biddy_Edge edge);
 static void debugORDERING(Biddy_Manager MNG, BiddyOrderingTable table, Biddy_Variable varnum);
@@ -175,7 +174,7 @@ extern "C" {
 #endif
 
 void
-Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
+Biddy_InitMNG(Biddy_Manager *mng, int bddtype)
 {
   unsigned int i,j;
   Biddy_Manager MNG;
@@ -220,7 +219,7 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   /*
   printf("DEBUG (Biddy_InitMNG): Biddy_InitMNG STARTED\n");
   printf("DEBUG (Biddy_InitMNG): mng = %p\n",mng);
-  printf("DEBUG (Biddy_InitMNG): gddtype = %d\n",gddtype);
+  printf("DEBUG (Biddy_InitMNG): bddtype = %d\n",bddtype);
   printf("DEBUG (Biddy_InitMNG): MNG = %p\n",MNG);
   */
 
@@ -301,6 +300,11 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   biddyOPCache.table = NULL;
   biddyOPCache.size = 0;
   biddyOPCache.disabled = FALSE;
+  if (!(biddyOPCache.notusedyet = (Biddy_Boolean *) malloc(sizeof(Biddy_Boolean)))) {
+    fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
+    exit(1);
+  }
+  *(biddyOPCache.notusedyet) = FALSE;
   if (!(biddyOPCache.search = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -332,6 +336,11 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   biddyEACache.table = NULL;
   biddyEACache.size = 0;
   biddyEACache.disabled = FALSE;
+  if (!(biddyEACache.notusedyet = (Biddy_Boolean *) malloc(sizeof(Biddy_Boolean)))) {
+    fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
+    exit(1);
+  }
+  *(biddyEACache.notusedyet) = FALSE;
   if (!(biddyEACache.search = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -363,6 +372,11 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   biddyRCCache.table = NULL;
   biddyRCCache.size = 0;
   biddyRCCache.disabled = FALSE;
+  if (!(biddyRCCache.notusedyet = (Biddy_Boolean *) malloc(sizeof(Biddy_Boolean)))) {
+    fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
+    exit(1);
+  }
+  *(biddyRCCache.notusedyet) = FALSE;
   if (!(biddyRCCache.search = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -395,8 +409,14 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   biddyReplaceCache.size = 0;
   biddyReplaceCache.keywordList = NULL;
   biddyReplaceCache.keyList = NULL;
+  biddyReplaceCache.keyNum = 0;
   biddyReplaceCache.keywordNum = 0;
   biddyReplaceCache.disabled = FALSE;
+  if (!(biddyReplaceCache.notusedyet = (Biddy_Boolean *) malloc(sizeof(Biddy_Boolean)))) {
+    fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
+    exit(1);
+  }
+  *(biddyReplaceCache.notusedyet) = FALSE;
   if (!(biddyReplaceCache.search = (unsigned long long int *) malloc(sizeof(unsigned long long int)))) {
     fprintf(stderr, "Biddy_InitMNG: Out of memoy!\n");
     exit(1);
@@ -447,23 +467,22 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   biddySelect = 0;
 
   /* INITIALIZATION OF MANAGER'S STRUCTURES  - VALUES ARE NOW INITIALIZED */
-  if (gddtype == BIDDYTYPEOBDD) {
+  if (bddtype == BIDDYTYPEOBDD) {
     MNG[0] = strdup(BIDDYTYPENAMEOBDD); /* biddyManagerName */
-  } else if (gddtype == BIDDYTYPEOBDDC) {
+  } else if (bddtype == BIDDYTYPEOBDDC) {
     MNG[0] = strdup(BIDDYTYPENAMEOBDDC); /* biddyManagerName */
-  } else if (gddtype == BIDDYTYPEZBDD) {
+  } else if (bddtype == BIDDYTYPEZBDD) {
     MNG[0] = strdup(BIDDYTYPENAMEZBDD); /* biddyManagerName */
-    fprintf(stderr,"WARNING: %s is not supported, yet!\n",BIDDYTYPENAMEZBDD);
-  } else if (gddtype == BIDDYTYPEZBDDC) {
+  } else if (bddtype == BIDDYTYPEZBDDC) {
     MNG[0] = strdup(BIDDYTYPENAMEZBDDC); /* biddyManagerName */
-  } else if (gddtype == BIDDYTYPETZBDD) {
+  } else if (bddtype == BIDDYTYPETZBDD) {
 #if UINTPTR_MAX == 0xffffffffffffffff
 #else
     fprintf(stderr,"Biddy_InitMNG: TZBDDs are supported on 64-bit architecture, only!\n");
     exit(1);
 #endif
     MNG[0] = strdup(BIDDYTYPENAMETZBDD); /* biddyManagerName */
-  } else if (gddtype == BIDDYTYPETZBDDC) {
+  } else if (bddtype == BIDDYTYPETZBDDC) {
 #if UINTPTR_MAX == 0xffffffffffffffff
 #else
     fprintf(stderr,"Biddy_InitMNG: TZBDDs are supported on 64-bit architecture, only!\n");
@@ -472,23 +491,23 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     MNG[0] = strdup(BIDDYTYPENAMETZBDDC); /* biddyManagerName */
     fprintf(stderr,"Biddy_InitMNG: %s is not supported, yet!\n",BIDDYTYPENAMETZBDDC);
     exit(1);
-  } else if (gddtype == BIDDYTYPEOFDD) {
+  } else if (bddtype == BIDDYTYPEOFDD) {
     MNG[0] = strdup(BIDDYTYPENAMEOFDD); /* biddyManagerName */
     fprintf(stderr,"Biddy_InitMNG: %s is not supported, yet!\n",BIDDYTYPENAMEOFDD);
     exit(1);
-  } else if (gddtype == BIDDYTYPEOFDDC) {
+  } else if (bddtype == BIDDYTYPEOFDDC) {
     MNG[0] = strdup(BIDDYTYPENAMEOFDDC); /* biddyManagerName */
     fprintf(stderr,"Biddy_InitMNG: %s is not supported, yet!\n",BIDDYTYPENAMEOFDDC);
     exit(1);
-  } else if (gddtype == BIDDYTYPEZFDD) {
+  } else if (bddtype == BIDDYTYPEZFDD) {
     MNG[0] = strdup(BIDDYTYPENAMEZFDD); /* biddyManagerName */
     fprintf(stderr,"Biddy_InitMNG: %s is not supported, yet!\n",BIDDYTYPENAMEZFDD);
     exit(1);
-  } else if (gddtype == BIDDYTYPEZFDDC) {
+  } else if (bddtype == BIDDYTYPEZFDDC) {
     MNG[0] = strdup(BIDDYTYPENAMEZFDDC); /* biddyManagerName */
     fprintf(stderr,"Biddy_InitMNG: %s is not supported, yet!\n",BIDDYTYPENAMEZFDDC);
     exit(1);
-  } else if (gddtype == BIDDYTYPETZFDD) {
+  } else if (bddtype == BIDDYTYPETZFDD) {
 #if UINTPTR_MAX == 0xffffffffffffffff
 #else
     fprintf(stderr,"Biddy_InitMNG: TZFDDs are supported on 64-bit architecture, only!\n");
@@ -497,7 +516,7 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     MNG[0] = strdup(BIDDYTYPENAMETZFDD); /* biddyManagerName */
     fprintf(stderr,"Biddy_InitMNG: %s is not supported, yet!\n",BIDDYTYPENAMETZFDD);
     exit(1);
-  } else if (gddtype == BIDDYTYPETZFDDC) {
+  } else if (bddtype == BIDDYTYPETZFDDC) {
 #if UINTPTR_MAX == 0xffffffffffffffff
 #else
     fprintf(stderr,"Biddy_InitMNG: TZFDDs are supported on 64-bit architecture, only!\n");
@@ -507,11 +526,11 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
     fprintf(stderr,"Biddy_InitMNG: %s is not supported, yet!\n",BIDDYTYPENAMETZFDDC);
     exit(1);
   } else {
-    fprintf(stderr,"Biddy_InitMNG: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_InitMNG: Unsupported BDD type!\n");
     exit(1);
   }
 
-  biddyManagerType = gddtype;
+  biddyManagerType = bddtype;
 
   /* THESE ARE DEFAULT SIZES */
   biddyVariableTable.size = BIDDYVARMAX;
@@ -523,6 +542,11 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   biddyEACache.size = SMALL_SIZE;
   biddyRCCache.size = SMALL_SIZE;
   biddyReplaceCache.size = SMALL_SIZE;
+
+  /* USED FOR LARGER PROBLEMS, E.G. DICTIONARY EXAMPLE */
+  /*
+  biddyOPCache.size = LARGE_SIZE;
+  */
 
   /* TESTING */
   /*
@@ -681,8 +705,8 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   biddyNodeTable.table[0]->select = 0; /* initialy it is not selected */
 
   /* MAKE TERMINAL EDGE AND EDGES REPRESENTING CONSTANTS */
-  /* FOR THE EMPTY DOMAIN, biddyZero AND biddyOne ARE THE SAME FOR ALL GDD TYPES */
-  /* biddyZero IS COMPLEMENTED FOR ALL GDD TYPES, INCLUDING OBDD, ZBDD, AND TZBDD */
+  /* FOR THE EMPTY DOMAIN, biddyZero AND biddyOne ARE THE SAME FOR ALL BDD TYPES */
+  /* biddyZero IS COMPLEMENTED FOR ALL BDD TYPES, INCLUDING OBDD, ZBDD, AND TZBDD */
   MNG[2] = (void *) biddyNodeTable.table[0]; /* biddyTerminal */
   MNG[3] = Biddy_Complement(biddyTerminal); /* biddyZero */
   MNG[4] = biddyTerminal; /* biddyOne */
@@ -754,8 +778,9 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   /* INITIALIZATION OF CACHE LIST */
   biddyCacheList = NULL;
 
-  /* INITIALIZATION OF DEFAULT ITE CACHE - USED FOR ITE OPERATION */
+  /* INITIALIZATION OF DEFAULT OPERATION CACHE - USED FOR ITE AND OTHER BOOLEAN OPERATIONS */
   biddyOPCache.disabled = FALSE;
+  *(biddyOPCache.notusedyet) = TRUE;
   *(biddyOPCache.search) = *(biddyOPCache.find) = 0;
 #ifdef BIDDYEXTENDEDSTATS_YES
   *(biddyOPCache.insert) = *(biddyOPCache.overwrite) = 0;
@@ -770,6 +795,7 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
 
   /* INITIALIZATION OF DEFAULT EA CACHE - USED FOR QUANTIFICATIONS */
   biddyEACache.disabled = FALSE;
+  *(biddyEACache.notusedyet) = TRUE;
   *(biddyEACache.search) = *(biddyEACache.find) = 0;
 #ifdef BIDDYEXTENDEDSTATS_YES
   *(biddyEACache.insert) = *(biddyEACache.overwrite) = 0;
@@ -784,6 +810,7 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
 
   /* INITIALIZATION OF DEFAULT RC CACHE - USED FOR RESTRICT AND COMPOSE */
   biddyRCCache.disabled = FALSE;
+  *(biddyRCCache.notusedyet) = TRUE;
   *(biddyRCCache.search) = *(biddyRCCache.find) = 0;
 #ifdef BIDDYEXTENDEDSTATS_YES
   *(biddyRCCache.insert) = *(biddyRCCache.overwrite) = 0;
@@ -797,10 +824,12 @@ Biddy_InitMNG(Biddy_Manager *mng, int gddtype)
   Biddy_Managed_AddCache(MNG,BiddyRCGarbage);
 
   /* INITIALIZATION OF DEFAULT REPLACE CACHE - USED FOR REPLACE */
-  biddyReplaceCache.disabled = FALSE;
   biddyReplaceCache.keywordList = NULL;
   biddyReplaceCache.keyList = NULL;
+  biddyReplaceCache.keyNum = 0;
   biddyReplaceCache.keywordNum = 0;
+  biddyReplaceCache.disabled = FALSE;
+  *(biddyReplaceCache.notusedyet) = TRUE;
   *(biddyReplaceCache.search) = *(biddyReplaceCache.find) = 0;
 #ifdef BIDDYEXTENDEDSTATS_YES
   *(biddyReplaceCache.insert) = *(biddyReplaceCache.overwrite) = 0;
@@ -897,7 +926,7 @@ Biddy_ExitMNG(Biddy_Manager *mng)
   free(biddyManagerName); /* MNG[0] is not derefenced by macro */
 
   /*
-  printf("Delete GDD type ...\n");
+  printf("Delete BDD type ...\n");
   */
   free((short int*)(MNG[1]));
 
@@ -914,6 +943,9 @@ Biddy_ExitMNG(Biddy_Manager *mng)
     }
     free(biddyNodeTable.blocktable);
     free(biddyNodeTable.table);
+#ifdef BIDDYEXTENDEDSTATS_YES
+    free(biddyNodeTable.gcobsolete);
+#endif
 #pragma warning(suppress: 6001)
     free((BiddyNodeTable*)(MNG[5]));
   }
@@ -945,6 +977,7 @@ Biddy_ExitMNG(Biddy_Manager *mng)
   */
   if ((BiddyOp3CacheTable*)(MNG[8])) {
     free(biddyOPCache.table);
+    free(biddyOPCache.notusedyet);
     free(biddyOPCache.search);
     free(biddyOPCache.find);
 #ifdef BIDDYEXTENDEDSTATS_YES
@@ -960,6 +993,7 @@ Biddy_ExitMNG(Biddy_Manager *mng)
   */
   if ((BiddyOp3CacheTable*)(MNG[9])) {
     free(biddyEACache.table);
+    free(biddyEACache.notusedyet);
     free(biddyEACache.search);
     free(biddyEACache.find);
 #ifdef BIDDYEXTENDEDSTATS_YES
@@ -975,6 +1009,7 @@ Biddy_ExitMNG(Biddy_Manager *mng)
   */
   if ((BiddyOp3CacheTable*)(MNG[10])) {
     free(biddyRCCache.table);
+    free(biddyRCCache.notusedyet);
     free(biddyRCCache.search);
     free(biddyRCCache.find);
 #ifdef BIDDYEXTENDEDSTATS_YES
@@ -995,6 +1030,7 @@ Biddy_ExitMNG(Biddy_Manager *mng)
     free(biddyReplaceCache.keywordList);
     free(biddyReplaceCache.keyList);
     free(biddyReplaceCache.table);
+    free(biddyReplaceCache.notusedyet);
     free(biddyReplaceCache.search);
     free(biddyReplaceCache.find);
 #ifdef BIDDYEXTENDEDSTATS_YES
@@ -1041,13 +1077,6 @@ Biddy_ExitMNG(Biddy_Manager *mng)
   printf("Delete selector...\n");
   */
   free((unsigned short int*)(MNG[16]));
-
-  /*
-  printf("Delete statistic vectors...\n");
-  */
-#ifdef BIDDYEXTENDEDSTATS_YES
-  if (biddyNodeTable.gcobsolete) free(biddyNodeTable.gcobsolete);
-#endif
 
   /*
   printf("And finally, delete manager...\n");
@@ -1201,6 +1230,7 @@ Biddy_Managed_SetManagerParameters(Biddy_Manager MNG, float gcr, float gcrF,
 ### Description
     Input mark is not transfered! External use, only.
 ### Side effects
+    For terminal nodes, function returns the same node.
 ### More info
     Macro BiddyT(fun) is defined for internal use.
 *******************************************************************************/
@@ -1214,10 +1244,12 @@ Biddy_GetThen(Biddy_Edge fun)
 {
   Biddy_Edge r;
 
+  if (Biddy_IsTerminal(fun)) return fun;
+
   r = BiddyT(fun);
 
   /* EXTERNAL FUNCTIONS MUST RETURN NON-OBSOLETE NODE */
-  if ((BiddyN(r)->expiry) && 
+  if ((BiddyN(r)->expiry) &&
       ((BiddyN(r)->expiry<BiddyN(fun)->expiry) || !(BiddyN(fun)->expiry))
      )
   {
@@ -1237,6 +1269,7 @@ Biddy_GetThen(Biddy_Edge fun)
 ### Description
     Input mark is not transfered! External use, only.
 ### Side effects
+    For terminal nodes, function returns the same node.
 ### More info
     Macro BiddyE(fun) is defined for internal use.
 *******************************************************************************/
@@ -1250,10 +1283,12 @@ Biddy_GetElse(Biddy_Edge fun)
 {
   Biddy_Edge r;
 
+  if (Biddy_IsTerminal(fun)) return fun;
+
   r = BiddyE(fun);
 
   /* EXTERNAL FUNCTIONS MUST RETURN NON-OBSOLETE NODE */
-  if ((BiddyN(r)->expiry) && 
+  if ((BiddyN(r)->expiry) &&
       ((BiddyN(r)->expiry<BiddyN(fun)->expiry) || !(BiddyN(fun)->expiry))
      )
   {
@@ -1644,10 +1679,10 @@ Biddy_Managed_GetBaseSet(Biddy_Manager MNG)
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"Biddy_GetBaseSet: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_GetBaseSet: this BDD type is not supported, yet!\n");
     return biddyNull;
   } else {
-    fprintf(stderr,"Biddy_GetBaseSet: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_GetBaseSet: Unsupported BDD type!\n");
     return biddyNull;
   }
 
@@ -1688,7 +1723,9 @@ Biddy_Managed_GetVariable(Biddy_Manager MNG, Biddy_String x)
   v = 0;
   find = FALSE;
   while (!find && v<biddyVariableTable.num) {
-    if (!strcmp(x,biddyVariableTable.table[v].name)) {
+    if ((x[0] == biddyVariableTable.table[v].name[0]) &&
+        (!strcmp(x,biddyVariableTable.table[v].name)))
+    {
       find = TRUE;
     } else {
       v++;
@@ -2178,6 +2215,202 @@ Biddy_Managed_GetVariableData(Biddy_Manager MNG, Biddy_Variable v)
 #endif
 
 /***************************************************************************//*!
+\brief Function Biddy_Managed_Eval returns the value of a Boolean function
+       for a given variable assignment.
+### Description
+### Side effects
+    Variables must have values assigned. Variable is considered to be
+    FALSE iff variable.value == biddyZero, whilst it is considered to be TRUE,
+    otherwise.
+### More info
+    Macro Biddy_Eval(f) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_Boolean
+Biddy_Managed_Eval(Biddy_Manager MNG, Biddy_Edge f)
+{
+  Biddy_Boolean r;
+  Biddy_Variable fv,ftop;
+
+  assert( f != NULL );
+
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  if (f == biddyNull) return FALSE;
+
+  ftop = 0;
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    /* IMPLEMENTED */
+    ftop = BiddyV(f);
+  } else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    /* IMPLEMENTED */
+    /* determine the topmost variable (for ZBDDs, it has prev=biddyVariableTable.num) */
+    ftop = BiddyV(f);
+    while (biddyVariableTable.table[ftop].prev != biddyVariableTable.num) {
+      ftop = biddyVariableTable.table[ftop].prev;
+    }
+  } else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+    /* IMPLEMENTED */
+    ftop = Biddy_GetTag(f);
+  } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
+              (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
+              (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
+  {
+    fprintf(stderr,"Biddy_Eval: this BDD type is not supported, yet!\n");
+    return FALSE;
+  } else {
+    fprintf(stderr,"Biddy_Eval: Unsupported BDD type!\n");
+    return FALSE;
+  }
+
+  r = !(Biddy_GetMark(f));
+  while (ftop != 0) {
+
+    fv = BiddyV(f);
+    assert( biddyVariableTable.table[fv].value != NULL );
+
+    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+
+      if (biddyVariableTable.table[fv].value == biddyZero) {
+        f = BiddyE(f);
+        /* for OBDDC, 'else' successor can be marked */
+        if (Biddy_GetMark(f)) r = !r;
+      } else {
+        f = BiddyT(f);
+        /* for OBDD, biddyZero is a marked edge to 'then' successor! */
+        if (Biddy_GetMark(f)) r = !r;
+      }
+      ftop = BiddyV(f);
+
+    } else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+
+      while (ftop != fv) {
+        assert( biddyVariableTable.table[ftop].value != NULL );
+        if (biddyVariableTable.table[ftop].value == biddyZero) {
+          ftop = Biddy_Managed_GetNextVariable(MNG,ftop);
+        } else {
+          r = FALSE;
+          ftop = fv = 0;
+        }
+      }
+      if (fv != 0) {
+        if (biddyVariableTable.table[fv].value == biddyZero) {
+          f = BiddyE(f);
+          /* for ZBDDs, 'else' successor is never marked */
+        } else {
+          f = BiddyT(f);
+          /* for ZBDDC, mark is transfered only to the left successor */
+          r = TRUE;
+          /* for ZBDDC, 'then' successor can be marked */
+          if (Biddy_GetMark(f)) r = !r;
+        }
+        ftop = Biddy_Managed_GetNextVariable(MNG,fv);
+      }
+
+    } else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+
+      while (ftop != fv) {
+        assert( biddyVariableTable.table[ftop].value != NULL );
+        if (biddyVariableTable.table[ftop].value == biddyZero) {
+          ftop = Biddy_Managed_GetNextVariable(MNG,ftop);
+        } else {
+          r = FALSE;
+          ftop = fv = 0;
+        }
+      }
+      if (fv != 0) {
+        if (biddyVariableTable.table[fv].value == biddyZero) {
+          f = BiddyE(f);
+          /* for TZBDD, marks are not transfered but used only to denote 0 */
+          if (Biddy_GetMark(f)) r = FALSE;
+        } else {
+          f = BiddyT(f);
+          /* for TZBDD, marks are not transfered but used only to denote 0 */
+          if (Biddy_GetMark(f)) r = FALSE;
+        }
+        ftop = Biddy_GetTag(f);
+      }
+    }
+  }
+
+  return r;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_EvalProbability evaluates BDD.
+
+### Description
+    Each variable should be associated with a probability q (0-1) via
+    data element in BiddyVariable. For each 1-path a product of variable's
+    probability is calculated (q for 'then' successor and (1-q) for 'else'
+    successor). The result of the function is the sum of all such products.
+### Side effects
+    Implemented for OBDD, ZBDD, and TZBDD.
+### More info
+    Macro Biddy_EvalProbability(f) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+double
+Biddy_Managed_EvalProbability(Biddy_Manager MNG, Biddy_Edge f)
+{
+  double r1,r0;
+  Biddy_Boolean rf;
+
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    /* IMPLEMENTED */
+  } else if (biddyManagerType == BIDDYTYPEOBDDC) {
+    /* IMPLEMENTED */
+  } else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* IMPLEMENTED */
+  } else if (biddyManagerType == BIDDYTYPEZBDDC) {
+    /* IMPLEMENTED */
+  } else if (biddyManagerType == BIDDYTYPETZBDD) {
+    /* IMPLEMENTED */
+  } else if (biddyManagerType == BIDDYTYPETZBDDC)
+  {
+    fprintf(stderr,"Biddy_EvalProbability: this BDD type is not supported, yet!\n");
+    return 0;
+  } else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
+              (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
+              (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
+  {
+    fprintf(stderr,"Biddy_EvalProbability: this BDD type is not supported, yet!\n");
+    return 0;
+  } else {
+    fprintf(stderr,"Biddy_EvalProbability: Unsupported BDD type!\n");
+    return 0;
+  }
+
+  if (Biddy_IsNull(f)) return 0;
+  if (f == biddyZero) return 0;
+  if (Biddy_IsTerminal(f)) return 1;
+
+  BiddyCreateLocalInfo(MNG,f);
+  evalProbability(MNG,f,&r1,&r0,&rf); /* all nodes except terminal node are selected */
+  BiddyDeleteLocalInfo(MNG,f);
+
+  return r1;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
 \brief Function Biddy_Managed_IsSmaller returns TRUE if the first variable is
        smaller (= lower = previous = above = topmore).
 
@@ -2297,15 +2530,15 @@ Biddy_Managed_IsHighest(Biddy_Manager MNG, Biddy_Variable v)
     Function always returns variable.
 ### Side effects
     Adding new variable/element may change the meaning of the existing BDDs.
-    Variables and elements are repaired. Moreover, formulae are repaired with
-    regards to the parameter varelem.
-    BDDs without external references are not repaired.
-    For OBDDs, OFDDs, TZBDDS, and TZFDDs, it is safe to add new
+    Variables and elements are always repaired. Formulae are repaired with
+    regards to the parameter varelem. BDDs without external references are not
+    repaired. For OBDDs, OFDDs, TZBDDS, and TZFDDs, it is safe to add new
     variables/elements if BDDs are used to represent Boolean functions.
     For ZBDDs and ZFDDs, it is safe to add new variables/elements if BDDs are
     used to represent combination sets.
     User should not add numbered variables/elements with some other function.
     TO DO: Formulae in user's formula tables are not repaired, yet!
+    TO DO: Variables cannot be deleted, yet!
 ### More info
     Macro Biddy_FoaVariable(x) is defined for use with anonymous manager.
 *******************************************************************************/
@@ -2397,10 +2630,26 @@ Biddy_Managed_FoaVariable(Biddy_Manager MNG, Biddy_String x,
     if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD) ||
         (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
     {
+      /* DEBUGGING */
+      /*
+      printf("Biddy_Managed_FoaVariable: variable \"%s\"(%u) added, cleaning cache tables\n",x,v);
+      */
+
+      /* VARIANT 1: DELETE ONLY INVALID RESULTS */
+      /*
       BiddyOPGarbageNewVariable(MNG,v);
       BiddyEAGarbageNewVariable(MNG,v);
       BiddyRCGarbageNewVariable(MNG,v);
       BiddyReplaceGarbageNewVariable(MNG,v);
+      */
+
+      /* VARIANT 2: SIMPLY DELETE ALL RESULTS */
+      /**/
+      BiddyOPGarbageDeleteAll(MNG);
+      BiddyEAGarbageDeleteAll(MNG);
+      BiddyRCGarbageDeleteAll(MNG);
+      BiddyReplaceGarbageDeleteAll(MNG);
+      /**/
     }
 
     /* *** ADAPTING FORMULAE *** */
@@ -2445,7 +2694,7 @@ Biddy_Managed_FoaVariable(Biddy_Manager MNG, Biddy_String x,
 
             biddyFormulaTable.table[i].f =
               BiddyManagedTaggedFoaNode(MNG,v,biddyFormulaTable.table[i].f,
-                biddyFormulaTable.table[i].f,0,TRUE); /* FoaNode returns an obsolete node! */
+                biddyFormulaTable.table[i].f,v,TRUE); /* FoaNode returns an obsolete node! */
             BiddyRefresh(biddyFormulaTable.table[i].f);
 
           }
@@ -2459,7 +2708,7 @@ Biddy_Managed_FoaVariable(Biddy_Manager MNG, Biddy_String x,
         for (i = 0; i < 2; i++) {
           biddyFormulaTable.table[i].f =
             BiddyManagedTaggedFoaNode(MNG,v,biddyFormulaTable.table[i].f,
-              biddyFormulaTable.table[i].f,0,TRUE); /* FoaNode returns an obsolete node! */
+              biddyFormulaTable.table[i].f,v,TRUE); /* FoaNode returns an obsolete node! */
           BiddyRefresh(biddyFormulaTable.table[i].f);
         }
 
@@ -2520,7 +2769,7 @@ Biddy_Managed_FoaVariable(Biddy_Manager MNG, Biddy_String x,
 
         biddyVariableTable.table[w].variable =
           BiddyManagedTaggedFoaNode(MNG,v,biddyVariableTable.table[w].variable,
-            biddyVariableTable.table[w].variable,0,TRUE); /* FoaNode returns an obsolete node! */
+            biddyVariableTable.table[w].variable,v,TRUE); /* FoaNode returns an obsolete node! */
         BiddyRefresh(biddyVariableTable.table[w].variable);
 
         /* DEBUGGING */
@@ -2618,15 +2867,12 @@ Biddy_Managed_ChangeVariableName(Biddy_Manager MNG, Biddy_Variable v, Biddy_Stri
 extern "C" {
 #endif
 
-Biddy_Edge
+Biddy_Variable
 Biddy_Managed_AddVariableByName(Biddy_Manager MNG, Biddy_String x)
 {
-  Biddy_Variable v;
-
   if (!MNG) MNG = biddyAnonymousManager;
 
-  v = Biddy_Managed_FoaVariable(MNG,x,TRUE);
-  return biddyVariableTable.table[v].variable;
+  return Biddy_Managed_FoaVariable(MNG,x,TRUE);
 }
 
 #ifdef __cplusplus
@@ -2653,15 +2899,12 @@ Biddy_Managed_AddVariableByName(Biddy_Manager MNG, Biddy_String x)
 extern "C" {
 #endif
 
-Biddy_Edge
+Biddy_Variable
 Biddy_Managed_AddElementByName(Biddy_Manager MNG, Biddy_String x)
 {
-  Biddy_Variable v;
-
   if (!MNG) MNG = biddyAnonymousManager;
 
-  v = Biddy_Managed_FoaVariable(MNG,x,FALSE);
-  return biddyVariableTable.table[v].element;
+  return Biddy_Managed_FoaVariable(MNG,x,FALSE);
 }
 
 #ifdef __cplusplus
@@ -2707,7 +2950,7 @@ Biddy_Managed_AddVariableBelow(Biddy_Manager MNG, Biddy_Variable v)
     return biddyNull;
   }
 
-  f = Biddy_Managed_AddVariableByName(MNG,NULL);
+  f = Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,NULL));
   x = biddyVariableTable.num - 1;
 
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD) ||
@@ -2727,10 +2970,10 @@ Biddy_Managed_AddVariableBelow(Biddy_Manager MNG, Biddy_Variable v)
             (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
     /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_AddVariableBelow:: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_AddVariableBelow:: this BDD type is not supported, yet!\n");
     return biddyNull;
   } else {
-    fprintf(stderr,"Biddy_AddVariableBelow: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_AddVariableBelow: Unsupported BDD type!\n");
     return biddyNull;
   }
 
@@ -2784,7 +3027,7 @@ Biddy_Managed_AddVariableAbove(Biddy_Manager MNG, Biddy_Variable v)
     return biddyNull;
   }
 
-  f = Biddy_Managed_AddVariableByName(MNG,NULL);
+  f = Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,NULL));
   x = biddyVariableTable.num - 1;
 
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD) ||
@@ -2806,10 +3049,10 @@ Biddy_Managed_AddVariableAbove(Biddy_Manager MNG, Biddy_Variable v)
             (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
     /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_AddVariableAbove: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_AddVariableAbove: this BDD type is not supported, yet!\n");
     return biddyNull;
   } else {
-    fprintf(stderr,"Biddy_AddVariableAbove: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_AddVariableAbove: Unsupported BDD type!\n");
     return biddyNull;
   }
 
@@ -2856,12 +3099,12 @@ Biddy_Managed_TransferMark(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean mark,
   if (!MNG) MNG = biddyAnonymousManager;
 
   assert (
-    (biddyManagerType == BIDDYTYPEOBDD) || (biddyManagerType == BIDDYTYPEOBDDC) ||
-    (biddyManagerType == BIDDYTYPEZBDD) || (biddyManagerType == BIDDYTYPEZBDDC) ||
-    (biddyManagerType == BIDDYTYPETZBDD) || (biddyManagerType == BIDDYTYPETZBDDC) ||
-    (biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
-    (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
-    (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC)
+    (biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD) ||
+    (biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
+    (biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD) ||
+    (biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
+    (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
+    (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD)
   );
 
   if (biddyManagerType == BIDDYTYPEOBDDC) {
@@ -2874,13 +3117,13 @@ Biddy_Managed_TransferMark(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean mark,
     }
   } else if (biddyManagerType == BIDDYTYPETZBDDC) {
     /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_TransferMark: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_TransferMark: this BDD type is not supported, yet!\n");
     return biddyNull;
   } else if ((biddyManagerType == BIDDYTYPEOFDDC) ||
               (biddyManagerType == BIDDYTYPEZFDDC) ||
               (biddyManagerType == BIDDYTYPETZFDDC))
   {
-    fprintf(stderr,"Biddy_TransferMark: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_TransferMark: this BDD type is not supported, yet!\n");
     return biddyNull;
   } else if ((biddyManagerType == BIDDYTYPEOBDD) ||
               (biddyManagerType == BIDDYTYPEZBDD) ||
@@ -2949,11 +3192,11 @@ Biddy_Managed_IncTag(Biddy_Manager MNG, Biddy_Edge f)
 
   } else if (biddyManagerType == BIDDYTYPETZBDDC) {
     /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_IncTag: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_IncTag: this BDD type is not supported, yet!\n");
     return biddyNull;
   } else if ((biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD)) {
     /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_IncTag: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_IncTag: this BDD type is not supported, yet!\n");
     return biddyNull;
   }
 
@@ -2970,20 +3213,24 @@ Biddy_Managed_IncTag(Biddy_Manager MNG, Biddy_Edge f)
 
 ### Description
     If such node already exists, function returns it and does not create the
-    new one. If pf = pt = NULL (and ptag = v) then new variable (for
-    OBDD, OFDD, TZBDD, and TZFDD) or new element (for ZBDD and ZFDD) is
-    created. For OBDD, ZBDD, OFDD, and ZFDD, parameter ptag is ignored. For
-    TZBDD and TZFDD, the returned edge is tagged with the given ptag. This
-    function should not be called directly to add new variables and elements,
-    you must use Biddy_Managed_FoaVariable, Biddy_Managed_AddVariableByName, or
-    Biddy_Managed_AddElementByName.
+    new one.  For OBDDs, ZBDDs, OFDDs, and ZFDDs, the returned edge is not
+    tagged (i.e. tag == 0). For TZBDDs and TZFDDs, the returned edge is
+    tagged with the given ptag. There are two special cases:
+    1. If (pf == pt == NULL) then new variable (for OBDDs, OFDDs, TZBDDs,
+    and TZFDDs) or new element (for ZBDDs and ZFDDs) is created.
+    2. (If ptag == 0) then the reduction rule and the normalization of
+    complemented edges is not used and the node is added exactly as
+    specified (be careful, this may create a wrong node!).
 ### Side effects
+    This function should not be called directly to add new variables and
+    elements, you must use Biddy_Managed_FoaVariable,
+    Biddy_Managed_AddVariableByName, or Biddy_Managed_AddElementByName.
     Using Biddy_Managed_TaggedFoaNode you can create node with an arbitrary
     ordering. It is much more safe to use Boolean operators, e.g.
     Biddy_Managed_ITE.
 ### More info
     Macro Biddy_Managed_FoaNode(MNG,v,pf,pt,garbageAllowed) is defined for
-    use with implicit tags or without tags.
+    use without tags.
     Macros Biddy_TaggedFoaNode(v,pf,pt,tag,garbageAllowed) and
     Biddy_FoaNode(v,pf,pt,garbageAllowed) are defined for use with
     anonymous manager.
@@ -3013,6 +3260,10 @@ Biddy_Managed_TaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
     /* IMPLEMENTED */
     r = BiddyManagedTaggedFoaNode(MNG,v,pf,pt,ptag,garbageAllowed);
     BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+  } else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* IMPLEMENTED */
+    r = BiddyManagedTaggedFoaNode(MNG,v,pf,pt,ptag,garbageAllowed);
+    BiddyRefresh(r); /* FoaNode returns an obsolete node! */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedTaggedFoaNode(MNG,v,pf,pt,ptag,garbageAllowed);
@@ -3021,19 +3272,18 @@ Biddy_Managed_TaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
     /* IMPLEMENTED */
     r = BiddyManagedTaggedFoaNode(MNG,v,pf,pt,ptag,garbageAllowed);
     BiddyRefresh(r); /* FoaNode returns an obsolete node! */
-  } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
-              (biddyManagerType == BIDDYTYPETZBDDC))
+  } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
-    fprintf(stderr,"Biddy_TaggedFoaNode: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_TaggedFoaNode: this BDD type is not supported, yet!\n");
     return biddyNull;
   } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"Biddy_TaggedFoaNode: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_TaggedFoaNode: this BDD type is not supported, yet!\n");
     return biddyNull;
   } else {
-    fprintf(stderr,"Biddy_TaggedFoaNode: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_TaggedFoaNode: Unsupported BDD type!\n");
     return biddyNull;
   }
 
@@ -3060,15 +3310,29 @@ BiddyManagedTaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
 
   static BiddyNode *newFreeNodes;
 
+  /* DEBUGGING */
+  /*
+  printf("BiddyManagedTaggedFoaNode: %p, %d\n",MNG,Biddy_Managed_GetManagerType(MNG));
+  */
+
   assert( MNG != NULL );
 
-  /* IMPLEMENTED FOR OBDD, OBDDC, ZBDDC, AND TZBDD */
+  /* IMPLEMENTED FOR OBDD, OBDDC, ZBDD, ZBDDC, AND TZBDD */
   assert(
     (biddyManagerType == BIDDYTYPEOBDD) ||
     (biddyManagerType == BIDDYTYPEOBDDC) ||
+    (biddyManagerType == BIDDYTYPEZBDD) ||
     (biddyManagerType == BIDDYTYPEZBDDC) ||
     (biddyManagerType == BIDDYTYPETZBDD)
   );
+
+  assert( v != 0 );
+
+  /* CURRENTLY, SPECIAL CASE 2 IS ONLY INTENDED FOR USE WITH TAGGED BDDs */
+  /* TO DO: USE SPECIAL CASE 2 FOR ALL BDD TYPES TO IMPROVE GRAPH COPYING/CONSTRUCTING */
+  assert( (biddyManagerType == BIDDYTYPETZBDD) ||
+          (biddyManagerType == BIDDYTYPETZBDDC) ||
+          (ptag != 0) );
 
 #ifdef BIDDYEXTENDEDSTATS_YES
   biddyNodeTable.foa++;
@@ -3084,27 +3348,44 @@ BiddyManagedTaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
   garbageAllowed = FALSE;
   */
 
-  /* SPECIAL CASE */
   addNodeSpecial = FALSE;
+  complementedResult = FALSE;
+
+  /* SPECIAL CASE1: pf == pt == NULL */
+
   if (!pf) {
-    pf = biddyZero;
-    pt = biddyTerminal;
+    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+      pf = biddyZero;
+      pt = biddyTerminal;
+    }
+    else if (biddyManagerType == BIDDYTYPEZBDD) {
+      pf = biddyZero;
+      pt = biddyTerminal;
+    }
+    else if (biddyManagerType == BIDDYTYPEZBDDC) {
+      pf = biddyTerminal;
+      pt = biddyTerminal;
+      complementedResult = TRUE;
+    }
+    else if (biddyManagerType == BIDDYTYPETZBDD) {
+      pf = biddyZero;
+      pt = biddyTerminal;
+    }
+    else if (biddyManagerType == BIDDYTYPETZBDDC) {
+      pf = biddyTerminal;
+      pt = biddyTerminal;
+      complementedResult = TRUE;
+    }
+    ptag = v;
     addNodeSpecial = TRUE;
   } else {
     assert( BiddyIsSmaller(v,BiddyV(pf)) );
     assert( BiddyIsSmaller(v,BiddyV(pt)) );
   }
 
-  /*
-  if (biddyNodeTable.num > 262140) {
-    printf("FOANODE: START\n");
-    BiddySystemReport(MNG);
-  }
-  */
-
   /* DEBUGGING */
   /*
-  printf("FOANODE");
+  printf("FOANODE (%d)",Biddy_Managed_GetManagerType(MNG));
   if (addNodeSpecial) {
     printf("(addNodeSpecial==TRUE)");
   }
@@ -3117,68 +3398,73 @@ BiddyManagedTaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
          Biddy_GetMark(pt)?"0":Biddy_Managed_GetTopVariableName(MNG,pt));
   */
 
-  /* SIMPLE CASES */
+ /* SPECIAL CASE 2: ptag == 0 */
 
-  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-    if (pf == pt) {
-      return pf;
-    }
-  }
+  if (!addNodeSpecial && ptag) {
 
-  else if (biddyManagerType == BIDDYTYPEZBDDC) {
-    if (pt == biddyZero) {
-      return pf;
-    }
-  }
+    /* SIMPLE CASES */
 
-  else if (biddyManagerType == BIDDYTYPETZBDD) {
-    if (BiddyR(pt) == biddyZero) {
-      if (BiddyR(pf) == biddyZero) {
-        return biddyZero;
-      }
-      tag = Biddy_GetTag(pf);
-      v = biddyVariableTable.table[v].next;
-      if (tag == v) {
-        return Biddy_SetTag(pf,ptag);
-      } else {
-        return BiddyManagedTaggedFoaNode(MNG,v,pf,pf,ptag,garbageAllowed);
-      }
-    }
-    if (pf == pt) {
-      if (ptag == v) {
+    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+      if (pf == pt) {
         return pf;
       }
     }
-  }
 
-  /* NORMALIZATION OF COMPLEMENTED EDGES */
-  complementedResult = FALSE;
-
-  if (biddyManagerType == BIDDYTYPEOBDDC) {
-    if (Biddy_GetMark(pt)) {
-      Biddy_InvertMark(pf);
-      Biddy_ClearMark(pt);
-      complementedResult = TRUE;
-    } else {
-      complementedResult = FALSE;
+    else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+      if (pt == biddyZero) {
+        return pf;
+      }
     }
-  }
 
-  else if (biddyManagerType == BIDDYTYPEZBDDC) {
-    if (Biddy_GetMark(pf)) {
-      Biddy_ClearMark(pf);
-      complementedResult = TRUE;
-    } else {
-      complementedResult = FALSE;
+    else if (biddyManagerType == BIDDYTYPETZBDD) {
+      if (BiddyR(pt) == biddyZero) {
+        if (BiddyR(pf) == biddyZero) {
+          return biddyZero;
+        }
+        tag = Biddy_GetTag(pf);
+        v = biddyVariableTable.table[v].next;
+        if (tag == v) {
+          return Biddy_SetTag(pf,ptag);
+        } else {
+          return BiddyManagedTaggedFoaNode(MNG,v,pf,pf,ptag,garbageAllowed);
+        }
+      }
+      if (pf == pt) {
+        if (ptag == v) {
+          return pf;
+        }
+      }
     }
-  }
 
-  else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* COMPLEMENTED EDGES ARE NOT USED */
+    /* NORMALIZATION OF COMPLEMENTED EDGES */
+
+    if (biddyManagerType == BIDDYTYPEOBDDC) {
+      if (Biddy_GetMark(pt)) {
+        Biddy_InvertMark(pf);
+        Biddy_ClearMark(pt);
+        complementedResult = TRUE;
+      } else {
+        complementedResult = FALSE;
+      }
+    }
+
+    else if (biddyManagerType == BIDDYTYPEZBDDC) {
+      if (Biddy_GetMark(pf)) {
+        Biddy_ClearMark(pf);
+        complementedResult = TRUE;
+      } else {
+        complementedResult = FALSE;
+      }
+    }
+
+    else if (biddyManagerType == BIDDYTYPETZBDD) {
+      /* COMPLEMENTED EDGES ARE NOT USED */
+    }
+
   }
 
   /* SOME NODES ARE NOT HASHED IN THE USUAL WAY */
-  /* THE RESULTING EDGE IS STORED ONLY AS PART OF BiddyVariable */
+  /* FOR THEM, THE RESULTING EDGE IS STORED ONLY AS PART OF BiddyVariable */
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD) ||
       (biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD))
   {
@@ -3190,13 +3476,19 @@ BiddyManagedTaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
       }
     }
   }
-  if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
-      (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
+  if ((biddyManagerType == BIDDYTYPEZBDD) || (biddyManagerType == BIDDYTYPEZFDD))
+  {
+    if ((pf == biddyZero) && (pt == biddyTerminal) && !addNodeSpecial) {
+      return biddyVariableTable.table[v].element;
+    }
+  }
+  if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZFDDC))
   {
     if ((pf == biddyTerminal) && (pt == biddyTerminal) && !addNodeSpecial) {
       if (complementedResult) {
         return biddyVariableTable.table[v].element;
-      } else {
+      }
+      else {
         return Biddy_Inv(biddyVariableTable.table[v].element);
       }
     }
@@ -3362,7 +3654,7 @@ BiddyManagedTaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
     Biddy_SetMark(edge);
   }
 
-  if (biddyManagerType == BIDDYTYPETZBDD) {
+  if ((biddyManagerType == BIDDYTYPETZBDD) && ptag) {
     Biddy_SetTag(edge,ptag);
   }
 
@@ -3392,9 +3684,9 @@ BiddyManagedTaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf,
 
   assert( BiddyIsSmaller(BiddyV(edge),BiddyV(BiddyE(edge))) );
   assert( BiddyIsSmaller(BiddyV(edge),BiddyV(BiddyT(edge))) );
-  assert( (biddyManagerType != BIDDYTYPETZBDD) || (Biddy_GetTag(edge) == BiddyV(edge)) || BiddyIsSmaller(Biddy_GetTag(edge),BiddyV(edge)) );
-  assert( (biddyManagerType != BIDDYTYPETZBDD) || (Biddy_GetTag(BiddyE(edge)) == BiddyV(BiddyE(edge))) || BiddyIsSmaller(Biddy_GetTag(BiddyE(edge)),BiddyV(BiddyE(edge))) );
-  assert( (biddyManagerType != BIDDYTYPETZBDD) || (Biddy_GetTag(BiddyT(edge)) == BiddyV(BiddyT(edge))) || BiddyIsSmaller(Biddy_GetTag(BiddyT(edge)),BiddyV(BiddyT(edge))) );
+  assert( (biddyManagerType != BIDDYTYPETZBDD) || !ptag || (Biddy_GetTag(edge) == BiddyV(edge)) || BiddyIsSmaller(Biddy_GetTag(edge),BiddyV(edge)) );
+  assert( (biddyManagerType != BIDDYTYPETZBDD) || !ptag || (Biddy_GetTag(BiddyE(edge)) == BiddyV(BiddyE(edge))) || BiddyIsSmaller(Biddy_GetTag(BiddyE(edge)),BiddyV(BiddyE(edge))) );
+  assert( (biddyManagerType != BIDDYTYPETZBDD) || !ptag || (Biddy_GetTag(BiddyT(edge)) == BiddyV(BiddyT(edge))) || BiddyIsSmaller(Biddy_GetTag(BiddyT(edge)),BiddyV(BiddyT(edge))) );
 
   return edge;
 }
@@ -3433,10 +3725,10 @@ Biddy_Managed_IsOK(Biddy_Manager MNG, Biddy_Edge f)
 ### Description
     All obsolete nodes are deleted.
     Iff parameter purge is true then all formulae without name are deleted.
-    Iff parameter purge is true then all nodes which are not part of any
+    Iff parameter purge is true then all nodes which are not part of
     non-obsolete non-deleted formulae are removed even if they are fresh or
     fortified (this should not be used during automatic garbage collection!).
-    If parameter total is true than unnecessary nodes are guaranted to be
+    If parameter total is true than all unnecessary nodes are immediately
     deleted, otherwise they are deleted only when there are enough of them.
     If (targetLT != 0) then node table resizing is disabled.
     If (targetLT != 0) then there should not exist obsolete formulae.
@@ -3454,10 +3746,12 @@ Biddy_Managed_IsOK(Biddy_Manager MNG, Biddy_Edge f)
     Parameters targetLT and targetGEQ are used during sifting, only,
     in all other cases 0 is used.
 ### More info
-    Macro Biddy_GC(target,purge,total) is defined for use with anonymous
-    manager.
+    Macro Biddy_GC(targetLT,targetGEQ,purge,total) is defined for use with
+    anonymous manager.
     Macros Biddy_Managed_AutoGC(MNG) and Biddy_AutoGC() are useful variants
-    with target = 0, purge = FALSE, and total = FALSE.
+    with targetLT = targetGEQ = 0, purge = FALSE, and total = FALSE.
+    Macros Biddy_Managed_ForceGC(MNG) and Biddy_ForceGC() are useful variants
+    with targetLT = targetGEQ = 0, purge = FALSE, and total = TRUE.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -3539,7 +3833,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable targetLT,
     i = biddyFormulaTable.size;
   }
   for (j = i; j < biddyFormulaTable.size; j++) {
-    
+
     /* DEBUGGING */
     /*
     printf("[FORM:%s@%u]",biddyFormulaTable.table[j].name,biddyFormulaTable.table[j].expiry);
@@ -3548,7 +3842,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable targetLT,
     if (purge && !biddyFormulaTable.table[j].name) {
       biddyFormulaTable.table[j].deleted = TRUE;
     }
-   
+
     if ((!purge || !biddyFormulaTable.table[j].deleted)
         &&
         (!biddyFormulaTable.table[j].expiry || biddyFormulaTable.table[j].expiry >= biddySystemAge))
@@ -3564,7 +3858,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable targetLT,
     } else {
 
       /* THIS FORMULA IS BAD */
-      
+
       /* DEBUGGING */
       /*
       fprintf(stderr,"Biddy_Managed_GC: Formula %s will be deleted!\n",biddyFormulaTable.table[j].name);
@@ -3777,7 +4071,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable targetLT,
       */
 
     }
-    
+
     /* PROFILING */
     /*
     else {
@@ -3886,7 +4180,7 @@ Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable targetLT,
 
     }
   }
-  
+
   /* DEBUGGING */
   /*
   else {
@@ -3988,10 +4282,11 @@ Biddy_Managed_Clean(Biddy_Manager MNG)
        not preserved or which are not preserved anymore.
 
 ### Description
-    All fresh and obsolete nodes are immediatelly removed.
     All formulae without name are deleted.
-    Moreover, nodes from deleted prolonged formulae and nodes from deleted
-    fortified formulae are removed if they are not needed by other formulae.
+    All deleted formulae (including prolonged/fortified formulae) are removed.
+    All fresh and obsolete nodes are immediatelly removed.
+    Moreover, all prolonged and fortified nodes are removed if they are not
+    needed by some of the remaining formula.
     Call to Biddy_Purge does not count as clearing and thus all preserved
     formulae remains preserved for the same number of clearings.
 ### Side effects
@@ -4157,13 +4452,13 @@ Biddy_Managed_AddCache(Biddy_Manager MNG, Biddy_GCFunction gc)
     There are five macros defined to simplify formulae management:
     Biddy_Managed_AddTmpFormula(mng,name,bdd)
       := Biddy_Managed_AddFormula(mng,name,bdd,-1)
-    Biddy_Managed_AddPreservedFormula(mng,bdd,c)
-      := Biddy_Managed_AddFormula(mng,NULL,bdd,c)
     Biddy_Managed_AddPersistentFormula(mng,name,bdd)
       := Biddy_Managed_AddFormula(mng,name,bdd,0)
     Biddy_Managed_KeepFormula(mng,bdd)
       := Biddy_Managed_AddFormula(mng,NULL,bdd,1)
-    Biddy_Managed_KeepFormulaUntilDelete(mng,bdd)
+    Biddy_Managed_KeepFormulaProlonged(mng,bdd,c)
+      := Biddy_Managed_AddFormula(mng,NULL,bdd,c)
+    Biddy_Managed_KeepFormulaUntilPurge(mng,bdd)
       := Biddy_Managed_AddFormula(mng,NULL,bdd,0)
 ### Side effects
     Function is prolonged or fortified. Formulae with name are ordered by name.
@@ -4171,10 +4466,10 @@ Biddy_Managed_AddCache(Biddy_Manager MNG, Biddy_GCFunction gc)
     preserved (i.e. not obsolete and not fresh) and persistently preserved
     formulae will be deleted at the original index and recreated at new index!
 ### More info
-    Macros Biddy_AddFormula(x,f), Biddy_AddTmpFormula(f),
-    Biddy_AddPreservedFormula(f,c), Biddy_AddPersistentFormula(x,f),
-    Biddy_KeepFormula(f), and Biddy_KeepFormulaUntilDelete(f) are defined for
-    use with anonymous manager.
+    Macros Biddy_AddFormula(x,f,c), Biddy_AddTmpFormula(x,f),
+    Biddy_AddPersistentFormula(x,f),  Biddy_KeepFormula(f),
+    Biddy_KeepFormulaProlonged(f,c), and Biddy_KeepFormulaUntilPurge(f)
+    are defined for use with anonymous manager.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -4218,12 +4513,14 @@ Biddy_Managed_AddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f, int c)
     c += biddySystemAge;
   }
 
-  /* if formula does not have a name and is NULL or constant function, then it will not be added */
+  /* if formula does not have a name and is NULL or constant function, */
+  /* then it will not be added, such BDD is already fortified, redundancy not needed */
   if (!x && (Biddy_IsNull(f) || (f == biddyZero) || (f == biddyOne))) {
     return 0;
   }
 
-  /* if formula does not have a name and is a basic variable/element, then it will not be added */
+  /* if formula does not have a name and it is the same as a basic variable/element, */
+  /* then it will not be added, such BDD is already fortified, redundancy not needed */
   if (!x && !Biddy_IsNull(f)) {
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD) ||
         (biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD))
@@ -4232,8 +4529,13 @@ Biddy_Managed_AddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f, int c)
         return 0;
       }
     }
-    if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
-        (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
+    if ((biddyManagerType == BIDDYTYPEZBDD) || (biddyManagerType == BIDDYTYPEZFDD))
+    {
+      if ((BiddyE(f) == biddyZero) && (BiddyT(f) == biddyTerminal)) {
+        return 0;
+      }
+    }
+    if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZFDDC))
     {
       if ((BiddyE(f) == biddyTerminal) && (BiddyT(f) == biddyTerminal)) {
         return 0;
@@ -4313,25 +4615,33 @@ Biddy_Managed_AddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f, int c)
           (biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD))
       {
         if ((BiddyE(f) == biddyZero) && (BiddyT(f) == biddyTerminal)) {
-          /* variable/element not changed */
+          /* this is variable, not changed */
         } else {
           BiddyProlongOne(f,(unsigned int) c);
         }
       }
-      if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
-          (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
+      if ((biddyManagerType == BIDDYTYPEZBDD) || (biddyManagerType == BIDDYTYPEZFDD))
       {
-        if ((BiddyE(f) == biddyTerminal) && (BiddyT(f) == biddyTerminal)) {
-          /* variable/element not changed */
+        if ((BiddyE(f) == biddyZero) && (BiddyT(f) == biddyTerminal)) {
+          /* this is element, not changed */
         } else {
           BiddyProlongOne(f,(unsigned int) c);
+        }
+      }
+      if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZFDDC))
+      {
+        if ((BiddyE(f) == biddyTerminal) && (BiddyT(f) == biddyTerminal)) {
+          /* this is element, not changed */
+        }
+        else {
+          BiddyProlongOne(f, (unsigned int)c);
         }
       }
       if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD) ||
           (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
       {
         if ((BiddyE(f) == biddyZero) && (BiddyT(f) == biddyTerminal)) {
-          /* variable/element not changed */
+          /* this is variable/element, not changed */
         } else {
           BiddyProlongOne(f,(unsigned int) c);
         }
@@ -4381,25 +4691,33 @@ Biddy_Managed_AddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f, int c)
         (biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD))
     {
       if ((BiddyE(f) == biddyZero) && (BiddyT(f) == biddyTerminal)) {
-        /* variable/element not changed */
+        /* this is variable, not changed */
       } else {
         BiddyProlongOne(f,(unsigned int) c);
       }
     }
-    if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
-        (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
+    if ((biddyManagerType == BIDDYTYPEZBDD) || (biddyManagerType == BIDDYTYPEZFDD))
     {
-      if ((BiddyE(f) == biddyTerminal) && (BiddyT(f) == biddyTerminal)) {
-        /* variable/element not changed */
+      if ((BiddyE(f) == biddyZero) && (BiddyT(f) == biddyTerminal)) {
+        /* this is element, not changed */
       } else {
         BiddyProlongOne(f,(unsigned int) c);
+      }
+    }
+    if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZFDDC))
+    {
+      if ((BiddyE(f) == biddyTerminal) && (BiddyT(f) == biddyTerminal)) {
+        /* this is element, not changed */
+      }
+      else {
+        BiddyProlongOne(f, (unsigned int)c);
       }
     }
     if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD) ||
         (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
     {
       if ((BiddyE(f) == biddyZero) && (BiddyT(f) == biddyTerminal)) {
-        /* variable/element not changed */
+        /* this is variable/element, not changed */
       } else {
         BiddyProlongOne(f,(unsigned int) c);
       }
@@ -4790,6 +5108,39 @@ Biddy_Managed_GetIthFormulaName(Biddy_Manager MNG, unsigned int i)
 #endif
 
 /***************************************************************************//*!
+\brief Function Biddy_Managed_SetAlphabeticOrdering use variable swapping
+        to create an alphabetic ordering.
+
+### Description
+    Named variables are ordered according to their names. Numbered variables
+    are ordered according to their numbers and are always smaller (topmore) as
+    any named variable.
+### Side effects
+### More info
+    Macro Biddy_SetAlphabeticOrdering() is defined for use with anonymous
+    manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void
+Biddy_Managed_SetAlphabeticOrdering(Biddy_Manager MNG)
+{
+  BiddyOrderingTable table;
+
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  alphabeticOrdering(MNG,table);
+  BiddySetOrdering(MNG,table);
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
 \brief Function Biddy_Managed_SwapWithHigher swaps two adjacent variables.
 
 ### Description
@@ -4824,25 +5175,27 @@ Biddy_Managed_SwapWithHigher(Biddy_Manager MNG, Biddy_Variable v)
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     vhigh = swapWithHigher(MNG,v,&active);
+  } else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* IMPLEMENTED */
+    vhigh = swapWithHigher(MNG,v,&active);
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     vhigh = swapWithHigher(MNG,v,&active);
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     vhigh = swapWithHigher(MNG,v,&active);
-  } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
-              (biddyManagerType == BIDDYTYPETZBDDC))
+  } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
-    fprintf(stderr,"Biddy_SwapWithHigher: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_SwapWithHigher: this BDD type is not supported, yet!\n");
     return 0;
   } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"Biddy_SwapWithHigher: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_SwapWithHigher: this BDD type is not supported, yet!\n");
     return 0;
   } else {
-    fprintf(stderr,"Biddy_SwapWithHigher: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_SwapWithHigher: Unsupported BDD type!\n");
     return 0;
   }
 
@@ -4888,25 +5241,27 @@ Biddy_Managed_SwapWithLower(Biddy_Manager MNG, Biddy_Variable v)
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     vlow = swapWithLower(MNG,v,&active);
+  } else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* IMPLEMENTED */
+    vlow = swapWithLower(MNG,v,&active);
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     vlow = swapWithLower(MNG,v,&active);
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     vlow = swapWithLower(MNG,v,&active);
-  } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
-              (biddyManagerType == BIDDYTYPETZBDDC))
+  } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
-    fprintf(stderr,"Biddy_SwapWithLower: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_SwapWithLower: this BDD type is not supported, yet!\n");
     return 0;
   } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"Biddy_SwapWithLower: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_SwapWithLower: this BDD type is not supported, yet!\n");
     return 0;
   } else {
-    fprintf(stderr,"Biddy_SwapWithLower: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_SwapWithLower: Unsupported BDD type!\n");
     return 0;
   }
 
@@ -4956,23 +5311,24 @@ Biddy_Managed_Sifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
     /* IMPLEMENTED */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
+  } else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* IMPLEMENTED */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
-  } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
-              (biddyManagerType == BIDDYTYPETZBDDC))
+  } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
-    fprintf(stderr,"Biddy_Sifting: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_Sifting: this BDD type is not supported, yet!\n");
     return FALSE;
   } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"Biddy_Sifting: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_Sifting: this BDD type is not supported, yet!\n");
     return FALSE;
   } else {
-    fprintf(stderr,"Biddy_Sifting: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_Sifting: Unsupported BDD type!\n");
     return FALSE;
   }
 
@@ -5002,7 +5358,7 @@ Biddy_Managed_Sifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
         }
       }
     }
-    printf("Initial number of dependent variables: %u\n",Biddy_Managed_DependentVariableNumber(MNG,f));
+    printf("Initial number of dependent variables: %u\n",Biddy_Managed_DependentVariableNumber(MNG,f,FALSE));
     printf("Initial number of minterms: %.0f\n",Biddy_Managed_CountMinterms(MNG,f,0));
     printf("Initial number of nodes: %u\n",Biddy_Managed_CountNodes(MNG,f));
     printf("Top edge: %p\n",(void *) f);
@@ -5037,13 +5393,11 @@ Biddy_Managed_Sifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
   biddyRCCache.disabled = TRUE;
   biddyReplaceCache.disabled = TRUE;
 
-  /* TO GET THE PRECISE NUMBER OF NODES IN EVERY STEP OF SIFTING WE USE PURGE */
-  /* IT IS IMPORTANT, THAT WE REMOVE ALL OBSOLETE FORMULAE AND NODES */
-  /* AND ALSO ALL NODES WHICH ARE NOT PART OF THE REMAINING FORMULA */
-  Biddy_Managed_GC(MNG,0,0,TRUE,TRUE);
-
   if (!f) {
     /* MINIMIZING NODE NUMBER FOR THE WHOLE SYSTEM */
+    /* WE REMOVE OBSOLETE NODES BECAUSE THEY SHOULD NOT BE CONSIDERED */
+    /* WE DO NOT WANT TO USE PURGE HERE BECAUSE IT LIMITS THE USABILITY OF SIFTING */
+    Biddy_Managed_ForceGC(MNG);
     status = BiddyGlobalSifting(MNG,converge);
   } else {
     /* MINIMIZING NODE NUMBER FOR THE GIVEN FUNCTION */
@@ -5068,7 +5422,7 @@ Biddy_Managed_Sifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
   printf("SIFTING FINISH: num swapping: %u\n",Biddy_Managed_NodeTableSwapNumber(MNG));
   printf("SIFTING FINISH: num garbage collection: %u\n",Biddy_Managed_NodeTableGCNumber(MNG));
   if (f) {
-    printf("Final number of dependent variables: %u\n",Biddy_Managed_DependentVariableNumber(MNG,f));
+    printf("Final number of dependent variables: %u\n",Biddy_Managed_DependentVariableNumber(MNG,f,FALSE));
     printf("Final number of minterms: %.0f\n",Biddy_Managed_CountMinterms(MNG,f,0));
     printf("Final number of nodes: %u\n",Biddy_Managed_CountNodes(MNG,f));
     printf("Top edge: %p\n",(void *) f);
@@ -5143,7 +5497,7 @@ Biddy_Managed_MinimizeBDD(Biddy_Manager MNG, Biddy_String name)
   }
   */
 
-  sjtinit(MNG);
+  BiddySjtInit(MNG);
 
   MIN = 0;
   first = TRUE;
@@ -5175,9 +5529,9 @@ Biddy_Managed_MinimizeBDD(Biddy_Manager MNG, Biddy_String name)
 
     first = FALSE;
 
-  } while(sjt(MNG));
+  } while(BiddySjtStep(MNG));
 
-  sjtexit(MNG);
+  BiddySjtExit(MNG);
 
   BiddySetOrdering(MNG,finalOrdering);
 
@@ -5237,7 +5591,7 @@ Biddy_Managed_MaximizeBDD(Biddy_Manager MNG, Biddy_String name)
   }
   */
 
-  sjtinit(MNG);
+  BiddySjtInit(MNG);
   MAX = 0;
   do {
     Biddy_Managed_FindFormula(MNG,name,&idx,&f);
@@ -5264,9 +5618,9 @@ Biddy_Managed_MaximizeBDD(Biddy_Manager MNG, Biddy_String name)
       MAX = n;
       memcpy(finalOrdering,biddyOrderingTable,sizeof(BiddyOrderingTable));
     }
-  } while(sjt(MNG));
+  } while(BiddySjtStep(MNG));
 
-  sjtexit(MNG);
+  BiddySjtExit(MNG);
 
   BiddySetOrdering(MNG,finalOrdering);
 
@@ -5290,7 +5644,8 @@ Biddy_Managed_MaximizeBDD(Biddy_Manager MNG, Biddy_String name)
     in another manager. If the managers do not use the same BDD type then
     a graph is converted. The resulting graph will represent the same Boolean
     function assuming the domain from the target manager.
-    If f = biddyZero then only the domain is copied.
+    If (f == biddyZero) then only the complete domain (all variables) is
+    copied.
 ### Side effects
     If source and target manager are the same then function does nothing.
     The variable ordering of the created BDD is trying to follow the original
@@ -5312,7 +5667,7 @@ Biddy_Edge
 Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
 {
   Biddy_Edge r;
-  Biddy_Variable v,k;
+  Biddy_Variable v1,v2,k;
   Biddy_Variable top,prevvar;
   Biddy_String vname,topname;
   Biddy_Boolean simplecopy;
@@ -5339,11 +5694,12 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
   if ((biddyManagerType2 == BIDDYTYPEOBDDC) || (biddyManagerType2 == BIDDYTYPEOBDD) ||
       (biddyManagerType2 == BIDDYTYPEOFDDC) || (biddyManagerType2 == BIDDYTYPEOFDD))
   {
-    v = Biddy_Managed_GetLowestVariable(MNG1); /* lowest = topmost */
+    v1 = Biddy_Managed_GetLowestVariable(MNG1); /* lowest = topmost */
     for (k = 1; k < biddyVariableTable1.num; k++) {
-      vname = Biddy_Managed_GetVariableName(MNG1,v);
-      r = Biddy_Managed_AddVariableByName(MNG2,vname);
-      v = biddyVariableTable1.table[v].next;
+      vname = Biddy_Managed_GetVariableName(MNG1,v1);
+      v2 = Biddy_Managed_AddVariableByName(MNG2,vname);
+      Biddy_Managed_SetVariableData(MNG2,v2,Biddy_Managed_GetVariableData(MNG1,v1));
+      v1 = biddyVariableTable1.table[v1].next;
     }
   }
 
@@ -5352,48 +5708,51 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
             (biddyManagerType2 == BIDDYTYPETZBDDC) || (biddyManagerType2 == BIDDYTYPETZBDD) ||
             (biddyManagerType2 == BIDDYTYPETZFDDC) || (biddyManagerType2 == BIDDYTYPETZFDD))
   {
-    v = 0;
+    v1 = 0;
     for (k = 1; k < biddyVariableTable1.num; k++) {
-      v = biddyVariableTable1.table[v].prev;
-      vname = Biddy_Managed_GetVariableName(MNG1,v);
-      r = Biddy_Managed_AddVariableByName(MNG2,vname);
+      v1 = biddyVariableTable1.table[v1].prev;
+      vname = Biddy_Managed_GetVariableName(MNG1,v1);
+      v2 = Biddy_Managed_AddVariableByName(MNG2,vname);
+      Biddy_Managed_SetVariableData(MNG2,v2,Biddy_Managed_GetVariableData(MNG1,v1));
     }
   }
 
   else {
-    fprintf(stderr,"Biddy_Managed_Copy: Unsupported GDD type for MNG2!\n");
+    fprintf(stderr,"Biddy_Managed_Copy: Unsupported BDD type for MNG2!\n");
   }
 
   /* DEBUGGING - PRINT BOTH DOMAINS */
   /*
-  printf("SOURCE DOMAIN\n");
-  v = 0;
+  printf("Biddy_Copy: SOURCE DOMAIN FOR %s\n",Biddy_Managed_GetManagerName(MNG1));
+  v1 = 0;
   for (k = 1; k < biddyVariableTable1.num; k++) {
     vname = Biddy_Managed_GetVariableName(MNG1,k);
     printf("(%u)%s,",k,vname);
-    v = biddyVariableTable1.table[v].prev;
+    v1 = biddyVariableTable1.table[v1].prev;
   }
   printf("\n");
   for (k = 1; k < biddyVariableTable1.num; k++) {
-    vname = Biddy_Managed_GetVariableName(MNG1,v);
+    vname = Biddy_Managed_GetVariableName(MNG1,v1);
     printf("%s,",vname);
-    v = biddyVariableTable1.table[v].next;
+    v1 = biddyVariableTable1.table[v1].next;
   }
   printf("\n");
-  printf("TARGET DOMAIN\n");
-  v = 0;
+  printf("Biddy_Copy: TARGET DOMAIN FOR %s\n",Biddy_Managed_GetManagerName(MNG2));
+  v1 = 0;
   for (k = 1; k < biddyVariableTable2.num; k++) {
     vname = Biddy_Managed_GetVariableName(MNG2,k);
     printf("(%u)%s,",k,vname);
-    v = biddyVariableTable2.table[v].prev;
+    v1 = biddyVariableTable2.table[v1].prev;
   }
   printf("\n");
   for (k = 1; k < biddyVariableTable2.num; k++) {
-    vname = Biddy_Managed_GetVariableName(MNG2,v);
+    vname = Biddy_Managed_GetVariableName(MNG2,v1);
     printf("%s,",vname);
-    v = biddyVariableTable2.table[v].next;
+    v1 = biddyVariableTable2.table[v1].next;
   }
   printf("\n");
+  if (simplecopy) printf("Biddy_Copy: SIMPLE COPY!\n");
+  if (f == biddyZero1) printf("Biddy_Copy: DOMAIN COPIED AND FINISHED!\n");
   */
 
   if (f == biddyZero1) return biddyZero2; /* domain has been already copied */
@@ -5427,7 +5786,7 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
         /* BiddyConvertDirect does not create the topmost variables which are not present in OBDD */
         /* MNG2 was empty on the beginning and the domain have been correctly copied */
         /* thus, we can assume that MNG1 and MNG2 have the same ordering */
-        /* NOTE: this implementation allows that MNG2 contains extra variables */        
+        /* NOTE: this implementation allows that MNG2 contains extra variables */
         /* NOTE: this implementation allows that the same variable has different indices in MNG1 and MNG2 */
 
         /* determine the topmost variable in the domain of MNG2 (for ZBDDs, it has prev=biddyVariableTable.num) */
@@ -5441,7 +5800,7 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
         /* add all missing variables to f in MNG2 which are missing in MNG2 */
         while (prevvar != top) {
           prevvar = biddyVariableTable2.table[prevvar].prev;
-          r = BiddyManagedTaggedFoaNode(MNG2,prevvar,r,r,0,TRUE);
+          r = BiddyManagedTaggedFoaNode(MNG2,prevvar,r,r,prevvar,TRUE);
           BiddyProlongOne(r,biddySystemAge2); /* FoaNode returns an obsolete node! */
         }
       }
@@ -5470,7 +5829,7 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
         /* BiddyConvertDirect does not create the topmost variables which are not present in ZBDD */
         /* MNG2 was empty on the beginning and the domain have been correctly copied */
         /* thus, we can assume that MNG1 and MNG2 have the same ordering */
-        /* NOTE: this implementation allows that MNG2 contains extra variables */        
+        /* NOTE: this implementation allows that MNG2 contains extra variables */
         /* NOTE: this implementation allows that the same variable has different indices in MNG1 and MNG2 */
 
         /* determine the topmost variable in the domain of MNG1 (for ZBDDs, it has prev=biddyVariableTable.num) */
@@ -5484,11 +5843,10 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
         while (prevvar != top) {
           prevvar = biddyVariableTable1.table[prevvar].prev;
           topname = Biddy_Managed_GetVariableName(MNG1,prevvar);
-          v = Biddy_Managed_GetVariable(MNG2,topname);
-          r = BiddyManagedTaggedFoaNode(MNG2,v,r,biddyZero2,v,TRUE);
+          v2 = Biddy_Managed_GetVariable(MNG2,topname);
+          r = BiddyManagedTaggedFoaNode(MNG2,v2,r,biddyZero2,v2,TRUE);
           BiddyProlongOne(r,biddySystemAge2); /* FoaNode returns an obsolete node! */
         }
-
       }
 
       else if (((biddyManagerType1 == BIDDYTYPEZBDDC) || (biddyManagerType1 == BIDDYTYPEZBDD))
@@ -5498,7 +5856,7 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
         /* BiddyConvertDirect does not create the topmost variables which are not present in ZBDD */
         /* MNG2 was empty on the beginning and the domain have been correctly copied */
         /* thus, we can assume that MNG1 and MNG2 have the same ordering */
-        /* this implementation is correct only if MNG1 and MNG2 contain exactly the same variables */        
+        /* this implementation is correct only if MNG1 and MNG2 contain exactly the same variables */
         /* TO DO: */
         /* extend for the case where MNG2 contains extra variables and */
         /* the same variable may have different indices in MNG1 and MNG2 */
@@ -5508,10 +5866,14 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
         while (biddyVariableTable1.table[top].prev != biddyVariableTable1.num) {
           top = biddyVariableTable1.table[top].prev;
         }
+        /* determine topmost variable of f in MNG1 considered by BiddyConvertDirect (by checking the topmost variable of f in MNG1) */
+        prevvar = BiddyV(f);
         /* add all variables to f in MNG2 which are missing in MNG1 */
-        topname = Biddy_Managed_GetVariableName(MNG1,top);
-        v = Biddy_Managed_GetVariable(MNG2,topname);
-        Biddy_SetTag(r,v);
+        if (prevvar != top) {
+          topname = Biddy_Managed_GetVariableName(MNG1,top);
+          v2 = Biddy_Managed_GetVariable(MNG2,topname);
+          Biddy_SetTag(r,v2);
+        }
       }
 
       else if (((biddyManagerType1 == BIDDYTYPETZBDDC) || (biddyManagerType1 == BIDDYTYPETZBDD))
@@ -5528,7 +5890,7 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
         /* BiddyConvertDirect does not create the topmost variables which are not present in TZBDD */
         /* MNG2 was empty on the beginning and the domain have been correctly copied */
         /* thus, we can assume that MNG1 and MNG2 have the same ordering */
-        /* NOTE: this implementation allows that MNG2 contains extra variables */        
+        /* NOTE: this implementation allows that MNG2 contains extra variables */
         /* NOTE: this implementation allows that the same variable has different indices in MNG1 and MNG2 */
 
         /* determine the topmost variable in the domain of MNG2 (for ZBDDs, it has prev=biddyVariableTable.num) */
@@ -5542,7 +5904,7 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
         /* add all missing variables to f in MNG2 which are missing in MNG2 */
         while (prevvar != top) {
           prevvar = biddyVariableTable2.table[prevvar].prev;
-          r = BiddyManagedTaggedFoaNode(MNG2,prevvar,r,r,0,TRUE);
+          r = BiddyManagedTaggedFoaNode(MNG2,prevvar,r,r,prevvar,TRUE);
           BiddyProlongOne(r,biddySystemAge2); /* FoaNode returns an obsolete node! */
         }
       }
@@ -5558,7 +5920,7 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
       }
 
       else {
-        fprintf(stderr,"Biddy_Managed_Copy: Unsupported GDD type combination for MNG1 or MNG2!\n");
+        fprintf(stderr,"Biddy_Managed_Copy: Unsupported BDD type combination for MNG1 or MNG2!\n");
         assert ( FALSE );
       }
 
@@ -5574,12 +5936,12 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
       r = BiddyCopyZBDD(MNG1,MNG2,f);
       BiddyProlongOne(r,biddySystemAge2); /* not always refreshed by BiddyCopy */
     }
-    else if ((biddyManagerType1 == BIDDYTYPETZBDD) || (biddyManagerType1 == BIDDYTYPETZBDDC)) {
+    else if ((biddyManagerType1 == BIDDYTYPETZBDDC) || (biddyManagerType1 == BIDDYTYPETZBDD)) {
       r = BiddyCopyTZBDD(MNG1,MNG2,f);
       BiddyProlongOne(r,biddySystemAge2); /* not always refreshed by BiddyCopy */
     }
     else {
-      fprintf(stderr,"Biddy_Managed_Copy: Unsupported GDD type for MNG1!\n");
+      fprintf(stderr,"Biddy_Managed_Copy: Unsupported BDD type for MNG1!\n");
     }
 
   }
@@ -5600,7 +5962,7 @@ Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
 ### Side effects
     If source and target manager are the same then function does nothing.
     The variable ordering of created BDD is adapted to the target manager.
-    The created formula is not preserved.
+    The created formula is refreshed but not preserved.
 ### More info
     Macro Biddy_CopyFormula(MNG2,x) is defined for use with anonymous manager.
 *******************************************************************************/
@@ -5632,7 +5994,11 @@ Biddy_Managed_CopyFormula(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_String x
     if (OK) {
       printf("WARNING (Biddy_Managed_CopyFormula): formula overwritten!\n");
     }
-    dst = Biddy_Managed_Copy(MNG1,MNG2,src);
+    if (src == biddyZero1) {
+      dst = biddyZero2;
+    } else {
+      dst = Biddy_Managed_Copy(MNG1,MNG2,src);
+    }
     Biddy_Managed_AddFormula(MNG2,x,dst,-1);
   }
 
@@ -5646,128 +6012,152 @@ Biddy_Managed_CopyFormula(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_String x
 }
 #endif
 
-/***************************************************************************//*!
-\brief Function Biddy_Managed_Eval returns the value of a Boolean function
-       for a given variable assignment.
-### Description
-### Side effects
-    Variables must have values assigned. Variable is considered to be
-    FALSE iff variable.value == biddyZero, whilst it is considered to be TRUE,
-    otherwise.
-### More info
-    Macro Biddy_Eval(f) is defined for use with anonymous manager.
-*******************************************************************************/
+/**Function****************************************************************
+  Synopsis    [Function Biddy_Managed_ConstructBDD.]
+  Description [Biddy_Managed_ConstructBDD constructs BDD from lists of
+               nodes and edges. In both lists, elements are separated
+               with spaces. Elements of node list has the following format:
+               terminal node zero = (type=0,l=-1,r=-1),
+               terminal node one = (type=1,l=-1,r=-1),
+               regular label = (type=2,r=-1),
+               complemented label = (type=3,r=-1),
+               regular node = (type=4),
+               node with complemented successor(s) = (type=5)
+               The first element in nodelist is ignored. An example node
+               list is: 'Biddy 0 Biddy 2 1 -1 1 B 4 2 3 2 0 0 -1 -1 3 i 4 4
+               9 4 d 4 5 6 5 0 0 -1 -1 6 y 4 7 8 7 0 0 -1 -1 8 1 1 -1 -1 9
+               d 4 6 10 10 1 1 -1 -1' which is constructed as: '{Biddy}
+               {0 Biddy 2 1 -1} {1 B 4 2 3} {2 0 0 -1 -1} {3 i 4 4 9}
+               {4 d 4 5 6} {5 0 0 -1 -1} {6 y 4 7 8} {7 0 0 -1 -1}
+               {8 1 1 -1 -1} {9 d 4 6 10} {10 1 1 -1 -1}'.
+               ]
+  SideEffects [If variable ordering in the file is not compatible
+               with the active ordering then the result will be wrong.]
+  SeeAlso     []
+  ************************************************************************/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-Biddy_Boolean
-Biddy_Managed_Eval(Biddy_Manager MNG, Biddy_Edge f)
+Biddy_Edge
+Biddy_Managed_ConstructBDD(Biddy_Manager MNG, int numV, Biddy_String varlist, int numN,
+                           Biddy_String nodelist)
 {
-  Biddy_Boolean r;
-  Biddy_Variable fv,ftop;
-
-  assert( f != NULL );
+  BiddyVariableOrder *tableV;
+  BiddyNodeList *tableN;
+  Biddy_Boolean usetags;
+  Biddy_Edge r;
+  Biddy_String word;
+  int i; /* must be signed because of used for loop */
 
   if (!MNG) MNG = biddyAnonymousManager;
 
-  if (f == biddyNull) return FALSE;
+  /* DEBUGGING */
+  /*
+  printf("Biddy_ConstructBDD\n");
+  printf("%d variables\n",numV);
+  printf("%s\n",varlist);
+  printf("%d nodes\n",numN);
+  printf("%s\n",nodelist);
+  */
 
-  ftop = 0;
-  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-    /* IMPLEMENTED */
-    ftop = BiddyV(f);
-  } else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
-    /* IMPLEMENTED */
-    /* determine the topmost variable (for ZBDDs, it has prev=biddyVariableTable.num) */
-    ftop = BiddyV(f);
-    while (biddyVariableTable.table[ftop].prev != biddyVariableTable.num) {
-      ftop = biddyVariableTable.table[ftop].prev;
+  tableV = (BiddyVariableOrder *) malloc(numV * sizeof(BiddyVariableOrder));
+  if (!tableV) return biddyNull;
+  tableN = (BiddyNodeList *) malloc(numN * sizeof(BiddyNodeList));
+  if (!tableN) return biddyNull;
+
+  /* VARIABLES */
+  if (numV) {
+    word = strtok(varlist," "); /* parsing list of variables */
+    tableV[0].name = strdup(word);
+    tableV[0].order = 0;
+    for (i=1; i<numV; i++) {
+      word = strtok(NULL," ");
+      tableV[i].name = strdup(word);
+      tableV[i].order = 0;
     }
-  } else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
-    /* IMPLEMENTED */
-    ftop = Biddy_GetTag(f);
-  } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
-              (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
-              (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
+  }
+
+  /* DEBUGGING */
+  /*
+  printf("VARIABLES %d:\n",numV);
+  for (i=0; i<numV; i++) {
+    printf("%s\n",tableV[i].name);
+  }
+  */
+
+  usetags = FALSE;
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD))
   {
-    fprintf(stderr,"Biddy_Eval: this GDD type is not supported, yet!\n");
-    return FALSE;
-  } else {
-    fprintf(stderr,"Biddy_Eval: Unsupported GDD type!\n");
-    return FALSE;
-  }
-
-  r = !(Biddy_GetMark(f));
-  while (ftop != 0) {
-
-    fv = BiddyV(f);
-    assert( biddyVariableTable.table[fv].value != NULL );
-
-    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-
-      if (biddyVariableTable.table[fv].value == biddyZero) {
-        f = BiddyE(f);
-        /* for OBDDC, 'else' successor can be marked */
-        if (Biddy_GetMark(f)) r = !r;
-      } else {
-        f = BiddyT(f);
-        /* for OBDD, biddyZero is a marked edge to 'then' successor! */
-        if (Biddy_GetMark(f)) r = !r;
-      }
-      ftop = BiddyV(f);
-
-    } else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
-
-      while (ftop != fv) {
-        assert( biddyVariableTable.table[ftop].value != NULL );
-        if (biddyVariableTable.table[ftop].value == biddyZero) {
-          ftop = Biddy_Managed_GetNextVariable(MNG,ftop);
-        } else {
-          r = FALSE;
-          ftop = fv = 0;
-        }
-      }
-      if (fv != 0) {
-        if (biddyVariableTable.table[fv].value == biddyZero) {
-          f = BiddyE(f);
-          /* for ZBDDs, 'else' successor is never marked */
-        } else {
-          f = BiddyT(f);
-          /* for ZBDDC, mark is transfered only to the left successor */
-          r = TRUE;
-          /* for ZBDDC, 'then' successor can be marked */
-          if (Biddy_GetMark(f)) r = !r;
-        }
-        ftop = Biddy_Managed_GetNextVariable(MNG,fv);
-      }
-
-    } else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
-
-      while (ftop != fv) {
-        assert( biddyVariableTable.table[ftop].value != NULL );
-        if (biddyVariableTable.table[ftop].value == biddyZero) {
-          ftop = Biddy_Managed_GetNextVariable(MNG,ftop);
-        } else {
-          r = FALSE;
-          ftop = fv = 0;
-        }
-      }
-      if (fv != 0) {
-        if (biddyVariableTable.table[fv].value == biddyZero) {
-          f = BiddyE(f);
-          /* for TZBDD, marks are not transfered but used only to denote 0 */
-          if (Biddy_GetMark(f)) r = FALSE;
-        } else {
-          f = BiddyT(f);
-          /* for TZBDD, marks are not transfered but used only to denote 0 */
-          if (Biddy_GetMark(f)) r = FALSE;
-        }
-        ftop = Biddy_GetTag(f);
-      }
+    for (i=0; i<numV; i++) {
+      Biddy_Managed_AddVariableByName(MNG,tableV[i].name);
     }
   }
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD))
+  {
+    for (i=numV-1; i>=0; i--) {
+      Biddy_Managed_AddVariableByName(MNG,tableV[i].name);
+    }
+  }
+  else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
+  {
+    usetags = TRUE;
+    for (i=numV-1; i>=0; i--) {
+      Biddy_Managed_AddVariableByName(MNG,tableV[i].name);
+    }
+  }
+  else {
+    fprintf(stderr,"Biddy_ConstructBDD: Unknown BDD type!\n");
+    return biddyNull;
+  }
+
+  /* NODES AND EDGES */
+  word = strtok(nodelist," "); /* ignored */
+  for (i=0; i<numN; i++) {
+    word = strtok(NULL," "); /* node id */
+    tableN[i].id = atoi(word);
+    word = strtok(NULL," "); /* node name */
+    tableN[i].name = strdup(word);
+    word = strtok(NULL," "); /* node type */
+    tableN[i].type = atoi(word);
+    word = strtok(NULL," "); /* node left successor */
+    tableN[i].l = atoi(word);
+    if (usetags) {
+      word = strtok(NULL," "); /* left successor's tag */
+      if (tableN[i].l != -1) {
+        tableN[i].ltag = Biddy_Managed_GetVariable(MNG,word);
+      } else {
+        tableN[i].ltag = 0;
+      }
+    } else {
+      tableN[i].ltag = 0;
+    }
+    word = strtok(NULL," "); /* node right successor */
+    tableN[i].r = atoi(word);
+    if (usetags) {
+      word = strtok(NULL," "); /* right successor's tag */
+      if (tableN[i].r != -1) {
+        tableN[i].rtag = Biddy_Managed_GetVariable(MNG,word);
+      } else {
+        tableN[i].rtag = 0;
+      }
+    } else {
+      tableN[i].rtag = 0;
+    }
+  }
+
+  r = BiddyConstructBDD(MNG,numN,tableN);
+
+  for (i=0; i<numV; ++i) {
+    free(tableV[i].name);
+  }
+  for (i=0; i<numN; ++i) {
+    free(tableN[i].name);
+  }
+
+  free(tableV);
+  free(tableN);
 
   return r;
 }
@@ -5948,11 +6338,11 @@ BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f)
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"BiddyCreateLocalInfo: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"BiddyCreateLocalInfo: this BDD type is not supported, yet!\n");
     return 0;
   }
   else {
-    fprintf(stderr,"BiddyCreateLocalInfo: Unsupported GDD type!\n");
+    fprintf(stderr,"BiddyCreateLocalInfo: Unsupported BDD type!\n");
     return 0;
   }
 
@@ -5982,11 +6372,11 @@ BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f)
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"BiddyCreateLocalInfo: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"BiddyCreateLocalInfo: this BDD type is not supported, yet!\n");
     return 0;
   }
   else {
-    fprintf(stderr,"BiddyCreateLocalInfo: Unsupported GDD type!\n");
+    fprintf(stderr,"BiddyCreateLocalInfo: Unsupported BDD type!\n");
     return 0;
   }
 
@@ -6211,6 +6601,74 @@ BiddyGetPath0Count(Biddy_Edge f)
 }
 
 /*******************************************************************************
+\brief Function BiddySetPath1ProbabilitySum is used in pathProbabilitySum().
+
+### Description
+### Side effects
+    Local info must be created before using this function.
+    This should not be called for terminal node because terminal node does
+    not have local info!
+### More info
+*******************************************************************************/
+
+void
+BiddySetPath1ProbabilitySum(Biddy_Edge f, double value)
+{
+  ((BiddyLocalInfo *)(((BiddyNode *) BiddyP(f))->list))->data.path1Probability = value;
+}
+
+/*******************************************************************************
+\brief Function BiddyGetPath1ProbabilitySum is used in pathProbabilitySum().
+
+### Description
+### Side effects
+    Local info must be created before using this function.
+    This should not be called for terminal node because terminal node does
+    not have local info!
+### More info
+*******************************************************************************/
+
+double
+BiddyGetPath1ProbabilitySum(Biddy_Edge f)
+{
+  return ((BiddyLocalInfo *)(((BiddyNode *) BiddyP(f))->list))->data.path1Probability;
+}
+
+/*******************************************************************************
+\brief Function BiddySetPath0ProbabilitySum is used in pathProbabilitySum().
+
+### Description
+### Side effects
+    Local info must be created before using this function.
+    This should not be called for terminal node because terminal node does
+    not have local info!
+### More info
+*******************************************************************************/
+
+void
+BiddySetPath0ProbabilitySum(Biddy_Edge f, double value)
+{
+  ((BiddyLocalInfo *)(((BiddyNode *) BiddyP(f))->list))->datax.path0Probability = value;
+}
+
+/*******************************************************************************
+\brief Function BiddyGetPath0ProbabilitySum is used in pathProbabilitySum().
+
+### Description
+### Side effects
+    Local info must be created before using this function.
+    This should not be called for terminal node because terminal node does
+    not have local info!
+### More info
+*******************************************************************************/
+
+double
+BiddyGetPath0ProbabilitySum(Biddy_Edge f)
+{
+  return ((BiddyLocalInfo *)(((BiddyNode *) BiddyP(f))->list))->datax.path0Probability;
+}
+
+/*******************************************************************************
 \brief Function BiddySetLeftmost is used in pathCount().
 
 ### Description
@@ -6365,6 +6823,12 @@ BiddyGlobalSifting(Biddy_Manager MNG, Biddy_Boolean converge)
   unsigned int varTable[BIDDYVARMAX];
   float treshold;
 
+  /* DEBUGGING */
+  /*
+  printf("SIFTING START: numNodes=%u, systemAge=%u\n",Biddy_Managed_NodeTableNum(MNG),biddySystemAge);
+  BiddySystemReport(MNG);
+  */
+
   /* determine current number of nodes in the global system */
   num = Biddy_Managed_NodeTableNum(MNG);
 
@@ -6416,30 +6880,6 @@ BiddyGlobalSifting(Biddy_Manager MNG, Biddy_Boolean converge)
   for (k=1; k<biddyVariableTable.num; k++) {
     varTable[k] = 1;
   }
-
-  /* FOR ZBDD WITHOUT COMPLEMENTED EDGES */
-  /* do not swap variables which are not dependent in any function */
-  /* this is a nice optimization for sifting on function */
-  /*
-  if (biddyManagerType == BIDDYTYPEZBDD) {
-    for (k=1; k<biddyVariableTable.num; k++) {
-      BiddyNode *sup;
-      Biddy_Boolean end,redundant;
-      end = FALSE;
-      redundant = TRUE;
-      sup = biddyVariableTable.table[k].firstNode;
-      do {
-        if (sup->f != sup->t) {
-          redundant = FALSE;
-          end = TRUE;
-        }
-        end = end || (sup == biddyVariableTable.table[k].lastNode);
-        if (!end) sup = (BiddyNode *) sup->list;
-      } while (!end);
-      if (redundant) varTable[k] == 2;
-    }
-  }
-  */
 
   /* CHOOSE THE VARIABLE THAT WILL BE SIFTED FIRST */
   /* 1. it has not been sifted, yet */
@@ -6498,7 +6938,7 @@ BiddyGlobalSifting(Biddy_Manager MNG, Biddy_Boolean converge)
     {
     Biddy_Variable varOrder;
     varOrder = getGlobalOrdering(MNG,v);
-    printf("SIFTING START: variable: \"%s\" (v=%u), startOrder=%u, min=%u, numNodes=%u, systemAge=%u, ",
+    printf("SIFTING LOOP START WITH variable \"%s\" (v=%u): startOrder=%u, min=%u, numNodes=%u, systemAge=%u, ",
            Biddy_Managed_GetVariableName(MNG,v),v,varOrder,min,Biddy_Managed_NodeTableNum(MNG),biddySystemAge);
     if (highfirst) printf("HIGHFIRST\n"); else printf("LOWFIRST\n");
     }
@@ -6613,7 +7053,7 @@ BiddyGlobalSifting(Biddy_Manager MNG, Biddy_Boolean converge)
 
       }
     } /* while (!stop ...) */
-     
+
     /* PROFILING */
     /*
     {
@@ -7002,7 +7442,7 @@ BiddyGlobalSifting(Biddy_Manager MNG, Biddy_Boolean converge)
     {
     Biddy_Variable varOrder;
     varOrder = getGlobalOrdering(MNG,v);
-    printf("SIFTING FINAL: variable: \"%s\" (v=%u), finalOrder=%u, best1=%u, best2=%u, min=%u, num=%u, numNodes=%u\n",
+    printf("SIFTING LOOP FINISH WITH variable \"%s\" (v=%u): finalOrder=%u, best1=%u, best2=%u, min=%u, num=%u, numNodes=%u\n",
            Biddy_Managed_GetVariableName(MNG,v),v,varOrder,best1,best2,min,num,Biddy_Managed_NodeTableNum(MNG));
     }
     */
@@ -7058,6 +7498,7 @@ BiddyGlobalSifting(Biddy_Manager MNG, Biddy_Boolean converge)
 
   /* DEBUGGING */
   /*
+  printf("SIFTING FINISH: numNodes=%u, systemAge=%u\n",Biddy_Managed_NodeTableNum(MNG),biddySystemAge);
   BiddySystemReport(MNG);
   */
 
@@ -7188,7 +7629,8 @@ BiddySiftingOnFunction(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
        node number for the given function using Rudell's sifting algorithm.
 
 ### Description
-    Variables are reordered globally. All obsolete nodes will be removed.
+    Variables are reordered globally. Purge is used and thus all obsolete
+    formulae and nodes will be removed.
 ### Side effects
     Implemented for OBDD and OBDDC, only.
 ### More info
@@ -7216,11 +7658,8 @@ BiddySiftingOnFunctionDirect(Biddy_Manager MNG, Biddy_Edge f,
   }
 
   /* garbage collection is not needed here */
-  /* however, a rigorous GC seems to be a good idea before sifting on function */
-
-  /* THIS WILL REMOVE ALL OBSOLETE FORMULAE AND NODES */
-  /* AND ALSO ALL NODES WHICH ARE NOT PART OF ANY REMAINING FORMULA */
-  Biddy_Managed_GC(MNG,0,0,TRUE,TRUE);
+  /* however, using GC before sifting on function seems to be a good idea */
+  Biddy_Managed_GC(MNG,0,0,FALSE,TRUE);
 
   /* determine node number and variable ordering for the specific function */
   /* fOrdering is the same ordering as biddyOrderingTable, but it */
@@ -7299,6 +7738,29 @@ BiddySiftingOnFunctionDirect(Biddy_Manager MNG, Biddy_Edge f,
       varTable[k] = 1;
     }
   }
+
+  /* FOR ZBDD WITHOUT COMPLEMENTED EDGES */
+  /* do not swap variables which are not dependent in any function */
+  /*
+  if (biddyManagerType == BIDDYTYPEZBDD) {
+    for (k=1; k<biddyVariableTable.num; k++) {
+      BiddyNode *sup;
+      Biddy_Boolean end,redundant;
+      end = FALSE;
+      redundant = TRUE;
+      sup = biddyVariableTable.table[k].firstNode;
+      do {
+        if (sup->f != sup->t) {
+          redundant = FALSE;
+          end = TRUE;
+        }
+        end = end || (sup == biddyVariableTable.table[k].lastNode);
+        if (!end) sup = (BiddyNode *) sup->list;
+      } while (!end);
+      if (redundant) varTable[k] == 2;
+    }
+  }
+  */
 
   /* CHOOSE THE VARIABLE THAT WILL BE SIFTED FIRST */
   /* 1. it has not been sifted, yet */
@@ -7508,7 +7970,7 @@ BiddySiftingOnFunctionDirect(Biddy_Manager MNG, Biddy_Edge f,
 
       }
     } /* while (!stop ...) */
-     
+
     /* PROFILING */
     /*
     {
@@ -8017,6 +8479,138 @@ BiddySiftingOnFunctionDirect(Biddy_Manager MNG, Biddy_Edge f,
 }
 
 /*******************************************************************************
+\brief Initialization of Steinhaus–Johnson–Trotter algorithm.
+
+### Description
+    Create data needed for Steinhaus–Johnson–Trotter algorithm.
+### Side effects
+### More info
+*******************************************************************************/
+
+void
+BiddySjtInit(Biddy_Manager MNG)
+{
+  unsigned int i;
+  Biddy_Variable v;
+
+  struct userdata {
+    unsigned int value;
+    Biddy_Boolean direction;
+  } *ud;
+
+  /* OBSOLETE NODES ARE REMOVED TO MAKE SWAPPING FASTER */
+  Biddy_Managed_AutoGC(MNG);
+
+  v = Biddy_Managed_GetLowestVariable(MNG);
+  i = 0;
+  do {
+    ud = (struct userdata *) malloc(sizeof(struct userdata));
+    ud->value = i;
+    ud->direction = FALSE; /* FALSE = left = toTop = toLowest, TRUE = right = toBottom = toHighest */
+    Biddy_Managed_SetVariableData(MNG,v,(void *) ud);
+    v = biddyVariableTable.table[v].next;
+    i++;
+  } while (v != 0);
+}
+
+/*******************************************************************************
+\brief Remove data needed for Steinhaus–Johnson–Trotter algorithm.
+
+### Description
+### Side effects
+### More info
+*******************************************************************************/
+
+void
+BiddySjtExit(Biddy_Manager MNG)
+{
+  Biddy_Managed_ClearVariablesData(MNG);
+}
+
+/*******************************************************************************
+\brief One step of Steinhaus–Johnson–Trotter algorithm.
+
+### Description
+    Returns TRUE if a step was made, otherwise it returns FALSE.
+### Side effects
+### More info
+*******************************************************************************/
+
+Biddy_Boolean
+BiddySjtStep(Biddy_Manager MNG)
+{
+  Biddy_Variable v,mm;
+  unsigned int mmvalue;
+  Biddy_Boolean STOP;
+
+  struct userdata {
+    unsigned int value;
+    Biddy_Boolean direction;
+  } *ud1,*ud2;
+
+  /* find the largest mobile element */
+  mm = 0;
+  mmvalue = 0;
+  STOP = TRUE;
+  v = 0;
+  do {
+    v = biddyVariableTable.table[v].prev;
+    ud1 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,v);
+    if (ud1->direction && !(Biddy_Managed_IsHighest(MNG,v)))
+    {
+      ud2 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,biddyVariableTable.table[v].next);
+      if (ud1->value > ud2->value)
+      {
+        STOP = FALSE; /* there exists a mobile element */
+        if (ud1->value > mmvalue) {
+          mm = v;
+          mmvalue = ud1->value;
+        }
+      }
+    }
+    if (!(ud1->direction) && !(Biddy_Managed_IsLowest(MNG,v)))
+    {
+      ud2 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,biddyVariableTable.table[v].prev);
+      if (ud1->value > ud2->value)
+      {
+        STOP = FALSE; /* there exists a mobile element */
+        if (ud1->value > mmvalue) {
+          mm = v;
+          mmvalue = ud1->value;
+        }
+      }
+    }
+  } while (!(Biddy_Managed_IsLowest(MNG,v)));
+
+  if (!(STOP)) {
+    /* swap mm and the adjacent element it is looking at */
+    ud1 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,mm);
+    if (ud1->direction) {
+      Biddy_Managed_SwapWithHigher(MNG,mm);
+      /* swapWithHigher(MNG,mm,&active); */ /* not sure about this */
+    } else {
+      Biddy_Managed_SwapWithLower(MNG,mm);
+      /* swapWithLower(MNG,mm,&active); */ /* not sure about this */
+    }
+    /* reverse the direction of all elements larger than mm */
+    ud2 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,mm);
+    for (v = 1; v < Biddy_Managed_VariableTableNum(MNG); v++) {
+      ud1 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,v);
+      if (ud1->value > ud2->value)
+      {
+        if (ud1->direction) {
+          ud1->direction = FALSE;
+        } else {
+          ud1->direction = TRUE;
+        }
+      }
+    }
+  }
+
+  return !STOP;
+}
+
+/*******************************************************************************
 \brief Function BiddySetOrdering use variable swapping to create a given
         variable ordering.
 
@@ -8121,6 +8715,8 @@ BiddyCopy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
   assert( MNG1 != MNG2 );
   assert( biddyManagerType1 == biddyManagerType2 );
 
+  /* TO DO: use Special case 2 of taggedFoaNode to simplify this function! */
+
   BiddyCreateLocalInfo(MNG1,f);
   r = BiddyCopyR(MNG1,MNG2,f);
   BiddyDeleteLocalInfo(MNG1,f);
@@ -8136,6 +8732,8 @@ BiddyCopyR(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
   Biddy_Boolean mark;
   Biddy_String name;
   Biddy_Variable v;
+
+  /* TO DO: use Special case 2 of taggedFoaNode to simplify this function! */
 
   tag = Biddy_GetTag(f); /* tag of the given edge */
   if (tag) {
@@ -8163,7 +8761,11 @@ BiddyCopyR(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
       v = Biddy_Managed_GetVariable(MNG2,name);
       e = BiddyCopyR(MNG1,MNG2,Biddy_Managed_TransferMark(MNG1,BiddyE(f),mark,TRUE)); /* TRUE = left */
       t = BiddyCopyR(MNG1,MNG2,Biddy_Managed_TransferMark(MNG1,BiddyT(f),mark,FALSE)); /* FALSE = right */
-      r = BiddyManagedTaggedFoaNode(MNG2,v,e,t,tag,TRUE);
+      if ((biddyManagerType1 == BIDDYTYPETZBDDC) || (biddyManagerType1 == BIDDYTYPETZBDD)) {
+        r = BiddyManagedTaggedFoaNode(MNG2,v,e,t,tag,TRUE);
+      } else {
+        r = BiddyManagedTaggedFoaNode(MNG2,v,e,t,v,TRUE);
+      }
       BiddyProlongOne(r,biddySystemAge2); /* FoaNode returns an obsolete node! */
       BiddySetCopy(f,BiddyN(r));
     }
@@ -8204,7 +8806,7 @@ BiddyCopyOBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
   e = BiddyCopyOBDD(MNG1,MNG2,Biddy_Managed_TransferMark(MNG1,BiddyE(f),mark,TRUE)); /* TRUE = left */
   t = BiddyCopyOBDD(MNG1,MNG2,Biddy_Managed_TransferMark(MNG1,BiddyT(f),mark,FALSE)); /* FALSE = right */
   r = BiddyManagedITE(MNG2,Biddy_Managed_GetVariableEdge(MNG2,v),t,e);
-  
+
   return r;
 }
 
@@ -8274,7 +8876,7 @@ BiddyCopyTZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
   Biddy_Variable v;
   Biddy_Edge e,t,r;
 
-  assert ( (biddyManagerType1 == BIDDYTYPETZBDD) || (biddyManagerType1 == BIDDYTYPETZBDDC) );
+  assert ( (biddyManagerType1 == BIDDYTYPETZBDDC) || (biddyManagerType1 == BIDDYTYPETZBDD) );
 
   if (f == biddyNull) return biddyNull;
   if (f == biddyZero1) return biddyZero2;
@@ -8286,7 +8888,7 @@ BiddyCopyTZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
     topname = Biddy_Managed_GetVariableName(MNG1,top);
     v = Biddy_Managed_GetVariable(MNG2,topname); /* variable must exist */
     e = BiddyCopyTZBDD(MNG1,MNG2,BiddyE(f));
-    t = BiddyCopyTZBDD(MNG1,MNG2,BiddyT(f)); 
+    t = BiddyCopyTZBDD(MNG1,MNG2,BiddyT(f));
     r = BiddyManagedITE(MNG2,Biddy_Managed_GetVariableEdge(MNG2,v),t,e);
   }
 
@@ -8297,7 +8899,7 @@ BiddyCopyTZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
     v = Biddy_Managed_GetVariable(MNG2,topname); /* variable must exist */
     r = BiddyManagedITE(MNG2,Biddy_Managed_GetVariableEdge(MNG2,v),biddyZero2,r);
   }
-  
+
   return r;
 }
 
@@ -8306,8 +8908,16 @@ BiddyCopyTZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
        another manager which can use the same or different BDD type.
 
 ### Description
+    This should be faster than a general copy functions. But, it is not
+    implemented for all BDD type conversions. However, it is safe to use this
+    function for any BDD type conversion because in the case the conversion
+    is not directly implemented a regular copy will be called.
 ### Side effects
-    This should be faster than a general copy functions.
+    It is assumed, that domain has already been copied.
+    For conversion from OBDD/TZBDD into ZBDD this function does not create
+    the topmost variables which are not present in OBDD/TZBDD.
+    For conversion from ZBDD into OBDD/TZBDD this function does not create
+    the topmost variables which are not present in ZBDD.
 ### More info
 *******************************************************************************/
 
@@ -8374,7 +8984,7 @@ BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
       prevvar = Biddy_Managed_GetVariable(MNG2,topname);
       prevvar = biddyVariableTable2.table[prevvar].prev;
       while (prevvar != top) {
-        e = BiddyManagedTaggedFoaNode(MNG2,prevvar,e,e,0,TRUE);
+        e = BiddyManagedTaggedFoaNode(MNG2,prevvar,e,e,prevvar,TRUE);
         BiddyProlongOne(e,biddySystemAge2); /* FoaNode returns an obsolete node! */
         prevvar = biddyVariableTable2.table[prevvar].prev;
       }
@@ -8387,7 +8997,7 @@ BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
       prevvar = Biddy_Managed_GetVariable(MNG2,topname);
       prevvar = biddyVariableTable2.table[prevvar].prev;
       while (prevvar != top) {
-        t = BiddyManagedTaggedFoaNode(MNG2,prevvar,t,t,0,TRUE);
+        t = BiddyManagedTaggedFoaNode(MNG2,prevvar,t,t,prevvar,TRUE);
         BiddyProlongOne(t,biddySystemAge2); /* FoaNode returns an obsolete node! */
         prevvar = biddyVariableTable2.table[prevvar].prev;
       }
@@ -8405,7 +9015,7 @@ BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
       Biddy_Manager MNGTMP;
       Biddy_Edge tmp;
       Biddy_InitMNG(&MNGTMP,BIDDYTYPEOBDDC);
-      Biddy_Managed_Copy(MNG1,MNGTMP,biddyZero1); /* copy domain */
+      Biddy_Managed_Copy(MNG1,MNGTMP,biddyZero1); /* copy domain from MNG1 to MNGTMP */
       tmp = BiddyConvertDirect(MNG1,MNGTMP,f);
       r = BiddyConvertDirect(MNGTMP,MNG2,tmp);
       Biddy_ExitMNG(&MNGTMP);
@@ -8467,7 +9077,7 @@ BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
       Biddy_Manager MNGTMP;
       Biddy_Edge tmp;
       Biddy_InitMNG(&MNGTMP,BIDDYTYPEOBDDC);
-      Biddy_Managed_Copy(MNG1,MNGTMP,biddyZero1); /* copy domain */
+      Biddy_Managed_Copy(MNG1,MNGTMP,biddyZero1); /* copy domain from MNG1 to MNGTMP */
       tmp = BiddyConvertDirect(MNG1,MNGTMP,f);
       r = BiddyConvertDirect(MNGTMP,MNG2,tmp);
       Biddy_ExitMNG(&MNGTMP);
@@ -8507,6 +9117,72 @@ BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f)
   /*
   printf("Result: f = %s (%p)\n",Biddy_Managed_GetTopVariableName(MNG2,r),r);
   */
+
+  return r;
+}
+
+/*******************************************************************************
+\brief Function BiddyConstructBDD constructs BDD.
+
+### Description
+### Side effects
+### More info
+*******************************************************************************/
+
+Biddy_Edge
+BiddyConstructBDD(Biddy_Manager MNG, int numN, BiddyNodeList *tableN)
+{
+  Biddy_Boolean usetags;
+  int i; /* must be signed because of used for loop */
+  Biddy_Edge r;
+
+  r = biddyNull;
+
+  usetags = FALSE;
+  if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
+  {
+    usetags = TRUE;
+  }
+
+  /* CONSTRUCT TERMINAL NODES */
+  /* for all BDD types, constant zero is always represented by a single node */
+  /* in fact, for all BDD types, terminal zero is represented as a complemented terminal node */
+  /* however, constant one may not be the same as terminal node */
+  for (i=0; i<numN; i++) {
+    if (tableN[i].type == 0) {
+      tableN[i].created = TRUE;
+      tableN[i].f = biddyZero;
+    } else if (tableN[i].type == 1) {
+      tableN[i].created = TRUE;
+      tableN[i].f = biddyTerminal;
+    } else {
+      tableN[i].created = FALSE;
+      tableN[i].f = biddyNull;
+    }
+  }
+
+  /* THIS CODE IS TESTED ONLY WITH ONE LABEL PER NODELIST */
+  /* TO DO: implement and use reorderVariables() for better results */
+  for (i=0; i<numN; ++i) {
+    /* regular label: type = 2, r = -1 */
+    if (tableN[i].type == 2) {
+      constructBDD(MNG,numN,tableN,tableN[i].l);
+      tableN[i].f = tableN[tableN[i].l].f;
+      if (usetags) {
+        Biddy_SetTag(tableN[i].f,tableN[i].ltag);
+      }
+      r = tableN[i].f;
+    }
+    /* complemented label: type = 3, r = -1 */
+    if (tableN[i].type == 3) {
+      constructBDD(MNG,numN,tableN,tableN[i].l);
+      tableN[i].f = Biddy_Complement(tableN[tableN[i].l].f);
+      if (usetags) {
+        Biddy_SetTag(tableN[i].f,tableN[i].ltag);
+      }
+      r = tableN[i].f;
+    }
+  }
 
   return r;
 }
@@ -8612,7 +9288,7 @@ BiddySystemReport(Biddy_Manager MNG)
         {
         unsigned int n = 1;
         Biddy_Managed_SelectNode(MNG,biddyTerminal);
-        BiddyNodeNumber(MNG,biddyFormulaTable.table[i].f,&n); 
+        BiddyNodeNumber(MNG,biddyFormulaTable.table[i].f,&n);
         Biddy_Managed_DeselectAll(MNG);
         }
         */
@@ -9030,66 +9706,6 @@ BiddyDebugEdge(Biddy_Manager MNG, Biddy_Edge edge)
 /*----------------------------------------------------------------------------*/
 
 /*******************************************************************************
-\brief Function checkFunctionOrdering.
-
-### Description
-    Check if the given function has correct orderring.
-### Side effects
-    Function will select all nodes except terminal node.
-### More info
-*******************************************************************************/
-
-static Biddy_Boolean
-checkFunctionOrderingR(Biddy_Manager MNG, Biddy_Edge f)
-{
-  if (Biddy_IsTerminal(f) || Biddy_Managed_IsSelected(MNG,f)) return TRUE;
-  Biddy_Managed_SelectNode(MNG,f);
-  return
-    BiddyIsSmaller(BiddyV(f),BiddyV(BiddyE(f))) &&
-    BiddyIsSmaller(BiddyV(f),BiddyV(BiddyT(f))) &&
-    checkFunctionOrderingR(MNG,BiddyE(f)) &&
-    checkFunctionOrderingR(MNG,BiddyT(f));
-}
-
-static Biddy_Boolean
-checkFunctionOrdering(Biddy_Manager MNG, Biddy_Edge f)
-{
-  Biddy_Boolean r;
-
-  r = checkFunctionOrderingR(MNG,f);
-  Biddy_Managed_DeselectAll(MNG);
-  return r;
-}
-
-/*******************************************************************************
-\brief Function getGlobalOrdering.
-
-### Description
-    Global ordering is the number of zeros in corresponding line of
-    orderingTable. Topmost variable has global ordering 1. Bottommost variable
-    is '1' and has global ordering equal to numUsedVariables.
-### Side effects
-### More info
-*******************************************************************************/
-
-static Biddy_Variable
-getGlobalOrdering(Biddy_Manager MNG, Biddy_Variable v)
-{
-  Biddy_Variable k,n;
-
-  /* VARIANT 1 */
-  n = Biddy_Managed_VariableTableNum(MNG);
-  for (k=0; k<Biddy_Managed_VariableTableNum(MNG); k++) {
-    if (GET_ORDER(biddyOrderingTable,v,k)) n--;
-  }
-
-  /* TO DO: VARIANT 2 */
-  /* start with 0 and use .prev to find the variable */
-
-  return n;
-}
-
-/*******************************************************************************
 \brief Function isEqv.
 
 ### Description
@@ -9123,6 +9739,58 @@ isEqv(Biddy_Manager MNG1, Biddy_Edge f1, Biddy_Manager MNG2, Biddy_Edge f2)
   }
 
   return r;
+}
+
+/*******************************************************************************
+\brief Function createLocalInfo recursively creates local info for all nodes
+       except terminal node.
+
+### Description
+### Side effects
+    All nodes except terminal node must be selected!
+    Function createLocalInfo will deselect them.
+    data.mintermCount is using GNU Multiple Precision Arithmetic Library (GMP).
+    No initialization of elements is performed here.
+### More info
+*******************************************************************************/
+
+static BiddyLocalInfo *
+createLocalInfo(Biddy_Manager MNG, Biddy_Edge f, BiddyLocalInfo *c)
+{
+  if (Biddy_Managed_IsSelected(MNG,f)) {
+    Biddy_Managed_DeselectNode(MNG,f);
+    c->back = (BiddyNode *)BiddyP(f);
+    c->org = (BiddyNode *)(((BiddyNode *) BiddyP(f))->list);
+    ((BiddyNode *) BiddyP(f))->list = (void *) c;
+    c = &c[1]; /* next field in the array */
+    c = createLocalInfo(MNG,BiddyE(f),c);
+    c = createLocalInfo(MNG,BiddyT(f),c);
+  }
+  return c;
+}
+
+/*******************************************************************************
+\brief Function deleteLocalInfo recursively deletes local info for all nodes
+       except terminal node.
+
+### Description
+### Side effects
+    All nodes except terminal node must be selected!
+    Function deleteLocalInfo will deselect them.
+    TO DO: memory reserved for data.mintermCount is not removed!
+### More info
+*******************************************************************************/
+
+static void
+deleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f)
+{
+  if (Biddy_Managed_IsSelected(MNG,f)) {
+    Biddy_Managed_DeselectNode(MNG,f);
+    ((BiddyNode *) BiddyP(f))->list = (void *)
+      ((BiddyLocalInfo *)((BiddyNode *) BiddyP(f))->list)->org;
+    deleteLocalInfo(MNG,BiddyE(f));
+    deleteLocalInfo(MNG,BiddyT(f));
+  }
 }
 
 /*******************************************************************************
@@ -9401,7 +10069,7 @@ addVariableElement(Biddy_Manager MNG, Biddy_String x)
   }
   v = biddyVariableTable.num++;
 
-  /* ENSURE THE CORRECT ORDERING OF THE NEW VARIABLE */
+  /* ENSURE THE CORRECT INFO ABOUT THE ORDERING OF THE NEW VARIABLE */
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD) ||
       (biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD))
   {
@@ -9452,7 +10120,7 @@ addVariableElement(Biddy_Manager MNG, Biddy_String x)
             (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
   {
     biddyVariableTable.table[v].element = r;
-    r = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,biddyOne,0,TRUE);
+    r = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,biddyOne,v,TRUE);
     BiddyRefresh(r);
     biddyVariableTable.table[v].variable = r;
   }
@@ -9476,6 +10144,286 @@ addVariableElement(Biddy_Manager MNG, Biddy_String x)
   }
 
   return r;
+}
+
+/*******************************************************************************
+\brief Function evalProbability.
+
+### Description
+### Side effects
+    Function will select all nodes except terminal node.
+### More info
+*******************************************************************************/
+
+static void
+evalProbability(Biddy_Manager MNG, Biddy_Edge f,  double *c1,
+                double *c0, Biddy_Boolean *leftmost)
+{
+  double r1,r0,z,zthen,zelse;
+  double *q;
+  Biddy_Variable v;
+
+  assert( f != NULL );
+
+  assert((
+    (biddyManagerType == BIDDYTYPEOBDD) ||
+    (biddyManagerType == BIDDYTYPEOBDDC) ||
+    (biddyManagerType == BIDDYTYPEZBDD) ||
+    (biddyManagerType == BIDDYTYPEZBDDC) ||
+    (biddyManagerType == BIDDYTYPETZBDD)
+  ));
+
+  /* DEBUGGING */
+  /*
+  printf("evalProbability: f = %s\n",Biddy_Managed_GetTopVariableName(MNG,f));
+  */
+
+  /* For OBDDs, c1 is path 1 sum, c0 is path 0 sum, leftmost is not used */
+  /* For ZBDDs, c1 is path 1 sum, c0 is not used, leftmost is the leftmost value */
+  /* For TZBDDs, c1 is path 1 sum, c0 is not used, leftmost is not used, yet */
+  if (f == biddyZero) {
+    *c1 = 0.0;
+    *c0 = 1.0;
+    *leftmost = FALSE;
+    return;
+  }
+  if (Biddy_IsTerminal(f)) {
+    *c1 = 1.0;
+    *c0 = 0.0;
+    *leftmost = TRUE;
+    return;
+  }
+
+  if (Biddy_Managed_IsSelected(MNG,f)) {
+    /* ALREADY VISITED */
+    if (Biddy_GetMark(f)) {
+      if (biddyManagerType == BIDDYTYPEOBDDC) {
+        *c1 = BiddyGetPath0ProbabilitySum(f); /* positive edge is stored but actual edge is returned */
+        *c0 = BiddyGetPath1ProbabilitySum(f); /* positive edge is stored but actual edge is returned */
+      }
+      else if (biddyManagerType == BIDDYTYPEZBDDC) {
+        *c1 = BiddyGetPath1ProbabilitySum(f); /* positive edge is stored */
+        *leftmost = !(BiddyGetLeftmost(f)); /* actual edge is returned */
+        v = Biddy_Managed_GetTopVariable(MNG,f);
+        z = 1.0;
+        while (v) {
+          q = (double *) Biddy_Managed_GetVariableData(MNG,v);
+          if (q) {
+            z = z * (1 - *q);
+          }
+          v = biddyVariableTable.table[v].next;
+        }
+        if (*leftmost) {
+          (*c1) += z; /* actual edge is returned */
+        } else {
+          (*c1) -= z; /* actual edge is returned */
+        }
+      }
+      else if (biddyManagerType == BIDDYTYPETZBDDC) {
+        /* COMPLEMENTED EDGES ARE NOT IMPLEMENTED FOR TZBDDs, YET */
+      }
+    } else {
+      if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+        *c1 = BiddyGetPath1ProbabilitySum(f);
+        *c0 = BiddyGetPath0ProbabilitySum(f);
+      }
+      else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+        *c1 = BiddyGetPath1ProbabilitySum(f);
+        *leftmost = BiddyGetLeftmost(f);
+      }
+      else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+        *c1 = BiddyGetPath1ProbabilitySum(f);
+      }
+    }
+    return;
+  }
+
+  /* NOT VISITED, YET */
+  Biddy_Managed_SelectNode(MNG,f);
+
+  /* SUM PROBABILITY FOR BOTH SUCCESSORS */
+  /* because of parameter leftmost it is important to calculate BiddyT first! */
+  evalProbability(MNG,BiddyT(f),c1,c0,leftmost);
+  evalProbability(MNG,BiddyE(f),&r1,&r0,leftmost);
+
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    q = (double *) Biddy_Managed_GetVariableData(MNG,Biddy_Managed_GetTopVariable(MNG,f));
+    if (q) {
+      *c1 = (*c1 * *q) + (r1 * (1.0 - *q));
+      *c0 = (*c0 * *q) + (r0 * (1.0 - *q));
+    } else {
+      /* empty value means 100% probability, i.e. *q = 0 */
+      *c1 = r1;
+      *c0 = r0;
+    }
+  }
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    v = Biddy_Managed_GetTopVariable(MNG,f);
+    v = biddyVariableTable.table[v].next;
+    zthen = 1.0;
+    while (v != Biddy_Managed_GetTopVariable(MNG,BiddyT(f))) {
+      q = (double *) Biddy_Managed_GetVariableData(MNG,v);
+      if (q) {
+        zthen = zthen * (1 - *q);
+      }
+      v = biddyVariableTable.table[v].next;
+    }
+    v = Biddy_Managed_GetTopVariable(MNG,f);
+    v = biddyVariableTable.table[v].next;
+    zelse = 1.0;
+    while (v != Biddy_Managed_GetTopVariable(MNG,BiddyE(f))) {
+      q = (double *) Biddy_Managed_GetVariableData(MNG,v);
+      if (q) {
+        zelse = zelse * (1 - *q);
+      }
+      v = biddyVariableTable.table[v].next;
+    }
+    v = Biddy_Managed_GetTopVariable(MNG,f);
+    q = (double *) Biddy_Managed_GetVariableData(MNG,v);
+    if (q) {
+      *c1 = (*c1 * zthen * *q) + (r1 * zelse * (1.0 - *q));
+    } else {
+      /* empty value means 100% probability, i.e. *q = 0 */
+      *c1 = r1 * zelse;
+    }
+  }
+  else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+    v = Biddy_GetTag(BiddyT(f));
+    zthen = 1.0;
+    while (v != Biddy_Managed_GetTopVariable(MNG,BiddyT(f))) {
+      q = (double *) Biddy_Managed_GetVariableData(MNG,v);
+      if (q) {
+        zthen = zthen * (1 - *q);
+      }
+      v = biddyVariableTable.table[v].next;
+    }
+    v = Biddy_GetTag(BiddyE(f));
+    zelse = 1.0;
+    while (v != Biddy_Managed_GetTopVariable(MNG,BiddyE(f))) {
+      q = (double *) Biddy_Managed_GetVariableData(MNG,v);
+      if (q) {
+        zelse = zelse * (1 - *q);
+      }
+      v = biddyVariableTable.table[v].next;
+    }
+    v = Biddy_Managed_GetTopVariable(MNG,f);
+    q = (double *) Biddy_Managed_GetVariableData(MNG,v);
+    if (q) {
+      *c1 = (*c1 * zthen * *q) + (r1 * zelse * (1.0 - *q));
+    } else {
+      /* empty value means 100% probability, i.e. *q = 0 */
+      *c1 = r1 * zelse;
+    }
+  }
+
+  /* DEBUGGING */
+  /*
+  printf("evalProbability: c1 = %.4lf, c0 = %.4lf\n",*c1,*c0);
+  */
+
+  /* STORE PATHS INTO LOCALINFO */
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    BiddySetPath1ProbabilitySum(f,*c1); /* positive edge is stored */
+    BiddySetPath0ProbabilitySum(f,*c0); /* positive edge is stored */
+    if (Biddy_GetMark(f)) {
+      *c1 = BiddyGetPath0ProbabilitySum(f); /* actual edge is returned */
+      *c0 = BiddyGetPath1ProbabilitySum(f); /* actual edge is returned */
+    }
+  }
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    BiddySetPath1ProbabilitySum(f,*c1); /* positive edge is stored */
+    BiddySetLeftmost(f,*leftmost);  /* positive edge is stored */
+    if (Biddy_GetMark(f)) {
+      *leftmost = !(*leftmost); /* actual edge is returned */
+      v = Biddy_Managed_GetTopVariable(MNG,f);
+      z = 1.0;
+      while (v) {
+        q = (double *) Biddy_Managed_GetVariableData(MNG,v);
+        if (q) {
+          z = z * (1 - *q);
+        }
+        v = biddyVariableTable.table[v].next;
+      }
+      if (*leftmost) {
+        (*c1) += z; /* actual edge is returned */
+      } else {
+        (*c1) -= z; /* actual edge is returned */
+      }
+    }
+  }
+  else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+    BiddySetPath1ProbabilitySum(f, *c1);
+    if (Biddy_GetMark(f)) {
+      /* not implemented, yet */
+    }
+  }
+
+  /* DEBUGGING */
+  /*
+  printf("evalProbability finished, results returned: c1=%.4lf, c0=%.4lf\n",*c1,*c0);
+  */
+
+  return;
+}
+
+/*******************************************************************************
+\brief Function checkFunctionOrdering.
+
+### Description
+    Check if the given function has correct orderring.
+### Side effects
+    Function will select all nodes except terminal node.
+### More info
+*******************************************************************************/
+
+static Biddy_Boolean
+checkFunctionOrderingR(Biddy_Manager MNG, Biddy_Edge f)
+{
+  if (Biddy_IsTerminal(f) || Biddy_Managed_IsSelected(MNG,f)) return TRUE;
+  Biddy_Managed_SelectNode(MNG,f);
+  return
+    BiddyIsSmaller(BiddyV(f),BiddyV(BiddyE(f))) &&
+    BiddyIsSmaller(BiddyV(f),BiddyV(BiddyT(f))) &&
+    checkFunctionOrderingR(MNG,BiddyE(f)) &&
+    checkFunctionOrderingR(MNG,BiddyT(f));
+}
+
+static Biddy_Boolean
+checkFunctionOrdering(Biddy_Manager MNG, Biddy_Edge f)
+{
+  Biddy_Boolean r;
+
+  r = checkFunctionOrderingR(MNG,f);
+  Biddy_Managed_DeselectAll(MNG);
+  return r;
+}
+
+/*******************************************************************************
+\brief Function getGlobalOrdering.
+
+### Description
+    Global ordering is the number of zeros in corresponding line of
+    orderingTable. Topmost variable has global ordering 1. Bottommost variable
+    is '1' and has global ordering equal to numUsedVariables.
+### Side effects
+### More info
+*******************************************************************************/
+
+static Biddy_Variable
+getGlobalOrdering(Biddy_Manager MNG, Biddy_Variable v)
+{
+  Biddy_Variable k,n;
+
+  /* VARIANT 1 */
+  n = Biddy_Managed_VariableTableNum(MNG);
+  for (k=0; k<Biddy_Managed_VariableTableNum(MNG); k++) {
+    if (GET_ORDER(biddyOrderingTable,v,k)) n--;
+  }
+
+  /* TO DO: VARIANT 2 */
+  /* start with 0 and use .prev to find the variable */
+
+  return n;
 }
 
 /*******************************************************************************
@@ -9607,7 +10555,7 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
          Biddy_Managed_GetVariableName(MNG,high));
   BiddySystemReport(MNG);
   */
- 
+
   /* update active ordering */
   /* this is the same for all BDD types */
   /* IMPORTANT: For TZBDD it is explicitely assumed that variables are reordered before node manipulation! */
@@ -9646,7 +10594,7 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
 
   *active = FALSE; /* swapping has not introduced brooken nodes, yet */
   newBegin = newEnd = NULL;
- 
+
   var = maxvar;
   while (var != minvar) {
     var = biddyVariableTable.table[var].prev;
@@ -9672,17 +10620,17 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
       sup = biddyVariableTable.table[var].firstNode;
 
     }
-    
+
     else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
                 (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
                 (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
     {
-      fprintf(stderr,"swapVariables: this GDD type is not supported, yet!\n");
+      fprintf(stderr,"swapVariables: this BDD type is not supported, yet!\n");
       return;
     }
-    
+
     else {
-      fprintf(stderr,"swapVariables: Unsupported GDD type!\n");
+      fprintf(stderr,"swapVariables: Unsupported BDD type!\n");
       return;
     }
 
@@ -9890,7 +10838,7 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
           */
 
         }
-       
+
         sup = (BiddyNode *) sup->list;
       }
 
@@ -9898,12 +10846,12 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
                   (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
                   (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
       {
-        fprintf(stderr,"swapVariables: this GDD type is not supported, yet!\n");
+        fprintf(stderr,"swapVariables: this BDD type is not supported, yet!\n");
         return;
       }
-      
+
       else {
-        fprintf(stderr,"swapVariables: Unsupported GDD type!\n");
+        fprintf(stderr,"swapVariables: Unsupported BDD type!\n");
         return;
       }
 
@@ -10061,12 +11009,12 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"swapVariables: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"swapVariables: this BDD type is not supported, yet!\n");
     return;
   }
-  
+
   else {
-    fprintf(stderr,"swapVariables: Unsupported GDD type!\n");
+    fprintf(stderr,"swapVariables: Unsupported BDD type!\n");
     return;
   }
 
@@ -10090,34 +11038,40 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
             (biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD))
         {
           if ((BiddyE(biddyFormulaTable.table[n].f) == biddyZero) && (BiddyT(biddyFormulaTable.table[n].f) == biddyTerminal)) {
-            /* variable/element already refreshed */
+            /* this is variable, already refreshed */
           } else {
             BiddyProlongOne(biddyFormulaTable.table[n].f,biddyFormulaTable.table[n].expiry);
           }
         }
-        else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
-            (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
+        else if ((biddyManagerType == BIDDYTYPEZBDD) || (biddyManagerType == BIDDYTYPEZFDD))
+        {
+          if ((BiddyE(biddyFormulaTable.table[n].f) == biddyZero) && (BiddyT(biddyFormulaTable.table[n].f) == biddyTerminal)) {
+            /* this is element, already refreshed */
+          } else {
+            BiddyProlongOne(biddyFormulaTable.table[n].f,biddyFormulaTable.table[n].expiry);
+          }
+        }
+        else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZFDDC))
         {
           if ((BiddyE(biddyFormulaTable.table[n].f) == biddyTerminal) && (BiddyT(biddyFormulaTable.table[n].f) == biddyTerminal)) {
-            /* variable/element already refreshed */
+            /* this is element, already refreshed */
           } else {
             BiddyProlongOne(biddyFormulaTable.table[n].f,biddyFormulaTable.table[n].expiry);
           }
         }
         else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD) ||
-            (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
+                 (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
         {
           /* NOT NEEDED, BECAUSE GC CALLED BELOW WILL DO THE WORK */
         }
         else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
-                    (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
-                    (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
+                 (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
         {
-          fprintf(stderr,"swapVariables: this GDD type is not supported, yet!\n");
+          fprintf(stderr,"swapVariables: this BDD type is not supported, yet!\n");
           return;
         }
         else {
-          fprintf(stderr,"swapVariables: Unsupported GDD type!\n");
+          fprintf(stderr,"swapVariables: Unsupported BDD type!\n");
           return;
         }
       }
@@ -10129,8 +11083,7 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
   if (*active) {
     if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
     {
-      Biddy_Managed_GC(MNG,0,0,FALSE,TRUE);
-      /* Biddy_Managed_GC(MNG,high,Biddy_Managed_GetLowestVariable(MNG),FALSE,TRUE); */ /* not correct! */
+      Biddy_Managed_ForceGC(MNG);
     }
   }
 
@@ -10139,7 +11092,8 @@ swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high,
   printf("SWAPPING FINISH: low =  \"%s\", high = \"%s\"\n",
          Biddy_Managed_GetVariableName(MNG,low),
          Biddy_Managed_GetVariableName(MNG,high));
-  BiddySystemReport(MNG);
+  printf("MNG = %p\n",MNG);
+  debugORDERING(MNG,biddyOrderingTable,biddyVariableTable.num);
   */
 }
 
@@ -10258,12 +11212,12 @@ oneSwap(Biddy_Manager MNG, BiddyNode *sup, Biddy_Variable low,
                 (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
                 (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
     {
-      fprintf(stderr,"oneSwap: this GDD type is not supported, yet!\n");
+      fprintf(stderr,"oneSwap: this BDD type is not supported, yet!\n");
       f00 = f01 = biddyNull;
       return;
     }
     else {
-      fprintf(stderr,"oneSwap: Unsupported GDD type!\n");
+      fprintf(stderr,"oneSwap: Unsupported BDD type!\n");
       f00 = f01 = biddyNull;
       return;
     }
@@ -10334,12 +11288,12 @@ oneSwap(Biddy_Manager MNG, BiddyNode *sup, Biddy_Variable low,
                 (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
                 (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
     {
-      fprintf(stderr,"oneSwap: this GDD type is not supported, yet!\n");
+      fprintf(stderr,"oneSwap: this BDD type is not supported, yet!\n");
       f00 = f01 = biddyNull;
       return;
     }
     else {
-      fprintf(stderr,"oneSwap: Unsupported GDD type!\n");
+      fprintf(stderr,"oneSwap: Unsupported BDD type!\n");
       f00 = f01 = biddyNull;
       return;
     }
@@ -10412,13 +11366,13 @@ oneSwap(Biddy_Manager MNG, BiddyNode *sup, Biddy_Variable low,
               (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
               (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    fprintf(stderr,"oneSwap: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"oneSwap: this BDD type is not supported, yet!\n");
     f00 = f01 = biddyNull;
     return;
   }
 
   else {
-    fprintf(stderr,"oneSwap: Unsupported GDD type!\n");
+    fprintf(stderr,"oneSwap: Unsupported BDD type!\n");
     f00 = f01 = biddyNull;
     return;
   }
@@ -10578,6 +11532,44 @@ nullOrdering(BiddyOrderingTable table)
 }
 
 /*******************************************************************************
+\brief Function alphabeticOrdering.
+
+### Description
+    Create an alphabetic ordering using all the variables in Variable table.
+    Named variables are ordered according to their names. Numbered variables
+    are ordered according to their numbers and are always smaller (topmore) as
+    any named variable.
+### Side effects
+### More info
+*******************************************************************************/
+
+static void
+alphabeticOrdering(Biddy_Manager MNG, BiddyOrderingTable table)
+{
+  Biddy_Variable i,j;
+
+  nullOrdering(table);
+  for (i=1; i<biddyVariableTable.num; i++) {
+    for (j=1; j<biddyVariableTable.num; j++) {
+      if ((i != j) && biddyVariableTable.table[i].name && biddyVariableTable.table[j].name &&
+          (strcmp(biddyVariableTable.table[i].name,biddyVariableTable.table[j].name) < 0))
+      {
+        SET_ORDER(table,i,j);
+        CLEAR_ORDER(table,j,i);
+      }
+    }
+  }
+
+  /* DEBUGGING */
+  /*
+  printf("CURRENT ORDERING\n");
+  debugORDERING(MNG,biddyOrderingTable,biddyVariableTable.num);
+  printf("ALPHABETIC ORDERING\n");
+  debugORDERING(MNG,table,biddyVariableTable.num);
+  */
+}
+
+/*******************************************************************************
 \brief Function nodeNumberOrdering.
 
 ### Description
@@ -10611,135 +11603,175 @@ nodeNumberOrdering(Biddy_Manager MNG, Biddy_Edge f, unsigned int *i,
 }
 
 /*******************************************************************************
-\brief Initialization of Steinhaus–Johnson–Trotter algorithm.
+\brief Function reorderVariables.
 
 ### Description
-    Create data needed for Steinhaus–Johnson–Trotter algorithm.
+    Used in Biddy_Managed_ConstructBDD.
 ### Side effects
 ### More info
 *******************************************************************************/
 
 static void
-sjtinit(Biddy_Manager MNG)
+reorderVariables(Biddy_Manager MNG, int numV, BiddyVariableOrder *tableV,
+                 int numN, BiddyNodeList *tableN, int id)
 {
-  unsigned int i;
+  /* NOT IMPLEMENTED, YET */
+}
+
+/*******************************************************************************
+\brief Function constructBDD.
+
+### Description
+    Used in Biddy_Managed_ConstructBDD.
+    Elements of node list has the following format:
+    terminal node zero = (type=0,l=-1,r=-1),
+    terminal node one = (type=1,l=-1,r=-1),
+    regular label = (type=2,r=-1),
+    complemented label = (type=3,r=-1),
+    regular node = (type=4),
+    node with complemented successor(s) = (type=5)
+    The first element in nodelist is ignored. An example node
+    list is: 'Biddy 0 Biddy 2 1 -1 1 B 4 2 3 2 0 0 -1 -1 3 i 4 4
+    9 4 d 4 5 6 5 0 0 -1 -1 6 y 4 7 8 7 0 0 -1 -1 8 1 1 -1 -1 9
+    d 4 6 10 10 1 1 -1 -1'
+### Side effects
+### More info
+*******************************************************************************/
+
+static void
+constructBDD(Biddy_Manager MNG, int numN, BiddyNodeList *tableN, int id)
+{
+  int i,idx,lidx,ridx;
+  Biddy_Edge l,r;
   Biddy_Variable v;
 
-  struct userdata {
-    unsigned int value;
-    Biddy_Boolean direction;
-  } *ud;
-
-  /* OBSOLETE NODES ARE REMOVED TO MAKE SWAPPING FASTER */
-  Biddy_Managed_AutoGC(MNG);
-
-  v = Biddy_Managed_GetLowestVariable(MNG);
+  /* NODE'S id MAY NOT BE THE SAME AS NODE'S INDEX !! */
+  idx = -1;
+  if (tableN[id].id == id) {
+    idx = id;
+  }
   i = 0;
-  do {
-    ud = (struct userdata *) malloc(sizeof(struct userdata));
-    ud->value = i;
-    ud->direction = FALSE; /* FALSE = left = toTop = toLowest, TRUE = right = toBottom = toHighest */
-    Biddy_Managed_SetVariableData(MNG,v,(void *) ud);
-    v = biddyVariableTable.table[v].next;
+  while (i<numN && (idx == -1))
+  {
+    if (tableN[i].id == id) idx = i;
     i++;
-  } while (v != 0);
-}
-
-/*******************************************************************************
-\brief Remove data needed for Steinhaus–Johnson–Trotter algorithm.
-
-### Description
-### Side effects
-### More info
-*******************************************************************************/
-
-static void
-sjtexit(Biddy_Manager MNG)
-{
-  Biddy_Managed_ClearVariablesData(MNG);
-}
-
-/*******************************************************************************
-\brief One step of Steinhaus–Johnson–Trotter algorithm.
-
-### Description
-    Returns TRUE if a step was made, otherwise it returns FALSE.
-### Side effects
-### More info
-*******************************************************************************/
-
-static Biddy_Boolean
-sjt(Biddy_Manager MNG)
-{
-  Biddy_Variable v,mm;
-  unsigned int mmvalue;
-  Biddy_Boolean STOP;
-
-  struct userdata {
-    unsigned int value;
-    Biddy_Boolean direction;
-  } *ud1,*ud2;
-
-  /* find the largest mobile element */
-  mm = 0;
-  mmvalue = 0;
-  STOP = TRUE;
-  v = 0;
-  do {
-    v = biddyVariableTable.table[v].prev;
-    ud1 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,v);
-    if (ud1->direction && !(Biddy_Managed_IsHighest(MNG,v)))
-    {
-      ud2 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,biddyVariableTable.table[v].next);
-      if (ud1->value > ud2->value)
-      {
-        STOP = FALSE; /* there exists a mobile element */
-        if (ud1->value > mmvalue) {
-          mm = v;
-          mmvalue = ud1->value;
-        }
-      }
+  }
+  /* if (id != idx) printf("constructBDD: id=%d,idx=%d\n",id,idx); */
+  if (idx == -1) {
+    printf("constructBDD: wrong index, numN=%d, id=%d\n",numN,id);
+    tableN[idx].f = biddyNull;
+    exit(1);
+  }
+  lidx = -1;
+  if (tableN[idx].l != -1) {
+    if (tableN[tableN[idx].l].id == tableN[idx].l) {
+      lidx = tableN[idx].l;
     }
-    if (!(ud1->direction) && !(Biddy_Managed_IsLowest(MNG,v)))
-    {
-      ud2 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,biddyVariableTable.table[v].prev);
-      if (ud1->value > ud2->value)
-      {
-        STOP = FALSE; /* there exists a mobile element */
-        if (ud1->value > mmvalue) {
-          mm = v;
-          mmvalue = ud1->value;
-        }
-      }
+  }
+  ridx = -1;
+  if (tableN[idx].r != -1) {
+    if (tableN[tableN[idx].r].id == tableN[idx].r) {
+      ridx = tableN[idx].r;
     }
-  } while (!(Biddy_Managed_IsLowest(MNG,v)));
-
-  if (!(STOP)) {
-    /* swap mm and the adjacent element it is looking at */
-    ud1 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,mm);
-    if (ud1->direction) {
-      Biddy_Managed_SwapWithHigher(MNG,mm);
-      /* swapWithHigher(MNG,mm,&active); */ /* not sure about this */
-    } else {
-      Biddy_Managed_SwapWithLower(MNG,mm);
-      /* swapWithLower(MNG,mm,&active); */ /* not sure about this */
+  }
+  i = 0;
+  while (i<numN && (
+         ((tableN[idx].l != -1) && (lidx == -1)) ||
+         ((tableN[idx].r != -1) && (ridx == -1))))
+  {
+    if ((tableN[idx].l != -1) && (tableN[i].id == tableN[idx].l)) lidx = i;
+    if ((tableN[idx].r != -1) && (tableN[i].id == tableN[idx].r)) ridx = i;
+    i++;
+  }
+  if (tableN[idx].l != -1) {
+    if (lidx == -1) {
+      printf("constructBDD: wrong left successor index\n");
+      tableN[idx].f = biddyNull;
+      exit(1);
     }
-    /* reverse the direction of all elements larger than mm */
-    ud2 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,mm);
-    for (v = 1; v < Biddy_Managed_VariableTableNum(MNG); v++) {
-      ud1 = (struct userdata *) Biddy_Managed_GetVariableData(MNG,v);
-      if (ud1->value > ud2->value)
-      {
-        if (ud1->direction) {
-          ud1->direction = FALSE;
-        } else {
-          ud1->direction = TRUE;
-        }
-      }
+  }
+  if (tableN[idx].r != -1) {
+    if (ridx == -1) {
+      printf("constructBDD: wrong right successor index\n");
+      tableN[idx].f = biddyNull;
+      exit(1);
     }
   }
 
-  return !STOP;
+  /* DEBUGGING */
+  /*
+  printf("constructBDD: id=%d, idx=%d\n",id,idx);
+  printf("TABLE[%d]: %s, type:%d, l:%d, ltag:%u, r:%d, rtag:%u\n",
+         tableN[idx].id,tableN[idx].name,tableN[idx].type,
+         tableN[idx].l,tableN[idx].ltag,
+         tableN[idx].r,tableN[idx].rtag);
+  */
+
+  if (!tableN[idx].created) {
+
+    if (!tableN[lidx].created) {
+      constructBDD(MNG,numN,tableN,tableN[idx].l);
+    }
+
+    if ((ridx != -1) && (!tableN[ridx].created)) {
+      constructBDD(MNG,numN,tableN,tableN[idx].r);
+    }
+
+    if (tableN[idx].type == 4) {
+      /* both edges are regular */
+      v = Biddy_Managed_GetVariable(MNG,tableN[idx].name);
+      if (!v) {
+        printf("constructBDD ERROR: variable <%s> not found!\n",tableN[idx].name);
+        exit(1);
+      }
+      l = tableN[lidx].f;
+      r = tableN[ridx].f;
+      if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
+      {
+        /* using Special case 2 of BiddyManagedTaggedFoaNode */
+        Biddy_SetTag(l,tableN[idx].ltag);
+        Biddy_SetTag(r,tableN[idx].rtag);
+        tableN[idx].f = Biddy_Managed_TaggedFoaNode(MNG,v,l,r,0,TRUE);
+      } else {
+        tableN[idx].f = Biddy_Managed_TaggedFoaNode(MNG,v,l,r,v,TRUE);
+      }
+    }
+
+    if (tableN[idx].type == 5) {
+      v = Biddy_Managed_GetVariable(MNG,tableN[idx].name);
+      if (biddyManagerType == BIDDYTYPEOBDDC) {
+        /* left edge is complemented */
+        l = Biddy_Complement(tableN[lidx].f);
+        r = tableN[ridx].f;
+      }
+      else if (biddyManagerType == BIDDYTYPEZBDDC) {
+        /* right edge is complemented */
+        l = tableN[lidx].f;
+        r = Biddy_Complement(tableN[ridx].f);
+      }
+      else if (biddyManagerType == BIDDYTYPETZBDDC) {
+        /* right edge is complemented */
+        l = tableN[lidx].f;
+        r = Biddy_Complement(tableN[ridx].f);
+      }
+      else {
+        printf("constructBDD: wrong complemented edge\n");
+        tableN[idx].f = biddyNull;
+        return;
+      }
+      if (biddyManagerType == BIDDYTYPETZBDDC) {
+        /* using Special case 2 of BiddyManagedTaggedFoaNode */
+        Biddy_SetTag(l,tableN[idx].ltag);
+        Biddy_SetTag(r,tableN[idx].rtag);
+        tableN[idx].f = Biddy_Managed_TaggedFoaNode(MNG,v,l,r,0,TRUE);
+      } else {
+        tableN[idx].f = Biddy_Managed_TaggedFoaNode(MNG,v,l,r,v,TRUE);
+      }
+    }
+
+    tableN[idx].created = TRUE;
+  }
+
 }
 
 /*******************************************************************************
@@ -10840,58 +11872,6 @@ writeORDER(Biddy_Manager MNG)
 }
 
 /*******************************************************************************
-\brief Function createLocalInfo recursively creates local info for all nodes
-       except terminal node.
-
-### Description
-### Side effects
-    All nodes except terminal node must be selected!
-    Function createLocalInfo will deselect them.
-    data.mintermCount is using GNU Multiple Precision Arithmetic Library (GMP).
-    No initialization of elements is performed here.
-### More info
-*******************************************************************************/
-
-static BiddyLocalInfo *
-createLocalInfo(Biddy_Manager MNG, Biddy_Edge f, BiddyLocalInfo *c)
-{
-  if (Biddy_Managed_IsSelected(MNG,f)) {
-    Biddy_Managed_DeselectNode(MNG,f);
-    c->back = (BiddyNode *)BiddyP(f);
-    c->org = (BiddyNode *)(((BiddyNode *) BiddyP(f))->list);
-    ((BiddyNode *) BiddyP(f))->list = (void *) c;
-    c = &c[1]; /* next field in the array */
-    c = createLocalInfo(MNG,BiddyE(f),c);
-    c = createLocalInfo(MNG,BiddyT(f),c);
-  }
-  return c;
-}
-
-/*******************************************************************************
-\brief Function deleteLocalInfo recursively deletes local info for all nodes
-       except terminal node.
-
-### Description
-### Side effects
-    All nodes except terminal node must be selected!
-    Function deleteLocalInfo will deselect them.
-    TO DO: memory reserved for data.mintermCount is not removed!
-### More info
-*******************************************************************************/
-
-static void
-deleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f)
-{
-  if (Biddy_Managed_IsSelected(MNG,f)) {
-    Biddy_Managed_DeselectNode(MNG,f);
-    ((BiddyNode *) BiddyP(f))->list = (void *)
-      ((BiddyLocalInfo *)((BiddyNode *) BiddyP(f))->list)->org;
-    deleteLocalInfo(MNG,BiddyE(f));
-    deleteLocalInfo(MNG,BiddyT(f));
-  }
-}
-
-/*******************************************************************************
 \brief Function debugNode.
 
 ### Description
@@ -10955,9 +11935,9 @@ debugEdge(Biddy_Manager MNG, Biddy_Edge edge)
   if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD) ||
       (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
   {
-    printf("<\"%s\">\"%s\",",Biddy_Managed_GetVariableName(MNG,Biddy_GetTag(edge)),Biddy_Managed_GetTopVariableName(MNG,edge)); 
+    printf("<\"%s\">\"%s\",",Biddy_Managed_GetVariableName(MNG,Biddy_GetTag(edge)),Biddy_Managed_GetTopVariableName(MNG,edge));
   } else {
-    printf("\"%s\",",Biddy_Managed_GetTopVariableName(MNG,edge)); 
+    printf("\"%s\",",Biddy_Managed_GetTopVariableName(MNG,edge));
   }
   if (Biddy_IsNull(BiddyE(edge))) printf("NULL,");
   else {

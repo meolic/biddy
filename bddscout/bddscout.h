@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.h]
-  Revision    [$Revision: 319 $]
-  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+  Revision    [$Revision: 447 $]
+  Date        [$Date: 2018-06-18 13:14:00 +0200 (pon, 18 jun 2018) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description [The file bddscout.h contains declarations.]
   SeeAlso     []
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM FERI
+               Copyright (C) 2008, 2018 UM FERI
                UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
@@ -90,6 +90,16 @@ typedef Biddy_Boolean (*Bddscout_LookupFunction)(Biddy_String,Biddy_Edge*);
 /* Structure declarations                                                */
 /*-----------------------------------------------------------------------*/
 
+/* this should be identical as defined in biddyInt.h */
+/* we have to define it because it is not exported from biddyInt.h */
+typedef struct {
+  int id;
+  Biddy_String label;
+  int x;
+  int y;
+  Biddy_Boolean isConstant;
+} BiddyXY;
+
 /*-----------------------------------------------------------------------*/
 /* Variable declarations                                                 */
 /*-----------------------------------------------------------------------*/
@@ -118,7 +128,8 @@ void BddscoutInit();
 void BddscoutExit();
 Biddy_Boolean BddscoutCheckFormula(Biddy_String type, Biddy_String fname);
 void BddscoutCopyFormula(Biddy_String fname, Biddy_String type1, Biddy_String type2);
-void BddscoutSyncFormula(Biddy_Edge form, Biddy_String name);
+void BddscoutSyncFormula(Biddy_String name);
+void BddscoutSyncVariable(Biddy_String name);
 void BddscoutConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4);
 int BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String name);
 void BddscoutListVariablesByPosition(Biddy_String *list);

@@ -13,14 +13,14 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 360 $]
-    Date        [$Date: 2017-12-16 09:23:48 +0100 (sob, 16 dec 2017) $]
+    Revision    [$Revision: 454 $]
+    Date        [$Date: 2018-07-02 20:10:14 +0200 (pon, 02 jul 2018) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
-Copyright (C) 2006, 2017 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2018 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -93,15 +93,27 @@ See also: biddy.h
 #define UINTPTR uintptr_t
 #define UINTPTRSIZE (8*sizeof(UINTPTR))
 
-/* Max number of variables - this is hardcoded for better performance. */
+/* max number of variables - this is hardcoded for better performance */
 /* for optimal space reservation use VARMAX =  32*N */
 /* variable "1" is one of these variables */
-/* For TZBDDs and TZFDDs, the limit is 65536 variables on 64-bit architecture */
-/* If there are more than 32768 variables then some macros in biddy.h must be changed */
+/* for TZBDDs and TZFDDs, the limit is 65536 variables on 64-bit architecture */
+/* if there are more than 32768 variables then some macros in biddy.h must be changed */
 /* BIDDY IS NOT EFFICIENT WITH MANY VARIABLES! */
 /* #define BIDDYVARMAX 1024 */
-#define BIDDYVARMAX 2048
+/* #define BIDDYVARMAX 2048 */
 /* #define BIDDYVARMAX 4096 */
+#define BIDDYVARMAX 6144
+/* #define BIDDYVARMAX 8192 */
+
+/* the following constants are used in Biddy_ReadVerilogFile */
+#define LINESIZE 999 /* maximum length of each input line read */
+#define BUFSIZE 99999 /* maximum length of a buffer */
+#define INOUTNUM 999 /* maximum number of inputs and outputs */
+#define REGNUM 9999 /* maximum number of registers */
+#define TOKENNUM 9999 /* maximum number of tokens */
+#define GATENUM 9999 /* maximum number of gates */
+#define LINENUM 99999 /* maximum number of lines */
+#define WIRENUM 99999 /* maximum number of wires */
 
 /*----------------------------------------------------------------------------*/
 /* Macro definitions                                                          */
@@ -159,7 +171,7 @@ See also: biddy.h
 #define biddyManagerName1 ((Biddy_String)(MNG1[0]))
 #define biddyManagerName2 ((Biddy_String)(MNG2[0]))
 
-/* Type of manager MNG, since Biddy v1.7 this is used for GDD type */
+/* Type of manager MNG, since Biddy v1.7 this is used for BDD type */
 #define biddyManagerType (*((short int*)(MNG[1])))
 #define biddyManagerType1 (*((short int*)(MNG1[1])))
 #define biddyManagerType2 (*((short int*)(MNG2[1])))
@@ -416,14 +428,15 @@ typedef struct BiddyCacheList {
 
 /* OP1 Cache = a fixed-size cache table for one-argument operations */
 typedef struct {
-  Biddy_Edge f;
   Biddy_Edge result; /* biddy_null = not valid record! */
+  Biddy_Edge f;
 } BiddyOp1Cache;
 
 typedef struct {
   BiddyOp1Cache *table;
   unsigned int size;
   Biddy_Boolean disabled;
+  Biddy_Boolean notusedyet;
   unsigned long long int *search;
   unsigned long long int *find;
 #ifdef BIDDYEXTENDEDSTATS_YES
@@ -434,14 +447,15 @@ typedef struct {
 
 /* OP2 Cache = a fixed-size cache table for two-arguments operations */
 typedef struct {
-  Biddy_Edge f,g;
   Biddy_Edge result; /* biddy_null = not valid record! */
+  Biddy_Edge f,g;
 } BiddyOp2Cache;
 
 typedef struct {
   BiddyOp2Cache *table;
   unsigned int size;
   Biddy_Boolean disabled;
+  Biddy_Boolean notusedyet;
   unsigned long long int *search;
   unsigned long long int *find;
 #ifdef BIDDYEXTENDEDSTATS_YES
@@ -452,14 +466,15 @@ typedef struct {
 
 /* OP3 Cache = a fixed-size cache table for three-arguments operations */
 typedef struct {
-  Biddy_Edge f,g,h;
   Biddy_Edge result; /* biddy_null = not valid record! */
+  Biddy_Edge f,g,h;
 } BiddyOp3Cache;
 
 typedef struct {
   BiddyOp3Cache *table;
   unsigned int size;
   Biddy_Boolean disabled;
+  Biddy_Boolean *notusedyet;
   unsigned long long int *search;
   unsigned long long int *find;
 #ifdef BIDDYEXTENDEDSTATS_YES
@@ -478,9 +493,9 @@ typedef struct {
 /* Since Biddy v1.7, KeywordCache is used for Biddy_ReplaceByKeyword */
 /* TO DO: use it also for other functions, e.g. copyBDD */
 typedef struct {
+  Biddy_Edge result; /* biddy_null = not valid record! */
   Biddy_Edge f;
   unsigned int keyword;
-  Biddy_Edge result; /* biddy_null = not valid record! */
 } BiddyKeywordCache;
 
 typedef struct {
@@ -488,8 +503,10 @@ typedef struct {
   Biddy_String *keywordList;
   unsigned int *keyList;
   unsigned int keywordNum;
+  unsigned int keyNum;
   unsigned int size;
   Biddy_Boolean disabled;
+  Biddy_Boolean *notusedyet;
   unsigned long long int *search;
   unsigned long long int *find;
 #ifdef BIDDYEXTENDEDSTATS_YES
@@ -541,13 +558,109 @@ typedef struct {
     /* NOTE: positiveSelected iff (data.npSelected & 1 != 0) */
     /* NOTE: negativeSelected iff (data.npSelected & 2 != 0) */
     unsigned long long int path1Count; /* used in pathCount */
+    double path1Probability; /* used in pathProbabilitySum */
     mpz_t mintermCount; /* used in mintermCount, represented using GMP library */
   } data;
   union {
-    Biddy_Boolean leftmost; /* used in pathCount for ZBDDs, only */
+    Biddy_Boolean leftmost; /* used in pathCount and pathProbabilitySum for ZBDDs, only */
     unsigned long long int path0Count; /* used in pathCount for OBDDs, only */
+    double path0Probability; /* used in pathProbabilitySum for OBDDs, only */
   } datax;
 } BiddyLocalInfo;
+
+/* BiddyVariableOrder is used in Biddy_ConstructBDD, since Biddy v1.8 */
+typedef struct {
+  Biddy_String name;
+  int order;
+} BiddyVariableOrder;
+
+/* BiddyNodeList is used in Biddy_ConstructBDD, since Biddy v1.8 */
+typedef struct {
+  Biddy_String name;
+  int id;
+  int type;
+  int l,r;
+  Biddy_Variable ltag,rtag;
+  Biddy_Edge f;
+  Biddy_Boolean created;
+} BiddyNodeList;
+
+/* BiddyXY is used in Biddy_WriteBDDView, since Biddy v1.8 */
+/* this is used to pass node coordinates */
+typedef struct {
+  int id;
+  Biddy_String label;
+  int x;
+  int y;
+  Biddy_Boolean isConstant;
+} BiddyXY;
+
+/* BiddyBTreeNode and BiddyBTreeContainer are used in Biddy_Eval2, since Biddy v1.8 */
+typedef struct {
+  int parent;
+  int left;
+  int right;
+  int index;
+  unsigned char op;
+  Biddy_String name;
+} BiddyBTreeNode;
+
+typedef struct {
+  BiddyBTreeNode *tnode;
+  int availableNode;
+} BiddyBTreeContainer;
+
+/* BiddyVarList is used in in Biddy_PrintfSOP and Biddy_WriteSOP, since Biddy v1.8 */
+typedef struct BiddyVarList {
+  struct BiddyVarList *next;
+  Biddy_Variable v;
+  Biddy_Boolean negative;
+} BiddyVarList;
+
+/* BiddyVerilogLine, BiddyVerilogNode, BiddyVerilogWire, BiddyVerilogModule, and */
+/* BiddyVerilogCircuit are used in Biddy_ReadVerilogFile, since Biddy v1.8 */
+
+typedef struct { /* table of lines is used to store acceptable lines */
+  Biddy_String keyword;
+  Biddy_String line;
+} BiddyVerilogLine;
+
+typedef struct { /* table of nodes is used to store names of all symbols */
+  Biddy_String type; /* input, output, wire, gate, extern */
+  Biddy_String name; /* node name */
+} BiddyVerilogNode;
+
+typedef struct { /* wires are primary inputs and gates */
+  int id; /* input/gate ID number */
+  Biddy_String type; /* type of a signal driving this wire, "I" for primary input, "W" for internal wire */
+  unsigned int inputcount; /* number of input/gate inputs */
+  int inputs[INOUTNUM]; /* array of inputs */
+  unsigned int outputcount; /* number of input/gate outputs - currently not used */
+  int outputs[INOUTNUM]; /* array of outputs - currently not used */
+  int fanout; /* how many times this wire is used as an input to some gate or another wire */
+  int ttl; /* tmp nuber used to guide GC during the creation of BDD */
+  Biddy_Edge bdd; /* BDD associated with the wire/gate */
+} BiddyVerilogWire;
+
+typedef struct {
+  char *name; /* name of the module */
+  Biddy_Boolean outputFirst; /* TRUE iff "nand NAND2_1 (N1, N2, N3);" defines N1 = NAND(N2,N3) */
+  unsigned int inputcount, outputcount; /* count of primary inputs and primary outputs. */
+  unsigned int wirecount, regcount, gatecount; /* count of wires ,regs, gates */
+  Biddy_String inputs[INOUTNUM], outputs[INOUTNUM]; /* name list of primary inputs and primary outputs in the netlist */
+  Biddy_String wires[WIRENUM]; /* name list of wires in the netlist */
+  Biddy_String regs[REGNUM]; /* name list of regs in the netlist */
+  Biddy_String gates[GATENUM]; /* name list of gates in the netlist */
+} BiddyVerilogModule;
+
+typedef struct {
+  Biddy_String name; /* name of the circuit */
+  unsigned int inputcount, outputcount; /* number of primary inputs and primary outputs */
+  unsigned int nodecount, wirecount; /* number of nodes and wires */
+  Biddy_String inputs[INOUTNUM], outputs[INOUTNUM]; /* name list of primary inputs and primary outputs in the netlist */
+  BiddyVerilogWire **wires; /* array of all wires */
+  BiddyVerilogNode **nodes; /* array of nodes */
+} BiddyVerilogCircuit;
 
 /*----------------------------------------------------------------------------*/
 /* Variable declarations                                                      */
@@ -568,6 +681,7 @@ extern void BiddyIncSystemAge(Biddy_Manager MNG);
 extern void BiddyDecSystemAge(Biddy_Manager MNG);
 void BiddyCompactSystemAge(Biddy_Manager MNG);
 extern void BiddyProlongRecursively(Biddy_Manager MNG, Biddy_Edge f, unsigned int c, Biddy_Variable target);
+
 extern Biddy_Variable BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
 extern void BiddyDeleteLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
 extern unsigned int BiddyGetSeqByNode(Biddy_Edge root, Biddy_Edge f);
@@ -576,26 +690,36 @@ extern void BiddySetEnumerator(Biddy_Edge f, unsigned int n);
 extern unsigned int BiddyGetEnumerator(Biddy_Edge f);
 extern void BiddySetCopy(Biddy_Edge f, BiddyNode *n);
 extern BiddyNode * BiddyGetCopy(Biddy_Edge f);
-extern void BiddySetPath0Count(Biddy_Edge f, unsigned long long int value);
-extern unsigned long long int BiddyGetPath0Count(Biddy_Edge f);
 extern void BiddySetPath1Count(Biddy_Edge f, unsigned long long int value);
 extern unsigned long long int BiddyGetPath1Count(Biddy_Edge f);
+extern void BiddySetPath0Count(Biddy_Edge f, unsigned long long int value);
+extern unsigned long long int BiddyGetPath0Count(Biddy_Edge f);
+extern void BiddySetPath1ProbabilitySum(Biddy_Edge f, double value);
+extern double BiddyGetPath1ProbabilitySum(Biddy_Edge f);
+extern void BiddySetPath0ProbabilitySum(Biddy_Edge f, double value);
+extern double BiddyGetPath0ProbabilitySum(Biddy_Edge f);
 extern void BiddySetLeftmost(Biddy_Edge f, Biddy_Boolean value);
 extern Biddy_Boolean BiddyGetLeftmost(Biddy_Edge f);
 extern void BiddySetMintermCount(Biddy_Edge f, mpz_t value);
 extern void BiddyGetMintermCount(Biddy_Edge f, mpz_t result);
 extern void BiddySelectNP(Biddy_Edge f);
 extern Biddy_Boolean BiddyIsSelectedNP(Biddy_Edge f);
+
 extern Biddy_Boolean BiddyGlobalSifting(Biddy_Manager MNG, Biddy_Boolean converge);
 extern Biddy_Boolean BiddySiftingOnFunction(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge);
 extern Biddy_Boolean BiddySiftingOnFunctionDirect(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge);
+extern void BiddySjtInit(Biddy_Manager MNG);
+extern void BiddySjtExit(Biddy_Manager MNG);
+extern Biddy_Boolean BiddySjtStep(Biddy_Manager MNG);
 extern void BiddySetOrdering(Biddy_Manager MNG, BiddyOrderingTable ordering);
 extern void BiddySetOrderingByData(Biddy_Manager MNG, BiddyOrderingTable ordering);
+
 extern Biddy_Edge BiddyCopy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
 extern Biddy_Edge BiddyCopyOBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
 extern Biddy_Edge BiddyCopyZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
 extern Biddy_Edge BiddyCopyTZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
 extern Biddy_Edge BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
+Biddy_Edge BiddyConstructBDD(Biddy_Manager MNG, int numN, BiddyNodeList *tableN);
 
 extern void BiddyOPGarbage(Biddy_Manager MNG);
 extern void BiddyOPGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v);
@@ -640,7 +764,7 @@ extern Biddy_Edge BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy
 extern Biddy_Edge BiddyManagedConstrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c);
 extern Biddy_Edge BiddyManagedSimplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c);
 extern Biddy_Edge BiddyManagedSupport(Biddy_Manager MNG, Biddy_Edge f);
-extern Biddy_Edge BiddyManagedReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, const unsigned int key);
+extern Biddy_Edge BiddyManagedReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv, const unsigned int key);
 extern Biddy_Edge BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
 

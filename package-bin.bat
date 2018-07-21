@@ -1,11 +1,11 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 366 $
-REM  $Date: 2017-12-18 13:13:02 +0100 (pon, 18 dec 2017) $
+REM  $Revision: 441 $
+REM  $Date: 2018-05-22 12:58:10 +0200 (tor, 22 maj 2018) $
 REM
 REM  This file is part of Biddy.
-REM  Copyright (C) 2006, 2017 UM FERI
+REM  Copyright (C) 2006, 2018 UM FERI
 REM  UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 REM
 REM  Biddy is free software; you can redistribute it and/or modify
@@ -60,7 +60,7 @@ cp biddy-cudd.h biddy-cudd.c ./%NAME%-%VERSION%/
 cp biddy-example-8queens.c ./%NAME%-%VERSION%/
 cp biddy-example-independence.c biddy-example-independence-europe.c biddy-example-independence-usa.c biddy-example-independence-test.c ./%NAME%-%VERSION%/
 cp biddy-example-hanoi.c ./%NAME%-%VERSION%/
-cp biddy-example-dictionary.c ./%NAME%-%VERSION%/
+cp biddy-example-dictionary.c biddy-example-dictman.c biddy-example-dict-common.c biddy-example-dict-common.h ./%NAME%-%VERSION%/
 cp biddy-example-bra.c ./%NAME%-%VERSION%/
 
 %MYZIP% %NAME%-dev-%VERSION%-Win.7z .\%NAME%-%VERSION%\*

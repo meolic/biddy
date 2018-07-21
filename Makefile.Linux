@@ -3,11 +3,11 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 434 $]
+#  Date        [$Date: 2018-05-09 21:01:28 +0200 (sre, 09 maj 2018) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2017 UM FERI
+#               Copyright (C) 2006, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -70,7 +70,7 @@ profile:
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
 	"LIBGMP = " \
-	"CC = $(GCC) $(CFLAGS) -DBIDDYEXTENDEDSTATS_YES -DNDEBUG -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -ggdb -DUNIX" \
+	"CC = $(GCC) $(CFLAGS) -DBIDDYEXTENDEDSTATS_YES -DNDEBUG -Wall -Wno-unknown-pragmas -Wno-unused-function -fpic -O2 -ggdb -pg -DUNIX" \
 	"LN = ar rcs"
 
 install:

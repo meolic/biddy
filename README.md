@@ -6,7 +6,8 @@ USER MANUAL
 
 Biddy is a multi-platform academic Binary Decision Diagrams package.
 It supports plain ROBDDs, ROBDDs with complemented edges,
-0-sup-BDDs with complemented edges, and plain Tagged 0-sup-BDDs.
+0-sup-BDDs, 0-sup-BDDs with complemented edges, and
+tagged 0-sup-BDDs.
 
 Biddy is capable of all the typical operations regarding
 Boolean functions, combination sets, and BDDs.
@@ -54,13 +55,13 @@ Biddy supports ROBDDs as described in "K. S. Brace,
 R. L. Rudell, R. E. Bryant. Efficient  Implementation  of a  BDD
 Package. 27th ACM/IEEE DAC, pages 40-45, 1990".
 
-Biddy supports 0-sup-BDDs as described in
+Biddy supports 0-sup-BDDs (also denoted ZBDDs or ZDDs) as described in
 "S. Minato. Zero-Suppressed BDDs for Set Manipulation in Combinatorial
 Problems, 30th ACM/IEEE DAC, pages 272-277, 1993".
 
-Biddy supports Tagged 0-sup-BDDs (also denoted TZDDs or TZBDDs) as
+Biddy supports tagged 0-sup-BDDs (also denoted TZDDs or TZBDDs) as
 introduced in "R. Meolic. Implementation aspects of a BDD package supporting
-general decision diagrams, https://dk.um.si/IzpisGradiva.php?id=68831"
+general decision diagrams. https://dk.um.si/IzpisGradiva.php?id=68831"
 and described in "T. van Dijk, R. Wille, R. Meolic.
 Tagged BDDs: Combining Reduction Rules from Different Decision Diagram Types,
 17th FMCAD, pages 108-115, 2017".
@@ -68,7 +69,7 @@ Tagged BDDs: Combining Reduction Rules from Different Decision Diagram Types,
 Biddy includes:
 
 - automatic garbage collection with a system age
-  (a variant of a mark-and-sweep approach),
+(a variant of a mark-and-sweep approach),
 - node management through formulae protecting,
 - variable swapping and sifting algorithm for all supported BDD types.
 
@@ -78,9 +79,9 @@ readable and comprehensible source  code in C.
 Biddy  is  currently  used  in  the following  projects:
 
 - BDD Scout, demo project which allows visualization of BDDs and
-  also includes some benchmarks
+also includes some benchmarks
 - Efficient Symbolic Tools (EST), model checking and other algorithms
-  for formal verification of systems (http://est.meolic.com/)
+for formal verification of systems (http://est.meolic.com/)
 
 ### 2. SOURCE CODE
 --------------
@@ -134,6 +135,7 @@ Biddy consists of the following core files:
 - package-tgz (script used to build distribution)
 - package-deb (script used to build distribution)
 - package-rpm (script used to build distribution)
+- VS/* (project files for MS Visual Studio)
 - debian/* (files used when creating deb package)
 - rpm/* (files used when creating rpm package)
 
@@ -165,7 +167,7 @@ the given example.
 
 IMPORTANT:
 You should define UNIX, MACOSX, or MINGW.
-You should define USE_BIDDY iff you are using Biddy via dynamic library.
+You should define USE_BIDDY if you are using Biddy via dynamic library.
 
 ~~~
 /* compile with gcc -o program.exe source.c -I. -L. -lbiddy -lgmp */
@@ -177,7 +179,7 @@ You should define USE_BIDDY iff you are using Biddy via dynamic library.
 int main() {
   Biddy_Edge f,g,h,r;
 
-  Biddy_Init(); /* use default, i.e. ROBDD WITH COMPLEMENTED EDGES */
+  Biddy_Init(); /* use default, i.e. ROBDD WITHOUT COMPLEMENTED EDGES */
   printf("Biddy is using %s.\n",Biddy_GetManagerName());
 
   f = Biddy_Eval1((Biddy_String)"(OR H E L L O)"); /* PREFIX INPUT */
@@ -201,7 +203,7 @@ int main() {
   r = Biddy_Simplify(r,h);
 
   /* SOME STATS */
-  printf("Function r depends on %u variables.\n",Biddy_DependentVariableNumber(r));
+  printf("Function r depends on %u variables.\n",Biddy_DependentVariableNumber(r,FALSE));
   printf("Function r has %.0f minterms.\n",Biddy_CountMinterms(r,0));
   printf("BDD for function r has %u nodes.\n",Biddy_CountNodes(r));
 
@@ -217,12 +219,12 @@ int main() {
 }
 ~~~
 
-If you do not want to use the default BDD type you simply change the initialization
-call. Supported BDD types are BIDDYTYPEOBDD, BIDDYTYPEOBDDC, BIDDYTYPEZBDDC, and
-BIDDYTYPETZBDD.
+If you do not want to use the default BDD type you simply change the
+initialization call. Supported BDD types are BIDDYTYPEOBDD,
+BIDDYTYPEOBDDC, BIDDYTYPEZBDD, BIDDYTYPEZBDDC, and BIDDYTYPETZBDD.
 
 ~~~
-Biddy_InitAnonymous(BIDDYTYPEZBDDC);
+Biddy_InitAnonymous(BIDDYTYPEZBDD);
 ~~~
 
 ### 3.1 NODE MANAGEMENT THROUGH FORMULAE PROTECTING
@@ -290,8 +292,8 @@ g2 = op(f1,f2,...);
 Biddy_KeepFormula(g2); /* g2 is preserved for next cleaning */
 Biddy_Clean(); /* g1 and g2 are still usable, f1 and f2 are obsolete */
 result = op(g1,g2,...);
-Biddy_KeepFormulaUntilPurge(result); /* result is permanently preserved */
-Biddy_Clean(); /* all nodes not belonging to result are immediately removed */
+Biddy_KeepFormulaUntilPurge(result); /* result is preserved until Biddy_Purge() */
+Biddy_Clean(); /* only nodes from result remain preserved */
 ~~~
 
 If additional garbage collection is needed also after the calculation of g1,
@@ -314,16 +316,16 @@ f1 = op(...);
 f2 = op(...);
 g1 = op(f1,f2,...);
 Biddy_AddTmpFormula("g1",g1); /* g1 is named */
-Biddy_Purge(); /* keep only nodes from named formulae */
+Biddy_Purge(); /* keep only nodes from non-obsolete named formulae */
 f1 = op(...);
 f2 = op(...);
 g2 = op(f1,f2,...);
 Biddy_AddTmpFormula("g2",g2); /* g2 is named */
-Biddy_Purge(); /* keep only nodes from named formulae */
+Biddy_Purge(); /* keep only nodes from non-obsolete named formulae */
 result = op(g1,g2,...);
 Biddy_AddPersistentFormula("result",result); /* result is permanently preserved */
-Biddy_Clean(); /* tmp formulae becomes obsolete */
-Biddy_Purge(); /* all nodes not belonging to result are immediately removed */
+Biddy_Clean(); /* all tmp formulae become obsolete */
+Biddy_Purge(); /* keep only nodes from non-obsolete named formulae */
 ~~~
 
 The second example is an iterative calculation:
@@ -332,12 +334,12 @@ The second example is an iterative calculation:
 result = op(...);
 while (!finish) {
   Biddy_KeepFormula(result); /* result is preserved for next cleaning */
-  Biddy_Clean(); /* result is still usable, f and g are obsolete */
+  Biddy_Clean(); /* result remains preserved */
   f = op(...);
   g = op(f,...);
   result = op(result,g,...);
 }
-Biddy_KeepFormulaUntilPurge(result); /* result is permanently preserved */
+Biddy_KeepFormulaUntilPurge(result); /* result is preserved until Biddy_Purge() */
 Biddy_Clean(); /* tmp results are not needed, anymore */
 ~~~
 
@@ -348,14 +350,14 @@ use the following code:
 result = op(...);
 while (!finish) {
   Biddy_KeepFormulaProlonged(result,2); /* result is preserved for next two cleanings */
-  Biddy_Clean(); /* result remains preserved, f and g are obsolete */
+  Biddy_Clean(); /* result remains preserved */
   f = op(...);
   g = op(f,...);
   Biddy_KeepFormula(g); /* g is preserved for next cleaning */
   Biddy_Clean(); /* result and g are still usable, f is obsolete */
   result = op(result,g,...);
 }
-Biddy_KeepFormulaUntilPurge(result); /* final result is permanently preserved */
+Biddy_KeepFormulaUntilPurge(result); /* result is preserved until Biddy_Purge() */
 Biddy_Clean(); /* tmp results are not needed, anymore */
 ~~~
 
@@ -363,25 +365,43 @@ The third example is an outline of an implementation of bisimulation:
 
 ~~~
 init = AND(init_p,init_q)
-Biddy_KeepFormulaUntilPurge(init) /* init is permanently preserved */
+Biddy_KeepFormulaUntilPurge(init) /* init is preserved until Biddy_Purge() */
 eq = InitialEq(init_p,tr_p,init_q,tr_q,...);
 do {
   Biddy_KeepFormula(eq); /* eq is preserved for next cleaning */
-  Biddy_Clean(); /* eq remains usable */
+  Biddy_Clean(); /* eq remains preserved */
   last = eq;
   eq1 = NextEqPart1(eq,tr_p,tr_q,...);
   eq2 = NextEqPart2(eq,tr_p,tr_q,...);
   eq = AND(eq1,eq2);
 } while (AND(init,eq)!=0 && eq!=last)
 if (AND(init,eq)!=0) result=false; else result=true;
-Biddy_Clean();
 Biddy_Purge(); /* immediately remove all nodes created during the calculation */
 ~~~
 
-The fourth example is an outline of an implementation of model checking where
-we are trying to benefit from regularly reordering
-(in contrast to Biddy_Purge(), Biddy_PurgeAndReorder() will delete named
-tmp formulae):
+The fourth example is an outline of an implementation of model checking:
+
+~~~
+sup = Prepare(...);
+Biddy_KeepFormulaUntilPurge(sup) /* preserve for the iteration */
+Z = Biddy_GetConstantZero();
+last = Biddy_GetConstantOne();
+while (Z != last) {
+  last = Z;
+  Z = Image(Z,sup,...);
+  Biddy_KeepFormula(last); /* preserve for the next cleaning */
+  Biddy_KeepFormula(Z); /* preserve for the next cleaning */
+  Biddy_Clean(); /* remove unnecessary intermediate results */
+}
+Biddy_AddPersistentFormula("result",Z);
+Biddy_Purge(); /* remove all nodes not belonging to result */
+~~~
+
+The fifth example is again a model checking algorithm, but
+here we are trying to benefit from regularly reordering
+(in contrast to Biddy_Purge(), Biddy_PurgeAndReorder() will
+delete all unnamed formulae, all obsolete formulae, and
+also all named non-obsolete tmp formulae):
 
 ~~~
 sup = Prepare(...);
@@ -401,7 +421,7 @@ Biddy_DeleteFormula("Z"); /* Z is marked as deleted */
 Biddy_Purge(); /* remove nodes not belonging to result */
 ~~~
 
-The fifth example is an outline of an implementation of parallel composition
+The sixth example is an outline of an implementation of parallel composition
 where we are trying to benefit from intensive GC:
 
 ~~~
@@ -486,7 +506,7 @@ loop which check every nodes at most once.
 
 Biddy relies on a single hash table for all variables. However, it supports
 chaining of nodes to form different lists (using an extra pointer in
-each node). This facility is used to improve efficiency of garbage
+each node). This facility is used to improve the efficiency of garbage
 collection and sifting.
 
 Please node, that node chaining is not determined or limited by
@@ -678,8 +698,8 @@ In 2012, a research paper about Biddy library appears in
 Journal of Software (doi:10.4304/jsw.7.6.1358-1366)
 http://ojs.academypublisher.com/index.php/jsw/article/view/jsw070613581366/
 
-In 2013, Biddy  v1.1  was released. Biddy_Edge became a pointer instead
-of structure and all other structures were optimized.
+In 2013, Biddy  v1.1  was released. Biddy_Edge becames a pointer instead
+of a structure and all other structures were optimized.
 
 In 2014, Biddy  v1.2  was released. Variable swapping and sifting algorithm
 were the most significant additions.
@@ -711,6 +731,10 @@ combination sets. Improved many functionalities, e.g sifting.
 Many new CUDD-like functions have been added.
 Moreover, bddview and BDD Scout have been significantly improved.
 
+In 2018, Biddy v1.8. was released.
+Added support for 0-sup-BDDs without complemented edges.
+Again, bddview and BDD Scout have been significantly improved.
+
 ### 6. PUBLICATIONS
 ---------------
 
@@ -725,4 +749,4 @@ If you find our work useful, please, cite us.
   https://dk.um.si/IzpisGradiva.php?id=68831
 
 - Robert Meolic. __Biddy.__
-  We are preparing a paper for SCP.
+  We are preparing a paper for IEEE Access.

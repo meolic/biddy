@@ -1,10 +1,10 @@
-/* $Revision: 356 $ */
-/* $Date: 2017-12-13 22:30:46 +0100 (sre, 13 dec 2017) $ */
+/* $Revision: 456 $ */
+/* $Date: 2018-07-14 21:11:41 +0200 (sob, 14 jul 2018) $ */
 /* This file (biddy-cudd.h) is a C header file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.7.4 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 /* See Biddy examples (e.g. biddy-example-dictionary.c) to see how this file is used */
 
 /* COMPILE WITH: */
@@ -33,14 +33,6 @@ typedef char *Biddy_String;
 typedef char Biddy_Boolean;
 typedef DdNode *Biddy_Edge;
 DdManager *manager;
-#endif
-
-/* ZBDD is not supported by Biddy, yet */
-#ifdef BIDDY
-#  ifdef ZBDD
-#    undef ZBDD
-#    define ZBDDC
-#  endif
 #endif
 
 /* OBDD is not supported by CUDD */
@@ -125,7 +117,8 @@ DdManager *manager;
 #    define Biddy_GetIthVariable(i) Cudd_ReadInvPerm(manager,i)
 #    define Biddy_GetConstantZero() Cudd_ReadLogicZero(manager)
 #    define Biddy_GetConstantOne() Cudd_ReadOne(manager)
-#    define Biddy_AddVariable() Cudd_bddNewVar(manager)
+#    define Biddy_AddVariable() Cudd_NodeReadIndex(Cudd_bddNewVar(manager))
+#    define Biddy_AddVariableEdge() Cudd_bddNewVar(manager)
 #    define Biddy_GetVariableEdge(i) Cudd_bddIthVar(manager,i)
 #    define Biddy_Not(f) Cudd_Not(f)
 #    define Biddy_And(f,g) Cudd_bddAnd(manager,f,g)
@@ -138,7 +131,7 @@ DdManager *manager;
 #    define Biddy_NodeTableNum() Cudd_ReadKeys(manager)
 #    define Biddy_NodeTableNumLive() Cudd_ReadNodeCount(manager)
 #    define Biddy_CountNodes(f) Cudd_DagSize(f)
-#    define Biddy_DependentVariableNumber(f) Cudd_SupportSize(manager,f)
+#    define Biddy_DependentVariableNumber(f,mustbefalse) Cudd_SupportSize(manager,f)
 #    define Biddy_CountMinterms(f,n) Cudd_CountMinterm(manager,f,n)
 #    define Biddy_GlobalSifting() Cudd_ReduceHeap(manager,CUDD_REORDER_SIFT,0)
 #    define Biddy_GlobalConvergedSifting() Cudd_ReduceHeap(manager,CUDD_REORDER_SIFT_CONVERGE,0)
@@ -148,7 +141,8 @@ DdManager *manager;
 #    define Biddy_GetIthVariable(i) Cudd_ReadInvPermZdd(manager,i)
 #    define Biddy_GetConstantZero() Cudd_ReadZero(manager)
 #    define Biddy_GetConstantOne() Cudd_ReadZddOne(manager,0)
-#    define Biddy_AddVariable() Cudd_zddIthVar(manager,Cudd_ReadZddSize(manager))
+#    define Biddy_AddVariable() 0 /* problematic because Cudd_zddIthVar recalculate result and then return unreferenced edge */
+#    define Biddy_AddVariableEdge() Cudd_zddIthVar(manager,Cudd_ReadZddSize(manager))
 #    define Biddy_GetVariableEdge(i) Cudd_zddIthVar(manager,i)
 #    define Biddy_Not(f) Cudd_zddDiff(manager,Cudd_ReadZddOne(manager,0),f)
 #    define Biddy_And(f,g) Cudd_zddIntersect(manager,f,g)
@@ -161,7 +155,7 @@ DdManager *manager;
 #    define Biddy_NodeTableNum() 0 /* not implemented */
 #    define Biddy_NodeTableNumLive() Cudd_zddReadNodeCount(manager)
 #    define Biddy_CountNodes(f) ((Cudd_zddDagSize(f)==0)?1:Cudd_zddDagSize(f)+2) /* this is not always valid but there is no better option */
-#    define Biddy_DependentVariableNumber(f) Cudd_ReadZddSize(manager) /* this is not always valid but there is no better option */
+#    define Biddy_DependentVariableNumber(f,mustbefalse) Cudd_ReadZddSize(manager) /* this is not always valid but there is no better option */
 #    define Biddy_CountMinterms(f,n) Cudd_zddCountMinterm(manager,f,n)
 #    define Biddy_GlobalSifting() Cudd_zddReduceHeap(manager,CUDD_REORDER_SIFT,0)
 #    define Biddy_GlobalConvergedSifting() Cudd_zddReduceHeap(manager,CUDD_REORDER_SIFT_CONVERGE,0)
@@ -170,11 +164,13 @@ DdManager *manager;
 #  define Biddy_GetManagerName() "CUDD"
 #  define Biddy_ChangeVariableName(v,name) 0
 #  define Biddy_DensityOfBDD(f,n) Cudd_Density(manager,f,n)
+#  define Biddy_CountComplementedEdges(f) 0 /* not implemented */
 #  define Biddy_NodeTableSize() Cudd_ReadSlots(manager)
 #  define Biddy_NodeTableGCNumber() Cudd_ReadGarbageCollections(manager)
 #  define Biddy_NodeTableGCTime() Cudd_ReadGarbageCollectionTime(manager)
 #  define Biddy_NodeTableSiftingNumber() Cudd_ReadReorderings(manager)
 #  define Biddy_NodeTableDRTime() Cudd_ReadReorderingTime(manager)
+#  define Biddy_OPCacheSearch() (unsigned long int) 0
 #  define Biddy_ReadMemoryInUse() Cudd_ReadMemoryInUse(manager)
 #  define Biddy_PrintInfo(s) Cudd_PrintInfo(manager,s)
 #  define Biddy_Exit() Cudd_Quit(manager)

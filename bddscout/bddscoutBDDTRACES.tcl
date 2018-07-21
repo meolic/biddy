@@ -1,9 +1,9 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 397 $]
+#  Date        [$Date: 2018-03-04 18:08:47 +0100 (ned, 04 mar 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM FERI
+#               Copyright (C) 2008, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
@@ -21,15 +21,19 @@
 #               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #               Boston, MA 02110-1301 USA.]
 
-menubutton .menuFrame.bddtraces -menu .menuFrame.bddtraces.menu -pady 6 -font MENUFONT -text "BDDTRACES"
-pack .menuFrame.bddtraces -side left
+menubutton $menubar.bddtraces -text "BDDTRACES" -menu $menubar.bddtraces.menu -pady 6 -bg $COLORFRAME \
+                          -font [list -family $FONTFAMILYMENU -size $FONTSIZEMENU -weight normal -slant roman]
+pack $menubar.bddtraces -side left -before $menubar.help
 
-menu .menuFrame.bddtraces.menu -font MENUFONT -relief groove -tearoff false
+menu $menubar.bddtraces.menu -bg $COLORFRAME -relief groove -tearoff false \
+                             -font [list -family $FONTFAMILYMENU -size $FONTSIZEMENU -weight normal -slant roman]
 
-.menuFrame.bddtraces.menu add command -command menu_bddtraces_run -label "Run BDD Trace ..."
+$menubar.bddtraces.menu add command -command menu_bddtraces_run -label "Run BDD Trace"
 
 proc menu_bddtraces_run {  } {
   global mainwin
+  global BDDSCOUT_PATH_BIN
+
 
   toplevel .warning
   wm title .warning "WARNING"
@@ -59,7 +63,7 @@ proc menu_bddtraces_run {  } {
 
   tkwait window .warning
 
-  set fname [tk_getOpenFile -title "Select BDD Trace file" -parent $mainwin]
+  set fname [tk_getOpenFile -title "Select BDD Trace file" -initialdir "$BDDSCOUT_PATH_BIN" -parent $mainwin]
   if {[string length $fname] != 0} {
     puts "Reading file $fname ..."
     set et [time {BDDTRACES_run $fname}]
@@ -87,10 +91,7 @@ proc BDDTRACES_run { fname } {
 
   tkwait visibility .dialogBddTrace.m
 
-  bddview_clear
-  bddscout_exitPkg
-  bddscout_initPkg
-  update_info
+  bddscout_clear
 
   text .dialogBddTrace.f -font REPORTFONT -width 160 -height 40 -tabs {750 left 850 left 950 left 1050 left 1150 left 1250 left} -yscrollcommand ".dialogBddTrace.ys set"
   .dialogBddTrace.f tag configure bg0 -background azure1
@@ -164,7 +165,7 @@ proc BDDTRACES_run { fname } {
 
   destroy .dialogBddTrace.m
 
-      }    
+      }
       set j 0
       set cmdlist [list]
       set i [expr 1 - $i]

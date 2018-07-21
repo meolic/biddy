@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddtraces-BIDDY.c]
-  Revision    [$Revision: 353 $]
-  Date        [$Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $]
+  Revision    [$Revision: 444 $]
+  Date        [$Date: 2018-05-27 22:55:44 +0200 (ned, 27 maj 2018) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM FERI
+               Copyright (C) 2008, 2018 UM FERI
                UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
@@ -45,7 +45,7 @@
  * both notices appear in supporting documentation, and that credit
  * is given to Carnegie Mellon University in all publications reporting
  * on direct or indirect use of this code or its derivatives.
- * 
+ *
  * THIS IMPLEMENTATION MAY HAVE BUGS, SOME OF WHICH MAY HAVE SERIOUS
  * CONSEQUENCES.  CARNEGIE MELLON PROVIDES THIS SOFTWARE IN ITS "AS IS"
  * CONDITION, AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
@@ -58,11 +58,11 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * Carnegie Mellon encourages (but does not require) users of this
  * software to return any improvements or extensions that they make,
  * and to grant Carnegie Mellon the rights to redistribute these
- * changes without encumbrance.   
+ * changes without encumbrance.
  */
 
 #include "time.h"
@@ -150,6 +150,7 @@ BddscoutRunBddTrace(FILE *f)
   Biddy_Boolean quote;
   Biddy_String s1;
   Biddy_String var,op1,op2,op3;
+  Biddy_Variable v;
   Biddy_Edge* varlist;
   Biddy_Edge* lvarlist;
   unsigned int len;
@@ -221,14 +222,14 @@ BddscoutRunBddTrace(FILE *f)
       printf("VARIABLE: <%s>\n",var);
 #endif
 
-      bdd = Biddy_Managed_AddVariableByName(MNG,var); /* PROBABLY NOT CORRECT FOR ZBDDs AND ZFDDs! */
-
+      /* THIS PART IS PROBABLY NOT CORRECT FOR ZBDDs AND ZFDDs! */
+      v = Biddy_Managed_AddVariableByName(MNG,var);
       n = getNumber(var);
       if (varnum <= n) {
         varnum = n+1;
         varlist = (Biddy_Edge *) realloc(varlist,varnum*sizeof(Biddy_Edge));
       }
-      varlist[n] = bdd;
+      varlist[n] = Biddy_Managed_GetVariableEdge(MNG,v);
 
     }
     var = strtok(NULL," \t,;");
@@ -409,7 +410,7 @@ BddscoutRunBddTrace(FILE *f)
 
         line1 = strchr(line,'=');
         if (!line1) {
- 
+
 #ifdef DEBUG
           printf(" UNKNOWN\n");
 #endif
@@ -458,7 +459,7 @@ BddscoutRunBddTrace(FILE *f)
               if (n != -1) {
                 lvarlist[n] = bdd;
               }
- 
+
 #ifdef DEBUG
               printf(" OK\n");
 #endif
@@ -622,7 +623,7 @@ BddscoutRunBddTrace(FILE *f)
 #endif
 
             free(op1);
-            
+
             startTime = clock();
 
             result = Biddy_Managed_CountNodes(MNG,bdd);

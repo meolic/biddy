@@ -1,59 +1,354 @@
-/* $Revision: 353 $ */
-/* $Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $ */
+/* $Revision: 455 $ */
+/* $Date: 2018-07-14 12:11:54 +0200 (sob, 14 jul 2018) $ */
 /* This file (biddy-example-dictionary.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.7 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 /* This example uses biddy-cudd.h and biddy-cudd.c */
 
 /* COMPILE WITH: */
-/* gcc -DNOREPORT -DSIFTING -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-dictionary biddy-example-dictionary.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DNOREPORT -DSIFTING -DCUDD -DOBDDC -O2 -o cudd-example-dictionary biddy-example-dictionary.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
+/* gcc -DNOREPORT -DNOSIFTING -DINTERACTIVE -DUNIX -DBIDDY -DTZBDD -O2 -o biddy-example-dictionary biddy-example-dictionary.c biddy-example-dict-common.c -I. -L./bin -static -lbiddy -lgmp */
+/* gcc -DNOREPORT -DNOSIFTING -DINTERACTIVE -DCUDD -DZBDD -O2 -o cudd-example-dictionary biddy-example-dictionary.c biddy-example-dict-common.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 
-/* THIS IS COMPATIBLE WITH D. E. Knuth's BENCHMARKS */
-/**/
-#define WORDSIZE 5
-#define ALPHABETSIZE 26
-#define ALPHABET {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'}
-#define TOUPPER
-#define FILENAME "./test/sgb-words.txt"
-/**/
+/* TO FIND THE LONGES LINES (THANKS TO Chris Koknat) */
+/* https://stackoverflow.com/questions/1655372/longest-line-in-a-file */
+/* perl -ne 'print length()."  line $.  $_"' myfile | sort -nr | head -n 1 */
 
-/* THIS IS (ALMOST!?) COMPATIBLE WITH R. Bryant's BENCHMARKS */
-/* NEWLINE IS THE LAST SYMBOL */
+/* NOTES ON BENCHMARKS */
+/* MAXWORDSIZE - maximal word length */
+/* ALPHABETSIZE - number of letters (without null symbol) */
+/* ALPHABET - a given array of letters */
+/* ASCII - use letters from ASCII table instead from the given array of letters */
+/* WITHNULLSYMBOL/NONULLSYMBOL - use null symbol, this allows words of different length */
+/* TOUPPER - change all letters to uppercase */
+/* FILENAME - dictionary, default benchmarks are in folder ./bddscout/DICTIONARY */
+/* OUTPUTNAME - where to save BDD for dictionary, default folder is ./bddscout/DICTIONARY */
+
+/* BENCHMARK USEN IN THE PAPER */
+/* THIS IS A SMALL EXAMPLE USING JUST 4 WORDS AND ALPHABET WITH 4 LETTERS */
+/* MAXIMAL WORD LENGTH: 3 */
+/* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 5 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 15 */
+/* NUMBER OF WORDS: 4 */
 /*
-#define WORDSIZE 24
+#define MAXWORDSIZE 3
+#define ALPHABETSIZE 5
+#define ALPHABET {'b','i','d','y','.'}
+#define NOASCII
+#define WITHNULLSYMBOL
+#define TOUPPER
+#define FILENAME "./bddscout/DICTIONARY/biddy-words.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/biddy-words-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/biddy-words-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/biddy-words-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/biddy-words-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/biddy-words-TZBDD.bddview"
+#endif
+*/
+
+/* BENCHMARK 1 */
+/* THIS IS A SMALL EXAMPLE USING JUST 12 WORDS AND ALPHABET WITH 4 LETTERS */
+/* MAXIMAL WORD LENGTH: 3 (ALL WORDS ARE THE SAME LENGTH) */
+/* NUMBER OF LETTERS (NULL SYMBOL IS NOT USED): 4 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 12 */
+/* NUMBER OF WORDS: 12 */
+/*
+#define MAXWORDSIZE 3
+#define ALPHABETSIZE 4
+#define ALPHABET {'A','B','C','D'}
+#define NOASCII
+#define NONULLSYMBOL
+#define TOUPPER
+#define FILENAME "./bddscout/DICTIONARY/abcd-words.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-fixedsize-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-fixedsize-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-fixedsize-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-fixedsize-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-fixedsize-TZBDD.bddview"
+#endif
+*/
+
+/* BENCHMARK 2 */
+/* THIS IS A SMALL EXAMPLE USING JUST 12 WORDS AND ALPHABET WITH 4 LETTERS */
+/* MAXIMAL WORD LENGTH: 3 */
+/* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 5 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 15 */
+/* NUMBER OF WORDS: 12 */
+/*
+#define MAXWORDSIZE 3
+#define ALPHABETSIZE 5
+#define ALPHABET {'A','B','C','D','.'}
+#define NOASCII
+#define WITHNULLSYMBOL
+#define TOUPPER
+#define FILENAME "./bddscout/DICTIONARY/abcd-words.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-TZBDD.bddview"
+#endif
+*/
+
+/* BENCHMARK 3 */
+/* THIS IS A SMALL EXAMPLE USING JUST 12 WORDS AND ALPHABET WITH 5 LETTERS */
+/* MAXIMAL WORD LENGTH: 4 */
+/* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 6 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 24 */
+/* NUMBER OF WORDS: 12 */
+/*
+#define MAXWORDSIZE 4
+#define ALPHABETSIZE 6
+#define ALPHABET {'A','B','C','D','E','.'}
+#define NOASCII
+#define WITHNULLSYMBOL
+#define TOUPPER
+#define FILENAME "./bddscout/DICTIONARY/abcd-words.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/abcd-words-TZBDD.bddview"
+#endif
+*/
+
+/* BENCHMARK 4 */
+/* THIS IS A SMALL EXAMPLE USING JUST 12 WORDS */
+/* MAXIMAL WORD LENGTH: 5 */
+/* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 54 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 270 */
+/* NUMBER OF WORDS: 12 */
+/* NULL SYMBOL IS THE LAST SYMBOL - IT IS DENOTED WITH . */
+/*
+#define MAXWORDSIZE 5
 #define ALPHABETSIZE 54
 #define ALPHABET {'-', \
                   'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', \
                   'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z', \
                   '.' \
                  }
-#define WITHNEWLINE
-#define FILENAME "./test/words.txt"
+#define NOASCII
+#define WITHNULLSYMBOL
+#define NOTOUPPER
+#define FILENAME "./bddscout/DICTIONARY/words12.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-TZBDD.bddview"
+#endif
 */
 
-/* THIS IS (ALMOST!?) COMPATIBLE WITH R. Bryant's BENCHMARKS */
-/* NEWLINE IS THE LAST SYMBOL */
-/* BIDDY MUST BE ADAPTED TO SUPPORT THE HUGE NUMBER OF VARIABLES */
+/* BENCHMARK 5 */
+/* THIS IS A SMALL EXAMPLE USING JUST 12 WORDS */
+/* MAXIMAL WORD LENGTH: 5 */
+/* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 129 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 645 */
+/* NUMBER OF WORDS: 12 */
+/* VARIABLE NAMES ARE NUMBERS, NULL SYMBOL IS THE LAST SYMBOL */
 /*
-#define WORDSIZE 24
+#define MAXWORDSIZE 5
 #define ALPHABETSIZE 129
 #define ALPHABET {}
 #define ASCII
-#define WITHNEWLINE
-#define FILENAME "./test/words.txt"
+#define WITHNULLSYMBOL
+#define NOTOUPPER
+#define FILENAME "./bddscout/DICTIONARY/words12.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-ascii-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-ascii-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-ascii-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-ascii-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words12-ascii-TZBDD.bddview"
+#endif
 */
 
-/* THIS IS FOR TESTING, ONLY */
+/* BENCHMARK 6 */
+/* THIS IS COMPATIBLE WITH D. E. Knuth's BENCHMARKS */
+/* MAXIMAL WORD LENGTH: 5 (ALL WORDS ARE THE SAME LENGTH) */
+/* NUMBER OF LETTERS (NULL SYMBOL IS NOT USED): 26 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 130 */
+/* NUMBER OF WORDS: 5757 */
 /*
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29
-A B C Č D E F G H I  J  K  L  M  N  O  P  Q  R  S  Š  T  U  V  W  X  Y  Z  Ž
+#define MAXWORDSIZE 5
+#define ALPHABETSIZE 26
+#define ALPHABET {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'}
+#define NOASCII
+#define NONULLSYMBOL
+#define TOUPPER
+#define FILENAME "./bddscout/DICTIONARY/sgb-words.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/sgb-words-fixedsize-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/sgb-words-fixedsize-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/sgb-words-fixedsize-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/sgb-words-fixedsize-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/sgb-words-fixedsize-TZBDD.bddview"
+#endif
 */
+
+/* BENCHMARK 7 */
+/* THIS IS (ALMOST) COMPATIBLE WITH R. Bryant's BENCHMARKS - COMPACT WORD LIST, ONE-HOT VARIABLES */
+/* MAXIMAL WORD LENGTH: 24 */
+/* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 54 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 1296 */
+/* NUMBER OF WORDS: 235886 */
+/* NULL SYMBOL IS THE LAST SYMBOL - IT IS DENOTED WITH . */
+/**/
+#define MAXWORDSIZE 24
+#define ALPHABETSIZE 54
+#define ALPHABET {'-', \
+                  'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', \
+                  'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z', \
+                  '.' \
+                 }
+#define NOASCII
+#define WITHNULLSYMBOL
+#define NOTOUPPER
+#define FILENAME "./bddscout/DICTIONARY/words.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-TZBDD.bddview"
+#endif
+/**/
+
+/* BENCHMARK 8 */
+/* THIS IS (ALMOST) COMPATIBLE WITH R. Bryant's BENCHMARKS - ASCII WORD LIST, ONE-HOT VARIABLES */
+/* MAXIMAL WORD LENGTH: 24 */
+/* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 129 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 3096 */
+/* NUMBER OF WORDS: 235886 */
+/* VARIABLE NAMES ARE NUMBERS, NULL SYMBOL IS THE LAST SYMBOL */
 /*
-#define ALPHABET {'A','B','C','Č','D','E','F','G','H','I','J','K','L','M','N','O','P','R','S','Š','T','U','V','Z','Ž'}
-#define ALPHABET {'A','B','C','Č','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','Š','T','U','V','W','X','Y','Z','Ž'}
+#define MAXWORDSIZE 24
+#define ALPHABETSIZE 129
+#define ALPHABET {}
+#define ASCII
+#define WITHNULLSYMBOL
+#define NOTOUPPER
+#define FILENAME "./bddscout/DICTIONARY/words.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-ascii-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-ascii-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-ascii-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-ascii-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "./bddscout/DICTIONARY/words-ascii-TZBDD.bddview"
+#endif
+*/
+
+/* BENCHMARK 9 */
+/* THIS IS USED FOR JOURNAL PAPER, AUTHORS: ROBERT MEOLIC, UROS BERGLEZ, AND GREGOR DONAJ */
+/* MAXIMAL WORD LENGTH: 25 */
+/* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 31 */
+/* NUMBER OF BDD VARIABLES (WITHOUT CONSTANT ONE): 775 */
+/* NUMBER OF WORDS: 301334 */
+/* NULL SYMBOL IS THE LAST SYMBOL - IT IS DENOTED WITH . */
+/*
+#define MAXWORDSIZE 25
+#define ALPHABETSIZE 31
+#define ALPHABET {'a','b','c','C','d','D','e','f','g','h','i','j','k','l','m','n','o','p','q', \
+                  'r','s','S','t','u','v','w','x','y','z','Z', \
+                  '.' \
+                 }
+#define NOASCII
+#define WITHNULLSYMBOL
+#define NOTOUPPER
+#define FILENAME "../donaj/donaj.txt"
+#ifdef OBDD
+#  define OUTPUTNAME "../donaj/donaj-OBDD.bddview"
+#endif
+#ifdef OBDDC
+#  define OUTPUTNAME "../donaj/donaj-OBDDC.bddview"
+#endif
+#ifdef ZBDD
+#  define OUTPUTNAME "../donaj/donaj-ZBDD.bddview"
+#endif
+#ifdef ZBDDC
+#  define OUTPUTNAME "../donaj/donaj-ZBDDC.bddview"
+#endif
+#ifdef TZBDD
+#  define OUTPUTNAME "../donaj/donaj-TZBDD.bddview"
+#endif
 */
 
 #include <stdio.h>
@@ -61,50 +356,69 @@ A B C Č D E F G H I  J  K  L  M  N  O  P  Q  R  S  Š  T  U  V  W  X  Y  Z  Ž
 #include <ctype.h>
 #include <time.h>
 
-#include "biddy-cudd.h"
+#include "biddy-example-dict-common.h"
 
-/* BDD CREATION IS OPTIMIZED BY DEFAULT BUT YOU CAN OVERRIDE THIS */
-#if !defined(BOTTOMUP) && !defined(TOPDOWN)
-#  if defined(OBDD) || defined(OBDDC)
-#    define BOTTOMUP
-#  endif
-#  if defined(ZBDD) || defined(ZBDDC)
-#    define TOPDOWN
-#  endif
-#  if defined(TZBDD) || defined(TZBDDC)
-#    define BOTTOMUP
-#  endif
-#endif
+void createLevenshteinTemplate(unsigned int wordlength, unsigned char alphabet[], Biddy_Boolean usenullsymbol, unsigned char nullsymbol, Biddy_Edge code[], Biddy_Edge codenot[], unsigned int alphabetsize, unsigned int maxwordlength);
+void createLevenshteinTemplatePerPartes(unsigned int wordlength, unsigned char alphabet[], Biddy_Boolean usenullsymbol, unsigned char nullsymbol, Biddy_Edge code[], Biddy_Edge codenot[], unsigned int alphabetsize, unsigned int maxwordlength);
 
 int main(int argv, char ** argc) {
   clock_t elapsedtime;
   FILE *f;
-  char alphabet[ALPHABETSIZE] = ALPHABET;
-  Biddy_Edge code[WORDSIZE][ALPHABETSIZE];  /* BDD variables */
-  Biddy_Edge codenot[WORDSIZE][ALPHABETSIZE];  /* BDD variables */
-  Biddy_Edge dictionary;
+  unsigned char alphabet[ALPHABETSIZE] = ALPHABET;
+  Biddy_Edge code[MAXWORDSIZE*ALPHABETSIZE]; /* BDD variables */
+  Biddy_Edge codenot[MAXWORDSIZE*ALPHABETSIZE]; /* BDD variables */
+  Biddy_Edge dictionary,nullword;
+  Biddy_Boolean usenullsymbol;
+  unsigned char nullsymbol;
   Biddy_Edge tmp1,tmp2;
   unsigned int i,j,n;
-  unsigned int letter;
-  Biddy_String name;
-  char oneword[WORDSIZE+1]; /* word + \0 */
+  unsigned char oneword[MAXWORDSIZE+1]; /* word + \0 */
+  unsigned int wordlength;
   Biddy_Boolean eof,stop;
   Biddy_String userinput;
-  unsigned int dictionary_idx;
-  
+  unsigned int dictionary_idx,nullword_idx;
+
+  /* TESTING */
+  /*
+  Biddy_Edge *dictionaryByLength;
+  */
+
   setbuf(stdout,NULL);
   userinput = strdup("...");
 
+#ifdef WITHNULLSYMBOL
+  if (ALPHABETSIZE < (MAXWORDSIZE+2)) {
+    printf("ERROR: ALPHABETSIZE (=%u) MUST BE AT LEAST MAXWORDSIZE+2 (=%u)\n",ALPHABETSIZE,(MAXWORDSIZE+2));
+  }
+#else
+  if (ALPHABETSIZE < (MAXWORDSIZE+1)) {
+    printf("ERROR: ALPHABETSIZE (=%u) MUST BE AT LEAST MAXWORDSIZE+1 (=%u)\n",ALPHABETSIZE,(MAXWORDSIZE+1));
+  }
+#endif
+
 #include "biddy-cudd.c" /* this will initialize BDD manager */
 
-  printf(" (%s)\n",Biddy_GetManagerName());
+  printf("%s ",Biddy_GetManagerName());
 
-#ifdef WITHNEWLINE
-  printf("USING NEW LINE\n");
+#ifdef WITHNULLSYMBOL
+  printf("USING NULL SYMBOL + ");
+  usenullsymbol = TRUE;
+  nullsymbol = alphabet[ALPHABETSIZE-1];
+#else
+  usenullsymbol = FALSE;
+  nullsymbol = 0;
 #endif
 
 #ifdef REVERSEORDER
-  printf("USING REVERSE ORDER\n");
+  printf("USING REVERSE ORDER + ");
+#endif
+
+#ifdef ASCII
+  printf("USING FULL ASCII TABLE + ");
+#endif
+
+#ifdef SIFTING
+  printf("USING SIFTING + ");
 #endif
 
 #ifdef BOTTOMUP
@@ -121,20 +435,11 @@ int main(int argv, char ** argc) {
   }
 #endif
 
-  /* check alphabet */
-  for (i=0; i<ALPHABETSIZE; i++) {
-    if ((alphabet[i] >= 32) && (alphabet[i] <= 126)) {
-      printf("(%c)",alphabet[i]);
-    } else {
-      printf("()");
-    }
-  }
-  printf("\n");
-
   elapsedtime = clock();
 
   /* create BDD variables */
-  /* NOTE for Biddy: ZBDD and TZBDD variables are added in the reverse order by default */
+  /* NOTE: code[i][j] = code[i*ALPHABETSIZE+j] */
+  /* NOTE for Biddy: ZBDDs and TZBDDs variables are added in the reverse order by default */
   /* NOTE for Biddy and CUDD: in any case, code[0][0] = "A01" (i.e. the first letter in the alphabet) */
 
 #ifdef BIDDY
@@ -154,22 +459,32 @@ int main(int argv, char ** argc) {
 #endif
 #endif
 
+#ifdef ASCII
   {
-    char name[4];
-    name[0] = name[1] = name[2] = 0;
-    name[3] = 0; /* end of string */
-    for (i=0; i<WORDSIZE; i++) {
-      name[1] = '0' + (i+1)/10;
-      name[2] = '0' + (i+1)%10;
+    char name[6];
+    for (i=0; i<MAXWORDSIZE; i++) {
       for (j=0; j<ALPHABETSIZE; j++) {
-        name[0] = alphabet[j];
-        code[i][j] = Biddy_AddVariable();
+        code[i*ALPHABETSIZE+j] = Biddy_AddVariableEdge(); /* add unnamed/numbered variable */
+        createVarNameAscii(j,i+1,name);
         Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
-        REF(code[i][j]);
-        /* printf("(code[%u][%u]=%s)",i,j,name); */
+        REF(code[i*ALPHABETSIZE+j]);
       }
     }
   }
+#else
+  {
+    char name[4];
+    for (i=0; i<MAXWORDSIZE; i++) {
+      for (j=0; j<ALPHABETSIZE; j++) {
+        code[i*ALPHABETSIZE+j] = Biddy_AddVariableEdge(); /* add unnamed/numbered variable */
+        createVarName(alphabet[j],i+1,name);
+        Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
+        REF(code[i*ALPHABETSIZE+j]);
+        /* printf("(code[%u][%u]=%s(%u))",i,j,name,Biddy_VariableTableNum()-1); */
+      }
+    }
+  }
+#endif
 
 #ifdef BIDDY
 #ifdef REVERSEORDER
@@ -188,22 +503,32 @@ int main(int argv, char ** argc) {
 #endif
 #endif
 
+#ifdef ASCII
   {
-    char name[4];
-    name[0] = name[1] = name[2] = 0;
-    name[3] = 0; /* end of string */
-    for (i=0; i<WORDSIZE; i++) {
-      name[1] = '0' + (WORDSIZE-i)/10;
-      name[2] = '0' + (WORDSIZE-i)%10;
+    char name[6];
+    for (i=0; i<MAXWORDSIZE; i++) {
       for (j=0; j<ALPHABETSIZE; j++) {
-        name[0] = alphabet[ALPHABETSIZE-j-1];
-        code[WORDSIZE-i-1][ALPHABETSIZE-j-1] = Biddy_AddVariable();
-        Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
-        REF(code[WORDSIZE-i-1][ALPHABETSIZE-j-1]);
-        /* printf("(code[%u][%u]=%s)",WORDSIZE-i-1,ALPHABETSIZE-j-1,name); */
+        code[(MAXWORDSIZE-i-1)*ALPHABETSIZE+(ALPHABETSIZE-j-1)] = Biddy_AddVariableEdge(); /* add unnamed/numbered variable */
+        createVarNameAscii(ALPHABETSIZE-j-1,MAXWORDSIZE-i,name);
+        Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,(Biddy_String)name); /* rename the last added variable */
+        REF(code[(MAXWORDSIZE-i-1)*ALPHABETSIZE+(ALPHABETSIZE-j-1)]);
       }
     }
   }
+#else
+  {
+    char name[4];
+    for (i=0; i<MAXWORDSIZE; i++) {
+      for (j=0; j<ALPHABETSIZE; j++) {
+        code[(MAXWORDSIZE-i-1)*ALPHABETSIZE+(ALPHABETSIZE-j-1)] = Biddy_AddVariableEdge(); /* add unnamed/numbered variable */
+        createVarName(alphabet[ALPHABETSIZE-j-1],MAXWORDSIZE-i,name);
+        Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
+        REF(code[(MAXWORDSIZE-i-1)*ALPHABETSIZE+(ALPHABETSIZE-j-1)]);
+        /* printf("(code[%u][%u]=%s(%u))",MAXWORDSIZE-i-1,ALPHABETSIZE-j-1,name,Biddy_VariableTableNum()-1); */
+      }
+    }
+  }
+#endif
 
   /* For ZBDDs, by adding new variables all the existing ones are changed. */
   /* Thus, after adding the last variable we have to refresh the array of variables. */
@@ -213,307 +538,255 @@ int main(int argv, char ** argc) {
 
   if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
   {
-    for (i=0; i<WORDSIZE; i++) {
+    for (i=0; i<MAXWORDSIZE; i++) {
       for (j=0; j<ALPHABETSIZE; j++) {
 #ifdef BIDDY
         /* variable edges in Biddy never become obsolete */
 #ifdef REVERSEORDER
-        code[i][j] = Biddy_GetVariableEdge(i*ALPHABETSIZE+j+1);
+        code[i*ALPHABETSIZE+j] = Biddy_GetVariableEdge(i*ALPHABETSIZE+j+1);
 #else
-        code[i][j] = Biddy_GetVariableEdge(WORDSIZE*ALPHABETSIZE-(i*ALPHABETSIZE+j));
+        code[i*ALPHABETSIZE+j] = Biddy_GetVariableEdge(MAXWORDSIZE*ALPHABETSIZE-(i*ALPHABETSIZE+j));
 #endif
 #endif
 #ifdef CUDD
         /* variable edges in CUDD are referenced - this is required for ZBDDs */
         DEREF(code[i][j]);
 #ifdef REVERSEORDER
-        code[i][j] = Biddy_GetVariableEdge(WORDSIZE*ALPHABETSIZE-(i*ALPHABETSIZE+j)-1);
+        code[i*ALPHABETSIZE+j] = Biddy_GetVariableEdge(MAXWORDSIZE*ALPHABETSIZE-(i*ALPHABETSIZE+j)-1);
 #else
-        code[i][j] = Biddy_GetVariableEdge(i*ALPHABETSIZE+j);
+        code[i*ALPHABETSIZE+j] = Biddy_GetVariableEdge(i*ALPHABETSIZE+j);
 #endif
-        REF(code[i][j]);
+        REF(code[i*ALPHABETSIZE+j]);
 #endif
       }
     }
   }
 
   /* CREATE NEGATIONS */
-  for (i=0; i<WORDSIZE; i++) {
+  for (i=0; i<MAXWORDSIZE; i++) {
     for (j=0; j<ALPHABETSIZE; j++) {
-      codenot[i][j] = Biddy_Not(code[i][j]);
-      REF(codenot[i][j]);
-      MARK_0(codenot[i][j]);
+      char notname[32];
+      sprintf(notname,"NOT%s",Biddy_GetVariableName(i*ALPHABETSIZE+j));
+      codenot[i*ALPHABETSIZE+j] = Biddy_Not(code[i*ALPHABETSIZE+j]);
+      REF(codenot[i*ALPHABETSIZE+j]);
+      MARK_X(notname,codenot[i*ALPHABETSIZE+j]);
     }
   }
 
-  /* START CALCULATION */
+  nullword = encodeNullWord(code,codenot,ALPHABETSIZE,MAXWORDSIZE);
 
-#ifdef TOPDOWN
-#ifdef REVERSEORDER
-#  undef REVERSEORDER
-#else
-#  define REVERSEORDER
-#endif
+#ifdef BIDDY
+  nullword_idx = MARK_X("NULLWORD",nullword);
 #endif
 
   dictionary = Biddy_GetConstantZero();
   REF(dictionary); /* not needed for Biddy but not wrong */
 
-  /* DEBUGGING */
-  /**/
-  printf("\n");
-  printf("Initial system has %u nodes / %lu live nodes.\n",Biddy_NodeTableNum(),Biddy_NodeTableNumLive());
-#ifdef BIDDY
-  printf("Initial system has %u user variables.\n",Biddy_VariableTableNum()-1);
-#endif
-#ifdef CUDD
-  printf("Initial system has %u user variables.\n",Biddy_VariableTableNum());
-#endif
-  printf("Empty dictionary depends on %u variables.\n",Biddy_DependentVariableNumber(dictionary));
-  printf("Empty dictionary has %.0f minterms.\n",Biddy_CountMinterms(dictionary,WORDSIZE*ALPHABETSIZE));
-  printf("Empty dictionary has %u node(s).\n",Biddy_CountNodes(dictionary));
-  /**/
+  /* TESTING */
+  /*
+  dictionaryByLength = (Biddy_Edge *) malloc(MAXWORDSIZE * sizeof(Biddy_Edge));
+  for (i=0; i<MAXWORDSIZE; i++) {
+    dictionaryByLength[i] = Biddy_GetConstantZero();
+    REF(dictionaryByLength[i]);
+  }
+  */
 
+  /* DEBUGGING */
+  /*
+  printf("\nREPORT AFTER THE INITIALIZATION OF ALPHABET\n");
+  reportSystem();
+  reportDictionary(dictionary,ALPHABETSIZE,MAXWORDSIZE);
+  */
+
+  /* START CALCULATION */
   n = 0;
   f = fopen(FILENAME,"r");
+  if (!f) {
+    printf("\nERROR: FILE %s DOES NOT EXIST\n",FILENAME);
+    exit(1);
+  }
+  printf("CREATING DICTIONARY FOR LIST OF WORDS FROM FILE %s\n",FILENAME);
   eof = FALSE;
   while (!eof) {
     eof = ( fscanf(f,"%s",oneword) == EOF );
     if (!eof) {
-      if (strlen(oneword) > WORDSIZE) {
-        printf("WORDSIZE TO SMALL, YOU NEED AT LEAST %u\n",(unsigned int)strlen(oneword));
+      wordlength = (unsigned int) strlen((char *)oneword);
+      if (wordlength > MAXWORDSIZE) {
+        printf("MAXWORDSIZE TO SMALL, YOU NEED AT LEAST %u\n",(unsigned int)strlen((char *)oneword));
         exit(1);
       }
       n++;
-      tmp1 = Biddy_GetConstantOne();
-      REF(tmp1); /* not needed for Biddy but not wrong */
 
-/* IF NOT REVERSEORDER THEN ADD UNUSED VARIABLES FIRST BECAUSE THEY ARE AT THE BOTTOM PART OF THE BDD */
-#ifndef REVERSEORDER
-      i = WORDSIZE-1;
-      while (i > strlen(oneword)) {
-        for (j=ALPHABETSIZE-1; j<ALPHABETSIZE; j--) { /* j is unsigned */
-          tmp2 = Biddy_And(tmp1,codenot[i][j]);
-          /* printf("AND[%u][%u]",i,j); */
-          REF(tmp2);
-          DEREF(tmp1);
-          tmp1 = tmp2;
-        }
-        i--;
-      }
-#endif
+      /* DEBUGGING */
+      /*
+      printf("WORD %u: <%s>\n",n,oneword);
+      reportSystem();
+      reportDictionary(dictionary,ALPHABETSIZE,MAXWORDSIZE);
+      reportOrdering();
+      */
 
-/* IF NOT REVERSEORDER THEN ADD NEWLINE VARIABLE BEFORE THE WORD BECAUSE THIS VARIABLE IS BOTTOM-MORE */
-/* NEWLINE VARIABLE IS THE LAST VARIABLE IN THE ALPHABET */
-#ifndef REVERSEORDER
-#ifdef WITHNEWLINE
-      if (strlen(oneword) < WORDSIZE) {
-        j=ALPHABETSIZE-1;
-        tmp2 = Biddy_And(tmp1,code[i][j]);
-        /* printf("AND[%u][%u]",i,j); */
-        REF(tmp2);
-        DEREF(tmp1);
-        tmp1 = tmp2;
-        j--;
-        for (j; j<ALPHABETSIZE; j--) { /* j is unsigned */
-          tmp2 = Biddy_And(tmp1,codenot[i][j]);
-          /* printf("AND[%u][%u]",i,j); */
-          REF(tmp2);
-          DEREF(tmp1);
-          tmp1 = tmp2;
-        }
-        i--;
-      }
-#endif
-#endif
+      tmp1 = encodeOneWord(oneword,alphabet,usenullsymbol,nullsymbol,code,codenot,ALPHABETSIZE,MAXWORDSIZE);
 
-/* ADD ALL LETTERS FROM THE WORD */
+      /* DEBUGGING */
+      /*
+      printf("WORD %s FINISHED\n",oneword);
+      reportDictionary(tmp1,ALPHABETSIZE,MAXWORDSIZE);
+      */
 
-#ifdef REVERSEORDER
-      for (i=0; i<strlen(oneword); i++) {
-#else
-      for (i; i<strlen(oneword); i--) { /* i is unsigned */
-#endif
+      /* DEBUGGING */
+      /*
+      printf("OR<%s/%u>",oneword,wordlength);
+      */
 
-#ifdef TOUPPER
-        letter = toupper(oneword[i]);
-#else
-        letter = oneword[i];
-#endif
-#ifdef REVERSEORDER
-        for (j=0; j<ALPHABETSIZE; j++) {
-#else
-        for (j=ALPHABETSIZE-1; j<ALPHABETSIZE; j--) { /* j is unsigned */
-#endif
-          if (letter == alphabet[j]) {
-            tmp2 = Biddy_And(tmp1,code[i][j]);
-          } else {
-            tmp2 = Biddy_And(tmp1,codenot[i][j]);
-          }
-          /* printf("AND[%u][%u]",i,j); */
-          REF(tmp2);
-          DEREF(tmp1);
-          tmp1 = tmp2;
-        }
-      }
-
-/* IF REVERSEORDER THEN ADD NEWLINE VARIABLE AFTER THE WORD BECAUSE THIS VARIABLE IS TOP-MORE */
-/* NEWLINE VARIABLE IS THE LAST VARIABLE IN THE ALPHABET */
-#ifdef REVERSEORDER
-#ifdef WITHNEWLINE
-      if (i < WORDSIZE) {
-        for (j=0; j<ALPHABETSIZE-1; j++) {
-          tmp2 = Biddy_And(tmp1,codenot[i][j]);
-          /* printf("AND[%u][%u]",i,j); */
-          REF(tmp2);
-          DEREF(tmp1);
-          tmp1 = tmp2;
-        }
-        tmp2 = Biddy_And(tmp1,code[i][j]);
-        REF(tmp2);
-        DEREF(tmp1);
-        tmp1 = tmp2;
-        /* printf("AND[%u][%u]",i,j); */
-        i++;
-      }
-#endif
-#endif
-
-/* IF  REVERSEORDER THEN ADD UNUSED VARIABLES LAST BECAUSE THEY ARE AT THE TOP PART OF THE BDD */
-#ifdef REVERSEORDER
-      while (i < WORDSIZE) {
-        for (j=0; j<ALPHABETSIZE; j++) {
-          tmp2 = Biddy_And(tmp1,codenot[i][j]);
-          /* printf("AND[%u][%u]",i,j); */
-          REF(tmp2);
-          DEREF(tmp1);
-          tmp1 = tmp2;
-        }
-        i++;
-      }
-#endif
-      /* printf("OR\n"); */
-
+      /* DISABLED FOR TESTING */
+      /**/
       tmp2 = Biddy_Or(dictionary,tmp1);
       REF(tmp2);
       DEREF(dictionary);
-      DEREF(tmp1);
       dictionary = tmp2;
-
       MARK(dictionary);
+      /**/
+
+      /* TESTING */
+      /*
+      tmp2 = Biddy_Or(dictionaryByLength[wordlength-1],tmp1);
+      REF(tmp2);
+      DEREF(dictionaryByLength[wordlength-1]);
+      dictionaryByLength[wordlength-1] = tmp2;
+      for (i=0; i<MAXWORDSIZE; i++) {
+        MARK(dictionaryByLength[i]);
+      }
+      */
+
+      DEREF(tmp1);
       SWEEP();
 
       /* DEBUGGING */
-      /* Biddy uses Biddy_CountNodesPlain() to report ZBDD nodes instead of ZBDDC nodes */
       /*
-#ifdef BIDDY
-      if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
-        printf("<%s, nodes=%u / all=%u / live=%lu>\n",oneword,Biddy_CountNodesPlain(dictionary),Biddy_CountNodesNum(),Biddy_NodeTableNumLive());
-      else
-        printf("<%s, nodes=%u / all=%u / live=%lu>\n",oneword,Biddy_CountNodes(dictionary),Biddy_CountNodesNum(),Biddy_NodeTableNumLive());
-#endif
-#ifdef CUDD
-      printf("<%s, nodes=%u / all=%u / live=%lu>\n",oneword,Biddy_CountNodes(dictionary),Biddy_NodeTableNum(),Biddy_NodeTableNumLive());
-#endif
+      printf("DICTIONARY UPDATED\n");
+      reportSystem();
+      reportDictionary(dictionary,ALPHABETSIZE,MAXWORDSIZE);
+      reportOrdering();
       */
-      
-    }
+
+#ifdef SIFTING
+      /* PERFORM SIFTING DURING THE CREATION OF DICTIONARY */
+      /* THIS SHOULD BE ADAPTED FOR TZBDDs - SIFTING HAS SIDE EFFECTS */
+      if ((n % 1000) == 0) {
+        Biddy_GlobalSifting(); /* global sifting, sifting is not converge */
+      }
+      /* DEBUGGING */
+      /*
+      if ((n % 1000) == 0) {
+        printf("[SIFTING-%d]\n",n);
+        reportSystem();
+        reportDictionary(dictionary,ALPHABETSIZE,MAXWORDSIZE);
+        reportOrdering();
+      }
+      */
+#endif
+
+    } /*if (!eof) */
     eof = (fgetc(f) == EOF);
-  }
+
+  } /* while (!eof) */
+
   fclose(f);
-  printf("%u WORDS READ FROM FILE %s\n",n,FILENAME);
 
   elapsedtime = clock()-elapsedtime;
 
-#ifdef SIFTING
+  printf("\n%u WORDS READ FROM FILE %s\n",n,FILENAME);
+
+  /* REMOVE TMP RESULTS WHICH ARE NOT NEEDED ANYMORE */
+  /* ALSO, SET UP dictionary_idx WHICH IS NEEDED FOR TZBDDs */
 #ifdef BIDDY
-    dictionary_idx = Biddy_AddPersistentFormula("DICT",dictionary);
-    Biddy_Purge(); /* dictionary_idx may change during purge */
-    Biddy_FindFormula("DICT",&dictionary_idx,&dictionary);
+  dictionary_idx = MARK_X("DICT",dictionary);
+  Biddy_Purge(); /* dictionary_idx and nullword_idx may change during purge */
+  Biddy_FindFormula((Biddy_String)"DICT",&dictionary_idx,&dictionary);
+  Biddy_FindFormula((Biddy_String)"NULLWORD",&nullword_idx,&nullword);
 #endif
-#endif
+
+  /* TESTING */
+  /*
+  {
+  unsigned int sum = 0;
+  printf("DICTIONARY BY LENGTH: /");
+  for (i=0; i<MAXWORDSIZE; i++) {
+    sum = sum + Biddy_CountNodes(dictionaryByLength[i]);
+    printf("%u/",Biddy_CountNodes(dictionaryByLength[i]));
+  }
+  printf("\n");
+  printf("TOTAL FOR DICTIONARY BY LENGTH: %u nodes\n",sum);
+  }
+  */
 
   do {
 
-    /* FOR TZBDD, TOP EDGE OF dictionary MAY CHANGE DURING THE SIFTING */
+    /* FOR TZBDDs, TOP EDGE OF dictionary AND nullword MAY CHANGE DURING THE SIFTING */
 #ifdef BIDDY
     dictionary = Biddy_GetIthFormula(dictionary_idx);
+    nullword = Biddy_GetIthFormula(nullword_idx);
 #endif
 
-    printf("\n");
-    printf("System has %u nodes / %lu live nodes.\n",Biddy_NodeTableNum(),Biddy_NodeTableNumLive());
-#ifdef BIDDY
-    printf("System has %u user variables.\n",Biddy_VariableTableNum()-1);
-#endif
-#ifdef CUDD
-    printf("System has %u user variables.\n",Biddy_VariableTableNum());
-#endif
-    printf("Resulting dictionary depends on %u variables.\n",Biddy_DependentVariableNumber(dictionary));
-    printf("Resulting dictionary has %.0f minterms.\n",Biddy_CountMinterms(dictionary,WORDSIZE*ALPHABETSIZE));
-    printf("Resulting dictionary has %u nodes.\n",Biddy_CountNodes(dictionary));
-#ifdef BIDDY
-#ifdef MINGW
-    printf("Memory in use: %I64u B\n",Biddy_ReadMemoryInUse());
-#else
-    printf("Memory in use: %llu B\n",Biddy_ReadMemoryInUse());
-#endif
-#endif
-#ifdef CUDD
-    printf("Memory in use: %lu B\n",Biddy_ReadMemoryInUse());
-#endif
-
-    printf("TIME: %.2f\n",elapsedtime/(1.0*CLOCKS_PER_SEC));
-
-#ifdef BIDDY
-    if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
-      printf("OBDD for resulting dictionary has %u nodes.\n",
-             Biddy_CountNodes(dictionary));
-    } else if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
-      printf("OBDD for resulting dictionary has %u nodes (%u nodes if using complement edges).\n",
-             Biddy_CountNodesPlain(dictionary),Biddy_CountNodes(dictionary));
-    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
-      printf("ZBDD for resulting dictionary has %u nodes.\n",
-             Biddy_CountNodes(dictionary));
-    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
-      printf("ZBDD for resulting dictionary has %u nodes (%u nodes if using complement edges).\n",
-             Biddy_CountNodesPlain(dictionary),Biddy_CountNodes(dictionary));
-    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-      printf("TZBDD for resulting dictionary has %u nodes.\n",
-             Biddy_CountNodes(dictionary));
-    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDDC) {
-      printf("TZBDD for resulting dictionary has %u nodes (%u nodes if using complement edges).\n",
-             Biddy_CountNodesPlain(dictionary),Biddy_CountNodes(dictionary));
+    if ((toupper(userinput[0]) != 'O') && (toupper(userinput[0]) != 'F')) {
+      printf("TIME: %.2f s\n",elapsedtime/(1.0*CLOCKS_PER_SEC));
+      reportSystem();
+      reportDictionary(dictionary,ALPHABETSIZE,MAXWORDSIZE);
     }
-#endif
 
-#ifdef REPORT
-    Biddy_PrintInfo(stdout);
-#endif
-
-#ifdef SIFTING
-    printf("SIFTING / CONVERGE SIFTING / EXIT [S/C/X]): ");
+#ifdef INTERACTIVE
+    printf("\n[S]IFTING / [C]ONVERGE SIFTING / [O]RDERING / SAVE TO [F]ILE / [L]EVENSHTEIN TEMPLATE / E[X]IT: ");
     if (!scanf("%s",userinput)) printf("ERROR\n");
 
     elapsedtime = clock();
 
-    if (toupper(userinput[0]) == 'S') {
-#ifdef BIDDY
-      Biddy_Sifting(NULL,FALSE); /* global sifiting because no function is given, sifting is not converge */
-#endif
-#ifdef CUDD
-      Cudd_ReduceHeap(manager,CUDD_REORDER_SIFT,0);
-#endif
+    if (toupper(userinput[0]) == 'X') {
+      stop = TRUE;
+    } else if (toupper(userinput[0]) == 'S') {
+      Biddy_GlobalSifting(); /* global sifting, sifting is not converge */
       stop = FALSE;
     } else if (toupper(userinput[0]) == 'C') {
-#ifdef BIDDY
-      Biddy_Sifting(NULL,TRUE); /* global sifiting because no function is given, converge sifting */
-#endif
-#ifdef CUDD
-      Cudd_ReduceHeap(manager,CUDD_REORDER_SIFT_CONVERGE,0);
-#endif
+      Biddy_GlobalConvergedSifting(); /* global sifting, converge sifting */
       stop = FALSE;
-    } else if (toupper(userinput[0]) == 'X') {
-      stop = TRUE;
+    } else if (toupper(userinput[0]) == 'O') {
+      reportOrdering();
+      stop = FALSE;
+    } else if (toupper(userinput[0]) == 'F') {
+      Biddy_Edge dict;
+
+      /* IF NULL SYMBOL IS USED THEN ADD NULL WORD (IT HAS LENGTH 1) TO THE DICTIONARY */
+#ifdef WITHNULLSYMBOL
+      dict = Biddy_Or(dictionary,nullword);
+      REF(dict);
+      Biddy_WriteBddview(OUTPUTNAME,dict,"DICT",NULL);
+      DEREF(dict);
+#else
+      Biddy_WriteBddview(OUTPUTNAME,dictionary,"DICT",NULL);
+#endif
+
+      /* DEBUGGING */
+      /*
+      Biddy_WriteDot("dictionary.dot",dictionary,"DICT",-1,FALSE);
+      printf("\nCreated graph in dot format.\n");
+      printf("Use 'dot -y -Tpng -O dictionary.dot' to visualize BDD for dictionary.\n");
+      */
+#ifdef WITHNULLSYMBOL
+      printf("\nDictionary extended with null word and saved to file %s.\n",OUTPUTNAME);
+#else
+      printf("\nDictionary saved to file %s.\n",OUTPUTNAME);
+#endif
+      printf("Use biddy-example-dictman to manipulate this file.\n");
+      printf("Use Bdd Scout to view graphical representation of this file.\n");
+      stop = FALSE;
+    } else if (toupper(userinput[0]) == 'L') {
+      unsigned int len;
+      printf("Levenshtein templates for word with length: ");
+      while (!(scanf("%u",&len)) || len > MAXWORDSIZE) {
+        printf("Enter valid length: ");
+      }
+      if (len) createLevenshteinTemplate(len,alphabet,usenullsymbol,nullsymbol,code,codenot,ALPHABETSIZE,MAXWORDSIZE);
+      printf("\n");
+      stop = FALSE;
     } else {
       stop = FALSE;
     }
@@ -527,28 +800,21 @@ int main(int argv, char ** argc) {
 
   free(userinput);
 
-  /* DEBUGGING */
-  /*
-  printf("\n");
-  Biddy_WriteDot("dictionary.dot",dictionary,"DICT",-1,FALSE);
-  printf("USE 'dot -y -Tpng -O dictionary.dot' to visualize BDD for dictionary.\n");
-  */
-
-  /* DEBUGGING */
-  /* THIS WILL GENERATE bddview FILE WITHOUT COORDINATES */
-  /* THIS FILE IS NOT SUPPORTED BY BDD Scout, YET */
-  /*
-  printf("\n");
-  Biddy_WriteBddview("dictionary.bddview",dictionary,"DICT",NULL);
-  */
-
   /* EXIT */
 
+  /* TESTING */
+  /*
+  for (i=0; i<MAXWORDSIZE; i++) {
+    DEREF(dictionaryByLength[i]);
+  }
+  free(dictionaryByLength);
+  */
+
   DEREF(dictionary);
-  for (i=0; i<WORDSIZE; i++) {
+  for (i=0; i<MAXWORDSIZE; i++) {
     for (j=0; j<ALPHABETSIZE; j++) {
-      DEREF(code[i][j]);
-      DEREF(codenot[i][j]);
+      DEREF(code[i*ALPHABETSIZE+j]);
+      DEREF(codenot[i*ALPHABETSIZE+j]);
     }
   }
 
@@ -560,4 +826,291 @@ int main(int argv, char ** argc) {
 
   Biddy_Exit();
 
+}
+
+/*******************************************************************************
+\brief Function createLevenshteinTemplate creates graphs for a given
+        dictionary which can be used to quickly compute subgraphLevenshtein.
+
+### Description
+### Side effects
+### More info
+*******************************************************************************/
+
+void
+createLevenshteinTemplate(unsigned int wordlength, unsigned char alphabet[],
+  Biddy_Boolean usenullsymbol, unsigned char nullsymbol,
+  Biddy_Edge code[], Biddy_Edge codenot[], unsigned int alphabetsize,
+  unsigned int maxwordlength)
+{
+  unsigned char *word;
+  unsigned char nonnullsymbol;
+  VarTable *vartable;
+  Biddy_Edge lgraph,hgraph,igraph,dgraph,fgraph;
+  unsigned int i;
+  char name[255];
+
+  if (!usenullsymbol) {
+    printf("Without null symbol Levenshtein is not implemented\n");
+    return;
+  }
+
+#ifdef ASCII
+    word = createPatternAscii(alphabet,wordlength);
+    nonnullsymbol = 'A' + alphabet[wordlength];
+#else
+    word = createPattern(alphabet,wordlength);
+    nonnullsymbol = alphabet[wordlength];
+#endif
+
+  /* DEBUGGING */
+  /**/
+  printf("\nLEVENSHTEIN TEMPLATES FOR WORD WITH SIZE %u (\"%s\", nonnullsymbol = \"%c\")\n",wordlength,word,nonnullsymbol);
+  /**/
+
+  /* vartable contains the table of all variables */
+  /* vartable[0] is not used, vartable[i] corresponds to variable Biddy_GetVariableName(i) */
+  vartable = createVarTable(alphabetsize,maxwordlength);
+
+  lgraph = encodeOneWord(word,alphabet,usenullsymbol,nullsymbol,code,codenot,alphabetsize,maxwordlength);
+  printf("Size of lgraph/0 = %u\n",Biddy_CountNodes(lgraph));
+  /* reportSystem(); */ /* PROFILING */
+
+  for (i=1; i<=maxwordlength; i++) {
+    if (i > wordlength) {
+      igraph = oneInsertion(lgraph,alphabet,vartable,nonnullsymbol,nullsymbol,alphabetsize,maxwordlength);
+      lgraph = igraph;
+    } else {
+      hgraph = oneSubstitution(lgraph,vartable,nonnullsymbol,usenullsymbol,nullsymbol,alphabetsize,maxwordlength);
+      printf("hgraph/%u = %u, ",i,Biddy_CountNodes(hgraph));
+      /* reportSystem(); */ /* PROFILING */
+      igraph = oneInsertion(lgraph,alphabet,vartable,nonnullsymbol,nullsymbol,alphabetsize,maxwordlength);
+      printf("igraph/%u = %u, ",i,Biddy_CountNodes(igraph));
+      /* reportSystem(); */ /* PROFILING */
+      dgraph = oneDeletion(lgraph,alphabet,vartable,nullsymbol,alphabetsize,maxwordlength);
+      printf("dgraph/%u = %u, ",i,Biddy_CountNodes(dgraph));
+      /* reportSystem(); */ /* PROFILING */
+      lgraph = Biddy_Union(lgraph,hgraph);
+      lgraph = Biddy_Union(lgraph,igraph);
+      lgraph = Biddy_Union(lgraph,dgraph);
+    }
+
+    printf("lgraph/%u = %u",i,Biddy_CountNodes(lgraph));
+    /* reportSystem(); */ /* PROFILING */
+
+    /* TESTING */
+    /*
+    if (lgraph == igraph) printf(", IGRAPH FINAL");
+    */
+
+    /* DEBUGGING */
+    /*
+    Biddy_WriteBddview("hgraph.bddview",hgraph,"HGRAPH",NULL);
+    Biddy_WriteBddview("igraph.bddview",igraph,"IGRAPH",NULL);
+    Biddy_WriteBddview("dgraph.bddview",dgraph,"DGRAPH",NULL);
+    */
+
+    /* TESTING */
+    /**/
+    MARK(lgraph);
+    SWEEP();
+    fgraph = extendNonNullSymbol(lgraph,alphabet,vartable,nonnullsymbol,usenullsymbol,nullsymbol,alphabetsize,maxwordlength);
+    printf(", fgraph/%u = %u",i,Biddy_CountNodes(fgraph));
+    /**/
+
+    /* TESTING */
+    /*
+    if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
+      sprintf(name,"levenshtein-full-OBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
+      sprintf(name,"levenshtein-full-OBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
+      sprintf(name,"levenshtein-full-ZBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
+      sprintf(name,"levenshtein-full-ZBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+      sprintf(name,"levenshtein-full-TZBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDDC) {
+      sprintf(name,"levenshtein-full-TZBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    }
+    Biddy_WriteBddview(name,fgraph,name,NULL);
+    */
+
+    /* DISABLED FOR TESTING */
+    /*
+    if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
+      sprintf(name,"levenshtein-template-OBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
+      sprintf(name,"levenshtein-template-OBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
+      sprintf(name,"levenshtein-template-ZBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
+      sprintf(name,"levenshtein-template-ZBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+      sprintf(name,"levenshtein-template-TZBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDDC) {
+      sprintf(name,"levenshtein-template-TZBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    }
+    Biddy_WriteBddview(name,lgraph,name,NULL);
+    printf("\ncreated %s",name);
+    */
+
+    printf("\n");
+
+    MARK(lgraph);
+    SWEEP();
+  }
+
+  free(word);
+  free(vartable);
+}
+
+void
+createLevenshteinTemplatePerPartes(unsigned int wordlength, unsigned char alphabet[],
+  Biddy_Boolean usenullsymbol, unsigned char nullsymbol,
+  Biddy_Edge code[], Biddy_Edge codenot[], unsigned int alphabetsize,
+  unsigned int maxwordlength)
+{
+  unsigned char *word;
+  unsigned char nonnullsymbol;
+  VarTable *vartable;
+  Biddy_Edge *lgraph;
+  Biddy_Edge *fgraph;
+  Biddy_Edge hgraph,igraph,dgraph,llgraph,ffgraph;
+  unsigned int i,j;
+  char name[255];
+
+  if (!usenullsymbol) {
+    printf("Without null symbol Levenshtein is not implemented\n");
+    return;
+  }
+
+  lgraph = ( Biddy_Edge *) calloc(maxwordlength+1,sizeof( Biddy_Edge));
+  fgraph = ( Biddy_Edge *) calloc(maxwordlength+1,sizeof( Biddy_Edge));
+
+  for (i=0; i<=maxwordlength; i++) {
+    lgraph[i] = fgraph[i] = Biddy_GetEmptySet();
+  }
+
+#ifdef ASCII
+    word = createPatternAscii(alphabet,wordlength);
+    nonnullsymbol = 'A' + alphabet[wordlength];
+#else
+    word = createPattern(alphabet,wordlength);
+    nonnullsymbol = alphabet[wordlength];
+#endif
+
+  /* DEBUGGING */
+  /**/
+  printf("\nLEVENSHTEIN TEMPLATES FOR WORD WITH SIZE %u (\"%s\", nonnullsymbol = \"%c\")\n",wordlength,word,nonnullsymbol);
+  /**/
+
+  /* vartable contains the table of all variables */
+  /* vartable[0] is not used, vartable[i] corresponds to variable Biddy_GetVariableName(i) */
+  vartable = createVarTable(alphabetsize,maxwordlength);
+
+  lgraph[0] = encodeOneWord(word,alphabet,usenullsymbol,nullsymbol,code,codenot,alphabetsize,maxwordlength);
+  printf("Size of lgraph/0 = %u\n",Biddy_CountNodes(lgraph[0]));
+  /* reportSystem(); */ /* PROFILING */
+
+  for (i=1; (i<=maxwordlength) && (i); i++) {
+    hgraph = oneSubstitution(lgraph[i-1],vartable,nonnullsymbol,usenullsymbol,nullsymbol,alphabetsize,maxwordlength);
+    printf("hgraph/%u = %u, ",i,Biddy_CountNodes(hgraph));
+    /* reportSystem(); */ /* PROFILING */
+    igraph = oneInsertion(lgraph[i-1],alphabet,vartable,nonnullsymbol,nullsymbol,alphabetsize,maxwordlength);
+    printf("igraph/%u = %u, ",i,Biddy_CountNodes(igraph));
+    /* reportSystem(); */ /* PROFILING */
+    dgraph = oneDeletion(lgraph[i-1],alphabet,vartable,nullsymbol,alphabetsize,maxwordlength);
+    printf("dgraph/%u = %u, ",i,Biddy_CountNodes(dgraph));
+    /* reportSystem(); */ /* PROFILING */
+    lgraph[i] = Biddy_Union(lgraph[i],hgraph);
+    lgraph[i] = Biddy_Union(lgraph[i],igraph);
+    lgraph[i] = Biddy_Union(lgraph[i],dgraph);
+    for (j=0; j<i; j++) {
+      lgraph[i] = Biddy_Diff(lgraph[i],lgraph[j]);
+    }
+    printf("lgraph/%u = %u",i,Biddy_CountNodes(lgraph[i]));
+    /* reportSystem(); */ /* PROFILING */
+
+    /* DEBUGGING */
+    /*
+    Biddy_WriteBddview("hgraph.bddview",hgraph,"HGRAPH",NULL);
+    Biddy_WriteBddview("igraph.bddview",igraph,"IGRAPH",NULL);
+    Biddy_WriteBddview("dgraph.bddview",dgraph,"DGRAPH",NULL);
+    */
+
+    /* TESTING */
+    /*
+    llgraph = Biddy_GetEmptySet();
+    for (j=0; j<=i; j++) {
+      llgraph = Biddy_Union(llgraph,lgraph[j]);
+    }
+    printf("/%u",Biddy_CountNodes(llgraph));
+    for (j=0; j<=maxwordlength; j++) {
+      MARK(lgraph[j]);
+      MARK(fgraph[j]);
+    }
+    SWEEP();
+    fgraph[i] = extendNonNullSymbol(lgraph[i],alphabet,vartable,nonnullsymbol,usenullsymbol,nullsymbol,alphabetsize,maxwordlength);
+    printf(", fgraph/%u = %u",i,Biddy_CountNodes(fgraph[i]));
+    for (j=0; j<=maxwordlength; j++) {
+      MARK(fgraph[j]);
+    }
+    ffgraph = Biddy_GetEmptySet();
+    for (j=0; j<=i; j++) {
+      ffgraph = Biddy_Union(ffgraph,fgraph[j]);
+    }
+    printf("/%u",Biddy_CountNodes(ffgraph));
+    */
+
+    /* TESTING */
+    /*
+    if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
+      sprintf(name,"levenshtein-full-OBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
+      sprintf(name,"levenshtein-full-OBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
+      sprintf(name,"levenshtein-full-ZBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
+      sprintf(name,"levenshtein-full-ZBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+      sprintf(name,"levenshtein-full-TZBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDDC) {
+      sprintf(name,"levenshtein-full-TZBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    }
+    Biddy_WriteBddview(name,fgraph[i],name,NULL);
+    */
+
+    /* DISABLED FOR TESTING */
+    /**/
+    if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
+      sprintf(name,"levenshtein-template-OBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
+      sprintf(name,"levenshtein-template-OBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
+      sprintf(name,"levenshtein-template-ZBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
+      sprintf(name,"levenshtein-template-ZBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+      sprintf(name,"levenshtein-template-TZBDD-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    } else if (Biddy_GetManagerType() == BIDDYTYPETZBDDC) {
+      sprintf(name,"levenshtein-template-TZBDDC-%u-%u-%u-%u.bddview",alphabetsize,maxwordlength,wordlength,i);
+    }
+    Biddy_WriteBddview(name,lgraph[i],name,NULL);
+    printf("\ncreated %s",name);
+    /**/
+
+    printf("\n");
+
+    for (j=0; j<=maxwordlength; j++) {
+      MARK(lgraph[j]);
+    }
+    SWEEP();
+  }
+
+  free(lgraph);
+  free(fgraph);
+
+  free(word);
+  free(vartable);
 }

@@ -3,7 +3,7 @@ Section: libs
 Priority: extra
 Maintainer: Robert Meolic <robert.meolic@um.si>
 Build-Depends: debhelper (>= 8.0.0), libgmp-dev
-Standards-Version: 3.9.7
+Standards-Version: 4.1.4
 
 Package: libbiddy1-dev
 Section: libdevel
@@ -12,10 +12,10 @@ Depends: libbiddy1 (= ${binary:Version}), ${misc:Depends}
 Description: Multi-platform academic BDD package
  http://biddy.meolic.com/
  Biddy is a special purpose mathematical library (Binary Decision
- Diagrams package). It supports ROBDDs with complement edges, 0-sup-BDDs
- with complement edges, and TZBDDs. Biddy is oriented towards readable and
- comprehensible source code in C. Biddy is used in EST, a tool for formal
- verification of systems.
+ Diagrams package). It supports ROBDDs, 0-sup-BDDs, and tagged 0-sup-BDDs.
+ Biddy is oriented towards readable and comprehensible source code in C.
+ Biddy is used in BDD Scout (an interactive BDD visualization tool)
+ and EST (a tool for formal verification of systems).
  This package contains the development headers, only.
 
 Package: libbiddy1
@@ -25,7 +25,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Multi-platform academic BDD package
  http://biddy.meolic.com/
  Biddy is a special purpose mathematical library (Binary Decision
- Diagrams package). It supports ROBDDs with complement edges, 0-sup-BDDs
- with complement edges, and TZBDDs. Biddy is oriented towards readable and
- comprehensible source code in C. Biddy is used in EST, a tool for formal
- verification of systems.
+ Diagrams package). It supports ROBDDs, 0-sup-BDDs, and tagged 0-sup-BDDs.
+ Biddy is oriented towards readable and comprehensible source code in C.
+ Biddy is used in BDD Scout (an interactive BDD visualization tool)
+ and EST (a tool for formal verification of systems).

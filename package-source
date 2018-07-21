@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 441 $]
+#  Date        [$Date: 2018-05-22 12:58:10 +0200 (tor, 22 maj 2018) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2017 UM FERI
+#               Copyright (C) 2006, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -31,13 +31,16 @@ make purge
 make clean
 
 cd ..
-zip -o "biddy/biddy-source-$VERSION.zip" biddy/* -x .svn -x .git -x biddy/*.zip -x biddy/bin/ -x biddy/logo/ -x biddy/doxygen/ -x biddy/biddy-studio/ -x biddy/doc/ -x biddy/test/ -x biddy/distribution/ x biddy/distribution-bddscout/
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/* -x biddy/*.zip -x biddy/*.tmp -x biddy/bin/ -x biddy/logo/ -x biddy/doxygen/ -x biddy/biddy-studio/ -x biddy/doc/ -x biddy/test/ -x biddy/biddy-example-* -x biddy/distribution/ x biddy/distribution-bddscout/
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/biddy-example-*.c biddy/biddy-example-*.h
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/VS/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/* -x biddy/bddscout/*.zip -x biddy/bddscout/ISCAS/ -x biddy/bddscout/bin/ -x biddy/bddscout/test/
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/create/*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/scripts/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/debian/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/debian/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/rpm/*
@@ -45,7 +48,9 @@ zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/rpm/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/IFIP/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/IFIP/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/BDDTRACES/*
-zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddview/* -x biddy/bddview/*.zip
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/DICTIONARY/biddy-words*
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddscout/ENCYCLOPEDIA/* -x biddy/bddscout/ENCYCLOPEDIA/*.pdf
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/bddview/*
 cd biddy
 
 echo ""

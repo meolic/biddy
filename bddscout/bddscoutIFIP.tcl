@@ -1,9 +1,9 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 397 $]
+#  Date        [$Date: 2018-03-04 18:08:47 +0100 (ned, 04 mar 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM FERI
+#               Copyright (C) 2008, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
@@ -21,14 +21,16 @@
 #               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #               Boston, MA 02110-1301 USA.]
 
-menubutton .menuFrame.ifip -menu .menuFrame.ifip.menu -pady 6 -font MENUFONT -text "IFIP"
-pack .menuFrame.ifip -side left
+menubutton $menubar.ifip -text "IFIP" -menu $menubar.ifip.menu -pady 6 -bg $COLORFRAME \
+                          -font [list -family $FONTFAMILYMENU -size $FONTSIZEMENU -weight normal -slant roman]
+pack $menubar.ifip -side left -before $menubar.help
 
-menu .menuFrame.ifip.menu -font MENUFONT -relief groove -tearoff false
+menu $menubar.ifip.menu -bg $COLORFRAME -relief groove -tearoff false \
+                        -font [list -family $FONTFAMILYMENU -size $FONTSIZEMENU -weight normal -slant roman]
 
-.menuFrame.ifip.menu add command -command menu_ifip_read -label "Read IFIP File ..."
-.menuFrame.ifip.menu add separator
-.menuFrame.ifip.menu add command -command menu_ifip_benchmark -label "IFIP benchmark"
+$menubar.ifip.menu add command -command menu_ifip_read -label "Read IFIP File"
+$menubar.ifip.menu add separator
+$menubar.ifip.menu add command -command menu_ifip_benchmark -label "IFIP benchmark"
 
 proc menu_ifip_read {  } {
   global mainwin
@@ -47,9 +49,9 @@ proc menu_ifip_benchmark {  } {
   wm title .warning "WARNING"
   wm iconname .warning "WARNING"
   grab set .warning
-  global IFIPOK
+  global bddscout__ifip
 
-  set IFIPOK 0
+  set bddscout__ifip 0
 
   message .warning.m -width 640 -text "All functions will be deleted and BDD package will be reset.\n"
   pack .warning.m -fill both -expand yes
@@ -61,15 +63,15 @@ proc menu_ifip_benchmark {  } {
   frame .warning.buttons -relief raised
 
   button .warning.buttons.cancel -borderwidth 2 -command {
-    global IFIPOK
-    set IFIPOK 0
+    global bddscout__ifip
+    set bddscout__ifip 0
     destroy .warning
   } -relief raised -text "Cancel" -width 6
   pack .warning.buttons.cancel -padx 10 -side left
 
   button .warning.buttons.ok -borderwidth 2 -command {
-    global IFIPOK
-    set IFIPOK 1
+    global bddscout__ifip
+    set bddscout__ifip 1
     destroy .warning
   } -relief raised -text "OK" -width 6
   pack .warning.buttons.ok -padx 10 -side left
@@ -78,7 +80,7 @@ proc menu_ifip_benchmark {  } {
 
   tkwait window .warning
 
-  if {$IFIPOK == 1} {
+  if {$bddscout__ifip == 1} {
     IFIP_benchmark
   }
 }
@@ -184,14 +186,13 @@ proc IFIP_benchmark {  } {
   set maxVar 0
   set maxNodes 0
   set totalT 0
-  
+
 # TO DO: CHANGE THIS
   set totalFOA 0
   set totalCMP 0
   set totalADD 0
 
-  bddview_clear
-  bddscout_clearPkg
+  bddscout_clear
 
   set i 0
   foreach name $list  {

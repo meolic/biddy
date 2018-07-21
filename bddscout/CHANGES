@@ -89,5 +89,22 @@ Changes v1.7.3 versus v1.7.2
 Changes v1.7.4 versus v1.7.3
 - released on Dec 18, 2017
 - fixed drawing of TZBDDs
-- thanks to the improved Biddy, sifting on function is now working for ZBDDs and TZBDDs
+- thanks to the improved Biddy, sifting on function now works for ZBDDs and TZBDDs
 - added tcl commands for all Biddy functions from biddyOp.c
+
+Changes v1.8.1 versus v1.7.4
+- released on Jul 19, 2018
+- using bddview v1.3 (added Export to Tex/TikZ)
+- fixed Open and Save for all BDD types
+- thanks to the improved Biddy, ZBDDs without complemented edges are now supported
+- thanks to the improved Biddy, bddview files without coordinates can be opened
+- data associated with variables (e.g. probabilities) are shown and can be manipulated
+- improved scripting features
+- added File/Options
+- added menu Create
+- added menu Help
+- added topdown menu for the most useful tcl commands
+- added scripts for creation of Boolean functions with 2 and 3 variables
+- added scripts to create various reports about Boolean functions with 2 and 3 variables
+- added folder and data for Dictionary example
+- added folder and data for BDD Encyclopedia

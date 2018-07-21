@@ -1,12 +1,6 @@
 # SPEC file for package libbiddy1 and libbiddy1-devel
 # Usage: rpmbuild -bb biddy.spec
 #
-# You may have to create/change your ~/.rpmmacros
-# http://rpm5.org/docs/api/macros.html
-#
-# Here is my ~/.rpmmacros which has only a single line:
-# %_topdir        /home/meolic/biddy/rpm
-#
 # This file has been constructed using the following examples:
 #
 # http://www.rpm-based.org/how-to-create-rpm-package
@@ -29,9 +23,10 @@ Packager: meolic
 %description
 Biddy is a special purpose mathematical library (Binary Decision Diagrams package).
 
- Biddy supports ROBDDs with complement edges, 0-sup-BDDs with complement edges, and TZBDDs.
+ Biddy supports ROBDDs, 0-sup-BDDs, and tagged 0-sup-BDDs.
  Biddy is oriented towards readable and comprehensible source code in C.
- Biddy is used in EST, a tool for formal verification of systems.
+ Biddy is used in BDD Scout (an interactive BDD visualization tool)
+and EST (a tool for formal verification of systems).
 
 http://biddy.meolic.com/
 

@@ -1,10 +1,10 @@
-/* $Revision: 356 $ */
-/* $Date: 2017-12-13 22:30:46 +0100 (sre, 13 dec 2017) $ */
+/* $Revision: 450 $ */
+/* $Date: 2018-06-25 12:35:18 +0200 (pon, 25 jun 2018) $ */
 /* This file (biddy-cudd.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.7.4 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 /* See Biddy examples (e.g. biddy-example-dictionary.c) to see how this file is used */
 
 /* There is only one unique table in Biddy */

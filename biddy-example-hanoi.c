@@ -1,5 +1,5 @@
-/* $Revision: 353 $ */
-/* $Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $ */
+/* $Revision: 456 $ */
+/* $Date: 2018-07-14 21:11:41 +0200 (sob, 14 jul 2018) $ */
 /* This file (biddy-example-hanoi.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -12,12 +12,13 @@
 /* The code using CUDD package is copyed from the original */
 /* The code using Biddy package was added by Robert Meolic */
 
-/* This example is compatible with Biddy v1.7 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 /* This example uses biddy-cudd.h and biddy-cudd.c */
 
 /* COMPILE WITH: */
 /* gcc -DREPORT -DUNIX -DBIDDY -DOBDD -O2 -o biddy-example-hanoi-obdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DREPORT -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-hanoi-obddc biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
+/* gcc -DREPORT -DUNIX -DBIDDY -DZBDD -O2 -o biddy-example-hanoi-zbdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DREPORT -DUNIX -DBIDDY -DZBDDC -O2 -o biddy-example-hanoi-zbddc biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DREPORT -DUNIX -DBIDDY -DTZBDD -O2 -o biddy-example-hanoi-tzbdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DREPORT -DCUDD -DOBDDC -O2 -o cudd-example-hanoi-obddc biddy-example-hanoi.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
@@ -98,23 +99,8 @@ int main(int argc, char** argv) {
   /* Cudd_AutodynEnable(manager,CUDD_REORDER_SAME); */
 #endif
 
-  printf("%s",Biddy_GetManagerName());
-  if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
-    printf(" (OBDD)\n");
-  }
-  else if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
-    printf(" (OBDDC)\n");
-  }
-  else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
-    printf(" (ZBDDC)\n");
-  }
-  else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    printf(" (TZBDD)\n");
-  }
-  else {
-    printf(" (unknown)... EXIT!\n");
-    exit(1);
-  }
+  printf("%s\n",Biddy_GetManagerName());
+  printf("SIZE: %u\n",size);
 
   /* create BDD variables */
   /* the current and next state variables are interleaved */
@@ -136,10 +122,10 @@ int main(int argc, char** argv) {
       name[2] = '0' + i%10;
       for(j=0;j<3;j++) {
         name[3] = '0' + j;
-        v1[i][j] = Biddy_AddVariable();
+        v1[i][j] = Biddy_AddVariableEdge();
         name[0] = 'C';
         Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
-        v2[i][j] = Biddy_AddVariable();
+        v2[i][j] = Biddy_AddVariableEdge();
         name[0] = 'N';
         Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
         REF(v1[i][j]);
@@ -163,10 +149,10 @@ int main(int argc, char** argv) {
       name[2] = '0' + (size-i-1)%10;
       for(j=0;j<3;j++) {
         name[3] = '0' + (3-j-1);
-        v2[size-i-1][3-j-1] = Biddy_AddVariable();
+        v2[size-i-1][3-j-1] = Biddy_AddVariableEdge();
         name[0] = 'N';
         Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
-        v1[size-i-1][3-j-1] = Biddy_AddVariable();
+        v1[size-i-1][3-j-1] = Biddy_AddVariableEdge();
         name[0] = 'C';
         Biddy_ChangeVariableName(Biddy_VariableTableNum()-1,name); /* rename the last added variable */
         REF(v2[size-i-1][3-j-1]);
@@ -365,7 +351,7 @@ int main(int argc, char** argv) {
     if (num_steps % (size*size) == 0) {
       printf(
         "R in while loop (num_steps=%u): %u variables, %.0f minterms, %u nodes.\n",
-        num_steps,Biddy_DependentVariableNumber(R),Biddy_CountMinterms(R,3*size),Biddy_CountNodes(R)
+        num_steps,Biddy_DependentVariableNumber(R,FALSE),Biddy_CountMinterms(R,3*size),Biddy_CountNodes(R)
       );
     }
 #endif
@@ -377,7 +363,7 @@ int main(int argc, char** argv) {
     SWEEP();
 
     /* check if we reached the goal state */
-    tmp1 = Biddy_Or(NOT_E,R); 
+    tmp1 = Biddy_Or(NOT_E,R);
     if (tmp1 == Biddy_GetConstantOne()) {
       found = 1;   /* goal reached */
       break;
@@ -391,7 +377,7 @@ int main(int argc, char** argv) {
     /*
     printf(
       "image (num_steps=%u): %u variables, %.0f minterms, %u nodes.\n",
-      num_steps,Biddy_DependentVariableNumber(image),Biddy_CountMinterms(image,3*size),Biddy_CountNodes(image)
+      num_steps,Biddy_DependentVariableNumber(image,FALSE),Biddy_CountMinterms(image,3*size),Biddy_CountNodes(image)
     );
     */
 
@@ -421,7 +407,7 @@ int main(int argc, char** argv) {
 #ifdef REPORT
   printf(
     "R after while loop (num_steps=%u): %u variables, %.0f minterms, %u nodes.\n",
-    num_steps,Biddy_DependentVariableNumber(R),Biddy_CountMinterms(R,3*size),Biddy_CountNodes(R)
+    num_steps,Biddy_DependentVariableNumber(R,FALSE),Biddy_CountMinterms(R,3*size),Biddy_CountNodes(R)
   );
 #endif
 
@@ -565,10 +551,10 @@ Biddy_Edge compute_image(unsigned int size, Biddy_Edge R, Biddy_Edge T,
       /* for Biddy, user variables start with index 1 */
       /* for Biddy, OBDD variables have been generated in the following order: */
       /* (1)=v1[0][0], (2)=v2[0][0], (3)=v1[0][1], (4)=v2[0][1],..., (2*3*size)=v2[size-1][2] */
-      /* for Biddy, ZBDD and TZBDD variables have been generated in the following order: */
+      /* for Biddy, ZBDDs and TZBDDs variables have been generated in the following order: */
       /* (1)=v2[size-1][2], (2)=v1[size-1][2], (3)=v2[size-1][1], (4)=v1[size-1][1],..., (2*3*size)=v1[0][0] */
       /* for CUDD, user variables start with index 0 */
-      /* for CUDD, OBDD and ZBDD variables have been generated in the following order: */
+      /* for CUDD, OBDDs and ZBDDs variables have been generated in the following order: */
       /* (0)=v1[0][0], (1)=v2[0][0], (2)=v1[0][1], (3)=v2[0][1],..., (2*3*size-1)=v2[size-1][2] */
 #ifdef BIDDY
       if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC))

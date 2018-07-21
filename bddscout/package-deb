@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 364 $]
-#  Date        [$Date: 2017-12-18 10:53:04 +0100 (pon, 18 dec 2017) $]
+#  Revision    [$Revision: 465 $]
+#  Date        [$Date: 2018-07-19 15:56:29 +0200 (čet, 19 jul 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM FERI
+#               Copyright (C) 2008, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -50,8 +50,8 @@
 # OR
 # pbuilder-dist xenial login --save-after-login
 # You will get root prompt and then do the following:
-# apt-get install gnupg2 (this seems to be needed for artful)
-# apt-get install dirmngr (this seems to be needed for artful)
+# apt-get install gnupg2 (this seems to be needed for artful, bionic, and laters)
+# apt-get install dirmngr (this seems to be needed for artful, only)
 # apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9018C2C6
 # exit
 
@@ -98,6 +98,8 @@ echo ""
 
 mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE"
 mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/create"
+mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/scripts"
 mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
 mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian/source"
 cp debian/compat "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
@@ -124,7 +126,13 @@ cp bddscoutBDDTRACES.c bddtraces-BIDDY.c bddscoutBDDTRACES.tcl "../distribution-
 cp pkgExtensionBDDTRACES.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 cp Makefile Makefile.Linux bddscout.map "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 cp example.bdd example.bf "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
-cp ../bddview/bddview.tcl ../bddview/example.bddview "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp create/*.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/create"
+cp scripts/*.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION/scripts"
+cp ../bddview/bddview.tcl "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp ../bddview/example-robdd.bddview "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp ../bddview/example-robddce.bddview "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp ../bddview/example-zbddce.bddview "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp ../bddview/example-tzbdd.bddview "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP
 mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/cath
 mkdir "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"/IFIP/ex
@@ -155,30 +163,33 @@ echo ""
 # create a source distribution which match your system
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-echo "GENERATING SOURCE PACKAGE FOR DEFAULT DISTRO"
+echo "GENERATING SOURCE PACKAGE FOR $DISTRO"
 dch -M -v "$VERSION-$RELEASE" -D $DISTRO
 cp "debian/changelog" "../../changelog.deb"
-debuild -S -sa -kD22F409B
-mkdir `pwd`/../default
-mkdir `pwd`/../default/source
-mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../default/source/
-mv `pwd`/../*.debian.tar.xz `pwd`/../default/source
-mv `pwd`/../*.build `pwd`/../default/source
-cp `pwd`/../*.orig.tar.gz `pwd`/../default/source/
+debuild -d -S -sa -kD22F409B
+mkdir `pwd`/../$DISTRO
+mkdir `pwd`/../$DISTRO/source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$DISTRO/source/
+mv `pwd`/../*.debian.tar.xz `pwd`/../$DISTRO/source
+mv `pwd`/../*.build `pwd`/../$DISTRO/source
+mv `pwd`/../*.buildinfo `pwd`/../$DISTRO/source
+cp `pwd`/../*.orig.tar.gz `pwd`/../$DISTRO/source/
 
-# create a source distribution for trusty
+# create a source distribution for xenial
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=trusty
+ALTDISTRO=xenial
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
-debuild --no-lintian -S -sa -kD22F409B
+#debuild --no-lintian -S -sa -kD22F409B
+debuild -d -S -sa -kD22F409B
 mkdir `pwd`/../$ALTDISTRO
 mkdir `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
 # create a source distribution for artful
@@ -188,12 +199,14 @@ ALTDISTRO=artful
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
-debuild --no-lintian -S -sa -kD22F409B
+#debuild --no-lintian -S -sa -kD22F409B
+debuild -d -S -sa -kD22F409B
 mkdir `pwd`/../$ALTDISTRO
 mkdir `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
 cd ..
@@ -208,16 +221,16 @@ echo ""
 # use e.g pbuilder-dist artful create
 # use e.g pbuilder-dist artful update
 
-echo "BUILDING FOR YOUR DIST: $DIST"
-pbuilder-dist $DISTRO build --buildresult `pwd`/default `pwd`/default/source/*.dsc
-#pushd `pwd`/default/source
+echo "BUILDING FOR YOUR DISTRO: $DISTRO"
+pbuilder-dist $DISTRO build --buildresult `pwd`/$DISTRO `pwd`/$DISTRO/source/*.dsc
+#pushd `pwd`/$DISTRO/source
 #dpkg-source -x *.dsc
 #cd "$NAME-$VERSION"
 #change key if you are not Robert Meolic
 #pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
 #popd
 
-ALTDISTRO=trusty
+ALTDISTRO=xenial
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 #pushd `pwd`/$ALTDISTRO/source

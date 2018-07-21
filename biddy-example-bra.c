@@ -1,5 +1,5 @@
-/* $Revision: 361 $ */
-/* $Date: 2017-12-16 21:25:47 +0100 (sob, 16 dec 2017) $ */
+/* $Revision: 450 $ */
+/* $Date: 2018-06-25 12:35:18 +0200 (pon, 25 jun 2018) $ */
 /* This file (biddy-example-bra.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -7,7 +7,8 @@
 /* COMPILE WITH: */
 /* gcc -DUNIX -O2 -o biddy-example-bra biddy-example-bra.c -I. -L./bin -static -lbiddy -lgmp */
 
-/* MAXNODES IS FOR OBDD AND ZBDD, THEY ARE ALWAYS THE LARGEST AMONG THE IMPLEMENTED BDD TYPES */
+/* MAXNODES IS FOR OBDD AND ZBDD, */
+/* THEY ARE ALWAYS THE LARGEST AMONG THE IMPLEMENTED BDD TYPES */
 /* 0var = 2 functions, 1 ordering, MAXNODES = 1 */
 /* 1var = 4 functions, 1 ordering, MAXNODES = 3 */
 /* 2var = 16 functions, 2 orderings, MAXNODES = 5 */
@@ -16,18 +17,15 @@
 /* 5var = 4294967296 functions, 120 orderings, MAXNODES = 19 */
 #define MAXNODES 19
 
-/* for statall() you must define COUNTFUNCTIONS or/and COUNTNODES */
-/* for 5 variables and more it is not possible to store nodes for all functions */
-#define COUNTFUNCTIONS
-#define COUNTNODES
-
 #include <string.h>
 #include <time.h>
 #include "biddy.h"
 
-void statAll(unsigned int N);
 void statMinMax(unsigned int N);
-void statByFile(Biddy_String bddtype, unsigned int N);
+void statAll(unsigned int N);
+void analyzeElseThen(unsigned int N);
+char statByFile(char filename[], Biddy_String bddtype, unsigned int N);
+
 void sjt1(Biddy_Manager MNG, unsigned int fidx,
           unsigned long long int *MINCE, unsigned long long int *MAXCE, unsigned long long int *BASECE, unsigned long long int *SUMCE,
           unsigned long long int *MIN, unsigned long long int *MAX, unsigned long long int *BASE, unsigned long long int *SUM,
@@ -36,6 +34,9 @@ void sjt2(Biddy_Manager MNG, unsigned int fidx,
           unsigned int *MINCE, unsigned int *MAXCE, unsigned int *SUMCE,
           unsigned int *MIN, unsigned int *MAX, unsigned int *SUM,
           Biddy_Boolean usece);
+void sjt3(Biddy_Manager MNG, unsigned int nvar, unsigned int nf, unsigned int fidx,
+          unsigned long long int *TABLEALL, unsigned long long int *TABLEMIN);
+
 void sjt_init(Biddy_Manager MNG);
 void sjt_exit(Biddy_Manager MNG);
 Biddy_Boolean sjt_step(Biddy_Manager MNG);
@@ -60,31 +61,370 @@ typedef struct {
   Biddy_Boolean direction;
 } userdata;
 
-int main() {
+/* THESE DEFINES ARE USED ONLY IN MODE 2: CALCULATE statAll */
+#define COUNTFUNCTIONS
+#define NOCOUNTNODES
+#define NOCOMPARENODES
+
+int main(int argc, char *argv[]) {
+
+  char filename[255];
+  Biddy_String bddtype;
+  unsigned int varnum;
+  unsigned int seq;
+  char STOP;
+
+  /* THIS IS IGNORED, IF FILENAME IS GIVEN AS AN ARGUMENT */
+  bddtype = strdup("OBDDCE");
+  varnum = 3;
 
   /* TEST 1 */
   /*
   testrnd();
-  exit(1);
+  exit(0);
   */
 
   /* TEST 2 */
   /*
   testswap();
-  exit(1);
+  exit(0);
   */
 
+  /* MODE : CALCULATE statByFile FOR A GIVEN FILE */
+  /* stats about number of function of given BDD type having N nodes */
+  /* the same result as statAll with COUNTFUNCTIONS + NOCOUNTNODES + NOCOMPARENODES */
+  /* writes results to the file instead of terminal */
+  /* MIN = minimal number of nodes among all orderings */
+  /* MAX = maximal number of nodes among all orderings */
+  /* BASE = number of nodes in the base ordering */
+  /* ALL = total number of functions/orderings */
+  if (argc == 2) {
+    printf("statByFile: %s\n",argv[1]);
+    statByFile(argv[1],NULL,0);
+    exit(0);
+  }
+
+  /* MODE 1: CALCULATE statMinMax */
+  /* stats about number of function having N nodes using MinimizeBDD and MaximizeBDD */
+  /* MIN = minimal number of nodes among all orderings */
+  /* MAX = maximal number of nodes among all orderings */
   /*
-  statAll(3);
+  statMinMax(varnum);
   */
 
+  /* MODE 2: CALCULATE statAll */
+  /* you must define COUNTFUNCTIONS or/and COUNTNODES or/and COMPARENODES */
+  /* for 5 or more variables, the only possible variant is COUNTFUNCTIONS */
+  /* COUNTFUNCTIONS - stats about number of function having N nodes */
+  /* MIN = minimal number of nodes among all orderings */
+  /* MAX = maximal number of nodes among all orderings */
+  /* BASE = number of nodes in the base ordering */
+  /* ALL = total number of functions/orderings */
+  /* COUNTNODES - influence of ordering to number of nodes */
+  /* MAXDIFF = function with max difference between min/max number of nodes */
+  /* MINSUM = function with min sum of node numbers for all orderings */
+  /* MINSUM = function with max sum of node numbers for all orderings */
+  /* TOTAL = sum of node numbers for all functions for all orderings */
+  /* AVG = avg node numbers for all functions for all orderings */
+  /* COMPARENODES - compare different BDD types */
+  /* MAXBIAS1 = function with highest bias of the first BDD type */
+  /* MAXBIAS2 = function with highest bias of the second BDD type */
+  /**/
+  statAll(varnum);
+  /**/
+
+  /* MODE 3: CALCULATE analyzeElseThen */
+  /* analyze else and then subgraph for different orderings */
+  /* number of minterms in each subgraph is counted */
   /*
-  statMinMax(3);
+  analyzeElseThen(varnum);
   */
-  
-  /**/
-  statByFile("OBDDCE",5);
-  /**/
+
+  /* MODE 4: CALCULATE statByFile WITHOUT MANAGER */
+  /* stats about number of function of given BDD type having N nodes */
+  /* the same result as statAll with COUNTFUNCTIONS + NOCOUNTNODES + NOCOMPARENODES */
+  /* writes results to the file instead of terminal */
+  /* in the first run it creates a file, change QUANT and run again */
+  /* MIN = minimal number of nodes among all orderings */
+  /* MAX = maximal number of nodes among all orderings */
+  /* BASE = number of nodes in the base ordering */
+  /* ALL = total number of functions/orderings */
+  /*
+  sprintf((char *)filename,"STAT-%s-%.2u.TXT",bddtype,varnum);
+  printf("statByFile: %s\n",filename);
+  statByFile(filename,bddtype,varnum);
+  */
+
+  /* MODE 5: CALCULATE statByFile WITH MANAGER */
+  /* stats about number of function of given BDD type having N nodes */
+  /* the same result as statAll with COUNTFUNCTIONS + NOCOUNTNODES + NOCOMPARENODES */
+  /* writes results to the file instead of terminal */
+  /* MIN = minimal number of nodes among all orderings */
+  /* MAX = maximal number of nodes among all orderings */
+  /* BASE = number of nodes in the base ordering */
+  /* ALL = total number of functions/orderings */
+  /*
+  seq = 0;
+  do {
+    sprintf((char *)filename,"FILE-%s-%.2u-%u.TXT",bddtype,varnum,seq);
+    printf("statByFile: %s\n",filename);
+    STOP = statByFile(filename,NULL,0);
+    seq++;
+  } while (!STOP);
+  */
+
+  free(bddtype);
+}
+
+/* ########################################################################## */
+/* function statMinMax */
+/* ########################################################################## */
+
+void statMinMax(unsigned int N) {
+  Biddy_String SUPPORT;
+  Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD,MNGOBDDCE,MNGZBDDCE,MNGTZBDDCE;
+  Biddy_Manager MNG;
+  Biddy_Edge f;
+  Biddy_Edge sobdd,szbdd,stzbdd,sobddce,szbddce;
+  unsigned long long int n,nf,nc;
+  unsigned int fidx,num;
+
+  /* MINxBDD[n] IS A NUMBER OF FUNCTIONS, */
+  /* WHICH HAVE n NODES USING THE BEST ORDERING */
+  unsigned long long int *MINOBDD,*MINZBDD,*MINTZBDD;
+  unsigned long long int *MINOBDDCE,*MINZBDDCE,*MINTZBDDCE;
+
+  /* MAXxBDD[n] IS A NUMBER OF FUNCTIONS, */
+  /* WHICH HAVE n NODES USING THE WORST ORDERING */
+  unsigned long long int *MAXOBDD,*MAXZBDD,*MAXTZBDD;
+  unsigned long long int *MAXOBDDCE,*MAXZBDDCE,*MAXTZBDDCE;
+
+  Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
+  Biddy_InitMNG(&MNGZBDD, BIDDYTYPEZBDD);
+  Biddy_InitMNG(&MNGTZBDD, BIDDYTYPETZBDD);
+  Biddy_InitMNG(&MNGOBDDCE,BIDDYTYPEOBDDC);
+  Biddy_InitMNG(&MNGZBDDCE,BIDDYTYPEZBDDC);
+  /* Biddy_InitMNG(&MNGTZBDDCE,BIDDYTYPETZBDDC); */
+
+  n = N;
+  nf = 1;
+  while (n>0) {
+    nf = 2 * nf;
+    n--;
+  }
+  n = nf;
+  nf = 1;
+  while (n>0) {
+    nf = 2 * nf;
+    n--;
+  }
+
+  if (N == 2) {
+    SUPPORT = (Biddy_String) strdup("a*b");
+  }
+  else if (N == 3) {
+    SUPPORT = (Biddy_String) strdup("a*b*c");
+  }
+  else if (N == 4) {
+    SUPPORT = (Biddy_String) strdup("a*b*c*d");
+  }
+  else if (N == 5) {
+    SUPPORT = (Biddy_String) strdup("a*b*c*d*e");
+  } else {
+    printf("N == %u IS NOT SUPPORTED!\n",N);
+    exit(1);
+  }
+
+  MINOBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MINZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MINTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MINOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MINZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MINTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+
+  MAXOBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MAXZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MAXTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MAXOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MAXZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  MAXTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+
+  for (n = 0; n<=MAXNODES; n++) {
+    MINOBDD[n] = MAXOBDD[n] = 0;
+    MINZBDD[n] = MAXZBDD[n] = 0;
+    MINTZBDD[n] = MAXTZBDD[n] = 0;
+    MINOBDDCE[n] = MAXOBDDCE[n] = 0;
+    MINZBDDCE[n] = MAXZBDDCE[n] = 0;
+    MINTZBDDCE[n] = MAXTZBDDCE[n] = 0;
+  }
+
+  sobdd = Biddy_Managed_Eval2(MNGOBDD,(Biddy_String)SUPPORT);
+  szbdd = Biddy_Managed_Eval2(MNGZBDD,(Biddy_String)SUPPORT);
+  stzbdd = Biddy_Managed_Eval2(MNGTZBDD,(Biddy_String)SUPPORT);
+  sobddce = Biddy_Managed_Eval2(MNGOBDDCE, (Biddy_String)SUPPORT);
+  szbddce = Biddy_Managed_Eval2(MNGZBDDCE, (Biddy_String)SUPPORT);
+
+  nc = 0;
+  n = 0;
+  do {
+
+    /*
+    printf("(%llu#%llu/%llu)",n,++nc,nf);
+    */
+
+    /* calculate results for OBDD */
+    f = Biddy_Managed_CreateFunction(MNGOBDD,sobdd,n);
+    Biddy_InitMNG(&MNG,BIDDYTYPEOBDD);
+    f = Biddy_Managed_Copy(MNGOBDD,MNG,f);
+    fidx = Biddy_Managed_AddTmpFormula(MNG,"F",f);
+    Biddy_Managed_MinimizeBDD(MNG,"F");
+    f = Biddy_Managed_GetIthFormula(MNG,fidx);
+    num = Biddy_Managed_CountNodes(MNG,f);
+    MINOBDD[num]++;
+    Biddy_Managed_MaximizeBDD(MNG,"F");
+    f = Biddy_Managed_GetIthFormula(MNG,fidx);
+    num = Biddy_Managed_CountNodes(MNG,f);
+    MAXOBDD[num]++;
+    Biddy_ExitMNG(&MNG);
+
+    /* calculate results for ZBDD */
+    f = Biddy_Managed_CreateFunction(MNGZBDD, szbdd, n);
+    Biddy_InitMNG(&MNG, BIDDYTYPEZBDD);
+    f = Biddy_Managed_Copy(MNGZBDD, MNG, f);
+    fidx = Biddy_Managed_AddTmpFormula(MNG, "F", f);
+    Biddy_Managed_MinimizeBDD(MNG, "F");
+    f = Biddy_Managed_GetIthFormula(MNG, fidx);
+    num = Biddy_Managed_CountNodes(MNG, f);
+    MINZBDD[num]++;
+    Biddy_Managed_MaximizeBDD(MNG, "F");
+    f = Biddy_Managed_GetIthFormula(MNG, fidx);
+    num = Biddy_Managed_CountNodes(MNG, f);
+    MAXZBDD[num]++;
+    Biddy_ExitMNG(&MNG);
+
+    /* calculate results for TZBDD */
+    f = Biddy_Managed_CreateFunction(MNGTZBDD, stzbdd, n);
+    Biddy_InitMNG(&MNG, BIDDYTYPETZBDD);
+    f = Biddy_Managed_Copy(MNGTZBDD, MNG, f);
+    fidx = Biddy_Managed_AddTmpFormula(MNG, "F", f);
+    Biddy_Managed_MinimizeBDD(MNG, "F");
+    f = Biddy_Managed_GetIthFormula(MNG, fidx);
+    num = Biddy_Managed_CountNodes(MNG, f);
+    MINTZBDD[num]++;
+    Biddy_Managed_MaximizeBDD(MNG, "F");
+    f = Biddy_Managed_GetIthFormula(MNG, fidx);
+    num = Biddy_Managed_CountNodes(MNG, f);
+    MAXTZBDD[num]++;
+    Biddy_ExitMNG(&MNG);
+
+    /* calculate results for OBDDCE */
+    f = Biddy_Managed_CreateFunction(MNGOBDDCE,sobddce,n);
+    Biddy_InitMNG(&MNG,BIDDYTYPEOBDDC);
+    f = Biddy_Managed_Copy(MNGOBDDCE,MNG,f);
+    fidx = Biddy_Managed_AddTmpFormula(MNG,"F",f);
+    Biddy_Managed_MinimizeBDD(MNG,"F");
+    f = Biddy_Managed_GetIthFormula(MNG,fidx);
+    num = Biddy_Managed_CountNodes(MNG,f);
+    MINOBDDCE[num]++;
+    Biddy_Managed_MaximizeBDD(MNG,"F");
+    f = Biddy_Managed_GetIthFormula(MNG,fidx);
+    num = Biddy_Managed_CountNodes(MNG,f);
+    MAXOBDDCE[num]++;
+    Biddy_ExitMNG(&MNG);
+
+    /* calculate results for ZBDDCE */
+    f = Biddy_Managed_CreateFunction(MNGZBDDCE, szbddce, n);
+    Biddy_InitMNG(&MNG, BIDDYTYPEZBDDC);
+    f = Biddy_Managed_Copy(MNGZBDDCE, MNG, f);
+    fidx = Biddy_Managed_AddTmpFormula(MNG, "F", f);
+    Biddy_Managed_MinimizeBDD(MNG, "F");
+    f = Biddy_Managed_GetIthFormula(MNG, fidx);
+    num = Biddy_Managed_CountNodes(MNG, f);
+    MINZBDDCE[num]++;
+    Biddy_Managed_MaximizeBDD(MNG, "F");
+    f = Biddy_Managed_GetIthFormula(MNG, fidx);
+    num = Biddy_Managed_CountNodes(MNG, f);
+    MAXZBDDCE[num]++;
+    Biddy_ExitMNG(&MNG);
+
+    if (N == 2) {
+      if (++n == 16) n = 0;
+    }
+    else if (N == 3) {
+      n = rnd8(n);
+    }
+    else if (N == 4) {
+      n = rnd16(n);
+    }
+    else if (N == 5) {
+      n = rnd32(n);
+    } else {
+      printf("N == %u IS NOT SUPPORTED!\n",N);
+      exit(1);
+    }
+
+  } while (n != 0);
+
+  /* printf("\n"); */
+  printf("%s\n",Biddy_Managed_GetManagerName(MNGOBDD));
+  for (num = 0; num<=MAXNODES; num++) {
+    if ((MINOBDD[num]!=0) || (MAXOBDD[num]!=0))
+      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
+             num,MINOBDD[num],MAXOBDD[num]);
+  }
+  printf("%s\n", Biddy_Managed_GetManagerName(MNGZBDD));
+  for (num = 0; num <= MAXNODES; num++) {
+    if ((MINZBDD[num] != 0) || (MAXZBDD[num] != 0))
+      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
+        num, MINZBDD[num], MAXZBDD[num]);
+  }
+  printf("%s\n",Biddy_Managed_GetManagerName(MNGTZBDD));
+  for (num = 0; num<=MAXNODES; num++) {
+    if ((MINTZBDD[num]!=0) || (MAXTZBDD[num]!=0))
+      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
+             num,MINTZBDD[num],MAXTZBDD[num]);
+  }
+  printf("%s\n",Biddy_Managed_GetManagerName(MNGOBDDCE));
+  for (num = 0; num<=MAXNODES; num++) {
+    if ((MINOBDDCE[num]!=0) || (MAXOBDDCE[num]!=0))
+      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
+             num,MINOBDDCE[num],MAXOBDDCE[num]);
+  }
+  printf("%s\n",Biddy_Managed_GetManagerName(MNGZBDDCE));
+  for (num = 0; num<=MAXNODES; num++) {
+    if ((MINZBDDCE[num]!=0) || (MAXZBDDCE[num]!=0))
+      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
+             num,MINZBDDCE[num],MAXZBDDCE[num]);
+  }
+
+  free(SUPPORT);
+
+  free(MINOBDD);
+  free(MINZBDD);
+  free(MINTZBDD);
+  free(MINOBDDCE);
+  free(MINZBDDCE);
+  free(MINTZBDDCE);
+
+  free(MAXOBDD);
+  free(MAXZBDD);
+  free(MAXTZBDD);
+  free(MAXOBDDCE);
+  free(MAXZBDDCE);
+  free(MAXTZBDDCE);
+
+  printf("Manager %s finished with %u nodes\n",Biddy_Managed_GetManagerName(MNGOBDD),Biddy_Managed_NodeTableNum(MNGOBDD));
+  printf("Manager %s finished with %u nodes\n", Biddy_Managed_GetManagerName(MNGZBDD), Biddy_Managed_NodeTableNum(MNGZBDD));
+  printf("Manager %s finished with %u nodes\n", Biddy_Managed_GetManagerName(MNGTZBDD), Biddy_Managed_NodeTableNum(MNGTZBDD));
+  printf("Manager %s finished with %u nodes\n",Biddy_Managed_GetManagerName(MNGOBDDCE),Biddy_Managed_NodeTableNum(MNGOBDDCE));
+  printf("Manager %s finished with %u nodes\n",Biddy_Managed_GetManagerName(MNGZBDDCE),Biddy_Managed_NodeTableNum(MNGZBDDCE));
+
+  Biddy_ExitMNG(&MNGOBDD);
+  Biddy_ExitMNG(&MNGZBDD);
+  Biddy_ExitMNG(&MNGTZBDD);
+  Biddy_ExitMNG(&MNGOBDDCE);
+  Biddy_ExitMNG(&MNGZBDDCE);
+  /* Biddy_ExitMNG(&MNGTZBDDCE); */ /* not supported, yet */
 }
 
 /* ########################################################################## */
@@ -93,8 +433,10 @@ int main() {
 
 void statAll(unsigned int N) {
   Biddy_String SUPPORT;
-  Biddy_Manager MNGOBDD,MNGOBDDCE,MNGZBDD,MNGZBDDCE,MNGTZBDD,MNGTZBDDCE;
+  Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD,MNGOBDDCE,MNGZBDDCE,MNGTZBDDCE;
   Biddy_Edge s,f;
+  unsigned long long int n,nf,nc;
+  unsigned int fidx;
 
   /* MINxBDD[n] IS A NUMBER OF FUNCTIONS, */
   /* WHICH HAVE n NODES USING THE BEST ORDERING */
@@ -131,14 +473,11 @@ void statAll(unsigned int N) {
   unsigned int *SUMNODESOBDD,*SUMNODESZBDD,*SUMNODESTZBDD;
   unsigned int *SUMNODESOBDDCE,*SUMNODESZBDDCE,*SUMNODESTZBDDCE;
 
-  unsigned long long int n,nf,nc;
-  unsigned int fidx;
-
   Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
+  Biddy_InitMNG(&MNGZBDD, BIDDYTYPEZBDD);
+  Biddy_InitMNG(&MNGTZBDD, BIDDYTYPETZBDD);
   Biddy_InitMNG(&MNGOBDDCE,BIDDYTYPEOBDDC);
-  Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
   Biddy_InitMNG(&MNGZBDDCE,BIDDYTYPEZBDDC);
-  Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
   /* Biddy_InitMNG(&MNGTZBDDCE,BIDDYTYPETZBDDC); */
 
   n = N;
@@ -211,7 +550,7 @@ void statAll(unsigned int N) {
   }
 #endif
 
-#ifdef COUNTNODES
+#if defined(COUNTNODES) || defined(COMPARENODES)
   if (N < 5) {
     MINNODESOBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
     MINNODESZBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
@@ -244,7 +583,7 @@ void statAll(unsigned int N) {
     }
   }
 #endif
-  
+
   n = 0;
   do {
 
@@ -257,7 +596,7 @@ void statAll(unsigned int N) {
          MINOBDDCE,MAXOBDDCE,BASEOBDDCE,ALLOBDDCE,
          MINOBDD,MAXOBDD,BASEOBDD,ALLOBDD,TRUE);
 #endif
-#ifdef COUNTNODES
+#if defined(COUNTNODES) || defined(COMPARENODES)
     if (N < 5) {
       sjt2(MNGOBDDCE,fidx,
            &MINNODESOBDDCE[n],&MAXNODESOBDDCE[n],&SUMNODESOBDDCE[n],
@@ -274,7 +613,7 @@ void statAll(unsigned int N) {
          MINZBDDCE,MAXZBDDCE,BASEZBDDCE,ALLZBDDCE,
          MINZBDD,MAXZBDD,BASEZBDD,ALLZBDD,TRUE);
 #endif
-#ifdef COUNTNODES
+#if defined(COUNTNODES) || defined(COMPARENODES)
     if (N < 5) {
       sjt2(MNGZBDDCE,fidx,
            &MINNODESZBDDCE[n],&MAXNODESZBDDCE[n],&SUMNODESZBDDCE[n],
@@ -293,7 +632,7 @@ void statAll(unsigned int N) {
          MINTZBDDCE,MAXTZBDDCE,BASETZBDDCE,ALLTZBDDCE,
          MINTZBDD,MAXTZBDD,BASETZBDD,ALLTZBDD,TRUE);
 #endif
-#ifdef COUNTNODES
+#if defined(COUNTNODES) || defined(COMPARENODES)
     if (N < 5) {
       sjt2(MNGTZBDDCE,fidx,
            &MINNODESTZBDDCE[n],&MAXNODESTZBDDCE[n],&SUMNODESTZBDDCE[n],
@@ -312,7 +651,7 @@ void statAll(unsigned int N) {
          NULL,NULL,NULL,NULL,
          MINOBDD,MAXOBDD,BASEOBDD,ALLOBDD,FALSE);
 #endif
-#ifdef COUNTNODES
+#if defined(COUNTNODES) || defined(COMPARENODES)
     if (N < 5) {
       sjt2(MNGOBDD,fidx,
            NULL,NULL,NULL,
@@ -331,7 +670,7 @@ void statAll(unsigned int N) {
          NULL,NULL,NULL,NULL,
          MINZBDD,MAXZBDD,BASEZBDD,ALLZBDD,FALSE);
 #endif
-#ifdef COUNTNODES
+#if defined(COUNTNODES) || defined(COMPARENODES)
     if (N < 5) {
       sjt2(MNGTZBDD,fidx,
            NULL,NULL,NULL,
@@ -349,7 +688,7 @@ void statAll(unsigned int N) {
          NULL,NULL,NULL,NULL,
          MINTZBDD,MAXTZBDD,BASETZBDD,ALLTZBDD,FALSE);
 #endif
-#ifdef COUNTNODES
+#if defined(COUNTNODES) || defined(COMPARENODES)
     if (N < 5) {
       sjt2(MNGTZBDD,fidx,
            NULL,NULL,NULL,
@@ -394,7 +733,7 @@ void statAll(unsigned int N) {
 
 #ifdef COUNTNODES
   if (N < 5) {
-    /* SOME DETAILS ABOUT THE SIZE */
+    /* DETAILS ABOUT THE SIZE */
     /* THESE RESULTS ARE COLLECTED BY sjt2 */
     printf("RESULTS WITHOUT COMPLEMENTED EDGES\n");
     results2a(MNGOBDD,MINNODESOBDD,MAXNODESOBDD,SUMNODESOBDD,nf,nc);
@@ -402,7 +741,7 @@ void statAll(unsigned int N) {
     results2a(MNGTZBDD,MINNODESTZBDD,MAXNODESTZBDD,SUMNODESTZBDD,nf,nc);
     printf("\n");
 
-    /* STATS ABOUT THE SIZE */
+    /* DETAILS ABOUT THE SIZE */
     /* THESE RESULTS ARE COLLECTED BY sjt2 */
     printf("RESULTS WITH COMPLEMENTED EDGES\n");
     results2a(MNGOBDDCE,MINNODESOBDDCE,MAXNODESOBDDCE,SUMNODESOBDDCE,nf,nc);
@@ -411,7 +750,7 @@ void statAll(unsigned int N) {
   }
 #endif
 
-#ifdef COUNTNODES
+#ifdef COMPARENODES
   if (N < 5) {
     /* COMPARE OBDD AND ZBDD */
     /* THESE RESULTS ARE COLLECTED BY sjt2 */
@@ -462,7 +801,7 @@ void statAll(unsigned int N) {
   free(ALLTZBDDCE);
 #endif
 
-#ifdef COUNTNODES
+#if defined(COUNTNODES) || defined(COMPARENODES)
   if (N < 5) {
     free(MINNODESOBDD);
     free(MINNODESZBDD);
@@ -486,78 +825,47 @@ void statAll(unsigned int N) {
     free(SUMNODESTZBDDCE);
   }
 #endif
-  
+
   Biddy_ExitMNG(&MNGOBDD);
-  Biddy_ExitMNG(&MNGOBDDCE);
   Biddy_ExitMNG(&MNGZBDD);
-  Biddy_ExitMNG(&MNGZBDDCE);
   Biddy_ExitMNG(&MNGTZBDD);
+  Biddy_ExitMNG(&MNGOBDDCE);
+  Biddy_ExitMNG(&MNGZBDDCE);
   /* Biddy_ExitMNG(&MNGTZBDDCE); */ /* not supported, yet */
 }
 
 /* ########################################################################## */
-/* function statMinMax */
+/* function analyzeElseThen */
 /* ########################################################################## */
 
-void statMinMax(unsigned int N) {
+void analyzeElseThen(unsigned int N) {
   Biddy_String SUPPORT;
-  Biddy_Manager MNGOBDD,MNGOBDDCE,MNGZBDD,MNGZBDDCE,MNGTZBDD,MNGTZBDDCE;
-  Biddy_Manager MNG;
+  Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD,MNGOBDDCE,MNGZBDDCE,MNGTZBDDCE;
   Biddy_Edge s,f;
-  Biddy_Edge sobdd,sobddce,szbddce,stzbdd;
-  unsigned long long int n,nf,nc;
-  unsigned int fidx,num;
+  unsigned long long int n, nc;
+  unsigned int m, nf;
+  unsigned int fidx;
 
-  /* MINxBDD[n] IS A NUMBER OF FUNCTIONS, */
-  /* WHICH HAVE n NODES USING THE BEST ORDERING */
-  unsigned long long int *MINOBDD,*MINZBDD,*MINTZBDD;
-  unsigned long long int *MINOBDDCE,*MINZBDDCE,*MINTZBDDCE;
-
-  /* MAXxBDD[n] IS A NUMBER OF FUNCTIONS, */
-  /* WHICH HAVE n NODES USING THE WORST ORDERING */
-  unsigned long long int *MAXOBDD,*MAXZBDD,*MAXTZBDD;
-  unsigned long long int *MAXOBDDCE,*MAXZBDDCE,*MAXTZBDDCE;
+  unsigned long long int *TABLEALL,*TABLEMIN;
 
   Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
+  Biddy_InitMNG(&MNGZBDD, BIDDYTYPEZBDD);
+  Biddy_InitMNG(&MNGTZBDD, BIDDYTYPETZBDD);
   Biddy_InitMNG(&MNGOBDDCE,BIDDYTYPEOBDDC);
-  Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
   Biddy_InitMNG(&MNGZBDDCE,BIDDYTYPEZBDDC);
-  Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
   /* Biddy_InitMNG(&MNGTZBDDCE,BIDDYTYPETZBDDC); */
-
-  /* TESTING */
-  /*
-  szbddce = Biddy_Managed_Eval2(MNGZBDDCE,(Biddy_String)"a+!b");
-  fidx = Biddy_Managed_AddTmpFormula(MNGZBDDCE,"F",szbddce);
-  f = Biddy_Managed_GetIthFormula(MNGZBDDCE,fidx);
-  num = Biddy_Managed_CountNodesPlain(MNGZBDDCE,f);
-  printf("THERE ARE %u PLAIN NODES.\n",num);
-  Biddy_Managed_PrintfBDD(MNGZBDDCE,f);
-  Biddy_Managed_MinimizeBDD(MNGZBDDCE,"F");
-  f = Biddy_Managed_GetIthFormula(MNGZBDDCE,fidx);
-  num = Biddy_Managed_CountNodesPlain(MNGZBDDCE,f);
-  printf("THERE ARE %u MIN PLAIN NODES.\n",num);
-  Biddy_Managed_PrintfBDD(MNGZBDDCE,f);
-  Biddy_Managed_MaximizeBDD(MNGZBDDCE,"F");
-  f = Biddy_Managed_GetIthFormula(MNGZBDDCE,fidx);
-  num = Biddy_Managed_CountNodesPlain(MNGZBDDCE,f);
-  printf("THERE ARE %u MAX PLAIN NODES.\n",num);
-  Biddy_Managed_PrintfBDD(MNGZBDDCE,f);
-  exit(1);
-  */
 
   n = N;
   nf = 1;
-  while (n>0) {
+  nc = 1;
+  while (n>1) {
+    nc = n * nc;
     nf = 2 * nf;
     n--;
   }
-  n = nf;
-  nf = 1;
-  while (n>0) {
-    nf = 2 * nf;
-    n--;
-  }
+
+  TABLEALL = (unsigned long long int *) malloc((nf+1) * (nf+1) * sizeof(unsigned long long int));
+  TABLEMIN = (unsigned long long int *) malloc((nf+1) * (nf+1) * sizeof(unsigned long long int));
 
   if (N == 2) {
     SUPPORT = (Biddy_String) strdup("a*b");
@@ -575,101 +883,27 @@ void statMinMax(unsigned int N) {
     exit(1);
   }
 
-  MINOBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MINZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MINTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MINOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MINZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MINTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-
-  MAXOBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MAXZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MAXTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MAXOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MAXZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MAXTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-
-  for (n = 0; n<=MAXNODES; n++) {
-    MINOBDD[n] = MAXOBDD[n] = 0;
-    MINZBDD[n] = MAXZBDD[n] = 0;
-    MINTZBDD[n] = MAXTZBDD[n] = 0;
-    MINOBDDCE[n] = MAXOBDDCE[n] = 0;
-    MINZBDDCE[n] = MAXZBDDCE[n] = 0;
-    MINTZBDDCE[n] = MAXTZBDDCE[n] = 0;
+  for (n=0;n<=nf;n++) {
+    for (m=0;m<=nf;m++) {
+      TABLEALL[n*(nf+1)+m] = 0;
+      TABLEMIN[n*(nf+1)+m] = 0;
+    }
   }
 
-  sobdd = Biddy_Managed_Eval2(MNGOBDD,(Biddy_String)SUPPORT);
-  sobddce = Biddy_Managed_Eval2(MNGOBDDCE,(Biddy_String)SUPPORT);
-  szbddce = Biddy_Managed_Eval2(MNGZBDDCE,(Biddy_String)SUPPORT);
-  stzbdd = Biddy_Managed_Eval2(MNGTZBDD,(Biddy_String)SUPPORT);
-
-  nc = 0;  
   n = 0;
   do {
 
+    /* calculate results for OBDDCE */
+    s = Biddy_Managed_Eval2(MNGOBDDCE,(Biddy_String)SUPPORT);
+    f = Biddy_Managed_CreateFunction(MNGOBDDCE,s,n);
+    fidx = Biddy_Managed_AddTmpFormula(MNGOBDDCE,"F",f);
+
+    /* DEBUGGING */
     /*
-    printf("(%llu#%llu/%llu)",n,++nc,nf);
+    printf("FUNCTION %u\n",n);
     */
 
-    /* calculate results for OBDD */
-    f = Biddy_Managed_CreateFunction(MNGOBDD,sobdd,n);
-    Biddy_InitMNG(&MNG,BIDDYTYPEOBDD);
-    f = Biddy_Managed_Copy(MNGOBDD,MNG,f);
-    fidx = Biddy_Managed_AddTmpFormula(MNG,"F",f);
-    Biddy_Managed_MinimizeBDD(MNG,"F");
-    f = Biddy_Managed_GetIthFormula(MNG,fidx);
-    num = Biddy_Managed_CountNodes(MNG,f);
-    MINOBDD[num]++;
-    Biddy_Managed_MaximizeBDD(MNG,"F");
-    f = Biddy_Managed_GetIthFormula(MNG,fidx);
-    num = Biddy_Managed_CountNodes(MNG,f);
-    MAXOBDD[num]++;
-    Biddy_ExitMNG(&MNG);
-
-    /* calculate results for OBDDCE */
-    f = Biddy_Managed_CreateFunction(MNGOBDDCE,sobddce,n);
-    Biddy_InitMNG(&MNG,BIDDYTYPEOBDDC);
-    f = Biddy_Managed_Copy(MNGOBDDCE,MNG,f);
-    fidx = Biddy_Managed_AddTmpFormula(MNG,"F",f);
-    Biddy_Managed_MinimizeBDD(MNG,"F");
-    f = Biddy_Managed_GetIthFormula(MNG,fidx);
-    num = Biddy_Managed_CountNodes(MNG,f);
-    MINOBDDCE[num]++;
-    Biddy_Managed_MaximizeBDD(MNG,"F");
-    f = Biddy_Managed_GetIthFormula(MNG,fidx);
-    num = Biddy_Managed_CountNodes(MNG,f);
-    MAXOBDDCE[num]++;
-    Biddy_ExitMNG(&MNG);
-
-    /* calculate results for ZBDDCE */
-    f = Biddy_Managed_CreateFunction(MNGZBDDCE,szbddce,n);
-    Biddy_InitMNG(&MNG,BIDDYTYPEZBDDC);
-    f = Biddy_Managed_Copy(MNGZBDDCE,MNG,f);
-    fidx = Biddy_Managed_AddTmpFormula(MNG,"F",f);
-    Biddy_Managed_MinimizeBDD(MNG,"F");
-    f = Biddy_Managed_GetIthFormula(MNG,fidx);
-    num = Biddy_Managed_CountNodes(MNG,f);
-    MINZBDDCE[num]++;
-    Biddy_Managed_MaximizeBDD(MNG,"F");
-    f = Biddy_Managed_GetIthFormula(MNG,fidx);
-    num = Biddy_Managed_CountNodes(MNG,f);
-    MAXZBDDCE[num]++;
-    Biddy_ExitMNG(&MNG);
-
-    /* calculate results for TZBDD */
-    f = Biddy_Managed_CreateFunction(MNGTZBDD,stzbdd,n);
-    Biddy_InitMNG(&MNG,BIDDYTYPETZBDD);
-    f = Biddy_Managed_Copy(MNGTZBDD,MNG,f);
-    fidx = Biddy_Managed_AddTmpFormula(MNG,"F",f);
-    Biddy_Managed_MinimizeBDD(MNG,"F");
-    f = Biddy_Managed_GetIthFormula(MNG,fidx);
-    num = Biddy_Managed_CountNodes(MNG,f);
-    MINTZBDD[num]++;
-    Biddy_Managed_MaximizeBDD(MNG,"F");
-    f = Biddy_Managed_GetIthFormula(MNG,fidx);
-    num = Biddy_Managed_CountNodes(MNG,f);
-    MAXTZBDD[num]++;
-    Biddy_ExitMNG(&MNG);
+    sjt3(MNGOBDDCE,N,nf,fidx,TABLEALL,TABLEMIN);
 
     if (N == 2) {
       if (++n == 16) n = 0;
@@ -689,77 +923,60 @@ void statMinMax(unsigned int N) {
 
   } while (n != 0);
 
-  /* printf("\n"); */
-  printf("%s\n",Biddy_Managed_GetManagerName(MNGOBDD));
-  for (num = 0; num<=MAXNODES; num++) {
-    if ((MINOBDD[num]!=0) || (MAXOBDD[num]!=0))
-      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
-             num,MINOBDD[num],MAXOBDD[num]);
-  }
-  printf("%s\n",Biddy_Managed_GetManagerName(MNGTZBDD));
-  for (num = 0; num<=MAXNODES; num++) {
-    if ((MINTZBDD[num]!=0) || (MAXTZBDD[num]!=0))
-      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
-             num,MINTZBDD[num],MAXTZBDD[num]);
-  }
-  printf("%s\n",Biddy_Managed_GetManagerName(MNGOBDDCE));
-  for (num = 0; num<=MAXNODES; num++) {
-    if ((MINOBDDCE[num]!=0) || (MAXOBDDCE[num]!=0))
-      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
-             num,MINOBDDCE[num],MAXOBDDCE[num]);
-  }
-  printf("%s\n",Biddy_Managed_GetManagerName(MNGZBDDCE));
-  for (num = 0; num<=MAXNODES; num++) {
-    if ((MINZBDDCE[num]!=0) || (MAXZBDDCE[num]!=0))
-      printf("NODES=%.2u, MIN = %llu, MAX = %llu\n",
-             num,MINZBDDCE[num],MAXZBDDCE[num]);
+  printf("TABLEALL\n");
+  for (n=0;n<=nf;n++) {
+    for (m=0;m<=nf;m++) {
+      printf("%llu, ",TABLEALL[n*(nf+1)+m]);
+    }
+    printf("\n");
   }
 
-  free(SUPPORT);
+  printf("TABLEMIN\n");
+  for (n=0;n<=nf;n++) {
+    for (m=0;m<=nf;m++) {
+      printf("%llu, ",TABLEMIN[n*(nf+1)+m]);
+    }
+    printf("\n");
+  }
 
-  free(MINOBDD);
-  free(MINZBDD);
-  free(MINTZBDD);
-  free(MINOBDDCE);
-  free(MINZBDDCE);
-  free(MINTZBDDCE);
+  printf("TABLEMIN\n");
+  for (n=0;n<=nf;n++) {
+    for (m=0;m<=nf;m++) {
+      printf("%.2f, ",(100.0*TABLEMIN[n*(nf+1)+m])/TABLEALL[n*(nf+1)+m]);
+    }
+    printf("\n");
+  }
 
-  free(MAXOBDD);
-  free(MAXZBDD);
-  free(MAXTZBDD);
-  free(MAXOBDDCE);
-  free(MAXZBDDCE);
-  free(MAXTZBDDCE);
-
-  printf("Manager %s finished with %u nodes\n",Biddy_Managed_GetManagerName(MNGOBDD),Biddy_Managed_NodeTableNum(MNGOBDD));
-  printf("Manager %s finished with %u nodes\n",Biddy_Managed_GetManagerName(MNGOBDDCE),Biddy_Managed_NodeTableNum(MNGOBDDCE));
-  printf("Manager %s finished with %u nodes\n",Biddy_Managed_GetManagerName(MNGZBDDCE),Biddy_Managed_NodeTableNum(MNGZBDDCE));
-  printf("Manager %s finished with %u nodes\n",Biddy_Managed_GetManagerName(MNGTZBDD),Biddy_Managed_NodeTableNum(MNGTZBDD));
+  free(TABLEALL);
+  free(TABLEMIN);
 
   Biddy_ExitMNG(&MNGOBDD);
-  Biddy_ExitMNG(&MNGOBDDCE);
   Biddy_ExitMNG(&MNGZBDD);
-  Biddy_ExitMNG(&MNGZBDDCE);
   Biddy_ExitMNG(&MNGTZBDD);
+  Biddy_ExitMNG(&MNGOBDDCE);
+  Biddy_ExitMNG(&MNGZBDDCE);
   /* Biddy_ExitMNG(&MNGTZBDDCE); */ /* not supported, yet */
+
 }
 
 /* ########################################################################## */
 /* function statByFile */
 /* ########################################################################## */
 
-void statByFile(Biddy_String bddtype, unsigned int N) {
+char statByFile(char filename[], Biddy_String bddtype, unsigned int N) {
   FILE *fd;
-  char filename[32];
   Biddy_Manager MNG;
   Biddy_String SUPPORT;
   Biddy_String buffer,word;
   unsigned int i,varnum,fidx;
-  unsigned long long int n,nf,nc,quant,rndseed,c;
-  unsigned int tts;
+  unsigned long long int c;
+  unsigned long long int nf,n,quant,rndseed;
+  unsigned long long int tts;
   Biddy_Edge s,f;
   Biddy_Boolean usece;
   clock_t elapsedtime;
+  Biddy_Boolean CREATEEMPTY;
+  Biddy_Boolean FILENOTEXIST;
 
   /* MIN[n] IS A NUMBER OF FUNCTIONS, */
   /* WHICH HAVE n NODES USING THE BEST ORDERING */
@@ -787,38 +1004,55 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
   BASECE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   ALLCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
 
-  n = N;
-  nf = 1;
-  while (n>0) {
-    nf = 2 * nf;
-    n--;
-  }
-  n = nf;
-  nf = 1;
-  while (n>0) {
-    nf = 2 * nf;
-    n--;
-  }
   varnum = N;
+  nf = 0;
   n = 0;
-  quant = 0;
+  quant = 1; /* should be different as 0 */
   rndseed = 0;
   tts = 0;
 
+  if (N == 0) {
+    CREATEEMPTY = FALSE;
+  } else {
+    CREATEEMPTY = TRUE;
+    n = N;
+    nf = 1;
+    while (n>0) {
+      nf = 2 * nf;
+      n--;
+    }
+    n = nf;
+    nf = 1;
+    while (n>0) {
+      nf = 2 * nf;
+      n--;
+    }
+  }
+
+  /* INIT */
+  for (i = 1; i <= MAXNODES; i++) {
+    MIN[i] = MAX[i] = BASE[i] = ALL[i] = 0LLU;
+    MINCE[i] = MAXCE[i] = BASECE[i] = ALLCE[i] = 0LLU;
+  }
+
   /* READ FILE */
-  sprintf((char *)filename,"STAT-%s-%.2u.TXT",bddtype,varnum);
+  FILENOTEXIST = TRUE;
   buffer = (Biddy_String) malloc(255);
   fd = fopen(filename,"r");
   if (fd) {
 
+    FILENOTEXIST = FALSE;
     if (!fgets(buffer,255,fd)) exit(255);
     trim(buffer); /* to assure Win/Unix EOL independecy */
-    if (strcmp(bddtype,buffer)) {
+    if (!bddtype) {
+      bddtype = strdup(buffer);
+    }
+    if (strcmp(buffer,bddtype)) {
       printf("Wrong input format (BDDTYPE)!\n");
-      printf("%s\n",buffer);
+      printf("got <%s>, expected <%s>\n",buffer,bddtype);
       exit(1);
     }
-    printf("BDD TYPE: <%s>\n",bddtype);
+    printf("<%s>",bddtype);
 
     if (!fgets(buffer,255,fd)) exit(255);
     trim(buffer); /* to assure Win/Unix EOL independency */
@@ -830,7 +1064,31 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
     }
     word = strtok(NULL," ");
     sscanf(word,"%u",&varnum);
-    printf("SIZE: <%u>\n",varnum);
+    if (!N) {
+      N = varnum;
+    }
+    if (varnum != N) {
+      printf("Wrong SIZE!\n");
+      printf("got <%s>, expected %u\n",word,N);
+      exit(1);
+    }
+    printf("<%u>",varnum);
+
+    /* THIS IS COMPUTED FOR CHECKING THE FORMAT OF THE INPUT FILE, ONLY */
+    if (nf == 0) {
+      n = varnum;
+      nf = 1;
+      while (n>0) {
+        nf = 2 * nf;
+        n--;
+      }
+      n = nf;
+      nf = 1;
+      while (n>0) {
+        nf = 2 * nf;
+        n--;
+      }
+    }
 
     if (!fgets(buffer,255,fd)) exit(255);
     trim(buffer); /* to assure Win/Unix EOL independency */
@@ -841,8 +1099,13 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
       exit(1);
     }
     word = strtok(NULL," ");
-    sscanf(word,"%llu",&nf);
-    printf("NF: <%llu>\n",nf);
+    sscanf(word,"%llu",&n);
+    if (n != nf) {
+      printf("Wrong NF!\n");
+      printf("%s\n",word);
+      exit(1);
+    }
+    printf("<NF:%llu>",nf);
 
     if (!fgets(buffer,255,fd)) exit(255);
     trim(buffer); /* to assure Win/Unix EOL independency */
@@ -854,7 +1117,7 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
     }
     word = strtok(NULL," ");
     sscanf(word,"%llu",&n);
-    printf("N: <%llu>\n",n);
+    printf("<N:%llu>",n);
 
     if (!fgets(buffer,255,fd)) exit(255);
     trim(buffer); /* to assure Win/Unix EOL independency */
@@ -866,7 +1129,7 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
     }
     word = strtok(NULL," ");
     sscanf(word,"%llu",&quant);
-    printf("QUANT: <%llu>\n",quant);
+    printf("<QUANT:%llu>",quant);
 
     if (!fgets(buffer,255,fd)) exit(255);
     trim(buffer); /* to assure Win/Unix EOL independency */
@@ -878,7 +1141,7 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
     }
     word = strtok(NULL," ");
     sscanf(word,"%llu",&rndseed);
-    printf("SEED: <%llu>\n",rndseed);
+    printf("<SEED:%llu>",rndseed);
 
     if (!fgets(buffer,255,fd)) exit(255);
     trim(buffer); /* to assure Win/Unix EOL independency */
@@ -889,8 +1152,10 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
       exit(1);
     }
     word = strtok(NULL," ");
-    sscanf(word,"%u",&tts);
-    printf("TIME [s]: <%u>\n",tts);
+    sscanf(word,"%llu",&tts);
+    printf("<TIME:%llu>",tts);
+
+    printf("\n");
 
     if (!fgets(buffer,255,fd)) exit(255);
     trim(buffer); /* to assure Win/Unix EOL independecy */
@@ -1012,65 +1277,77 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
     free(buffer);
 
     /* CREATE BACKUP FILE */
-    fd = fopen("STAT-BACKUP.TXT","w");
-    if (!fd) return;
-    fprintf(fd,"%s\n",bddtype);
-    fprintf(fd,"SIZE %u\n",varnum);
-    fprintf(fd,"NF %llu\n",nf);
-    fprintf(fd,"N %llu\n",n);
-    fprintf(fd,"QUANT %llu\n",quant);
-    fprintf(fd,"SEED %llu\n",rndseed);
-    fprintf(fd,"TIME %u\n",tts);
-    fprintf(fd,"STATSCE\n");
-    for (i = 1; i <= MAXNODES; i++) {
-      fprintf(fd,"NODES=%.2u, MINCE=%llu, MAXCE=%llu, BASECE=%llu, ALLCE=%llu\n",i,MINCE[i],MAXCE[i],BASECE[i],ALLCE[i]);
+    if (CREATEEMPTY) {
+      fd = fopen("STAT-BACKUP.TXT","w");
+      if (!fd) exit(1);
+      fprintf(fd,"%s\n",bddtype);
+      fprintf(fd,"SIZE %u\n",varnum);
+      fprintf(fd,"NF %llu\n",nf);
+      fprintf(fd,"N %llu\n",n);
+      fprintf(fd,"QUANT %llu\n",quant);
+      fprintf(fd,"SEED %llu\n",rndseed);
+      fprintf(fd,"TIME %llu\n",tts);
+      fprintf(fd,"STATSCE\n");
+      for (i = 1; i <= MAXNODES; i++) {
+        fprintf(fd,"NODES=%.2u, MINCE=%llu, MAXCE=%llu, BASECE=%llu, ALLCE=%llu\n",i,MINCE[i],MAXCE[i],BASECE[i],ALLCE[i]);
+      }
+      fprintf(fd,"STATS\n");
+      for (i = 1; i <= MAXNODES; i++) {
+        fprintf(fd,"NODES=%.2u, MIN=%llu, MAX=%llu, BASE=%llu, ALL=%llu\n",i,MIN[i],MAX[i],BASE[i],ALL[i]);
+      }
+      fclose(fd);
     }
-    fprintf(fd,"STATS\n");
-    for (i = 1; i <= MAXNODES; i++) {
-      fprintf(fd,"NODES=%.2u, MIN=%llu, MAX=%llu, BASE=%llu, ALL=%llu\n",i,MIN[i],MAX[i],BASE[i],ALL[i]);
-    }
-    fclose(fd);
-    
+
     /* COLLECT STATS */
-    usece = FALSE;
-    if (!strcmp(bddtype,"OBDD")) {
-      Biddy_InitMNG(&MNG,BIDDYTYPEOBDD);
-    }
-    else if (!strcmp(bddtype,"OBDDCE")) {
-      Biddy_InitMNG(&MNG,BIDDYTYPEOBDDC);
-      usece = TRUE;
-    }
-    else if (!strcmp(bddtype,"ZBDDCE")) {
-      Biddy_InitMNG(&MNG,BIDDYTYPEZBDDC);
-      usece = TRUE;
-    }
-    else if (!strcmp(bddtype,"TZBDD")) {
-      Biddy_InitMNG(&MNG,BIDDYTYPETZBDD);
-    }
-    else {
-      printf("Unsupported BDD type!\n");
-      exit(1);
-    }
-    if (varnum == 2) {
-      SUPPORT = (Biddy_String) strdup("a*b");
-    }
-    else if (varnum == 3) {
-      SUPPORT = (Biddy_String) strdup("a*b*c");
-    }
-    else if (varnum == 4) {
-      SUPPORT = (Biddy_String) strdup("a*b*c*d");
-    }
-    else if (varnum == 5) {
-      SUPPORT = (Biddy_String) strdup("a*b*c*d*e");
-    } else {
-      printf("SIZE == %llu IS NOT SUPPORTED!\n",n);
-      exit(1);
-    }
-    elapsedtime = 0;
+    elapsedtime = clock();
     if (quant) {
-      elapsedtime = clock();
+      usece = FALSE;
+      if (!strcmp(bddtype,"OBDD")) {
+        Biddy_InitMNG(&MNG,BIDDYTYPEOBDD);
+      }
+      else if (!strcmp(bddtype,"ZBDD")) {
+        Biddy_InitMNG(&MNG, BIDDYTYPEZBDD);
+        usece = TRUE;
+      }
+      else if (!strcmp(bddtype,"TZBDD")) {
+        Biddy_InitMNG(&MNG, BIDDYTYPETZBDD);
+      }
+      else if (!strcmp(bddtype,"OBDDCE")) {
+        Biddy_InitMNG(&MNG,BIDDYTYPEOBDDC);
+        usece = TRUE;
+      }
+      else if (!strcmp(bddtype,"ZBDDCE")) {
+        Biddy_InitMNG(&MNG,BIDDYTYPEZBDDC);
+        usece = TRUE;
+      }
+      else {
+        printf("Unsupported BDD type!\n");
+        exit(1);
+      }
+      if (varnum == 2) {
+        SUPPORT = (Biddy_String) strdup("a*b");
+      }
+      else if (varnum == 3) {
+        SUPPORT = (Biddy_String) strdup("a*b*c");
+      }
+      else if (varnum == 4) {
+        SUPPORT = (Biddy_String) strdup("a*b*c*d");
+      }
+      else if (varnum == 5) {
+        SUPPORT = (Biddy_String) strdup("a*b*c*d*e");
+      } else {
+        printf("SIZE == %llu IS NOT SUPPORTED!\n",n);
+        exit(1);
+      }
+
       c = quant;
       do {
+
+        /* DEBUGGING */
+        /*
+        printf("<seed:%llu>",rndseed);
+        */
+
         s = Biddy_Managed_Eval2(MNG,(Biddy_String)SUPPORT);
         f = Biddy_Managed_CreateFunction(MNG,s,rndseed);
         Biddy_Managed_Clean(MNG);
@@ -1093,45 +1370,52 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
           rndseed = rnd32(rndseed);
         }
       } while ((rndseed != 0) && (c != 0));
+
       elapsedtime = clock() - elapsedtime;
+
+      /*
+      Biddy_Managed_PrintInfo(MNG,stdout);
+      */
+
+      Biddy_ExitMNG(&MNG);
+      free(SUPPORT);
     }
+
     tts += (unsigned long long int)(0.5+(((double)elapsedtime)/((double)CLOCKS_PER_SEC)));
-    if (rndseed == 0) {
-      printf("CALCULATION COMPLETE!\n");
-      quant = 0;
-    } else {
-      printf("CALCULATION FINISHED (n=%llu/%llu/%.2f%%)\n",n,nf,(100.0*((double)n)/(double)nf));
-    }
+    printf("FINISHED: time = %llu s, n = %llu / %llu(%.2f%%)\n",tts,n,nf,(100.0*((double)n)/(double)nf));
 
-    /*
-    Biddy_Managed_PrintInfo(MNG,stdout);
-    */
-
-    Biddy_ExitMNG(&MNG);
-    free(SUPPORT);
-
-  }  /* if CONFIG FILE EXIST */
+  }  /* IF FILE EXIST */
 
   /* WRITE FILE */
-  fd = fopen(filename,"w");
-  if (!fd) return;
-  fprintf(fd,"%s\n",bddtype);
-  fprintf(fd,"SIZE %u\n",varnum);
-  fprintf(fd,"NF %llu\n",nf);
-  fprintf(fd,"N %llu\n",n);
-  fprintf(fd,"QUANT %llu\n",quant);
-  fprintf(fd,"SEED %llu\n",rndseed);
-  fprintf(fd,"TIME %u\n",tts);
-  fprintf(fd,"STATSCE\n");
-  for (i = 1; i <= MAXNODES; i++) {
-    fprintf(fd,"NODES=%.2u, MINCE=%llu, MAXCE=%llu, BASECE=%llu, ALLCE=%llu\n",i,MINCE[i],MAXCE[i],BASECE[i],ALLCE[i]);
+  if (quant != 0) {
+    if (rndseed == 0) {
+      quant = 0;
+    }
+    if (!CREATEEMPTY) {
+      quant = 0;
+    }
+    if (CREATEEMPTY || !FILENOTEXIST) {
+      fd = fopen(filename,"w");
+      if (!fd) exit(1);
+      fprintf(fd,"%s\n",bddtype);
+      fprintf(fd,"SIZE %u\n",varnum);
+      fprintf(fd,"NF %llu\n",nf);
+      fprintf(fd,"N %llu\n",n);
+      fprintf(fd,"QUANT %llu\n",quant);
+      fprintf(fd,"SEED %llu\n",rndseed);
+      fprintf(fd,"TIME %llu\n",tts);
+      fprintf(fd,"STATSCE\n");
+      for (i = 1; i <= MAXNODES; i++) {
+        fprintf(fd,"NODES=%.2u, MINCE=%llu, MAXCE=%llu, BASECE=%llu, ALLCE=%llu\n",i,MINCE[i],MAXCE[i],BASECE[i],ALLCE[i]);
+      }
+      fprintf(fd,"STATS\n");
+      for (i = 1; i <= MAXNODES; i++) {
+        fprintf(fd,"NODES=%.2u, MIN=%llu, MAX=%llu, BASE=%llu, ALL=%llu\n",i,MIN[i],MAX[i],BASE[i],ALL[i]);
+      }
+      fclose(fd);
+    }
   }
-  fprintf(fd,"STATS\n");
-  for (i = 1; i <= MAXNODES; i++) {
-    fprintf(fd,"NODES=%.2u, MIN=%llu, MAX=%llu, BASE=%llu, ALL=%llu\n",i,MIN[i],MAX[i],BASE[i],ALL[i]);
-  }
-  fclose(fd);
-  
+
   free(MIN);
   free(MAX);
   free(BASE);
@@ -1141,6 +1425,8 @@ void statByFile(Biddy_String bddtype, unsigned int N) {
   free(MAXCE);
   free(BASECE);
   free(ALLCE);
+
+  return FILENOTEXIST;
 }
 
 void
@@ -1158,6 +1444,10 @@ trim(Biddy_String source)
     sr_length = (unsigned int) strlen(source);
   }
 }
+
+/* ########################################################################## */
+/* SJT */
+/* ########################################################################## */
 
 /* ########################################################################## */
 /* function sjt1 */
@@ -1181,7 +1471,7 @@ sjt1(Biddy_Manager MNG, unsigned int fidx,
   Biddy_Variable v;
   unsigned int MINCETMP,MAXCETMP;
   unsigned int MINTMP,MAXTMP;
-  
+
   MINTMP = MAXTMP = 0;
   MINCETMP = MAXCETMP = 0;
 
@@ -1278,7 +1568,7 @@ sjt2(Biddy_Manager MNG, unsigned int fidx,
   Biddy_Variable v;
   unsigned int MINCETMP,MAXCETMP,SUMCETMP;
   unsigned int MINTMP,MAXTMP,SUMTMP;
-  
+
   MINCETMP = MAXCETMP = SUMCETMP = 0;
   MINTMP = MAXTMP = SUMTMP = 0;
 
@@ -1354,8 +1644,123 @@ sjt2(Biddy_Manager MNG, unsigned int fidx,
   }
 }
 
+
 /* ########################################################################## */
-/* SJT */
+/* function sjt3 - FOR OBDDs, ONLY */
+/* generates all variable permutations of function f given by fidx */
+/* TABLEALL - num of functions with (minterms_else, minterms_then)
+/* TABLEMIN - num of minimized functions with (minterms_else, minterms_then)
+/* ########################################################################## */
+
+void
+sjt3(Biddy_Manager MNG, unsigned int nvar, unsigned int nf, unsigned int fidx,
+     unsigned long long int *TABLEALL, unsigned long long int *TABLEMIN)
+{
+  Biddy_Edge f;
+  Biddy_Variable v;
+  unsigned int n,m,nodes,minnodes,numelse,numthen;
+
+  unsigned long long int *TABLEN,*TABLEMARK;
+
+  TABLEN = (unsigned long long int *) malloc((nf+1) * (nf+1) * sizeof(unsigned long long int));
+  TABLEMARK = (unsigned long long int *) malloc((nf+1) * (nf+1) * sizeof(unsigned long long int));
+
+  minnodes = 0;
+  for (n=0;n<=nf;n++) {
+    for (m=0;m<=nf;m++) {
+      TABLEN[n*(nf+1)+m] = 0;
+      TABLEMARK[n*(nf+1)+m] = 0;
+    }
+  }
+
+  sjt_init(MNG);
+
+  do {
+    f = Biddy_Managed_GetIthFormula(MNG,fidx);
+    nodes = Biddy_Managed_CountNodes(MNG,f);
+
+    /* THIS IS CORRECT FOR OBDDs, ONLY */
+    if (Biddy_IsTerminal(f)) {
+      if (f == Biddy_Managed_GetConstantZero(MNG)) {
+        numelse = numthen = 0;
+      } else {
+        numelse = numthen = nf;
+      }
+    } else {
+
+      /* DEBUGING */
+      /*
+      printf("SJT3 f\n");
+      Biddy_Managed_PrintfBDD(MNG,f);
+      printf("SJT3 else\n");
+      Biddy_Managed_PrintfBDD(MNG,Biddy_InvCond(Biddy_GetElse(f),Biddy_GetMark(f)));
+      printf("SJT3 then\n");
+      Biddy_Managed_PrintfBDD(MNG,Biddy_InvCond(Biddy_GetThen(f),Biddy_GetMark(f)));
+      */
+
+      numelse = Biddy_Managed_CountMinterms(MNG,Biddy_InvCond(Biddy_GetElse(f),Biddy_GetMark(f)),nvar-1);
+      numthen = Biddy_Managed_CountMinterms(MNG,Biddy_InvCond(Biddy_GetThen(f),Biddy_GetMark(f)),nvar-1);
+    }
+
+    /* DEBUGING */
+    /*
+    printf("SJT3: else = %u, then = %u, index = %u\n",numelse,numthen,numelse*(nf+1)+numthen);
+    */
+
+    TABLEALL[numelse*(nf+1)+numthen]++;
+    TABLEN[numelse*(nf+1)+numthen]++;
+
+    if (!minnodes) minnodes = nodes; /* the first ordering */
+
+    /* it is the same size as the current optimal ordering - thus it is also optimal */
+    if (nodes == minnodes) {
+      TABLEMARK[numelse*(nf+1)+numthen] = 1;
+    }
+
+    /* it is better than the current optimal ordering - refresh marks */
+    if (nodes < minnodes) {
+      minnodes = nodes;
+      for (n=0;n<=nf;n++) {
+        for (m=0;m<=nf;m++) {
+          TABLEMARK[n*(nf+1)+m] = 0;
+        }
+      }
+      TABLEMARK[numelse*(nf+1)+numthen] = 1;
+    }
+
+  } while(sjt_step(MNG));
+
+  sjt_exit(MNG);
+
+  /* restore initial ordering - after sjt only one extra swap is needed */
+  v = Biddy_Managed_GetLowestVariable(MNG);
+  Biddy_Managed_SwapWithHigher(MNG,v);
+
+  /* DEBUGGING */
+  /*
+  printf("TABLEN\n");
+  for (n=0;n<=nf;n++) {
+    for (m=0;m<=nf;m++) {
+      printf("%llu, ",TABLEN[n*(nf+1)+m]);
+    }
+    printf("\n");
+  }
+  */
+
+  for (n=0;n<=nf;n++) {
+    for (m=0;m<=nf;m++) {
+      if (TABLEMARK[n*(nf+1)+m]) {
+        TABLEMIN[n*(nf+1)+m] += TABLEN[n*(nf+1)+m];
+      }
+    }
+  }
+
+  free(TABLEN);
+  free(TABLEMARK);
+}
+
+/* ########################################################################## */
+/* function sjt_init */
 /* ########################################################################## */
 
 void
@@ -1386,6 +1791,10 @@ sjt_init(Biddy_Manager MNG)
   } while (v != 0);
 }
 
+/* ########################################################################## */
+/* function sjt_exit */
+/* ########################################################################## */
+
 void
 sjt_exit(Biddy_Manager MNG)
 {
@@ -1396,6 +1805,10 @@ sjt_exit(Biddy_Manager MNG)
 
   Biddy_Managed_ClearVariablesData(MNG);
 }
+
+/* ########################################################################## */
+/* function sjt_step */
+/* ########################################################################## */
 
 Biddy_Boolean
 sjt_step(Biddy_Manager MNG)
@@ -1471,6 +1884,10 @@ sjt_step(Biddy_Manager MNG)
   return !STOP;
 }
 
+/* ########################################################################## */
+/* function sjt_print */
+/* ########################################################################## */
+
 void sjt_print(Biddy_Manager MNG, Biddy_Edge f)
 {
   Biddy_Variable v;
@@ -1484,7 +1901,7 @@ void sjt_print(Biddy_Manager MNG, Biddy_Edge f)
     v = Biddy_Managed_GetNextVariable(MNG,v);
   } while (v != 0);
   printf(": ");
-  printf("%u depvars, ",Biddy_Managed_DependentVariableNumber(MNG,f));
+  printf("%u depvars, ",Biddy_Managed_DependentVariableNumber(MNG,f,FALSE));
   printf("%.0f minterms, ",Biddy_Managed_CountMinterms(MNG,f,0));
   printf("%u complemented, ",Biddy_Managed_CountComplementedEdges(MNG,f));
   printf("%u nodes.\n",Biddy_Managed_CountNodes(MNG,f));
@@ -1551,7 +1968,7 @@ results2a(Biddy_Manager MNG, unsigned int *MIN, unsigned int *MAX, unsigned int 
   printf("function %llu: MAXDIFF = %u, MIN = %u, MAX = %u\n",NMAXDIFF,MAXDIFF,MIN[NMAXDIFF],MAX[NMAXDIFF]);
   printf("function %llu, MINSUM = %u\n",NMINSUM,MINSUM);
   printf("function %llu, MAXSUM = %u\n",NMAXSUM,MAXSUM);
-  printf("COMPLETE SUM = %llu, AVGSUM = %.2f\n",COMPLETESUM,((double)COMPLETESUM/((double)nf*(double)nc)));
+  printf("TOTAL = %llu, AVG = %.2f\n",COMPLETESUM,((double)COMPLETESUM/((double)nf*(double)nc)));
   if (nf == 16) {
     for (n = 0; n<nf; n++) {
       printf("MIN[%llu]=%u, MAX[%llu]=%u, SUM[%llu]=%u\n",n,MIN[n],n,MAX[n],n,SUM[n]);
@@ -1564,27 +1981,29 @@ results2b(Biddy_Manager MNG1, unsigned int *MIN1,
           Biddy_Manager MNG2,unsigned int *MIN2,
           unsigned long long int nf)
 {
-  int MIN,NMIN,MAX,NMAX;
+  int MIN,MAX;
+  unsigned int long long NMIN,NMAX;
   unsigned long long int n;
 
-  /* COMPARE OBDD AND ZBDD */
-  MIN = NMIN = MAX = NMAX = 0;
+  /* COMPARE TWO BDD TYPES */
+  MIN = MAX = 0;
+  NMIN = NMAX = 0;
   for (n = 0; n<nf; n++) {
-    if ((int)(MIN1[n]-MIN2[n])<=MIN) {
-      MIN = MIN1[n]-MIN2[n];
+    if ((int)(MIN2[n]-MIN1[n])<=MIN) {
+      MIN = MIN2[n]-MIN1[n];
       NMIN = n;
     }
-    if ((int)(MIN1[n]-MIN2[n])>=MAX) {
-      MAX = MIN1[n]-MIN2[n];
+    if ((int)(MIN2[n]-MIN1[n])>=MAX) {
+      MAX = MIN2[n]-MIN1[n];
       NMAX = n;
     }
   }
   printf("%s versus %s\n",Biddy_Managed_GetManagerName(MNG1),Biddy_Managed_GetManagerName(MNG2));
-  printf("MIN = %d, function %u: MIN1 = %u, MIN2 = %u\n",MIN,NMIN,MIN1[NMIN],MIN2[NMIN]);
-  printf("MAX = %d, function %u: MIN1 = %u, MIN2 = %u\n",MAX,NMAX,MIN1[NMAX],MIN2[NMAX]);
+  printf("function %llu: MAXBIAS1 = %d, MIN1 = %u, MIN2 = %u\n",NMIN,(-MIN),MIN1[NMIN],MIN2[NMIN]);
+  printf("function %llu: MAXBIAS1 = %d, MIN1 = %u, MIN2 = %u\n",NMAX,MAX,MIN1[NMAX],MIN2[NMAX]);
   if (nf == 16) {
     for (n = 0; n<nf; n++) {
-     printf("n = %llu, MIN1[n]-MIN2[n] = %d\n",n,MIN1[n]-MIN2[n]);
+     printf("n = %llu, MIN2[n]-MIN1[n] = %d\n",n,MIN2[n]-MIN1[n]);
     }
   }
 }
@@ -1597,7 +2016,7 @@ results2b(Biddy_Manager MNG1, unsigned int *MIN1,
 /* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
 /* https://en.wikipedia.org/wiki/Xorshift */
 /* http://www.arklyffe.com/main/2010/08/29/xorshift-pseudorandom-number-generator/ */
-/* 0 is always followed by 1 */ 
+/* 0 is always followed by 1 */
 unsigned long long int rnd8(unsigned long long int x)
 {
   if (x == 0) {
@@ -1608,14 +2027,14 @@ unsigned long long int rnd8(unsigned long long int x)
     x ^= (x << 3) & 0xffULL;
     if (x == 1) x = 0;
   }
-	return x;
+  return x;
 }
 
 /* Xorshift */
 /* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
 /* https://en.wikipedia.org/wiki/Xorshift */
 /* http://www.arklyffe.com/main/2010/08/29/xorshift-pseudorandom-number-generator/ */
-/* 0 is always followed by 1 */ 
+/* 0 is always followed by 1 */
 unsigned long long int rnd16(unsigned long long int x)
 {
   if (x == 0) {
@@ -1626,30 +2045,30 @@ unsigned long long int rnd16(unsigned long long int x)
     x ^= x << 7 & 0xffffULL;
     if (x == 1) x = 0;
   }
-	return x;
+  return x;
 }
 
 /* Xorshift */
 /* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
 /* https://en.wikipedia.org/wiki/Xorshift */
-/* 0 is always followed by 1 */ 
+/* 0 is always followed by 1 */
 unsigned long long int rnd32(unsigned long long int x)
 {
   if (x == 0) {
     x = 1;
   } else {
-  	x ^= x << 13 & 0xffffffffULL;
-  	x ^= x >> 17 & 0xffffffffULL;
-  	x ^= x << 5 & 0xffffffffULL;
+    x ^= x << 13 & 0xffffffffULL;
+    x ^= x >> 17 & 0xffffffffULL;
+    x ^= x << 5 & 0xffffffffULL;
     if (x == 1) x = 0;
   }
-	return x;
+  return x;
 }
 
 /* Fibonacci LFSR */
 /* x^8 + x^6 + x^5 + x^4 + 1 */
 /* https://en.wikipedia.org/wiki/Linear-feedback_shift_register */
-/* 0 is always followed by 1 */ 
+/* 0 is always followed by 1 */
 unsigned long long int rnd8lfsr(unsigned long long int x)
 {
   unsigned long long int bit;
@@ -1667,7 +2086,7 @@ unsigned long long int rnd8lfsr(unsigned long long int x)
 /* Fibonacci LFSR */
 /* x^16 + x^14 + x^13 + x^11 + 1 */
 /* https://en.wikipedia.org/wiki/Linear-feedback_shift_register */
-/* 0 is always followed by 1 */ 
+/* 0 is always followed by 1 */
 unsigned long long int rnd16lfsr(unsigned long long int x)
 {
   unsigned long long int bit;
@@ -1744,7 +2163,6 @@ testswap()
   Biddy_Manager MNG;
   Biddy_Edge s,f,g;
   unsigned int fidx,gidx;
-  Biddy_Variable v;
 
   Biddy_InitMNG(&MNG,BIDDYTYPETZBDD);
 
@@ -1850,4 +2268,3 @@ NODES=03, MIN = 30, MAX = 30, BASE = 30, ALL = 180 (11.72%)
 NODES=04, MIN = 174, MAX = 24, BASE = 98, ALL = 588 (38.28%)
 NODES=05, MIN = 44, MAX = 194, BASE = 120, ALL = 720 (46.88%)
 */
-

@@ -2,18 +2,18 @@ Source: bddscout
 Section: math
 Priority: extra
 Maintainer: Robert Meolic <robert.meolic@um.si>
-Build-Depends: debhelper (>= 8.0.0), tcl-dev, tk-dev, libgmp-dev, libbiddy1-dev (>= 1.7)
-Standards-Version: 3.9.7
+Build-Depends: debhelper (>= 8.0.0), tcl-dev, tk-dev, libgmp-dev, libbiddy1-dev (>= 1.8)
+Standards-Version: 4.1.4
 
 Package: bddscout
 Section: math
 Architecture: any
-Depends: tcl, tk, bwidget, libbiddy1 (>= 1.7), ${shlibs:Depends}, ${misc:Depends}
+Depends: tcl, tk, bwidget, libbiddy1 (>= 1.8), ${shlibs:Depends}, ${misc:Depends}
 Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  You can move nodes and subgraphs. The zoom-out capability allows you to
- see the whole BDD. Graph can be saved, printed or exported as PNG image
- and PDF document. Currently, only Biddy BDD package is supported.
+ see the whole BDD. Graph can be saved, printed or exported.
+ Currently, only Biddy BDD package is supported.
 
 Package: bddscout-ifip-data
 Section: math
@@ -42,8 +42,8 @@ Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
  You can move nodes and subgraphs. The zoom-out capability allows you to
- see the whole BDD. Graph can be saved, printed or exported as PNG image
- and PDF document. Currently, only Biddy BDD package is supported.
+ see the whole BDD. Graph can be saved, printed or exported.
+ Currently, only Biddy BDD package is supported.
  This package contains extension bddscoutIFIP (IFIP benchmark).
 
 Package: bddscout-bddtraces
@@ -54,8 +54,8 @@ Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
  You can move nodes and subgraphs. The zoom-out capability allows you to
- see the whole BDD. Graph can be saved, printed or exported as PNG image
- and PDF document. Currently, only Biddy BDD package is supported.
+ see the whole BDD. Graph can be saved, printed or exported.
+ Currently, only Biddy BDD package is supported.
  This package contains extension bddscoutBDDTRACES (BDD Traces).
 
 Package: bddscout-bra
@@ -66,6 +66,6 @@ Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
  You can move nodes and subgraphs. The zoom-out capability allows you to
- see the whole BDD. Graph can be saved, printed or exported as PNG image
- and PDF document. Currently, only Biddy BDD package is supported.
+ see the whole BDD. Graph can be saved, printed or exported.
+ Currently, only Biddy BDD package is supported.
  This package contains extension bddscoutBRA (Best Reordering Algorithm).

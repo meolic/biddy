@@ -1,0 +1,176 @@
+#GENERATED WITH BIDDY - biddy.meolic.com
+type ROBDDCE
+var "b01" "i01" "d01" "y01" ".01" "b02" "i02" "d02" "y02" ".02" "b03" "i03" "d03" "y03" ".03"
+label 0 DICT
+node 1 b01
+node 2 i01
+node 3 d01
+node 4 y01
+terminal 5 1
+node 6 .01
+terminal 7 1
+node 8 b02
+terminal 9 1
+node 10 i02
+terminal 11 1
+node 12 d02
+terminal 13 1
+node 14 y02
+terminal 15 1
+node 16 .02
+terminal 17 1
+node 18 b03
+terminal 19 1
+node 20 i03
+terminal 21 1
+node 22 d03
+terminal 23 1
+node 24 y03
+terminal 25 1
+node 26 .03
+terminal 27 1
+node 28 y01
+terminal 29 1
+node 30 .01
+terminal 31 1
+node 32 b02
+terminal 33 1
+node 34 i02
+terminal 35 1
+node 36 d02
+terminal 37 1
+node 38 y02
+terminal 39 1
+node 40 .02
+terminal 41 1
+node 42 b03
+terminal 43 1
+node 44 i03
+terminal 45 1
+node 46 d03
+node 47 y03
+terminal 48 1
+node 49 d01
+terminal 50 1
+node 51 y01
+terminal 52 1
+node 53 .01
+terminal 54 1
+node 55 b02
+terminal 56 1
+node 57 i02
+terminal 58 1
+node 59 d02
+terminal 60 1
+node 61 y02
+terminal 62 1
+node 63 .02
+terminal 64 1
+node 65 b03
+terminal 66 1
+node 67 i03
+terminal 68 1
+node 69 d03
+terminal 70 1
+node 71 i01
+terminal 72 1
+node 73 d01
+terminal 74 1
+node 75 y01
+terminal 76 1
+node 77 .01
+terminal 78 1
+node 79 b02
+terminal 80 1
+node 81 i02
+terminal 82 1
+node 83 d02
+terminal 84 1
+connect 0 1 si
+connect 1 2 l
+connect 1 71 r
+connect 2 3 l
+connect 2 49 r
+connect 3 4 l
+connect 3 28 r
+connect 4 6 l
+connect 4 5 r
+connect 6 7 l
+connect 6 8 r
+connect 8 10 l
+connect 8 9 r
+connect 10 12 l
+connect 10 11 r
+connect 12 14 l
+connect 12 13 r
+connect 14 16 l
+connect 14 15 r
+connect 16 18 l
+connect 16 17 r
+connect 18 20 l
+connect 18 19 r
+connect 20 22 l
+connect 20 21 r
+connect 22 24 l
+connect 22 23 r
+connect 24 26 l
+connect 24 25 r
+connect 26 27 d
+connect 28 30 l
+connect 28 29 r
+connect 30 32 l
+connect 30 31 r
+connect 32 34 l
+connect 32 33 r
+connect 34 35 l
+connect 34 36 r
+connect 36 38 l
+connect 36 37 r
+connect 38 40 l
+connect 38 39 r
+connect 40 42 l
+connect 40 41 r
+connect 42 44 l
+connect 42 43 r
+connect 44 46 l
+connect 44 45 r
+connect 46 47 l
+connect 46 24 r
+connect 47 48 l
+connect 47 26 r
+connect 49 51 l
+connect 49 50 r
+connect 51 53 l
+connect 51 52 r
+connect 53 55 l
+connect 53 54 r
+connect 55 56 l
+connect 55 57 r
+connect 57 59 l
+connect 57 58 r
+connect 59 61 l
+connect 59 60 r
+connect 61 63 l
+connect 61 62 r
+connect 63 65 l
+connect 63 64 r
+connect 65 67 l
+connect 65 66 r
+connect 67 69 l
+connect 67 68 r
+connect 69 70 l
+connect 69 24 r
+connect 71 73 l
+connect 71 72 r
+connect 73 75 l
+connect 73 74 r
+connect 75 77 l
+connect 75 76 r
+connect 77 79 l
+connect 77 78 r
+connect 79 81 l
+connect 79 80 r
+connect 81 83 l
+connect 81 82 r
+connect 83 84 l
+connect 83 61 r

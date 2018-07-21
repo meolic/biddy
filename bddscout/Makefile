@@ -1,9 +1,9 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 395 $]
+#  Date        [$Date: 2018-03-03 12:16:19 +0100 (sob, 03 mar 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM FERI
+#               Copyright (C) 2008, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
@@ -30,6 +30,7 @@ OS = $(shell uname | sed "s/_.*//;s/[0-9]//g")
 RM = rm -f
 CP = cp
 MKDIR = mkdir -p
+RMDIR = rmdir
 CD = cd
 
 # default folder (used for purge and clean, only)
@@ -39,13 +40,9 @@ all: default
 
 # used for local testing
 local: start $(BINDIR) \
-     $(BINDIR)/bddscout.map \
-     $(BINDIR)/$(MAINNAME) \
-     $(BINDIR)/$(EXTNAME1) \
-     $(BINDIR)/$(EXTNAME2) \
-     $(BINDIR)/$(EXTNAME3) \
      $(BINDIR)/COPYING \
      $(BINDIR)/bddview.tcl \
+     $(BINDIR)/bddscout.map \
      $(BINDIR)/bddscout.tcl \
      $(BINDIR)/bddscoutIFIP.tcl \
      $(BINDIR)/bddscoutBRA.tcl \
@@ -54,10 +51,21 @@ local: start $(BINDIR) \
      $(BINDIR)/pkgExtensionIFIP.tcl \
      $(BINDIR)/pkgExtensionBRA.tcl \
      $(BINDIR)/pkgExtensionBDDTRACES.tcl \
-     $(BINDIR)/example.bddview \
+     $(BINDIR)/$(MAINNAME) \
+     $(BINDIR)/$(EXTNAME1) \
+     $(BINDIR)/$(EXTNAME2) \
+     $(BINDIR)/$(EXTNAME3) \
+     $(BINDIR)/example-robdd.bddview \
+     $(BINDIR)/example-robddce.bddview \
+     $(BINDIR)/example-zbddce.bddview \
+     $(BINDIR)/example-tzbdd.bddview \
      $(BINDIR)/example.bdd \
      $(BINDIR)/example.bf \
+     $(BINDIR)/create \
+     $(BINDIR)/scripts \
      ok
+	$(CP) ./create/bddscout-create-*.tcl $(BINDIR)/create
+	$(CP) ./scripts/bddscout-script-*.tcl $(BINDIR)/scripts
 
 # used for packaging
 # produces bddscout.so which is staticaly or dinamicaly linked with Biddy
@@ -124,14 +132,31 @@ $(BINDIR)/pkgExtensionBRA.tcl: ./pkgExtensionBRA.tcl
 $(BINDIR)/pkgExtensionBDDTRACES.tcl: ./pkgExtensionBDDTRACES.tcl
 	$(CP) ./pkgExtensionBDDTRACES.tcl $(BINDIR)
 
-$(BINDIR)/example.bddview: $(BDDVIEWDIR)/example.bddview
-	$(CP) $(BDDVIEWDIR)/example.bddview $(BINDIR)
+$(BINDIR)/example-robdd.bddview: $(BDDVIEWDIR)/example-robdd.bddview
+	$(CP) $(BDDVIEWDIR)/example-robdd.bddview $(BINDIR)
+
+$(BINDIR)/example-robddce.bddview: $(BDDVIEWDIR)/example-robddce.bddview
+	$(CP) $(BDDVIEWDIR)/example-robddce.bddview $(BINDIR)
+
+$(BINDIR)/example-zbddce.bddview: $(BDDVIEWDIR)/example-zbddce.bddview
+	$(CP) $(BDDVIEWDIR)/example-zbddce.bddview $(BINDIR)
+
+$(BINDIR)/example-tzbdd.bddview: $(BDDVIEWDIR)/example-tzbdd.bddview
+	$(CP) $(BDDVIEWDIR)/example-tzbdd.bddview $(BINDIR)
 
 $(BINDIR)/example.bdd: ./example.bdd
 	$(CP) ./example.bdd $(BINDIR)
 
 $(BINDIR)/example.bf: ./example.bf
 	$(CP) ./example.bf $(BINDIR)
+
+$(BINDIR)/create:
+	$(MKDIR) $(BINDIR)/create
+	$(CP) ./create/bddscout-create-*.tcl $(BINDIR)/create
+
+$(BINDIR)/scripts:
+	$(MKDIR) $(BINDIR)/scripts
+	$(CP) ./scripts/bddscout-script-*.tcl $(BINDIR)/scripts
 
 # -----------------------------------------------------------------------
 # make objects
@@ -179,6 +204,10 @@ $(BINDIR)/$(EXTNAME3): $(BINDIR)/bddscoutBDDTRACES.o $(BINDIR)/$(BDDSCOUTSTUBLIB
 purge:
 	@$(RM) *~
 	@$(RM) */*~
+	@$(RM) $(BINDIR)/*.tcl
+	@$(RM) -r $(BINDIR)/create
+	@$(RM) -r $(BINDIR)/scripts
+	@$(RM) bddscout*.zip
 
 clean:
 	@$(RM) $(BINDIR)/bddscout.o

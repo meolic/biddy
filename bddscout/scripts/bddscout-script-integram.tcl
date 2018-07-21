@@ -1,5 +1,5 @@
 # Example script for Bdd Scout
-# Robert Meolic, 2017
+# Robert Meolic, 2018
 
 # LOGIČNA UGANKA (Slovene)
 # 1. Andrej ali Borut je iz Maribora.
@@ -30,6 +30,9 @@
 # Ace * Bmb * Clj * Am * Bs * Cl
 
 proc EVAL { s } {bddscout_parse_input_infix $s}
+
+# switch BDD manager (if neccessary)
+bddscout_change_bddtype "ROBDD"
 
 EVAL "Amb = ~a1 * ~a0"
 EVAL "Alj = ~a1 * a0"
@@ -64,4 +67,6 @@ EVAL "E4b = (Ace * Am + Bce * Bm) * Cl"
 EVAL "E4 = T4a + T4b"
 EVAL "RESULT = SYSTEM1 * SYSTEM2 * T1 * T2 * T3 * T4"
 
-update_info
+# update GUI - refresh list of known Boolean functions in the current BDD manager
+# this will not select/show any of the constructed function
+bddscout_update

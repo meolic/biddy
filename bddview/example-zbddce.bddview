@@ -1,0 +1,23 @@
+# Robert Meolic, 2018
+# An example of ZBDD with complemented edges
+# Biddy = ~B * ~d * ~y + i * ~d + i * ~y + ~i * d * y
+type ZBDDCE
+var "B" "i" "d" "y"
+label 0 "Biddy" 90.0 18.0
+node 1 "B" 90.0 90.0
+node 2 "i" 90.0 162.0
+node 3 "d" 64.0 234.0
+terminal 4 "1" 28.0 306.0
+node 5 "y" 90.0 306.0
+terminal 6 "1" 90.0 378.0
+node 7 "d" 118.0 234.0
+terminal 8 "1" 154.0 306.0
+connect 0 1 s
+connect 1 2 di
+connect 2 3 l
+connect 2 7 r
+connect 3 4 l
+connect 3 5 ri
+connect 5 6 e
+connect 7 5 l
+connect 7 8 r

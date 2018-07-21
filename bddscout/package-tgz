@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 464 $]
+#  Date        [$Date: 2018-07-19 12:56:01 +0200 (čet, 19 jul 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM FERI
+#               Copyright (C) 2008, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -44,6 +44,8 @@ echo ""
 
 mkdir "../distribution-bddscout/version-$VERSION"
 mkdir "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+mkdir "../distribution-bddscout/version-$VERSION/$NAME-$VERSION/create"
+mkdir "../distribution-bddscout/version-$VERSION/$NAME-$VERSION/scripts"
 
 cp VERSION CHANGES COPYING "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp README README.Linux "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
@@ -57,7 +59,13 @@ cp bddscoutBDDTRACES.c bddtraces-BIDDY.c bddscoutBDDTRACES.tcl "../distribution-
 cp pkgExtensionBDDTRACES.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp Makefile Makefile.Linux bddscout.map "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 cp example.bdd example.bf "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
-cp ../bddview/bddview.tcl ../bddview/example.bddview "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+cp create/*.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION/create"
+cp scripts/*.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION/scripts"
+cp ../bddview/bddview.tcl "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+cp ../bddview/example-robdd.bddview "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+cp ../bddview/example-robddce.bddview "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+cp ../bddview/example-zbddce.bddview "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
+cp ../bddview/example-tzbdd.bddview "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"
 mkdir "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"/IFIP
 mkdir "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"/IFIP/cath
 mkdir "../distribution-bddscout/version-$VERSION/$NAME-$VERSION"/IFIP/ex

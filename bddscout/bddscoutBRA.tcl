@@ -1,9 +1,9 @@
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 348 $]
-#  Date        [$Date: 2017-11-21 21:37:00 +0100 (tor, 21 nov 2017) $]
+#  Revision    [$Revision: 444 $]
+#  Date        [$Date: 2018-05-27 22:55:44 +0200 (ned, 27 maj 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM FERI
+#               Copyright (C) 2008, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
@@ -21,152 +21,98 @@
 #               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #               Boston, MA 02110-1301 USA.]
 
-menubutton .menuFrame.bra -menu .menuFrame.bra.menu -pady 6 -font MENUFONT -text "BRA"
-pack .menuFrame.bra -side left
+menubutton $menubar.bra -text "BRA" -menu $menubar.bra.menu -pady 6 -bg $COLORFRAME \
+                          -font [list -family $FONTFAMILYMENU -size $FONTSIZEMENU -weight normal -slant roman]
+pack $menubar.bra -side left -before $menubar.help
 
-menu .menuFrame.bra.menu -font MENUFONT -relief groove -tearoff false
+menu $menubar.bra.menu -bg $COLORFRAME -relief groove -tearoff false \
+                        -font [list -family $FONTFAMILYMENU -size $FONTSIZEMENU -weight normal -slant roman]
 
-.menuFrame.bra.menu add command -command menu_bra_swap_with_higher -label "Swap with higher"
-.menuFrame.bra.menu add command -command menu_bra_swap_with_lower -label "Swap with lower"
-.menuFrame.bra.menu add separator
-.menuFrame.bra.menu add command -command menu_bra_sifting -label "Sifting"
-.menuFrame.bra.menu add command -command menu_bra_sifting_on_function -label "Sifting on function"
-.menuFrame.bra.menu add separator
-.menuFrame.bra.menu add command -command menu_bra_minimize -label "Minimize BDD"
-.menuFrame.bra.menu add command -command menu_bra_maximize -label "Maximize BDD"
-.menuFrame.bra.menu add separator
-.menuFrame.bra.menu add command -command menu_bra_exhaustive -label "Exhaustive statistic"
+$menubar.bra.menu add command -command menu_bra_swap_with_higher -label "Swap with higher"
+$menubar.bra.menu add command -command menu_bra_swap_with_lower -label "Swap with lower"
+$menubar.bra.menu add separator
+$menubar.bra.menu add command -command menu_bra_sifting -label "Sifting"
+$menubar.bra.menu add command -command menu_bra_sifting_on_function -label "Sifting on function"
+$menubar.bra.menu add command -command menu_bra_alphabetic -label "Set alphabetic ordering"
+$menubar.bra.menu add separator
+$menubar.bra.menu add command -command menu_bra_minimize -label "Minimize BDD"
+$menubar.bra.menu add command -command menu_bra_maximize -label "Maximize BDD"
+$menubar.bra.menu add separator
+$menubar.bra.menu add command -command menu_bra_exhaustive -label "Exhaustive statistic"
 
 proc menu_bra_swap_with_higher {  } {
-  global mainwin
-  global OS
-  global DOT_EXE
-  global BDDNAME
-
-  biddy_swap_with_higher [browse_variables_byName]
-  update_info
-
-  if {$BDDNAME != ""} {
-    set tmpfile "tmp.bddview"
-    if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
-      bddview_draw $tmpfile
-      file delete $tmpfile
-    }
-
-  }
+  bddscout_swap_with_higher [browse_variables_byName]
 }
 
 proc menu_bra_swap_with_lower {  } {
-  global mainwin
-  global OS
-  global DOT_EXE
-  global BDDNAME
-
-  biddy_swap_with_lower [browse_variables_byName]
-  update_info
-
-  if {$BDDNAME != ""} {
-    set tmpfile "tmp.bddview"
-    if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
-      bddview_draw $tmpfile
-      file delete $tmpfile
-    }
-
-  }
+  bddscout_swap_with_lower [browse_variables_byName]
 }
 
 proc menu_bra_sifting {  } {
-  global mainwin
-  global OS
-  global DOT_EXE
   global BDDNAME
+  global selectwin
 
   biddy_sifting
+  set name $BDDNAME
+  set BDDNAME ""
   update_info
-
-  if {$BDDNAME != ""} {
-    set tmpfile "tmp.bddview"
-    if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
-      bddview_draw $tmpfile
-      file delete $tmpfile
-    }
-
-  }
+  $selectwin.browser selection set $name
 }
 
 proc menu_bra_sifting_on_function {  } {
-  global mainwin
-  global OS
-  global DOT_EXE
   global BDDNAME
+  global selectwin
 
   if {$BDDNAME != ""} {
     biddy_sifting_on_function $BDDNAME
   } else {
     biddy_sifting_on_function [browse_formulae_byNodeNumber]
   }
+  set name $BDDNAME
+  set BDDNAME ""
   update_info
+  $selectwin.browser selection set $name
+}
 
-  if {$BDDNAME != ""} {
-    set tmpfile "tmp.bddview"
-    if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
-      bddview_draw $tmpfile
-      file delete $tmpfile
-    }
+proc menu_bra_alphabetic {  } {
+  global BDDNAME
+  global selectwin
 
-  }
+  biddy_set_alphabetic_ordering
+  set name $BDDNAME
+  set BDDNAME ""
+  update_info
+  $selectwin.browser selection set $name
 }
 
 proc menu_bra_minimize {  } {
-  global mainwin
-  global OS
-  global DOT_EXE
   global BDDNAME
+  global selectwin
 
   if {$BDDNAME != ""} {
     biddy_minimize $BDDNAME
   } else {
     biddy_minimize [browse_formulae_byNodeNumber]
   }
+  set name $BDDNAME
+  set BDDNAME ""
   update_info
-
-  if {$BDDNAME != ""} {
-    set tmpfile "tmp.bddview"
-    if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
-      bddview_draw $tmpfile
-      file delete $tmpfile
-    }
-
-  }
+  $selectwin.browser selection set $name
 }
 
 proc menu_bra_maximize {  } {
-  global mainwin
-  global OS
-  global DOT_EXE
   global BDDNAME
+  global selectwin
 
   if {$BDDNAME != ""} {
     biddy_maximize $BDDNAME
   } else {
     biddy_maximize [browse_formulae_byNodeNumber]
   }
+  set name $BDDNAME
+  set BDDNAME ""
   update_info
-
-  if {$BDDNAME != ""} {
-    set tmpfile "tmp.bddview"
-    if {[file executable $DOT_EXE] == 1} {
-      set tmpfile [bddscout_write_bddview $BDDNAME $tmpfile $DOT_EXE]
-      bddview_draw $tmpfile
-      file delete $tmpfile
-    }
-
-  }
+  $selectwin.browser selection set $name
 }
 
 proc menu_bra_exhaustive {  } {

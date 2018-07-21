@@ -1,0 +1,246 @@
+---
+title: "ANALYSIS OF VARIOUS BDD TYPES"
+author: "Robert Meolic"
+date: '`r format(Sys.Date(), "%d\\. %m\\. %Y")`'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Calculated with Biddy (biddy.meolic.com).
+
+Raw data are available in the SVN repository.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(digits=2)
+options(width=80)
+options(scipen=999)
+```
+
+```{r, echo=FALSE}
+OBDD <- "Ordered Binary Decision Diagram"
+OBDDCE <- "Ordered Binary Decision Diagram with complemented edges"
+ZBDD <- "Zero-suppressed Binary Decision Diagram"
+ZBDDCE <- "Zero-suppressed Binary Decision Diagram with complemented edges"
+TZBDD <- "Tagged Zero-suppressed Binary Decision Diagram"
+TZBDDCE <- "Tagged Zero-suppressed Binary Decision Diagram with complemented edges"
+```
+
+```{r, echo=FALSE}
+OBDDCOLOR <- "blue4"
+OBDDCECOLOR <- "blue1"
+ZBDDCOLOR <- "green4"
+ZBDDCECOLOR <- "green1"
+TZBDDCOLOR <- "brown4"
+TZBDDCECOLOR <- "brown1"
+```
+
+```{r, echo=FALSE}
+OBDDSTYLE <- 1
+OBDDCESTYLE <- 1
+ZBDDSTYLE <- 5
+ZBDDCESTYLE <- 5
+TZBDDSTYLE <- 4
+TZBDDCESTYLE <- 4
+```
+
+```{r, echo=FALSE}
+for (TYPE in c("OBDD","OBDDCE","ZBDD","ZBDDCE")) {
+  for (SIZE in c(2,3,4,5)) {
+    NAME <- paste("SUM.",TYPE,".0",SIZE,sep="")
+    FULLNAME <- paste(NAME,"FULL",sep=".")
+    FILENAME <- paste("~/est/r/","SUM-",TYPE,"-0",SIZE,".TXT",sep="")
+    TABLE <- read.table(FILENAME, header=TRUE, quote="\"")
+    data.table::setnames(TABLE,"NODES", "N")
+    assign(FULLNAME,TABLE)
+    IND <- (TABLE[[5]] != 0)
+    TABLE <- TABLE[IND, ]
+    TABLE$CMIN <- cumsum(as.numeric(TABLE$MIN))
+    TABLE$CMAX <- cumsum(as.numeric(TABLE$MAX))
+    TABLE$CBASE <- cumsum(as.numeric(TABLE$BASE))
+    TABLE$CALL <- cumsum(as.numeric(TABLE$ALL))
+    TABLE$RMIN <- formattable::percent(TABLE$CMIN / max(TABLE$CMIN))
+    TABLE$RMAX <- formattable::percent(TABLE$CMAX / max(TABLE$CMAX))
+    TABLE$RBASE <- formattable::percent(TABLE$CBASE / max(TABLE$CBASE))
+    TABLE$RALL <- formattable::percent(TABLE$CALL / max(TABLE$CALL))
+    assign(NAME,TABLE)
+    assign(paste("SIZE",TYPE,SIZE,sep=""),length(TABLE$N))
+  }
+}
+```
+
+# USED ACRONYMS
+
+```{r, echo=FALSE, results='asis'}
+for (TYPE in c("OBDD","OBDDCE","ZBDD","ZBDDCE")) {
+  cat(TYPE)
+  cat(" - ")
+  cat(get(TYPE))
+  cat("\n\n")
+}
+```
+
+MIN - Number of Boolean functions with n nodes using the optimal ordering
+
+MAX - Number of Boolean functions with n nodes using the worst ordering
+
+BASE - Number of Boolean functions with n nodes using the base ordering
+
+ALL - Number of BDDs with n nodes for all Boolean functions for all orderings
+
+```{r, echo=FALSE, fig.align='center', results='asis'}
+# thanks to Andrew Tyre for help with R
+# https://stackoverflow.com/questions/49560705/use-r-to-calculate-median-without-replicating-elements
+MIN <- "using the optimal ordering (MIN)"
+MAX <- "using the worst ordering (MAX)"
+BASE <- "using the base ordering (BASE)"
+for (TYPE in c("OBDD","OBDDCE","ZBDD","ZBDDCE")) {
+  for (SIZE in c(2,3,4,5)) {
+    NAME <- paste("SUM.",TYPE,".0",SIZE,sep="")
+    TABLE <- get(NAME)
+    STABLE <- data.frame(STAT = c("mean","median","mode"))
+    STABLE$MIN[1] <- Hmisc::wtd.mean(TABLE$N, weights = as.numeric(TABLE$MIN))
+    STABLE$MIN[2] <- Hmisc::wtd.quantile(TABLE$N, probs = c(0.5), weights = as.numeric(TABLE$MIN))
+    STABLE$MIN[3] <- TABLE$N[which.max(TABLE$MIN)]
+    STABLE$MAX[1] <- Hmisc::wtd.mean(TABLE$N, weights = as.numeric(TABLE$MAX))
+    STABLE$MAX[2] <- Hmisc::wtd.quantile(TABLE$N, probs = c(0.5), weights = as.numeric(TABLE$MAX))
+    STABLE$MAX[3] <- TABLE$N[which.max(TABLE$MAX)]
+    STABLE$BASE[1] <- Hmisc::wtd.mean(TABLE$N, weights = as.numeric(TABLE$BASE))
+    STABLE$BASE[2] <- Hmisc::wtd.quantile(TABLE$N, probs = c(0.5), weights = as.numeric(TABLE$BASE))
+    STABLE$BASE[3] <- TABLE$N[which.max(TABLE$BASE)]
+    PERCENTILES <- c(0.1, 0.25, 0.5, 0.75, 0.9)
+    PTABLE <- data.frame(PERCENTILE = formattable::percent(PERCENTILES,digits=0))
+    PTABLE$MIN <- Hmisc::wtd.quantile(TABLE$N, probs = PERCENTILES, weights = as.numeric(TABLE$MIN))
+    PTABLE$MAX <- Hmisc::wtd.quantile(TABLE$N, probs = PERCENTILES, weights = as.numeric(TABLE$MAX))
+    PTABLE$BASE <- Hmisc::wtd.quantile(TABLE$N, probs = PERCENTILES, weights = as.numeric(TABLE$BASE))
+    cat("\\pagebreak\n\n")
+    cat("#")
+    cat(TYPE)
+    cat(" for Boolean functions with ",SIZE," variables\n\n")
+    print(knitr::kable(TABLE[c(1,2,10,3,11,4,12,5,13)],row.names=FALSE))
+    cat("\n\n\\begin{center}\\begin{tabular}{p{0.3\\linewidth}p{0.1\\linewidth}p{0.3\\linewidth}}\n")
+    print(knitr::kable(PTABLE,row.names=FALSE,format="latex",booktabs=TRUE))
+    cat("\n&&\n")
+    print(knitr::kable(STABLE,row.names=FALSE,format.args=list(nsmall=2),format="latex",booktabs=TRUE))
+    cat("\\end{tabular}\\end{center}\\bigskip")
+    plot(TABLE$N,TABLE$N,ylim=c(0,1),cex.axis=0.8,cex.lab=0.8,lab=c(length(TABLE$N),8,0),mgp=c(2,1,0),xlab="Number of nodes",ylab="Fraction of realizable Boolean functions",type="n")
+    lines(TABLE$N,TABLE$RMIN,type="o", col="green")
+    lines(TABLE$N,TABLE$RMAX,type="o", col="red")
+    lines(TABLE$N,TABLE$RBASE,type="o", col="blue")
+    abline(h=0.0, lty=3, col="gray40")
+    abline(h=0.25, lty=3, col="gray40")
+    abline(h=0.5, lty=3, col="gray40")
+    abline(h=0.75, lty=3, col="gray40")
+    abline(h=1.0, lty=3, col="gray40")
+    legend(1,legend=c(MIN,MAX,BASE),col=c("green","red","blue"),lty=c(1,1,1),cex=0.8)
+    cat("\n\n")
+  }
+}
+```
+
+\pagebreak
+
+# BDD TYPE COMPARISONS
+
+```{r, echo=FALSE, results='asis'}
+RMIN <- "using the optimal ordering (MIN)"
+RMAX <- "using the worst ordering (MAX)"
+RBASE <- "using the base ordering (BASE)"
+for (PARAM in c("RMIN","RMAX","RBASE")) {
+  for (SIZE in c(2,3,4,5)) {
+    N <- max(get(paste("SIZEOBDD",SIZE,sep="")),get(paste("SIZEZBDD",SIZE,sep="")))
+    plot(0,xlim=c(1,N),ylim=c(0,1),cex.axis=0.8,cex.lab=0.8,lab=c(N,8,0),xlab="Number of nodes",ylab="",mgp=c(2,1,0),type="n")
+    abline(h=0.0, lty=3, col="gray40")
+    abline(h=0.25, lty=3, col="gray40")
+    abline(h=0.5, lty=3, col="gray40")
+    abline(h=0.75, lty=3, col="gray40")
+    abline(h=1.0, lty=3, col="gray40")
+    TT <- c()
+    CC <- c()
+    SS <- c()
+    for (TYPE in c("OBDD","OBDDCE","ZBDD","ZBDDCE")) {
+      NAME <- paste("SUM.",TYPE,".0",SIZE,sep="")
+      #cat("\n\n\\pagebreak\n\n")
+      TABLE <- get(NAME)
+      C <- get(paste(TYPE,"COLOR",sep=""))
+      S <- get(paste(TYPE,"STYLE",sep=""))
+      lines(TABLE$N,TABLE[[PARAM]],type="o",lty=S,col=C)
+      TT <- append(TT,TYPE)
+      CC <- append(CC,C)
+      SS <- append(SS,S)
+    }
+    title(paste("Fraction of realizable Boolean functions with ",SIZE," variables ",get(PARAM),sep=""),cex.main=0.8,line=1)
+    legend(1,legend=TT,col=CC,lty=SS,cex=0.8)
+    cat("\n\n\\bigskip\n\n")
+  }
+}
+```
+
+```{r, echo=FALSE, results='asis'}
+RMIN <- "using the optimal ordering (MIN)"
+RMAX <- "using the worst ordering (MAX)"
+RBASE <- "using the base ordering (BASE)"
+for (PARAM in c("RMIN","RMAX","RBASE")) {
+  plot(0,xlim=c(1,N),ylim=c(0,1),cex.axis=0.8,cex.main=0.8,,cex.lab=0.8,lab=c(N,8,0),xlab="Number of nodes",ylab="",mgp=c(2,1,0),type="n")
+  abline(h=0.0, lty=3, col="gray40")
+  abline(h=0.25, lty=3, col="gray40")
+  abline(h=0.5, lty=3, col="gray40")
+  abline(h=0.75, lty=3, col="gray40")
+  abline(h=1.0, lty=3, col="gray40")
+  for (SIZE in c(2,3,4,5)) {
+    N <- max(get(paste("SIZEOBDD",SIZE,sep="")),get(paste("SIZEZBDD",SIZE,sep="")))
+    TT <- c()
+    CC <- c()
+    SS <- c()
+    for (TYPE in c("OBDD","ZBDD")) {
+      NAME <- paste("SUM.",TYPE,".0",SIZE,sep="")
+      #cat("\n\n\\pagebreak\n\n")
+      TABLE <- get(NAME)
+      C <- get(paste(TYPE,"COLOR",sep=""))
+      S <- get(paste(TYPE,"STYLE",sep=""))
+      lines(TABLE$N,TABLE[[PARAM]],type="o", lty=S, col=C)
+      TT <- append(TT,TYPE)
+      CC <- append(CC,C)
+      SS <- append(SS,S)
+    }
+  }
+  title(paste("Fraction of realizable Boolean functions ",get(PARAM),sep=""),cex.main=0.8,line=1)
+  legend("bottomright",legend=TT,col=CC,lty=SS,cex=0.8)
+  cat("\n\n\\bigskip\n\n")
+}
+```
+
+```{r, echo=FALSE, results='asis'}
+RMIN <- "using the optimal ordering (MIN)"
+RMAX <- "using the worst ordering (MAX)"
+RBASE <- "using the base ordering (BASE)"
+for (PARAM in c("RMIN","RMAX","RBASE")) {
+  plot(0,xlim=c(1,N),ylim=c(0,1),cex.axis=0.8,cex.main=0.8,,cex.lab=0.8,lab=c(N,8,0),xlab="Number of nodes",ylab="",mgp=c(2,1,0),type="n")
+  abline(h=0.0, lty=3, col="gray40")
+  abline(h=0.25, lty=3, col="gray40")
+  abline(h=0.5, lty=3, col="gray40")
+  abline(h=0.75, lty=3, col="gray40")
+  abline(h=1.0, lty=3, col="gray40")
+  for (SIZE in c(2,3,4,5)) {
+    N <- max(get(paste("SIZEOBDD",SIZE,sep="")),get(paste("SIZEZBDD",SIZE,sep="")))
+    TT <- c()
+    CC <- c()
+    SS <- c()
+    for (TYPE in c("OBDDCE","ZBDDCE")) {
+      NAME <- paste("SUM.",TYPE,".0",SIZE,sep="")
+      #cat("\n\n\\pagebreak\n\n")
+      TABLE <- get(NAME)
+      C <- get(paste(TYPE,"COLOR",sep=""))
+      S <- get(paste(TYPE,"STYLE",sep=""))
+      lines(TABLE$N,TABLE[[PARAM]],type="o", lty=S, col=C)
+      TT <- append(TT,TYPE)
+      CC <- append(CC,C)
+      SS <- append(SS,S)
+    }
+  }
+  title(paste("Fraction of realizable Boolean functions ",get(PARAM),sep=""),cex.main=0.8,line=1)
+  legend("bottomright",legend=TT,col=CC,lty=SS,cex=0.8)
+  cat("\n\n\\bigskip\n\n")
+}
+```

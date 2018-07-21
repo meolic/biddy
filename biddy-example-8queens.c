@@ -1,14 +1,15 @@
-/* $Revision: 356 $ */
-/* $Date: 2017-12-13 22:30:46 +0100 (sre, 13 dec 2017) $ */
+/* $Revision: 456 $ */
+/* $Date: 2018-07-14 21:11:41 +0200 (sob, 14 jul 2018) $ */
 /* This file (biddy-example-8queens.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.7 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 
 /* COMPILE WITH (remove -static if you have Biddy as a dynamic library): */
 /* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DOBDD -DUNIX -O2 -o biddy-example-8queens-obdd biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DOBDDC -DUNIX -O2 -o biddy-example-8queens-obddc biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
+/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DZBDD -DUNIX -O2 -o biddy-example-8queens-zbdd biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DZBDDC -DUNIX -O2 -o biddy-example-8queens-zbddc biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DTZBDD -DUNIX -O2 -o biddy-example-8queens-tzbdd biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DNOREPORT -DEVENTLOG_NONE -DCUDD -DOBDDC -O2 -o cudd-example-8queens-obddc biddy-example-8queens.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
@@ -182,7 +183,7 @@ int main(int argc, char** argv) {
   {
     for (i=1; i<=size; i++) {
       for (j=1; j<=size; j++) {
-        board[i][j] = Biddy_AddVariable();
+        board[i][j] = Biddy_AddVariableEdge();
         REF(board[i][j]);
         board_not[i][j] = Biddy_Not(board[i][j]);
         REF(board_not[i][j]);
@@ -196,7 +197,7 @@ int main(int argc, char** argv) {
   {
     for (i=1; i<=size; i++) {
       for (j=1; j<=size; j++) {
-        board[size-i+1][size-j+1] = Biddy_AddVariable();
+        board[size-i+1][size-j+1] = Biddy_AddVariableEdge();
         board_not[size-i+1][size-j+1] = Biddy_Not(board[size-i+1][size-j+1]);
       }
     }
@@ -207,7 +208,7 @@ int main(int argc, char** argv) {
   {
     for (i=1; i<=size; i++) {
       for (j=1; j<=size; j++) {
-        board[i][j] = Biddy_AddVariable();
+        board[i][j] = Biddy_AddVariableEdge();
         REF(board[i][j]);
         board_not[i][j] = Biddy_Not(board[i][j]);
         REF(board_not[i][j]);
@@ -218,7 +219,7 @@ int main(int argc, char** argv) {
 
   /* for ZBDDs, by adding new variables all the existing variables are changed */
   /* after adding the last variable we have to refresh edges in board[i][j] and board_not[i][j] */
-  /* NOTE: for Biddy, ZBDD variables are added in the reverse order */
+  /* NOTE: for Biddy, ZBDDs variables are added in the reverse order */
   /* NOTE: for Biddy, user variables start with index 1 */
   /* NOTE: for CUDD, user variables start with index 0 */
   if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
@@ -259,7 +260,8 @@ int main(int argc, char** argv) {
     }
   }
 
-/* For OBDDs, ZBDDs and TZBDDs, preserve board_not[i][j], because they are not a simple complemented edge */
+/* for OBDD, ZBDD, ZBDDC, and TZBDD, preserve board_not[i][j] */
+/* this is not needed for OBDDC because they are simple complemented edges */
 /* TO DO: replace Biddy_AddPersistentFormula with the correct MARK_N */
 #ifdef BIDDY
 #ifdef NOT_POSTPONE
@@ -830,17 +832,21 @@ int main(int argc, char** argv) {
   /* RESULT */
 #ifdef REPORT
   printf("\n");
-  n = Biddy_DependentVariableNumber(r);
-  printf("Resulting function r has %.0f minterms.\n",Biddy_CountMinterms(r,n));
-  printf("Resulting function r depends on %u variables.\n",n);
-  printf("BDD for resulting function r has %u nodes.\n",Biddy_CountNodes(r));
+  n = Biddy_DependentVariableNumber(r,FALSE);
+  printf("Resulting function has %.0f minterms.\n",Biddy_CountMinterms(r,n));
+  printf("Resulting function depends on %u variables.\n",n);
+  printf("BDD for resulting function has %u nodes.\n",Biddy_CountNodes(r));
   printf("BDD for the resulting function has density = %.2f.\n",Biddy_DensityOfBDD(r,0));
 #ifdef BIDDY
   printf("Resulting function has density = %e.\n",Biddy_DensityOfFunction(r,0));
-  printf("BDD without complemented edges for resulting function r has %u nodes (including both terminals).\n",Biddy_CountNodesPlain(r));
+  if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
+  {
+    printf("BDD for resulting function has %u complemented edges.\n",Biddy_CountComplementedEdges(r));
+    printf("BDD without complemented edges for resulting function has %u nodes.\n",Biddy_CountNodesPlain(r));
+  }
 #endif
 #else
-  n = Biddy_DependentVariableNumber(r);
+  n = Biddy_DependentVariableNumber(r,FALSE);
   printf("%.0f minterms, %u nodes\n",Biddy_CountMinterms(r,n),Biddy_CountNodes(r));
 #endif
 
@@ -849,26 +855,28 @@ int main(int argc, char** argv) {
   {
   Biddy_Manager MNGOBDD;
   Biddy_Edge obdd;
-  Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDDC);
+  Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
   obdd = Biddy_Copy(MNGOBDD,r);
   n = Biddy_Managed_DependentVariableNumber(MNGOBDD,obdd);
   printf("Function represented by the equivalent OBDD depends on %u variables.\n",n);
+  printf("Function represented by the equivalent OBDD has %u nodes = %e.\n",Biddy_Managed_CountNodes(MNGOBDD,obdd));
   printf("Function represented by the equivalent OBDD has %.0f minterms.\n",Biddy_Managed_CountMinterms(MNGOBDD,obdd,n));
   printf("Function represented by the equivalent OBDD has density = %e.\n",Biddy_Managed_DensityOfFunction(MNGOBDD,obdd,0));
-  printf("Equivalent OBDD has %u nodes.\n",Biddy_Managed_CountNodes(MNGOBDD,obdd));
-  printf("Equivalent OBDD without complemented edges for resulting function r has %u nodes (including both terminals).\n",Biddy_Managed_CountNodesPlain(MNGOBDD,obdd));
-  printf("Equivalent OBDD has density = %.2f.\n",Biddy_Managed_DensityOfBDD(MNGOBDD,obdd,0));
   }
   */
 
-  /* CONVERT TO ZBDD AND REPORT THE SIZE OF THE EQUIVALENT TZBDD - Biddy ONLY! */
+  /* CONVERT TO ZBDD AND REPORT THE SIZE OF THE EQUIVALENT ZBDD - Biddy ONLY! */
   /*
   {
   Biddy_Manager MNGZBDD;
   Biddy_Edge zbdd;
-  Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDDC);
+  Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
   zbdd = Biddy_Copy(MNGZBDD,r);
-  printf("ZBDD for function r has %u nodes.\n",Biddy_Managed_CountNodes(MNGZBDD,zbdd));
+  n = Biddy_Managed_DependentVariableNumber(MNGZBDD,obdd);
+  printf("Function represented by the equivalent ZBDD depends on %u variables.\n",n);
+  printf("Function represented by the equivalent ZBDD has %u nodes = %e.\n",Biddy_Managed_CountNodes(MNGZBDD,zbdd));
+  printf("Function represented by the equivalent ZBDD has %.0f minterms.\n",Biddy_Managed_CountMinterms(MNGZBDD,zbdd,n));
+  printf("Function represented by the equivalent ZBDD has density = %e.\n",Biddy_Managed_DensityOfFunction(MNGZBDD,zbdd,0));
   }
   */
 
@@ -879,8 +887,12 @@ int main(int argc, char** argv) {
   Biddy_Edge tzbdd;
   Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
   tzbdd = Biddy_Copy(MNGTZBDD,r);
-  printf("TZBDD for function r has %u nodes.\n",Biddy_Managed_CountNodes(MNGTZBDD,tzbdd));
-  }  
+  n = Biddy_Managed_DependentVariableNumber(MNGTZBDD,obdd);
+  printf("Function represented by the equivalent TZBDD depends on %u variables.\n",n);
+  printf("Function represented by the equivalent TZBDD has %u nodes = %e.\n",Biddy_Managed_CountNodes(MNGTZBDD,tzbdd));
+  printf("Function represented by the equivalent TZBDD has %.0f minterms.\n",Biddy_Managed_CountMinterms(MNGTZBDD,tzbdd,n));
+  printf("Function represented by the equivalent TZBDD has density = %e.\n",Biddy_Managed_DensityOfFunction(MNGTZBDD,tzbdd,0));
+  }
   */
 
   /* DUMP RESULT USING GRAPHVIZ/DOT */
@@ -914,7 +926,7 @@ int main(int argc, char** argv) {
   Cudd_ReduceHeap(manager,CUDD_REORDER_SIFT,0);
 #endif
 #ifdef REPORT
-  n = Biddy_DependentVariableNumber(r);
+  n = Biddy_DependentVariableNumber(r,FALSE);
   printf("(AFTER SIFTING) Resulting function r depends on %u variables.\n",n);
   printf("(AFTER SIFTING) Resulting function r has %.0f minterms.\n",Biddy_CountMinterms(r,n));
   printf("(AFTER SIFTING) BDD for resulting function r has %u nodes.\n",Biddy_CountNodes(r));
@@ -929,6 +941,9 @@ int main(int argc, char** argv) {
   else if (Biddy_GetManagerType() == BIDDYTYPEOBDDC) {
     fprintf(stderr,"(OBDDC) ");
   }
+  else if (Biddy_GetManagerType() == BIDDYTYPEZBDD) {
+    fprintf(stderr,"(ZBDD) ");
+  }
   else if (Biddy_GetManagerType() == BIDDYTYPEZBDDC) {
     fprintf(stderr,"(ZBDDC) ");
   }
@@ -939,7 +954,7 @@ int main(int argc, char** argv) {
     fprintf(stderr,"(unknown BDD type)");
     exit(0);
   }
-  n = Biddy_DependentVariableNumber(r);
+  n = Biddy_DependentVariableNumber(r,FALSE);
   fprintf(stderr,"Resulting function r has %.0f minterms.\n",Biddy_CountMinterms(r,n));
   */
 #endif
@@ -948,7 +963,7 @@ int main(int argc, char** argv) {
   /*
   fprintf(stderr,"clock() TIME = %.2f\n",elapsedtime/(1.0*CLOCKS_PER_SEC));
   */
-            
+
 #ifdef REPORT
   printf("\nCALCULATION FINISHED\n");
 #endif
@@ -975,24 +990,22 @@ int main(int argc, char** argv) {
   if (Biddy_NodeTableAddNumber()) {
     fprintf(stderr,"%llu, ",Biddy_NodeTableAddNumber());
   }
-*/
-  fprintf(stderr,"%u, ",Biddy_NodeTableGCNumber());
   if (Biddy_NodeTableGCObsoleteNumber()) {
     fprintf(stderr,"%llu, ",Biddy_NodeTableGCObsoleteNumber());
   }
   if (Biddy_NodeTableANDORRecursiveNumber()) {
     fprintf(stderr,"%llu, ",Biddy_NodeTableANDORRecursiveNumber());
   }
-  fprintf(stderr,"%.2f, ",Biddy_NodeTableGCTime()/(1.0*CLOCKS_PER_SEC));
-  fprintf(stderr,"%.2f",elapsedtime/(1.0*CLOCKS_PER_SEC));
-  fprintf(stderr,",\n");
+*/
 #endif
 #ifdef CUDD
   fprintf(stderr,"%u, ",size);
   fprintf(stderr,"%zu, ",Cudd_ReadMemoryInUse(manager));
-  fprintf(stderr,"0, ");
-  fprintf(stderr,"%.2f\n",elapsedtime/(1.0*CLOCKS_PER_SEC));
 #endif
+  fprintf(stderr,"%u, ",Biddy_NodeTableGCNumber());
+  fprintf(stderr,"%u, ",(unsigned int)Biddy_NodeTableGCTime());
+  fprintf(stderr,"%.2f",elapsedtime/(1.0*CLOCKS_PER_SEC));
+  fprintf(stderr,",\n");
   /**/
 
   /* PROFILING */

@@ -34,7 +34,7 @@ Changes in 0.99
 - released on Oct 10, 2016
 - support for ZBDDs and ZFDDs
 - support for tagged ZBDDs and tagged ZFDDs
-- added example2.bddview and example3.bddview
+- improved examples
 
 Changes in 1.0
 - released on Feb 14, 2017
@@ -49,3 +49,11 @@ Changes in 1.1
 Changes in 1.2
 - released on Dec 18, 2017
 - to support correct drawing of TZBDDs, tag "0" is not shown
+
+Changes in 1.3
+- released on Jun 5, 2018
+- extended bddview format (added type and var)
+- bends are now optional
+- added export to Tex/TikZ
+- new toolbar icons
+- improved examples

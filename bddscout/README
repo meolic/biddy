@@ -14,45 +14,51 @@ bddview is a pure Tcl/Tk script for visualization of BDDs.
 
 Homepage: http://biddy.meolic.com/
 
-
 BDD Scout consists of the following files:
 
-  README		- some notes (general)
-  README.*	- some notes (for different systems)
-  CHANGES		- history of changes
-  COPYING		- license file
-  VERSION		- version file
-  Makefile	- Makefile
-  Makefile.Linux	- Makefile for GNU/Linux
-  Makefile.MINGW	- Makefile for MS Windows
-  Makefile.Darwin	- Makefile for MacOS
-  bddscout.h		- header
-  bddscoutTcl.h	- header
-  bddscout.c		- main functions
-  bddscoutTcl.c	- tcl related functions
-  pkgIndex.tcl		- tcl specific file
-  bddscout.tcl		- tcl/tk GUI (an extension of bddview)
-  bddscoutDecls.h	- stub mechanism allows binary extensions
-  bddscoutStubInit.c	- stub mechanism allows binary extensions
-  bddscoutStubLib.c	- stub mechanism allows binary extensions
-  bddscoutIFIP.c	- bddscout extension (IFIP benchmark)
-  bddscoutIFIP.tcl	- bddscout extension (IFIP benchmark)
-  pkgExtensionIFIP.tcl	- bddscout extension (IFIP benchmark)
-  bddscoutBRA.c	- bddscout extension (Best Reordering Algorithm)
-  bddscoutBRA.tcl	- bddscout extension (Best Reordering Algorithm)
-  pkgExtensionBRA.tcl	- bddscout extension (Best Reordering Algorithm)
-  bddscoutBDDTRACES.c	- bddscout extension (BDD traces)
-  bddscoutBDDTRACES.tcl	- bddscout extension (BDD traces)
-  pkgExtensionBDDTRACES.tcl	- bddscout extension (BDD traces)
-  example.bdd		- example file
-  example.bf		- example file
-  package-bin		- script used to build distribution
-  package-bin.bat	- script used to build distribution
-  package-tgz		- script used to build distribution
-  package-deb		- script used to build distribution
-  package-rpm		- script used to build distribution
-  debian/*		- used when creating deb files
-  rpm/*			- used when creating rpm files
+  README    - some notes (general)
+  README.*  - some notes (for different systems)
+  CHANGES   - history of changes
+  COPYING   - license file
+  VERSION   - version file
+  Makefile  - Makefile
+  Makefile.Linux  - Makefile for GNU/Linux
+  Makefile.MINGW  - Makefile for MS Windows
+  Makefile.Darwin - Makefile for MacOS
+  bddscout.h      - header
+  bddscoutTcl.h   - header
+  bddscout.c      - main functions
+  bddscoutTcl.c   - tcl related functions
+  pkgIndex.tcl    - tcl specific file
+  bddscout.tcl    - tcl/tk GUI (an extension of bddview)
+  bddscoutDecls.h - stub mechanism allows binary extensions
+  bddscoutStubInit.c  - stub mechanism allows binary extensions
+  bddscoutStubLib.c - stub mechanism allows binary extensions
+  example.bdd     - example file
+  example.bf      - example file
+  create/*        - tcl scripts for creating various Boolean functions
+  scripts/*       - tcl scripts for various examples
+  package-bin     - bash script used to build distribution
+  package-bin.bat - batch script used to build distribution
+  package-tgz     - batch script for MSYS2 used to build distribution
+  package-deb     - bash script used to build distribution
+  package-rpm     - bash script used to build distribution
+  debian/*        - used when creating deb files
+  rpm/*           - used when creating rpm files
+
+Available modules:
+
+  bddscoutIFIP.c  - bddscout extension (IFIP benchmark)
+  bddscoutIFIP.tcl  - bddscout extension (IFIP benchmark)
+  pkgExtensionIFIP.tcl  - bddscout extension (IFIP benchmark)
+
+  bddscoutBRA.c  - bddscout extension (Best Reordering Algorithm)
+  bddscoutBRA.tcl  - bddscout extension (Best Reordering Algorithm)
+  pkgExtensionBRA.tcl  - bddscout extension (Best Reordering Algorithm)
+
+  bddscoutBDDTRACES.c  - bddscout extension (BDD traces)
+  bddscoutBDDTRACES.tcl  - bddscout extension (BDD traces)
+  pkgExtensionBDDTRACES.tcl  - bddscout extension (BDD traces)
 
 ========================================
 RUNNING precompiled version of BDD Scout
@@ -74,15 +80,16 @@ Optionally,
 - you can install Graphviz package to be able to visualize BDDs
   created by Biddy package (http://www.graphviz.org/)
 - you can install Ghostscript package to be able to export BDDs as
-  PNG images and PDF documents. (http://pages.cs.wisc.edu/~ghost/)
+  PNG images and PDF documents. (https://www.ghostscript.com/download.html)
 
 The path to the executables from Graphviz and Ghostscript package
-is given in file bddscout.tcl, lines 20-41. Please, check it!
+is given in file bddscout.tcl. Please, check it! You can use
+File/Options dialog to change them on-the-fly.
 
 On GNU/Linux, if you get installation error: "nothing provides
-libtcl8.5.so.0" ignore it and manualy create the following links:
-> ln -s /usr/lib/libtk8.5.so /usr/lib/libtk8.5.so.0
-> ln -s /usr/lib/libtcl8.5.so /usr/lib/libtcl8.5.so.0
+libtcl8.x.so.0" ignore it and manualy create the following links:
+> ln -s /usr/lib/libtk8.x.so /usr/lib/libtk8.x.so.0
+> ln -s /usr/lib/libtcl8.x.so /usr/lib/libtcl8.x.so.0
 
 On GNU/Linux, if main program /usr/bin/bddscout is not starting
 properly you can try the following command:
@@ -99,8 +106,8 @@ You should not link your extension against Biddy library!
 BUILDING your own version of BDD Scout
 ======================================
 
-Zip packages includes complete source code, thus it serves as a good
-starting and reference example.
+Zip packages includes complete source code, thus they serve as a good
+starting and reference examples.
 
 BDD Scout is free software and your are welcome to change it
 (please, respect GPL)!
@@ -132,18 +139,14 @@ bddscout> make clean "BINDIR = `pwd`/bin"
 
 bddscout> ./package-bin
 
-or
-
-bddscout> export CFLAGS=-m64;./package-bin 
-
 This should  create BDD Scout  (staticaly linked with  Biddy library).
-The script  will produce a zip  file. You install BDD Scout by  simply
+The script  will produce a zip  file. You install BDD Scout by simply
 unzip to the target directory.
 
 You need a zip program.
 
 On MS Windows, you  need 7-Zip (http://7-zip.org/) - and it has a strange
-use of -x! You also   need   file   7zsd_All_x64.sfx  that   you   should 
+use of -x! You also  need file 7zsd_All_x64.sfx  that you should
 download  as part of "7z SFX Tools" from http://7zsfx.info/en/ and put
 in the directory containing 7z.exe.
 
@@ -167,52 +170,69 @@ BDD Scout is builded on bddview thus the native
 data format used in Open/Save is bddview format,
 which uses the followin keywords:
 
-label <n> <name> <x> <y>
-node <n> <name> <x> <y>
-terminal <n> 1 <x> <y>
-connect <n1> <n2> <type>
-
-<n> is the unique number (integer)
-<name> is a string
-<x> and <y> are coordinates (integer)
-<type> is one of the following:
-s : single line
-si : inverted single line
-r : line to 'then' succesor
-l : line to 'else' successor
-li : inverted line to 'else' successor
-d : double line
-
-REMARKS:
-1. (0,0) is top left corner.
-2. Only one label is supported.
-3. Single line (or inverted single line) should be
-   used to connect a label and a node.
-4. Line to the right successor can not be inverted.
-5. When using double line, the line to the left succesor
-   is always inverted.
-
-Example (example.bddview):
----
-label 0 "Biddy" 100.0 10
-node 1 "B" 100 60
-node 2 "i" 100 125
-node 3 "d" 50 175
-terminal 4 1 50 240
-node 5 "y" 100 225
-terminal 6 1 100 290
-node 7 "d" 150 175
-terminal 8 1 150 240
-connect 0 1 s
-connect 1 2 d
-connect 2 3 l
-connect 2 7 r
-connect 3 4 l
-connect 3 5 r
-connect 5 6 d
-connect 7 5 l
-connect 7 8 r
----
+# type <bddtype>
+# var <variablelist>
+# label <n> <name> <x> <y>
+# node <n> <name> <x> <y>
+# terminal <n> <name> <x> <y>
+# connect <n1> <n2> <class> <tag1> <tag2>
+#
+# "type" is optional, supported BDD types are ROBDD, ROBDDCE, ZBDD, ZBDDCE, TZBDD, TZBDDCE
+# "var" is optional, variables in <variablelist> are separated by space
+# <n>, <n1>, and <n2> are the unique sequence numbers (integer)
+# <name> is function's, variable's, or terminal's name, respectively (string)
+# <x> and <y> are coordinates (float)
+# <tag1> and <tag2> are variable's name, only used for TZBDD and TZBDDCE
+# <class> is one of the following:
+# s : single line
+# si : inverted single line
+# r : line to 'then' succesor
+# ri : inverted line to 'then' succesor
+# l : line to 'else' successor
+# li : inverted line to 'else' successor
+# d : double line ('else' successor inverted)
+# di : double line ('then' succesor inverted)
+# e : double line (none succesor inverted)
+# ei : double line (both succesors inverted)
+#
+# REMARKS:
+# 1. (0,0) is top left corner.
+# 2. Only one label is supported.
+# 3. If <variablelist> is given it determines the ordering of the listed variables.
+# 4. Single line (or inverted single line) must be used to connect a label and a node.
+# 5. Terminal's name must be either 0 or 1.
+# 6. Function's, variable's, and terminal's name can be given with or without
+#    quotation marks (in the last case the name must not include spaces)
+# 7. In an "incomplete bddview format" coordinates are omitted,
+#    such format cannot be used with bddview but it can be handled by BDD Scout
+#
+# EXAMPLE (example-robdd.bddview):
+# ---------------------------------------------------
+#type ROBDD
+#var "B" "i" "d" "y"
+#label 0 "Biddy" 58.0 18.0
+#node 1 "B" 58.0 90.0
+#terminal 2 "0" 28.0 162.0
+#node 3 "i" 90.0 162.0
+#node 4 "d" 64.0 234.0
+#terminal 5 "0" 28.0 306.0
+#node 6 "y" 90.0 306.0
+#terminal 7 "0" 54.0 378.0
+#terminal 8 "1" 126.0 378.0
+#node 9 "d" 118.0 234.0
+#terminal 10 "1" 154.0 306.0
+#connect 0 1 s
+#connect 1 2 l
+#connect 1 3 r
+#connect 3 4 l
+#connect 3 9 r
+#connect 4 5 l
+#connect 4 6 r
+#connect 6 7 l
+#connect 6 8 r
+#connect 9 6 l
+#connect 9 10 r
+# ---------------------------------------------------
 
 BDD Scout can import BDD given in prefix form:
 1. the first word is the name of BDD
@@ -229,23 +249,26 @@ B (* i (d (1) (y (* 1) (1))) (d (y (* 1) (1)) (1)))
   (  i (d (1) (y (* 1) (1))) (d (y (* 1) (1)) (1)))
 ---
 
-BDD Scout can import Boolean functions given in prefix form:
-1. the file is started with the set of variables given
-   in parenthesis - this is optional and is used
-   to give variable ordering
-2. there can be many Boolean functions in the same file
-3. one Boolean function can go over many lines, the only
-   requirement is that the function name and symbol "=" are
-   given in the same line 4. supported operators are NOT, OR,
-   AND, and EXOR
-
-Example (example.bf):
----
-(B i d y)
-s1 = (or B (not y))
-s2 =  (or B i d)
-s3 = (or B (not i) (not d))
-s4 = (or (not B) i (not d) y)
-s5 = (or (not B) (not i) d y)
-Biddy = (and s1 s2 s3 s4 s5)
----
+# BDD Scout can import Boolean function given in the
+# prefix form:
+# 1. the file is started with the set of variables given
+#    in parenthesis - this is optional and is used
+#    to give variable ordering
+# 2. there can be many Boolean functions in the same file
+# 3. one Boolean function can go over many lines, the only
+#    requirement is that function name and symbol "=" are
+#    given in the same line
+# 4. everything is converted to upper case
+# 5. supported operators are OR, AND, and EXOR
+#
+# Example (example.bf):
+# ---------------------------------------------------
+# (B i d y)
+#
+# s1 = (or B (not y))
+# s2 = (or B i d)
+# s3 = (or B (not i) (not d))
+# s4 = (or (not B) i (not d) y)
+# s5 = (or (not B) (not i) d y)
+# Biddy = (and s1 s2 s3 s4 s5)
+# ---------------------------------------------------

@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutBenchmark.c]
-  Revision    [$Revision: 319 $]
-  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+  Revision    [$Revision: 451 $]
+  Date        [$Date: 2018-06-26 12:07:56 +0200 (tor, 26 jun 2018) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description [File bddscoutBenchmark.c is used for profiling.]
   SeeAlso     []
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM FERI
+               Copyright (C) 2008, 2018 UM FERI
                UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
@@ -45,7 +45,7 @@ perf report
 #include "bddscout.h"
 #include "bddscoutIFIP.c"
 
-Biddy_Manager MNGROBDD,MNGROBDDCE,MNGZBDDCE,MNGTZBDD;
+Biddy_Manager MNGROBDD,MNGROBDDCE,MNGZBDD,MNGZBDDCE,MNGTZBDD;
 
 #define BDDTYPE BIDDYTYPEOBDDC
 
@@ -121,13 +121,13 @@ void doDEBUG1 ()
 
   Biddy_Managed_PrintfSOP(MNGTZBDD,f);
 
-  Biddy_Managed_CopyFormula(MNGTZBDD,MNGZBDDCE,"F");
+  Biddy_Managed_CopyFormula(MNGTZBDD,MNGZBDD,"F");
 
-  Biddy_Managed_FindFormula(MNGZBDDCE,"F",&idx,&f);
-  Biddy_Managed_PrintfBDD(MNGZBDDCE,f);
+  Biddy_Managed_FindFormula(MNGZBDD,"F",&idx,&f);
+  Biddy_Managed_PrintfBDD(MNGZBDD,f);
   printf("\n");
 
-  Biddy_Managed_PrintfSOP(MNGZBDDCE,f);
+  Biddy_Managed_PrintfSOP(MNGZBDD,f);
 }
 
 void doDEBUG2 ()
@@ -159,7 +159,7 @@ void doIFIP ()
   FILE *funfile;
   Biddy_String report;
   char *saveptr;
-  
+
   list = strdup(LIST);
   s2 = malloc(255);
 
@@ -178,7 +178,7 @@ void doIFIP ()
     }
     s1 = strtok_r(NULL," ",&saveptr);
   }
-  
+
   free(list);
   free(s2);
 }
@@ -187,6 +187,7 @@ int main(int argc, char *argv[])
 {
   Biddy_InitMNG(&MNGROBDD,BIDDYTYPEOBDD);
   Biddy_InitMNG(&MNGROBDDCE,BIDDYTYPEOBDDC);
+  Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
   Biddy_InitMNG(&MNGZBDDCE,BIDDYTYPEZBDDC);
   Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
   Biddy_InitAnonymous(BDDTYPE);
@@ -196,6 +197,7 @@ int main(int argc, char *argv[])
 
   Biddy_ExitMNG(&MNGROBDD);
   Biddy_ExitMNG(&MNGROBDDCE);
+  Biddy_ExitMNG(&MNGZBDD);
   Biddy_ExitMNG(&MNGZBDDCE);
   Biddy_ExitMNG(&MNGTZBDD);
   Biddy_Exit();

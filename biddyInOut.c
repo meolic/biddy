@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 355 $]
-    Date        [$Date: 2017-12-12 22:57:11 +0100 (tor, 12 dec 2017) $]
+    Revision    [$Revision: 450 $]
+    Date        [$Date: 2018-06-25 12:35:18 +0200 (pon, 25 jun 2018) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net),
                  Jan Kraner (jankristian.kraner@student.um.si),
@@ -24,7 +24,7 @@
 
 ### Copyright
 
-Copyright (C) 2006, 2017 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2018 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -46,27 +46,9 @@ See also: biddy.h, biddyInt.h
 
 #include "biddyInt.h"
 
-/* the following types are used in Biddy_Eval2() */
-
-typedef struct {
-  int parent;
-  int left;
-  int right;
-  int index;
-  unsigned char op;
-  Biddy_String name;
-} BTreeNode;
-
-typedef struct {
-  BTreeNode *tnode;
-  int availableNode;
-} BTreeContainer;
-
 /* the following constants and types are used in Biddy_ReadVerilogFile() */
-
 #define LINESIZE 999 /* maximum length of each input line read */
 #define BUFSIZE 99999 /* maximum length of a buffer */
-
 #define INOUTNUM 999 /* maximum number of inputs and outputs */
 #define REGNUM 9999 /* maximum number of registers */
 #define TOKENNUM 9999 /* maximum number of tokens */
@@ -92,57 +74,6 @@ const char* VerilogFileGateName[] = {
   "not", "inv"
 };
 
-typedef struct { /* table of lines is used to store acceptable lines */
-  Biddy_String keyword;
-  Biddy_String line;
-} VerilogLine;
-
-typedef struct { /* table of nodes is used to store names of all symbols */
-  Biddy_String type; /* input, output, wire, gate, extern */
-  Biddy_String name; /* node name */
-} VerilogNode;
-
-typedef struct { /* wires are primary inputs and gates */
-  int id; /* input/gate ID number */
-  Biddy_String type; /* type of a signal driving this wire, "I" for primary input, "W" for internal wire */
-  unsigned int inputcount; /* number of input/gate inputs */
-  int inputs[INOUTNUM]; /* array of inputs */
-  unsigned int outputcount; /* number of input/gate outputs - currently not used */
-  int outputs[INOUTNUM]; /* array of outputs - currently not used */
-  int fanout; /* how many times this wire is used as an input to some gate or another wire */
-  int ttl; /* tmp nuber used to guide GC during the creation of BDD */
-  Biddy_Edge bdd; /* BDD associated with the wire/gate */
-} VerilogWire;
-
-typedef struct {
-  char *name; /* name of the module */
-  Biddy_Boolean outputFirst; /* TRUE iff "nand NAND2_1 (N1, N2, N3);" defines N1 = NAND(N2,N3) */
-  unsigned int inputcount, outputcount; /* count of primary inputs and primary outputs. */
-  unsigned int wirecount, regcount, gatecount; /* count of wires ,regs, gates */
-  Biddy_String inputs[INOUTNUM], outputs[INOUTNUM]; /* name list of primary inputs and primary outputs in the netlist */
-  Biddy_String wires[WIRENUM]; /* name list of wires in the netlist */
-  Biddy_String regs[REGNUM]; /* name list of regs in the netlist */
-  Biddy_String gates[GATENUM]; /* name list of gates in the netlist */
-} VerilogModule;
-
-typedef struct {
-  Biddy_String name; /* name of the circuit */
-  unsigned int inputcount, outputcount; /* number of primary inputs and primary outputs */
-  unsigned int nodecount, wirecount; /* number of nodes and wires */
-  Biddy_String inputs[INOUTNUM], outputs[INOUTNUM]; /* name list of primary inputs and primary outputs in the netlist */
-  VerilogWire **wires; /* array of all wires */
-  VerilogNode **nodes; /* array of nodes */
-} VerilogCircuit;
-
-/* the following type is used in Biddy_PrintfSOP() and Biddy_WriteSOP() */
-
-typedef struct VarList {
-  struct VarList *next;
-  Biddy_Variable v;
-  Biddy_Boolean negative;
-} VarList;
-
-
 /*----------------------------------------------------------------------------*/
 /* Static function prototypes                                                 */
 /*----------------------------------------------------------------------------*/
@@ -164,25 +95,25 @@ static int Op(Biddy_String s, int *i, Biddy_String *ch);
 
 /* Functions createVariablesFromBTree and createBddFromBTree() are used in Biddy_Eval2(). */
 
-static void createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree);
-static Biddy_Edge createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i);
+static void createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree);
+static Biddy_Edge createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i);
 
 /* The following functions are used in Biddy_ReadVerilogFile(). */
-static void parseVerilogFile(FILE *verilogfile, unsigned int *l, VerilogLine ***lt, unsigned int *n, VerilogModule ***mt);
-static void createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modulecount, VerilogModule **mt, VerilogCircuit *c);
-static void createBddFromVerilogCircuit(Biddy_Manager MNG, VerilogCircuit *c, Biddy_String prefix);
+static void parseVerilogFile(FILE *verilogfile, unsigned int *l, BiddyVerilogLine ***lt, unsigned int *n, BiddyVerilogModule ***mt);
+static void createVerilogCircuit(unsigned int linecount, BiddyVerilogLine **lt, unsigned int modulecount, BiddyVerilogModule **mt, BiddyVerilogCircuit *c);
+static void createBddFromVerilogCircuit(Biddy_Manager MNG, BiddyVerilogCircuit *c, Biddy_String prefix);
 static void parseSignalVector(Biddy_String signal_arr[], Biddy_String token[], unsigned int *index, unsigned int *count);
-static void printModuleSummary(VerilogModule *m);
-static void printCircuitSummary(VerilogCircuit *c);
+static void printModuleSummary(BiddyVerilogModule *m);
+static void printCircuitSummary(BiddyVerilogCircuit *c);
 static Biddy_Boolean isGate(Biddy_String word);
 static Biddy_Boolean isSignalVector(Biddy_String word);
 static Biddy_Boolean isEndOfLine(Biddy_String source);
-static Biddy_Boolean isDefined(VerilogCircuit *c, Biddy_String name);
-static void buildNode(VerilogNode *n, Biddy_String type, Biddy_String name);
-static void buildWire(VerilogCircuit *c, VerilogWire *w, Biddy_String type, Biddy_String name);
-static int getNodeIdByName(VerilogCircuit *c, Biddy_String name);
-static VerilogWire *getWireById(VerilogCircuit *c, int id);
-static VerilogWire *getWireByName(VerilogCircuit *c, Biddy_String name);
+static Biddy_Boolean isDefined(BiddyVerilogCircuit *c, Biddy_String name);
+static void buildNode(BiddyVerilogNode *n, Biddy_String type, Biddy_String name);
+static void buildWire(BiddyVerilogCircuit *c, BiddyVerilogWire *w, Biddy_String type, Biddy_String name);
+static int getNodeIdByName(BiddyVerilogCircuit *c, Biddy_String name);
+static BiddyVerilogWire *getWireById(BiddyVerilogCircuit *c, int id);
+static BiddyVerilogWire *getWireByName(BiddyVerilogCircuit *c, Biddy_String name);
 static Biddy_String trim(Biddy_String source);
 static void concat(char **s1, const char *s2);
 
@@ -196,10 +127,10 @@ static void WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned i
 
 /* The following functions are used in Biddy_PrintfSOP() in Biddy_WriteSOP(). */
 
-static void WriteProduct(Biddy_Manager MNG, VarList *l);
-static void WriteProductx(Biddy_Manager MNG, FILE *s, VarList *l);
-static void WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, VarList *l, unsigned int *maxsize);
-static void WriteSOPx(Biddy_Manager MNG, FILE *s, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, VarList *l, unsigned int *maxsize);
+static void WriteProduct(Biddy_Manager MNG, BiddyVarList *l);
+static void WriteProductx(Biddy_Manager MNG, FILE *s, BiddyVarList *l);
+static void WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, BiddyVarList *l, unsigned int *maxsize);
+static void WriteSOPx(Biddy_Manager MNG, FILE *s, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, BiddyVarList *l, unsigned int *maxsize);
 
 /* The following functions are used in Biddy_WriteDot(). */
 
@@ -252,16 +183,16 @@ Biddy_Managed_Eval0(Biddy_Manager MNG, Biddy_String s)
   } else if ((biddyManagerType == BIDDYTYPEZBDD) || (biddyManagerType == BIDDYTYPEZBDDC) ||
               (biddyManagerType == BIDDYTYPETZBDD) || (biddyManagerType == BIDDYTYPETZBDDC))
   {
-    fprintf(stderr,"Biddy_Eval0: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_Eval0: this BDD type is not supported, yet!\n");
     return NULL;
   } else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
               (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
               (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
   {
-    fprintf(stderr,"Biddy_Eval0: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_Eval0: this BDD type is not supported, yet!\n");
     return NULL;
   } else {
-    fprintf(stderr,"Biddy_Eval0: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_Eval0: Unsupported BDD type!\n");
     return NULL;
   }
 
@@ -343,16 +274,16 @@ Biddy_Managed_Eval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf)
 #endif
 
 /***************************************************************************//*!
-\brief Function Biddy_Managed_Eval2 evaluates infix &|^~>< format.
+\brief Function Biddy_Managed_Eval2 evaluates infix format.
 
 ### Description
-    Boolean constants are '0' and '1'.
     Parenthesis are implemented.
     Operators' priority is implemented.
     Formula Tree is suported (global table, only).
-    Operators '*' and '+' are also allowed for conjunction/disjunction.
+    Boolean constants are '0' and '1'.
+    Boolean operators are NOT (~!), AND (&*), OR (|+), XOR (^%), XNOR (-),
+    IMPLIES (><), NAND (@), NOR (#), BUTNOT (\), NOTBUT (/).
 ### Side effects
-    Variable names must be one letter a-zA-Z optionally followed by int number.
 ### More info
     Original author: Volodymyr Mihav (mihaw.wolodymyr@gmail.com)
     Original implementation of this function is on
@@ -363,7 +294,7 @@ Biddy_Managed_Eval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf)
 /* USE THIS FOR DEBUGGING */
 /*
 static void
-printBTreeContainer(BTreeContainer *tree)
+printBiddyBTreeContainer(BiddyBTreeContainer *tree)
 {
   int i;
   printf("availableNode=%d\n",tree->availableNode);
@@ -384,7 +315,7 @@ printBTreeContainer(BTreeContainer *tree)
 }
 
 static void
-printPrefixFromBTree(BTreeContainer *tree, int i)
+printPrefixFromBTree(BiddyBTreeContainer *tree, int i)
 {
   if (i == -1) return;
   if (tree->tnode[i].op == 255) {
@@ -416,22 +347,22 @@ extern "C" {
 Biddy_Edge
 Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
 {
-  /* NOT (~), AND (&), OR (|), XOR (^) , BUTNOT (>), AND NOTBUT (<) ARE IMPLEMENTED */
-  char boolOperators[] = { '~', '&', '>', '#', '<', '#', '^', '|', '#', '#', '#', '#', '#', '#', '#', '#' };
+  /* NOT (~!), AND (&*), OR (|+), XOR (^%) , XNOR(-), IMPLIES (><), NAND (@), NOR (#), BUTNOT (\), AND NOTBUT (/) ARE IMPLEMENTED */
+  char boolOperators[] = { '~', '&', '\\', ' ', '/', ' ', '^', '|', '#', '-', ' ', '<', ' ', '>', '@', ' ' };
   long tempPos,currStringPos,currTreePos,oldTreePos; /* tmp variables */
   long offset; /* this is used for implementation of parenthesis and operator's priority */
   char currS;
   long i,j;
-  BTreeContainer *tree;
+  BiddyBTreeContainer *tree;
   Biddy_Edge fbdd; /* result */
   Biddy_String expression;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
   i = 0; j = 0;
-  tree = (BTreeContainer *) calloc(1, sizeof(BTreeContainer));
+  tree = (BiddyBTreeContainer *) calloc(1, sizeof(BiddyBTreeContainer));
   if (!tree) return biddyNull;
-  tree->tnode = (BTreeNode*) malloc(1024 * sizeof(BTreeNode));
+  tree->tnode = (BiddyBTreeNode*) malloc(1024 * sizeof(BiddyBTreeNode));
   if (!tree->tnode) return biddyNull;
   tree->availableNode = -1;
   for (i = 1023; i > 0; i--) {
@@ -517,6 +448,7 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
         j = 0;
         if (currS == '*') currS = '&'; /* operator '*' is also allowed for conjunction */
         if (currS == '+') currS = '|'; /* operator '+' is also allowed for disjunction */
+        if (currS == '%') currS = '^'; /* operator '%' is also allowed for xor */
         for (i = 0; i < 16; i++) { if (boolOperators[i] == currS) { break; } }
         if (i == 0) {
           /* printf("ERROR:INVALID USE OF UNARY OPERATOR ~\n"); */
@@ -555,7 +487,7 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
   }
 
   /*
-  printBTreeContainer(tree);
+  printBiddyBTreeContainer(tree);
   */
 
   /*
@@ -587,6 +519,443 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
 #endif
 
 /***************************************************************************//*!
+\brief Function Biddy_Managed_ReadBddview reads bddview file and creates
+        a Boolean function.
+
+### Description
+    If (name != NULL) then name will be used for the resulting BDD.
+    If (name == NULL) then the resulting BDD will have name given in the file.
+    Resulting BDD will not be preserved.
+    See Biddy_Managed_ConstructBDD for the format of its arguments.
+### Side effects
+    To improve efficiency, only the first lines with "type", "var", and
+    "label" are used.
+### More info
+    Macro Biddy_ReadBddview(filename) is defined for use with anonymous
+    manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_String
+Biddy_Managed_ReadBddview(Biddy_Manager MNG, const char filename[],
+                          Biddy_String name)
+{
+  FILE *bddfile;
+  char buffer[65536]; /* line with variables can be very long! */
+  char buffer2[256];
+  char code[4];
+  Biddy_String word,word2,line;
+  BiddyVariableOrder *tableV;
+  BiddyNodeList *tableN;
+  int numV,numN;
+  int i,n,m; /* this must be signed because of the used for loop */
+  Biddy_Boolean typeOK,varOK,labelOK;
+  Biddy_Edge r;
+
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  bddfile = fopen(filename,"r");
+  if (!bddfile) {
+    printf("Biddy_ReadBddview: File error (%s)!\n",filename);
+    return NULL;
+  }
+
+  numV = 0;
+  numN = 0;
+  tableV = NULL;
+  tableN = NULL;
+
+  typeOK = FALSE;
+  varOK = FALSE;
+  labelOK = FALSE;
+
+  /* PARSE FILE */
+
+  line = fgets(buffer,65535,bddfile);
+  while (line) {
+
+    line = trim(line);
+
+    /* DEBUGGING */
+    /*
+    printf("<%s>\n",line);
+    */
+
+    if (line[0] == '#') { /* skip the comment line */
+      line = fgets(buffer,65535,bddfile);
+      continue;
+    }
+    else if ((line[0] == 'c') && !strncmp(line,"connect",7)) { /* parsing line with a connection */
+      line = &line[8];
+      word = word2 = NULL;
+      if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+        buffer[0] = buffer2[0] = 0;
+        sscanf(line,"%u %u %s %s",&n,&m,code,buffer);
+        if ((code[0] == 'e') || (code[0] == 'd'))
+        {
+          sscanf(line,"%u %u %s %s %s",&n,&m,code,buffer,buffer2);
+        }
+        if (buffer[0] == '"') {
+          buffer[strlen(buffer)-1] = 0;
+          word = &buffer[1];
+        } else {
+          if (buffer[0]) word = &buffer[0];
+        }
+        if (buffer2[0] == '"') {
+          buffer2[strlen(buffer2)-1] = 0;
+          word2= &buffer2[1];
+        } else {
+          if (buffer2[0]) word2 = &buffer2[0];
+        }
+      } else {
+        sscanf(line,"%u %u %s",&n,&m,code);
+      }
+      if (word2) {
+        tableN[n].ltag = Biddy_Managed_GetVariable(MNG,word);
+        tableN[n].rtag = Biddy_Managed_GetVariable(MNG,word2);
+      } else if (word) {
+        /* if (!strcmp(code,"l") || !strcmp(code,"s") || !strcmp(code,"si")) */
+        if ((code[0] == 'l') || (code[0] == 's'))
+        {
+          tableN[n].ltag = Biddy_Managed_GetVariable(MNG,word);
+        }
+        /* else if (!strcmp(code,"r") || !strcmp(code,"ri")) */
+        else if (code[0] == 'r')
+        {
+          tableN[n].rtag = Biddy_Managed_GetVariable(MNG,word);
+        }
+        /* else if (!strcmp(code,"e") || !strcmp(code,"di")) */
+        else if ((code[0] == 'e') || (code[0] == 'd'))
+        {
+          tableN[n].ltag = tableN[n].rtag = Biddy_Managed_GetVariable(MNG,word);
+        }
+      }
+      /* if (!strcmp(code,"s")) */
+      if ((code[0] == 's') && (code[1] == 0))
+      { /* regular label */
+        /* this is default type for all bdd types */
+        tableN[n].l = m;
+      }
+      /* else if (!strcmp(code,"si")) */
+      else if ((code[0] == 's') && (code[1] != 0))
+      { /* complemented label */
+        /* for OBDD, this is not allowed */
+        /* for OBDDC, this is type 3 */
+        /* for ZBDD, this is not allowed */
+        /* for ZBDDC, this is type 3 */
+        /* for TZBDD, this is not allowed */
+        /* for TZBDDC, this is type 3 */
+        tableN[n].l = m;
+        if (biddyManagerType == BIDDYTYPEOBDDC) {
+          tableN[n].type = 3;
+        }
+        else if (biddyManagerType == BIDDYTYPEZBDDC) {
+          tableN[n].type = 3;
+        }
+        else if (biddyManagerType == BIDDYTYPETZBDDC) {
+          tableN[n].type = 3;
+        } else {
+          printf("Biddy_ReadBddview: Problem with connection - wrong code\n");
+          return NULL;
+        }
+      }
+      /* else if (!strcmp(code,"l")) */
+      else if ((code[0] == 'l') && (code[1] == 0))
+      { /* regular left successor */
+        /* this is default type for all bdd types, this can be changed by right successor */
+        tableN[n].l = m;
+      }
+      /* else if (!strcmp(code,"li")) */
+      else if ((code[0] == 'l') && (code[1] != 0))
+      { /* complemented left successor */
+        /* for OBDD, this is not allowed */
+        /* for OBDDC, this is type 5 */
+        /* for ZBDD, this is not allowed */
+        /* for ZBDDC, this is not allowed */
+        /* for TZBDD, this is not allowed */
+        /* for TZBDDC, this is not allowed */
+        tableN[n].l = m;
+        if (biddyManagerType == BIDDYTYPEOBDDC) {
+          tableN[n].type = 5;
+        } else {
+          printf("Biddy_ReadBddview: Problem with connection - wrong code\n");
+          return NULL;
+        }
+      }
+      /* else if (!strcmp(code,"r")) */
+      else if ((code[0] == 'r') && (code[1] == 0))
+      { /* regular right successor */
+        /* this is default type for all bdd types, this can be changed by left successor */
+        tableN[n].r = m;
+      }
+      /* else if (!strcmp(code,"ri")) */
+      else if ((code[0] == 'r') && (code[1] != 0))
+      { /* complemented right successor */
+        tableN[n].r = m;
+        /* for OBDD, this is not allowed */
+        /* for OBDDC, this is not allowed */
+        /* for ZBDD, this is not allowed */
+        /* for ZBDDC, this is type 5 */
+        /* for TZBDD, this is not allowed */
+        /* for TZBDDC, this is type 5 */
+        if (biddyManagerType == BIDDYTYPEZBDDC) {
+          tableN[n].type = 5;
+        }
+        else if (biddyManagerType == BIDDYTYPETZBDDC) {
+          tableN[n].type = 5;
+        } else {
+          printf("Biddy_ReadBddview: Problem with connection - wrong code\n");
+          return NULL;
+        }
+      }
+      /* else if (!strcmp(code,"d")) */
+      else if ((code[0] == 'd') && (code[1] == 0))
+      { /* double line, type 'd' */
+        tableN[n].l = tableN[n].r = m;
+        /* for OBDD, this is not allowed */
+        /* for OBDDC, this is type 5 */
+        /* for ZBDD, this is not allowed */
+        /* for ZBDDC, this is not allowed */
+        /* for TZBDD, this is not allowed */
+        /* for TZBDDC, this is not allowed */
+        if (biddyManagerType == BIDDYTYPEOBDDC) {
+          tableN[n].type = 5;
+        } else {
+          printf("Biddy_ReadBddview: Problem with connection - wrong code\n");
+          return NULL;
+        }
+      }
+      /* else if (!strcmp(code,"di")) */
+      else if ((code[0] == 'd') && (code[1] != 0))
+      { /* double line, type 'di' */
+        /* for OBDD, this is not allowed */
+        /* for OBDDC, this is not allowed */
+        /* for ZBDD, this is not allowed */
+        /* for ZBDDC, this is type 5 */
+        /* for TZBDD, this is not allowed */
+        /* for TZBDDC, this is type 5 */
+        tableN[n].l = tableN[n].r = m;
+        if (biddyManagerType == BIDDYTYPEZBDDC) {
+          tableN[n].type = 5;
+        }
+        else if (biddyManagerType == BIDDYTYPETZBDDC) {
+          tableN[n].type = 5;
+        } else {
+          printf("Biddy_ReadBddview: Problem with connection - wrong code\n");
+          return NULL;
+        }
+      }
+      /* else if (!strcmp(code,"e")) */
+      else if ((code[0] == 'e') && (code[1] == 0))
+      { /* double line, type 'e' */
+        /* this is default type for all allowed bdd types */
+        tableN[n].l = tableN[n].r = m;
+      }
+      /* else if (!strcmp(code,"ei")) */
+      else if ((code[0] == 'e') && (code[1] != 0))
+      { /* double line, type 'ei' */
+        /* for OBDD, this is not allowed */
+        /* for OBDDC, this is not allowed */
+        /* for ZBDD, this is not allowed */
+        /* for ZBDDC, this is not allowed */
+        /* for TZBDD, this is not allowed */
+        /* for TZBDDC, this is not allowed */
+        tableN[n].l = tableN[n].r = m;
+        printf("Biddy_ReadBddview: Problem with connection - wrong code\n");
+        return NULL;
+      } else {
+        printf("Biddy_ReadBddview: Problem with connection - unknown code\n");
+        return NULL;
+      }
+      /* printf("CONNECT: <%u><%u><%s><%s><%s>\n",n,m,code,word,word2); */
+    }
+    else if ((line[0] == 'n') && !strncmp(line,"node",4)) { /* parsing line with node */
+      line = &line[5];
+      word = NULL;
+      sscanf(line,"%u %s",&n,buffer);
+      if (buffer[0]=='"') {
+        buffer[strlen(buffer)-1] = 0;
+        word = &buffer[1];
+      } else {
+        word = &buffer[0];
+      }
+      if (!numN) {
+        tableN = (BiddyNodeList *) malloc(sizeof(BiddyNodeList));
+        if (!tableN) return NULL;
+      } else if (numN <= n) {
+        tableN = (BiddyNodeList *) realloc(tableN,(n+1)*sizeof(BiddyNodeList));
+        if (!tableN) return NULL;
+      }
+      tableN[n].name = strdup(word);
+      tableN[n].id = n;
+      tableN[n].type = 4; /* 4 is for regular node, this may change to type 5 later */
+      tableN[n].l = tableN[n].r = -1;
+      tableN[n].ltag = tableN[n].rtag = 0;
+      tableN[n].f = NULL;
+      tableN[n].created = FALSE;
+      numN++;
+      /* printf("NODE: <%u><%s>\n",n,word); */
+    }
+    else if ((line[0] == 't') && !strncmp(line,"terminal",8)) { /* parsing line with terminal */
+      line = &line[9];
+      word = NULL;
+      sscanf(line,"%u %s",&n,buffer);
+      if (buffer[0]=='"') {
+        buffer[strlen(buffer)-1] = 0;
+        word = &buffer[1];
+      } else {
+        word = &buffer[0];
+      }
+      if (!numN) {
+        tableN = (BiddyNodeList *) malloc(sizeof(BiddyNodeList));
+        if (!tableN) return NULL;
+      } else if (numN <= n) {
+        tableN = (BiddyNodeList *) realloc(tableN,(n+1)*sizeof(BiddyNodeList));
+        if (!tableN) return NULL;
+      }
+      tableN[n].name = strdup(word);
+      tableN[n].id = n;
+      if (!strcmp(word,"0")) {
+        tableN[n].type = 0;
+      } else if (!strcmp(word,"1")) {
+        tableN[n].type = 1;
+      } else {
+        printf("Biddy_ReadBddview: Problem with terminal\n");
+        return NULL;
+      }
+      tableN[n].l = tableN[n].r = -1;
+      tableN[n].ltag = tableN[n].rtag = 0;
+      tableN[n].f = NULL;
+      tableN[n].created = FALSE;
+      numN++;
+      /* printf("TERMINAL: <%u><%s>\n",n,word); */
+    }
+    else if (!typeOK && !strncmp(line,"type",4)) { /* parsing line with type */
+      typeOK = TRUE;
+      line = &line[5];
+      /* printf("TYPE: %s\n",line); */
+      if (((biddyManagerType == BIDDYTYPEOBDD) && strcmp(line,"robdd") && strcmp(line,"ROBDD")) ||
+          ((biddyManagerType == BIDDYTYPEOBDDC) && strcmp(line,"robddce") && strcmp(line,"ROBDDCE")) ||
+          ((biddyManagerType == BIDDYTYPEZBDD) && strcmp(line,"zbdd") && strcmp(line,"ZBDD")) ||
+          ((biddyManagerType == BIDDYTYPEZBDDC) && strcmp(line,"zbddce") && strcmp(line,"ZBDDCE")) ||
+          ((biddyManagerType == BIDDYTYPETZBDD) && strcmp(line,"tzbdd") && strcmp(line,"TZBDD")) ||
+          ((biddyManagerType == BIDDYTYPETZBDDC) && strcmp(line,"tzbddce") && strcmp(line,"TZBDDCE")))
+      {
+        fprintf(stderr,"Biddy_ReadBddview: Wrong BDD type!\n");
+        return NULL;
+      }
+    }
+    else if (!varOK && !strncmp(line,"var",3)) { /* parsing line with variables */
+      varOK = TRUE;
+      line = &line[4];
+      word = strtok(line," ");
+      while (word) {
+        if (word[0]=='"') {
+          word[strlen(word)-1] = 0;
+          word = &word[1];
+        }
+        if (!numV) {
+          tableV = (BiddyVariableOrder *) malloc(sizeof(BiddyVariableOrder));
+          if (!tableV) return NULL;
+        } else {
+          tableV = (BiddyVariableOrder *) realloc(tableV,(numV+1)*sizeof(BiddyVariableOrder));
+          if (!tableV) return NULL;
+        }
+        tableV[numV].name = strdup(word);
+        tableV[numV].order = numV;
+        numV++;
+        /* printf("<%s>\n",word); */
+        word = strtok(NULL," ");
+      }
+      if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD))
+      {
+        for (i=0; i<numV; i++) {
+          Biddy_Managed_AddVariableByName(MNG,tableV[i].name);
+        }
+      }
+      else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD))
+      {
+        for (i=numV-1; i>=0; i--) {
+          Biddy_Managed_AddVariableByName(MNG,tableV[i].name);
+        }
+      }
+      else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
+      {
+        for (i=numV-1; i>=0; i--) {
+          Biddy_Managed_AddVariableByName(MNG,tableV[i].name);
+        }
+      }
+      else {
+        fprintf(stderr,"Biddy_ReadBddview: Unknown BDD type!\n");
+        return NULL;
+      }
+    }
+    else if (!labelOK && !strncmp(line,"label",5)) { /* parsing line with label */
+      labelOK = TRUE;
+      line = &line[6];
+      word = NULL;
+      sscanf(line,"%u %s",&n,buffer);
+      if (buffer[0]=='"') {
+        buffer[strlen(buffer)-1] = 0;
+        word = &buffer[1];
+      } else {
+        word = &buffer[0];
+      }
+      if (!numN) {
+        tableN = (BiddyNodeList *) malloc(sizeof(BiddyNodeList));
+        if (!tableN) return NULL;
+      } else if (numN <= n) {
+        tableN = (BiddyNodeList *) realloc(tableN,(n+1)*sizeof(BiddyNodeList));
+        if (!tableN) return NULL;
+      }
+      tableN[n].name = strdup(word);
+      tableN[n].id = n;
+      tableN[n].type = 2; /* 2 is for regular label, this may change to type 3 later */
+      tableN[n].l = tableN[n].r = -1;
+      tableN[n].ltag = tableN[n].rtag = 0;
+      tableN[n].f = NULL;
+      tableN[n].created = FALSE;
+      numN++;
+      if (!name) name = strdup(word); /* only one label is supported */
+      /* printf("LABEL: <%u><%s>\n",n,word); */
+    }
+
+    line = fgets(buffer,65535,bddfile);
+  }
+
+  fclose(bddfile);
+
+  /* CONSTRUCT BDD */
+
+  /* DEBUGGING */
+  /*
+  for (i=0; i<numN; i++) {
+    printf("tableN[%d]: %s, type:%d, l:%d, ltag:%u<%s>, r:%d, rtag:%u<%s>\n",
+           tableN[i].id,tableN[i].name,tableN[i].type,
+           tableN[i].l,tableN[i].ltag,Biddy_Managed_GetVariableName(MNG,tableN[i].ltag),
+           tableN[i].r,tableN[i].rtag,Biddy_Managed_GetVariableName(MNG,tableN[i].rtag));
+  }
+  */
+
+  r = BiddyConstructBDD(MNG,numN,tableN);
+  Biddy_Managed_AddFormula(MNG,name,r,-1);
+
+  /* DEBUGGING */
+  /*
+  printf("BDD %s CONSTRUCTED\n",name);
+  */
+
+  return name;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
 \brief Function Biddy_Managed_ReadVerilogFile reads Verilog file and creates
        variables for all primary inputs and Boolean functions for all
        primary outputs.
@@ -611,12 +980,12 @@ Biddy_Managed_ReadVerilogFile(Biddy_Manager MNG, const char filename[],
                               Biddy_String prefix)
 {
   FILE *s;
-  VerilogCircuit *c;
+  BiddyVerilogCircuit *c;
   unsigned int linecount, modulecount;
-  VerilogLine **lt;
-  VerilogModule **mt;
-  VerilogModule *md;
-  VerilogLine *ln;
+  BiddyVerilogLine **lt;
+  BiddyVerilogModule **mt;
+  BiddyVerilogModule *md;
+  BiddyVerilogLine *ln;
   unsigned int i,j;
 
   if (!MNG) MNG = biddyAnonymousManager;
@@ -625,7 +994,7 @@ Biddy_Managed_ReadVerilogFile(Biddy_Manager MNG, const char filename[],
   if (!s) return;
 
   printf("PARSING FILE %s\n",filename);
-  c = (VerilogCircuit *) calloc(1,sizeof(VerilogCircuit)); /* declare an instance of a circuit */
+  c = (BiddyVerilogCircuit *) calloc(1,sizeof(BiddyVerilogCircuit)); /* declare an instance of a circuit */
   c->name = strdup("CIRCUIT"); /* set circuit name */
   parseVerilogFile(s,&linecount,&lt,&modulecount,&mt); /* read all modules from the file */
 
@@ -787,12 +1156,11 @@ extern "C" {
 void
 Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
 {
-  Biddy_Edge support;
   unsigned int variableNumber;
   Biddy_Variable* variableTable;
   unsigned int i;
   int j;
-  Biddy_Edge temp;
+  Biddy_Variable k,v;
   unsigned int numcomb;
 
   if (!MNG) MNG = biddyAnonymousManager;
@@ -802,30 +1170,52 @@ Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
     return;
   }
 
-  /* support is a product of all dependent variables in BDD */
-  support = Biddy_Managed_Support(MNG,f);
-
   /* variableNumber is the number of dependent variables in BDD */
-  variableNumber = 0;
-  temp = support;
-  while (!Biddy_IsTerminal(temp)) {
-    variableNumber++;
-    temp = BiddyT(temp);
+  variableNumber = Biddy_Managed_DependentVariableNumber(MNG,f,TRUE);
+
+  /* for ZBDD and ZFDD, variables above the top variable */
+  /* (which are always all dependent) are not counted and not selected! */
+  if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
+      (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
+  {
+    for (k = 1; k < biddyVariableTable.num; k++) {
+      if (BiddyIsSmaller(k,BiddyV(f))) {
+        variableNumber++;
+        biddyVariableTable.table[k].selected = TRUE;
+      }
+    }
   }
 
-  if (variableNumber > 8) {
+  /* DEBUGGING */
+  /*
+  printf("DEPENDENT: %u\n",variableNumber);
+  for (k = 1; k < biddyVariableTable.num; k++) {
+    if (biddyVariableTable.table[k].selected == TRUE) {
+      printf("DEPENDENT: %s\n",Biddy_Managed_GetVariableName(MNG,k));
+    }
+  }
+  */
+
+  if (variableNumber > 6) {
     printf("Table for %d variables is to large for output.\n",variableNumber);
+    for (k = 0; k < biddyVariableTable.num; k++) {
+      biddyVariableTable.table[k].selected = FALSE; /* deselect variable */
+    }
     return;
   }
 
   /* variableTable is a table of all dependent variables in BDD */
   if (!(variableTable = (Biddy_Variable *) malloc((variableNumber) * sizeof(Biddy_Variable)))) return;
   i = 0;
-  while (!Biddy_IsTerminal(support)) {
-    variableTable[i] = Biddy_GetTopVariable(support);
-    printf("|%s",Biddy_Managed_GetVariableName(MNG,variableTable[i]));
-    support = BiddyT(support);
-    i++;
+  v = Biddy_Managed_GetLowestVariable(MNG); /* lowest = topmost */
+  for (k = 1; k < biddyVariableTable.num; k++) {
+    if (biddyVariableTable.table[v].selected == TRUE) {
+      variableTable[i] = v;
+      printf("|%s",Biddy_Managed_GetVariableName(MNG,v));
+      biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
+      i++;
+    }
+    v = biddyVariableTable.table[v].next;
   }
   printf("|:value\n");
 
@@ -833,21 +1223,8 @@ Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
   for (i = 0; i < variableNumber; i++) numcomb = 2 * numcomb;
   for (i = 0; i < numcomb; i++)
   {
-    /* VARIANT B */
-    /*
-    temp = f;
-    */
-    for (j = variableNumber - 1; j >= 0; j--)
-    {
-      /* VARIANT A */
-      /**/
+    for (j = variableNumber - 1; j >= 0; j--) {
       biddyVariableTable.table[variableTable[variableNumber-j-1]].value = (i&(1 << j))?biddyOne:biddyZero;
-      /**/
-      /* VARIANT B */
-      /*
-      temp = BiddyManagedRestrict(MNG,
-               temp,variableTable[variableNumber-j-1],(i&(1 << j))?TRUE:FALSE);
-      */
       if (i&(1 << j)) {
         printf("%*c",1+(int)strlen(
           Biddy_Managed_GetVariableName(MNG,variableTable[variableNumber-j-1])
@@ -859,14 +1236,7 @@ Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f)
       }
     }
     printf(" :");
-    /* VARIANT A */
-    /**/
     if (Biddy_Managed_Eval(MNG,f)) printf("1\n"); else printf("0\n");
-    /**/
-    /* VARIANT B */
-    /*
-    if (temp == biddyZero) printf("0\n"); else printf("1\n");
-    */
   }
 
   free(variableTable);
@@ -895,7 +1265,95 @@ extern "C" {
 void
 Biddy_Managed_WriteTable(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
 {
-  return;
+  unsigned int variableNumber;
+  Biddy_Variable* variableTable;
+  unsigned int i;
+  int j;
+  Biddy_Variable k,v;
+  unsigned int numcomb;
+  FILE *s;
+
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  if (filename) {
+    s = fopen(filename,"w");
+  } else {
+    s = stdout;
+  }
+  if (!s) return;
+
+  if (Biddy_IsNull(f)) {
+    fprintf(s,"NULL\n");
+    fclose(s);
+    return;
+  }
+
+  /* variableNumber is the number of dependent variables in BDD */
+  variableNumber = Biddy_Managed_DependentVariableNumber(MNG,f,TRUE);
+
+  /* for ZBDD and ZFDD, variables above the top variable */
+  /* (which are always all dependent) are not counted and not selected! */
+  if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
+      (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD))
+  {
+    for (k = 1; k < biddyVariableTable.num; k++) {
+      if (BiddyIsSmaller(k,BiddyV(f))) {
+        variableNumber++;
+        biddyVariableTable.table[k].selected = TRUE;
+      }
+    }
+  }
+
+  if (variableNumber > 6) {
+    fprintf(s,"Table for %d variables is to large for output.\n",variableNumber);
+    for (k = 0; k < biddyVariableTable.num; k++) {
+      biddyVariableTable.table[k].selected = FALSE; /* deselect variable */
+    }
+    fclose(s);
+    return;
+  }
+
+  /* variableTable is a table of all dependent variables in BDD */
+  if (!(variableTable = (Biddy_Variable *) malloc((variableNumber) * sizeof(Biddy_Variable)))) return;
+  i = 0;
+  v = Biddy_Managed_GetLowestVariable(MNG); /* lowest = topmost */
+  for (k = 1; k < biddyVariableTable.num; k++) {
+    if (biddyVariableTable.table[v].selected == TRUE) {
+      variableTable[i] = v;
+      fprintf(s,"|%s",Biddy_Managed_GetVariableName(MNG,v));
+      biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
+      i++;
+    }
+    v = biddyVariableTable.table[v].next;
+  }
+  fprintf(s,"|:value\n");
+
+  numcomb = 1;
+  for (i = 0; i < variableNumber; i++) numcomb = 2 * numcomb;
+  for (i = 0; i < numcomb; i++)
+  {
+    for (j = variableNumber - 1; j >= 0; j--)
+    {
+      biddyVariableTable.table[variableTable[variableNumber-j-1]].value = (i&(1 << j))?biddyOne:biddyZero;
+      if (i&(1 << j)) {
+        fprintf(s,"%*c",1+(int)strlen(
+          Biddy_Managed_GetVariableName(MNG,variableTable[variableNumber-j-1])
+        ),'1');
+      } else {
+        fprintf(s,"%*c",1+(int)strlen(
+          Biddy_Managed_GetVariableName(MNG,variableTable[variableNumber-j-1])
+        ),'0');
+      }
+    }
+    fprintf(s," :");
+    if (Biddy_Managed_Eval(MNG,f)) fprintf(s,"1\n"); else fprintf(s,"0\n");
+  }
+
+  free(variableTable);
+
+  if (filename) {
+    fclose(s);
+  }
 }
 
 #ifdef __cplusplus
@@ -945,6 +1403,12 @@ Biddy_Managed_PrintfSOP(Biddy_Manager MNG, Biddy_Edge f)
   else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
   }
+  else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* IMPLEMENTED */
+    while (biddyVariableTable.table[top].prev != biddyVariableTable.num) {
+      top = biddyVariableTable.table[top].prev;
+    }
+  }
   else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     while (biddyVariableTable.table[top].prev != biddyVariableTable.num) {
@@ -955,25 +1419,25 @@ Biddy_Managed_PrintfSOP(Biddy_Manager MNG, Biddy_Edge f)
     /* IMPLEMENTED */
     top = Biddy_GetTag(f);
   }
-  else if ((biddyManagerType == BIDDYTYPEZBDD) ||
-           (biddyManagerType == BIDDYTYPETZBDDC))
+  else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
-    fprintf(stderr,"Biddy_PrintfSOP: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_PrintfSOP: this BDD type is not supported, yet!\n");
     return;
   }
   else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
             (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
             (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
   {
-    fprintf(stderr,"Biddy_PrintfSOP: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_PrintfSOP: this BDD type is not supported, yet!\n");
     return;
   }
   else {
-    fprintf(stderr,"Biddy_PrintfSOP: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_PrintfSOP: Unsupported BDD type!\n");
     return;
   }
 
   WriteSOP(MNG,f,top,Biddy_GetMark(f),NULL,&maxsize);
+  printf("\n");
 }
 
 #ifdef __cplusplus
@@ -1015,7 +1479,7 @@ Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
     }
     return;
   }
-  
+
   if (Biddy_IsTerminal(f)) {
     if (f == biddyZero) {
       fprintf(s,"  + 0\n");
@@ -1038,6 +1502,12 @@ Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
   else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
   }
+  else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* IMPLEMENTED */
+    while (biddyVariableTable.table[top].prev != biddyVariableTable.num) {
+      top = biddyVariableTable.table[top].prev;
+    }
+  }
   else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     while (biddyVariableTable.table[top].prev != biddyVariableTable.num) {
@@ -1048,10 +1518,9 @@ Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
     /* IMPLEMENTED */
     top = Biddy_GetTag(f);
   }
-  else if ((biddyManagerType == BIDDYTYPEZBDD) ||
-           (biddyManagerType == BIDDYTYPETZBDDC))
+  else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
-    fprintf(stderr,"Biddy_PrintfSOP: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_PrintfSOP: this BDD type is not supported, yet!\n");
     if (filename) {
       fclose(s);
     }
@@ -1061,14 +1530,14 @@ Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
             (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
             (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
   {
-    fprintf(stderr,"Biddy_PrintfSOP: this GDD type is not supported, yet!\n");
+    fprintf(stderr,"Biddy_PrintfSOP: this BDD type is not supported, yet!\n");
     if (filename) {
       fclose(s);
     }
     return;
   }
   else {
-    fprintf(stderr,"Biddy_PrintfSOP: Unsupported GDD type!\n");
+    fprintf(stderr,"Biddy_PrintfSOP: Unsupported BDD type!\n");
     if (filename) {
       fclose(s);
     }
@@ -1080,7 +1549,7 @@ Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
   if (filename) {
     fclose(s);
   }
-  
+
 }
 
 #ifdef __cplusplus
@@ -1098,9 +1567,10 @@ Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f)
     If (id != -1) then id is used instead of <...> for variable names.
     If (filename == NULL) then output is to stdout.
     Function resets all variables value.
+    Variable names containing # are adpated.
 ### More info
-    Macro Biddy_WriteDot(filename,f,label) is defined for use with anonymous
-    manager.
+    Macro Biddy_WriteDot(filename,f,label,id,cudd) is defined for use with
+    anonymous manager.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -1166,8 +1636,9 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
         v = BiddyV(li->back);
         if (biddyVariableTable.table[v].value == biddyZero) {
           biddyVariableTable.table[v].value = biddyOne;
+          /* variable names containing # are adpated */
           name = strdup(Biddy_Managed_GetVariableName(MNG,v));
-          while ((hash = strchr(name, '#'))) hash[0] = '_';
+          while ((hash = strchr(name,'#'))) hash[0] = '_';
           fprintf(s,"\" %s \" -> ",name);
           free(name);
         }
@@ -1195,7 +1666,6 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
     else fprintf(s,"BDD");
     fprintf(s," {\n");
     fprintf(s,"  ordering=out;\n");
-    fprintf(s,"  splines=true;\n");
 #ifdef LEGACY_DOT
 #else
     fprintf(s,"  edge [dir=\"both\"];\n");
@@ -1314,9 +1784,13 @@ Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
 
 ### Description
     Output bddview format.
+    Parameter table is optional, if not NULL then it must contain
+    node names and coordinates. If (filename == NULL) then output is to stdout.
 ### Side effects
-    Parameter table is optional, if not NULL then it must contain node names
-    and coordinates. If (filename == NULL) then output is to stdout.
+    A conservative approach to list all the existing variables in the manager
+    (and not only the dependent ones) is used. Variable names containing # are
+    adpated. To support EST, also variable names containing <> are adapted.
+    The optional table is type-casted to BiddyXYTable.
 ### More info
     Macro Biddy_WriteBddview(filename,f,label) is defined for use with anonymous
     manager.
@@ -1328,13 +1802,16 @@ extern "C" {
 
 unsigned int
 Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
-                           Biddy_Edge f, const char label[], Biddy_XY *table)
+                           Biddy_Edge f, const char label[], void *xytable)
 {
   FILE *s;
-  int i,n;
+  unsigned int i,n;
   Biddy_Boolean useCoordinates;
   BiddyLocalInfo *li;
-  Biddy_Variable tag;
+  Biddy_Variable v,k,tag;
+  char *hash;
+  Biddy_String name;
+  BiddyXY *table;
 
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -1353,7 +1830,62 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
     return(0);
   }
 
+  table = (BiddyXY *)xytable;
+
   fprintf(s,"#GENERATED WITH BIDDY - biddy.meolic.com\n");
+
+  /* WRITE BDD TYPE */
+
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    fprintf(s,"type ROBDD\n");
+  } else if (biddyManagerType == BIDDYTYPEOBDDC) {
+    fprintf(s,"type ROBDDCE\n");
+  } else if (biddyManagerType == BIDDYTYPEZBDD) {
+    fprintf(s,"type ZBDD\n");
+  } else if (biddyManagerType == BIDDYTYPEZBDDC) {
+    fprintf(s,"type ZBDDCE\n");
+  } else if (biddyManagerType == BIDDYTYPETZBDD) {
+    fprintf(s,"type TZBDD\n");
+  } else if (biddyManagerType == BIDDYTYPETZBDDC) {
+    fprintf(s,"type TZBDDCE\n");
+  } else if (biddyManagerType == BIDDYTYPEOFDD) {
+    fprintf(s,"type ROFDD\n");
+  } else if (biddyManagerType == BIDDYTYPEOFDDC) {
+    fprintf(s,"type ROFDDCE\n");
+  } else if (biddyManagerType == BIDDYTYPEZFDD) {
+    fprintf(s,"type ZFDD\n");
+  } else if (biddyManagerType == BIDDYTYPEZFDDC) {
+    fprintf(s,"type ZFDDCE\n");
+  } else if (biddyManagerType == BIDDYTYPETZFDD) {
+    fprintf(s,"type TZFDD\n");
+  } else if (biddyManagerType == BIDDYTYPETZFDDC) {
+    fprintf(s,"type TZFDDCE\n");
+  }
+
+  /* WRITE VARIABLES */
+  /* A conservative approach to list all the existing variables */
+  /* in the manager (and not only the dependent ones) is used. */
+
+  fprintf(s,"var");
+  v = Biddy_Managed_GetLowestVariable(MNG); /* lowest = topmost */
+  for (k = 1; k < biddyVariableTable.num; k++) {
+    name = strdup(Biddy_Managed_GetVariableName(MNG,v));
+
+    /* variable names containing # are adpated */
+    while ((hash = strchr(name,'#'))) hash[0] = '_';
+    /* to support EST, also variable names containing <> are adapted */
+    for (i=0; i<strlen(name); i++) {
+      if (name[i] == '<') name[i] = '_';
+      if (name[i] == '>') name[i] = 0;
+    }
+
+    fprintf(s," \"%s\"",name);
+    free(name);
+    v = biddyVariableTable.table[v].next;
+  }
+  fprintf(s,"\n");
+
+  /* PREPARE CALCULATION */
 
   useCoordinates = FALSE;
   if (Biddy_IsTerminal(f)) {
@@ -1364,7 +1896,7 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
       useCoordinates = TRUE;
     } else {
       n = 1; /* there is one terminal node */
-      table = (Biddy_XY *) malloc((n+1) * sizeof(Biddy_XY)); /* n = nodes, add one label */
+      table = (BiddyXY *) malloc((n+1) * sizeof(BiddyXY)); /* n = nodes, add one label */
       if (!table) return 0;
       table[0].id = 0;
       table[0].label = strdup(label);
@@ -1372,7 +1904,7 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
       table[0].y = 0;
       table[0].isConstant = FALSE;
       table[1].id = 1;
-      table[1].label = getname(MNG,biddyOne);
+      table[1].label = getname(MNG,f);
       table[1].x = 0;
       table[1].y = 0;
       table[1].isConstant = TRUE;
@@ -1390,7 +1922,7 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
     } else {
       /* generate table of nodes */
       /* TO DO: coordinates are not calculated, how to do this without graphviz/dot? */
-      table = (Biddy_XY *) malloc((n+1) * sizeof(Biddy_XY)); /* n = nodes, add one label */
+      table = (BiddyXY *) malloc((n+1) * sizeof(BiddyXY)); /* n = nodes, add one label */
       if (!table) return 0;
       table[0].id = 0;
       table[0].label = strdup(label);
@@ -1409,14 +1941,12 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
 
         /* if one or both successors are terminal node then extra nodes must be added */
         if (Biddy_IsTerminal(BiddyE(li->back)) || Biddy_IsTerminal(BiddyT(li->back))) {
-
           if (((biddyManagerType == BIDDYTYPEOBDD) ||
                (biddyManagerType == BIDDYTYPEZBDD) ||
-               (biddyManagerType == BIDDYTYPETZBDD))
-              &&
-              (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
+               (biddyManagerType == BIDDYTYPETZBDD)
+              ) && (Biddy_GetMark(BiddyE(li->back)) != Biddy_GetMark(BiddyT(li->back))))
           {
-            /* two terminal nodes only if they are different */
+            /* two terminal nodes only if complemented edges are not used and they are different */
             unsigned int num;
             num = 0;
             if (Biddy_IsTerminal(BiddyE(li->back))) {
@@ -1465,7 +1995,7 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
   } else {
     fprintf(s,"label %d %s\n",table[0].id,table[0].label);
   }
-  for (i=1;i<(n+1);++i) {
+  for (i=1;i<(n+1);i++) {
     if (table[i].isConstant) {
       fprintf(s,"terminal ");
     } else {
@@ -1479,7 +2009,7 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
   }
 
   if (!useCoordinates) {
-    for (i=1;i<(n+1);++i) {
+    for (i=1;i<(n+1);i++) {
       free(table[i].label);
     }
     free(table);
@@ -1504,12 +2034,8 @@ Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[],
 
   if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
   {
-    if (f == biddyZero) {
-      fprintf(s," 0\n");
-    } else {
-      tag = Biddy_GetTag(f);
-      fprintf(s," %s\n",Biddy_Managed_GetVariableName(MNG,tag));
-    }
+    tag = Biddy_GetTag(f);
+    fprintf(s," %s\n",Biddy_Managed_GetVariableName(MNG,tag));
   } else {
     fprintf(s,"\n");
   }
@@ -1569,7 +2095,7 @@ nextCh(Biddy_String s, int *i, Biddy_String *ch)
   /*
   printf("%c",c);
   */
-  
+
   if (c == '(') {
     (*i)++;
     strcpy(*ch,"(");
@@ -1644,7 +2170,7 @@ ReadBDD(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch)
     }
   } else {
     varname = strdup(*ch);
-    n = Biddy_Managed_AddVariableByName(MNG,varname); /* variables should already exist */
+    n = Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_GetVariable(MNG,varname)); /* variables should already exist */
     nextCh(s,i,ch);
     if (strcmp(*ch,"(")) {
       /**/ printf("ERROR: <%s>\n",*ch); /**/
@@ -1720,12 +2246,12 @@ evaluate1(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch,
   if (charOK(*ch[0])) {
     if (!lf) {
       if (!Biddy_Managed_FindFormula(MNG,*ch,&idx,&f)) {
-        f = Biddy_Managed_AddVariableByName(MNG,*ch);
+        f = Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,*ch));
       }
     } else {
       if ((!(lf(*ch,&f))) &&
           (!Biddy_Managed_FindFormula(MNG,*ch,&idx,&f))) {
-        f = Biddy_Managed_AddVariableByName(MNG,*ch);
+        f = Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,*ch));
       }
     }
     nextCh(s,i,ch);
@@ -1794,7 +2320,7 @@ Op(Biddy_String s, int *i, Biddy_String *ch)
 }
 
 static void
-createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree)
+createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree)
 {
   int i;
   unsigned int idx;
@@ -1806,7 +2332,7 @@ createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree)
       if (tree->tnode[i].op == 255) {
         if (tree->tnode[i].name) {
           if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&idx,&tmp))) {
-            Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
+            Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name));
           }
         }
       }
@@ -1820,7 +2346,7 @@ createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree)
       if (tree->tnode[i].op == 255) {
         if (tree->tnode[i].name) {
           if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&idx,&tmp))) {
-            Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
+            Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name));
           }
         }
       }
@@ -1829,7 +2355,7 @@ createVariablesFromBTree(Biddy_Manager MNG, BTreeContainer *tree)
 }
 
 static Biddy_Edge
-createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i)
+createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i)
 {
   unsigned int idx;
   Biddy_Edge lbdd,rbdd,fbdd;
@@ -1841,7 +2367,7 @@ createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i)
       else if (!strcmp(tree->tnode[i].name,"1")) fbdd = biddyOne;
       else {
         if (!(Biddy_Managed_FindFormula(MNG,tree->tnode[i].name,&idx,&fbdd))) {
-          fbdd = Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name);
+          fbdd = Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,tree->tnode[i].name));
         }
       }
     } else {
@@ -1862,12 +2388,20 @@ createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i)
   }
   lbdd = createBddFromBTree(MNG,tree,tree->tnode[i].left);
   rbdd = createBddFromBTree(MNG,tree,tree->tnode[i].right);
+
+  /* NOT (~!), AND (&*), OR (|+), XOR (^%) , XNOR(-), IMPLIES (><), NAND (@), NOR (#), BUTNOT (\), AND NOTBUT (/) ARE IMPLEMENTED */
+  /* char boolOperators[] = { '~', '&', '\\', ' ', '/', ' ', '^', '|', '#', '-', ' ', '<', ' ', '>', '@', ' ' }; */
   if (tree->tnode[i].op == 0) fbdd = Biddy_Managed_Not(MNG,rbdd); /* NOT */
   else if (tree->tnode[i].op == 1) fbdd = Biddy_Managed_And(MNG,lbdd,rbdd); /* AND */
-  else if (tree->tnode[i].op == 2) fbdd = Biddy_Managed_And(MNG,lbdd,Biddy_Managed_Not(MNG,rbdd)); /* BUTNOT */
-  else if (tree->tnode[i].op == 4) fbdd = Biddy_Managed_And(MNG,Biddy_Managed_Not(MNG,lbdd),rbdd); /* NOTBUT */
-  else if (tree->tnode[i].op == 6) fbdd = Biddy_Managed_Xor(MNG,lbdd,rbdd); /* EXOR */
+  else if (tree->tnode[i].op == 2) fbdd = Biddy_Managed_Gt(MNG,lbdd,rbdd); /* BUTNOT */
+  else if (tree->tnode[i].op == 4) fbdd = Biddy_Managed_Gt(MNG,rbdd,lbdd); /* NOTBUT */
+  else if (tree->tnode[i].op == 6) fbdd = Biddy_Managed_Xor(MNG,lbdd,rbdd); /* XOR */
   else if (tree->tnode[i].op == 7) fbdd = Biddy_Managed_Or(MNG,lbdd,rbdd); /* OR */
+  else if (tree->tnode[i].op == 8) fbdd = Biddy_Managed_Nor(MNG,lbdd,rbdd); /* NOR */
+  else if (tree->tnode[i].op == 9) fbdd = Biddy_Managed_Xnor(MNG,lbdd,rbdd); /* XNOR */
+  else if (tree->tnode[i].op == 11) fbdd = Biddy_Managed_Leq(MNG,rbdd,lbdd); /* IMPLIES <= */
+  else if (tree->tnode[i].op == 13) fbdd = Biddy_Managed_Leq(MNG,lbdd,rbdd); /* IMPLIES => */
+  else if (tree->tnode[i].op == 14) fbdd = Biddy_Managed_Nand(MNG,lbdd,rbdd); /* NAND */
   else fbdd = biddyNull;
 
   /* DEBUGGING */
@@ -1890,11 +2424,11 @@ createBddFromBTree(Biddy_Manager MNG, BTreeContainer *tree, int i)
 }
 
 static void
-parseVerilogFile(FILE *verilogfile, unsigned int *l, VerilogLine ***lt, unsigned int *n, VerilogModule ***mt)
+parseVerilogFile(FILE *verilogfile, unsigned int *l, BiddyVerilogLine ***lt, unsigned int *n, BiddyVerilogModule ***mt)
 {
   unsigned int activemodule=0;
-  VerilogLine *ln;
-  VerilogModule *md;
+  BiddyVerilogLine *ln;
+  BiddyVerilogModule *md;
   unsigned int i=0, j=0, k=0; /* indexes */
   char ch, linebuf[LINESIZE]; /* buffer for single line from the verilog file */
   Biddy_String buffer; /* buffer for complete verilog statements */
@@ -1972,7 +2506,7 @@ parseVerilogFile(FILE *verilogfile, unsigned int *l, VerilogLine ***lt, unsigned
     }
     i=0;
     comment = FALSE;
-    t = strtok(buffer," "); 
+    t = strtok(buffer," ");
     token[i++] = strdup(t); /* full keyword */
     if (noname) {
       sprintf(linebuf,"NONAME%d",(*l));
@@ -2009,8 +2543,8 @@ parseVerilogFile(FILE *verilogfile, unsigned int *l, VerilogLine ***lt, unsigned
 
     if (!strcmp(keyword,"module")) { /* START OF MODULE */
       (*n)++;
-      (*mt) = (VerilogModule **) realloc((*mt), (*n) * sizeof(VerilogModule *)); /* create or enlarge table of modules */
-      md = (VerilogModule *) calloc(1, sizeof(VerilogModule)); /* declare an instance of a module */
+      (*mt) = (BiddyVerilogModule **) realloc((*mt), (*n) * sizeof(BiddyVerilogModule *)); /* create or enlarge table of modules */
+      md = (BiddyVerilogModule *) calloc(1, sizeof(BiddyVerilogModule)); /* declare an instance of a module */
       (*mt)[(*n)-1] = md;
       md->name = (Biddy_String) calloc(strlen(token[1]) + 1, sizeof(char)); /* allocating memory for module name string */
       strcpy(md->name,token[1]); /* set module name */
@@ -2136,8 +2670,8 @@ parseVerilogFile(FILE *verilogfile, unsigned int *l, VerilogLine ***lt, unsigned
     /* add this line to the table of acceptable lines */
     if (acceptable) {
       (*l)++;
-      (*lt) = (VerilogLine **) realloc((*lt), (*l) * sizeof(VerilogLine *)); /* create or enlarge table of lines */
-      ln = (VerilogLine *) calloc(1, sizeof(VerilogLine)); /* declare an instance of a line */
+      (*lt) = (BiddyVerilogLine **) realloc((*lt), (*l) * sizeof(BiddyVerilogLine *)); /* create or enlarge table of lines */
+      ln = (BiddyVerilogLine *) calloc(1, sizeof(BiddyVerilogLine)); /* declare an instance of a line */
       ln->keyword = strdup(keyword);
       ln->line = strdup(token[0]);
       for (j=1; j<i; j++) concat(&(ln->line),token[j]);
@@ -2160,9 +2694,9 @@ parseVerilogFile(FILE *verilogfile, unsigned int *l, VerilogLine ***lt, unsigned
  * @param a table of acceptable lines, a table of modules, a circuit object
  */
 static void
-createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modulecount, VerilogModule **mt, VerilogCircuit *c)
+createVerilogCircuit(unsigned int linecount, BiddyVerilogLine **lt, unsigned int modulecount, BiddyVerilogModule **mt, BiddyVerilogCircuit *c)
 {
-  VerilogModule *m;
+  BiddyVerilogModule *m;
   unsigned int i=0, j=0, k=0, l=0;
   int in=0, id=0, index=0;
   unsigned int activemodule=0;
@@ -2180,31 +2714,31 @@ createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modu
   c->outputcount = m->outputcount; /* set the number of outputs for the circuit */
   c->wirecount = m->inputcount + m->outputcount + m->wirecount + m->gatecount; /* set the number of wires for the circuit */
   c->nodecount = m->inputcount + m->outputcount + m->wirecount + m->gatecount; /* set the number of nodes for the circuit */
-  c->wires = (VerilogWire **) calloc(c->wirecount,sizeof(VerilogWire *)); /* allocate a contiguous array to index every wire */
-  c->nodes = (VerilogNode **) calloc(c->nodecount,sizeof(VerilogNode *)); /* allocate a contiguous array to index every node */
+  c->wires = (BiddyVerilogWire **) calloc(c->wirecount,sizeof(BiddyVerilogWire *)); /* allocate a contiguous array to index every wire */
+  c->nodes = (BiddyVerilogNode **) calloc(c->nodecount,sizeof(BiddyVerilogNode *)); /* allocate a contiguous array to index every node */
 
   id = 0;
   for (i=0; i < m->inputcount; i++) { /* store the names of primary inputs */
     c->inputs[i] = (Biddy_String) calloc(strlen(m->inputs[i]) + 1, sizeof (char));
     strcpy(c->inputs[i],m->inputs[i]);
-    c->nodes[id] = (VerilogNode *) calloc(1,sizeof(VerilogNode));
+    c->nodes[id] = (BiddyVerilogNode *) calloc(1,sizeof(BiddyVerilogNode));
     buildNode(c->nodes[id],(Biddy_String)"input", m->inputs[i]);
     id++;
   }
   for (i=0; i < m->outputcount; i++) { /* store the names of primary outputs */
     c->outputs[i] = (Biddy_String) calloc(strlen(m->outputs[i]) + 1, sizeof(char));
     strcpy(c->outputs[i],m->outputs[i]);
-    c->nodes[id] = (VerilogNode *) calloc(1,sizeof(VerilogNode));
+    c->nodes[id] = (BiddyVerilogNode *) calloc(1,sizeof(BiddyVerilogNode));
     buildNode(c->nodes[id],(Biddy_String)"output",m->outputs[i]);
     id++;
   }
   for (i=0; i < m->wirecount; i++) { /* store the names of wires */
-    c->nodes[id] = (VerilogNode *) calloc(1,sizeof(VerilogNode));
+    c->nodes[id] = (BiddyVerilogNode *) calloc(1,sizeof(BiddyVerilogNode));
     buildNode(c->nodes[id],(Biddy_String)"wire",m->wires[i]);
     id++;
   }
   for (i=0; i < m->gatecount; i++) { /* store the names of gates */
-    c->nodes[id] = (VerilogNode *) calloc(1,sizeof(VerilogNode));
+    c->nodes[id] = (BiddyVerilogNode *) calloc(1,sizeof(BiddyVerilogNode));
     buildNode(c->nodes[id],(Biddy_String)"gate",m->gates[i]);
     id++;
   }
@@ -2246,7 +2780,7 @@ createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modu
 
     /* tokenize the line to extract data */
     i=0;
-    token[0] = strtok(buffer," "); 
+    token[0] = strtok(buffer," ");
     while(token[i]!= NULL) {
       /* DEBUGGING */
       /*
@@ -2287,7 +2821,7 @@ createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modu
         if (!ok) {
           printf("WARNING (createVerilogCircuit): wire %s treated as primary input!\n",token[j]);
         }
-        c->wires[index] = (VerilogWire *) calloc(1,sizeof(VerilogWire));
+        c->wires[index] = (BiddyVerilogWire *) calloc(1,sizeof(BiddyVerilogWire));
         buildWire(c,c->wires[index],(Biddy_String)"I",token[j]);
         /* assign inputs to the wires representing gate inputs */
         /* NOT NEEDED */
@@ -2298,7 +2832,7 @@ createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modu
     }
 
     /* B. Create a wire for the gate */
-    c->wires[index] = (VerilogWire *) calloc(1,sizeof(VerilogWire));
+    c->wires[index] = (BiddyVerilogWire *) calloc(1,sizeof(BiddyVerilogWire));
     buildWire(c,c->wires[index],keyword,token[1]);
     /* assign inputs to the wire representing gate */
     in = 0;
@@ -2313,7 +2847,7 @@ createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modu
 
     /* C. Check or create a wire for the gate output */
     if (!isDefined(c,token[2])) { /* if wire is not already defined */
-      c->wires[index] = (VerilogWire *) calloc(1,sizeof(VerilogWire));
+      c->wires[index] = (BiddyVerilogWire *) calloc(1,sizeof(BiddyVerilogWire));
       buildWire(c,c->wires[index],(Biddy_String)"W",token[2]);
       /* assign inputs to the wire representing gate ouput */
       c->wires[index]->inputs[0] = getNodeIdByName(c,token[1]);
@@ -2346,7 +2880,7 @@ createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modu
 
   /* DEBUGGING - print summary of the circuit */
   /*
-  printCircuitSummary(c); 
+  printCircuitSummary(c);
   */
 }
 
@@ -2359,10 +2893,10 @@ createVerilogCircuit(unsigned int linecount, VerilogLine **lt, unsigned int modu
  * the calculation.
  */
 static void
-createBddFromVerilogCircuit(Biddy_Manager MNG, VerilogCircuit *c, Biddy_String prefix)
+createBddFromVerilogCircuit(Biddy_Manager MNG, BiddyVerilogCircuit *c, Biddy_String prefix)
 {
   unsigned int i,j;
-  VerilogWire *w;
+  BiddyVerilogWire *w;
   Biddy_Edge f;
 
   /* DEBUGGING */
@@ -2587,7 +3121,7 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, VerilogCircuit *c, Biddy_String p
   for (i = 0; i < c->outputcount; i++) {
     w = getWireByName(c,c->outputs[i]); /* if NULL then this output is undefined! */
     if (w) {
-      f = w->bdd; 
+      f = w->bdd;
     } else {
       f = biddyZero; /* undefined outputs are represented with biddyZero */
     }
@@ -2627,6 +3161,7 @@ parseSignalVector(Biddy_String signal_arr[], Biddy_String token[], unsigned int 
 {
   int v,v1,v2;
   char *sig_vector; /* array to hold tokens for the line */
+
   sig_vector = strtok(token[*index],":"); /* tokenize the vector to extract vector width */
   v1 = atoi(sig_vector); /* starting index for the vector */
   sig_vector = strtok(NULL, ":");
@@ -2641,7 +3176,7 @@ parseSignalVector(Biddy_String signal_arr[], Biddy_String token[], unsigned int 
 }
 
 static void
-printModuleSummary(VerilogModule *m)
+printModuleSummary(BiddyVerilogModule *m)
 {
   unsigned int i;
 
@@ -2680,7 +3215,7 @@ printModuleSummary(VerilogModule *m)
  * @param the circuit object
  */
 static void
-printCircuitSummary(VerilogCircuit *c)
+printCircuitSummary(BiddyVerilogCircuit *c)
 {
   unsigned int i,j;
 
@@ -2767,7 +3302,7 @@ isEndOfLine(Biddy_String source)
  * @return whether the wire is already created or not
  */
 static Biddy_Boolean
-isDefined(VerilogCircuit *c, Biddy_String name)
+isDefined(BiddyVerilogCircuit *c, Biddy_String name)
 {
   unsigned int i;
   for (i=0; (i < c->wirecount) && c->wires[i]; i++) {
@@ -2781,7 +3316,7 @@ isDefined(VerilogCircuit *c, Biddy_String name)
  * @param the node object, the type of node, the name of the node
  */
 static void
-buildNode(VerilogNode *n, Biddy_String type, Biddy_String name)
+buildNode(BiddyVerilogNode *n, Biddy_String type, Biddy_String name)
 {
   n->type = strdup(type);
   n->name = strdup(name);
@@ -2792,7 +3327,7 @@ buildNode(VerilogNode *n, Biddy_String type, Biddy_String name)
  * @param the circuit object, the wire object, the wire type, the wire name
  */
 static void
-buildWire(VerilogCircuit *c, VerilogWire *w, Biddy_String type, Biddy_String name)
+buildWire(BiddyVerilogCircuit *c, BiddyVerilogWire *w, Biddy_String type, Biddy_String name)
 {
   int id;
 
@@ -2822,7 +3357,7 @@ buildWire(VerilogCircuit *c, VerilogWire *w, Biddy_String type, Biddy_String nam
  * @return the node id
  */
 static int
-getNodeIdByName(VerilogCircuit *c, Biddy_String name)
+getNodeIdByName(BiddyVerilogCircuit *c, Biddy_String name)
 {
   unsigned int i;
   if (strcmp(name,c->nodes[c->nodecount-1]->name) == 0) return (int) c->nodecount-1;
@@ -2837,8 +3372,8 @@ getNodeIdByName(VerilogCircuit *c, Biddy_String name)
  * @param the circuit, the id
  * @return the wire
  */
-static VerilogWire *
-getWireById(VerilogCircuit *c, int id)
+static BiddyVerilogWire *
+getWireById(BiddyVerilogCircuit *c, int id)
 {
   unsigned int i;
   for (i=0; i < c->wirecount; i++) {
@@ -2852,8 +3387,8 @@ getWireById(VerilogCircuit *c, int id)
  * @param the circuit, the name
  * @return the wire
  */
-static VerilogWire *
-getWireByName(VerilogCircuit *c, Biddy_String name)
+static BiddyVerilogWire *
+getWireByName(BiddyVerilogCircuit *c, Biddy_String name)
 {
   unsigned int i;
   for (i=0; i < c->wirecount; i++) {
@@ -2960,7 +3495,7 @@ WriteBDDx(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f, unsigned int *line)
 }
 
 static void
-WriteProduct(Biddy_Manager MNG, VarList *l)
+WriteProduct(Biddy_Manager MNG, BiddyVarList *l)
 {
   if (l) {
     WriteProduct(MNG,l->next);
@@ -2973,7 +3508,7 @@ WriteProduct(Biddy_Manager MNG, VarList *l)
 }
 
 static void
-WriteProductx(Biddy_Manager MNG, FILE *s, VarList *l)
+WriteProductx(Biddy_Manager MNG, FILE *s, BiddyVarList *l)
 {
   if (l) {
     WriteProductx(MNG,s,l->next);
@@ -2987,12 +3522,10 @@ WriteProductx(Biddy_Manager MNG, FILE *s, VarList *l)
 
 static void
 WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
-         Biddy_Boolean mark, VarList *l, unsigned int *maxsize)
+         Biddy_Boolean mark, BiddyVarList *l, unsigned int *maxsize)
 {
-  VarList tmp;
+  BiddyVarList tmp;
   Biddy_Variable v;
-
-  assert( !(BiddyIsSmaller(BiddyV(f),top)) );
 
   if (*maxsize == 0) return; /* SOP to large */
 
@@ -3003,12 +3536,20 @@ WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
   printf("WriteSOP: top = %u (%s), v = %u (%s)\n",top,Biddy_Managed_GetVariableName(MNG,top),v,Biddy_Managed_GetVariableName(MNG,v));
   */
 
+  assert( !(BiddyIsSmaller(BiddyV(f),top)) );
+
   if ((top != v) && (f != biddyZero)) {
 
     if (biddyManagerType == BIDDYTYPEOBDD) {
       /* IMPLEMENTED */
     } else if (biddyManagerType == BIDDYTYPEOBDDC) {
       /* IMPLEMENTED */
+    } else if (biddyManagerType == BIDDYTYPEZBDD) {
+      /* IMPLEMENTED */
+      tmp.next = l;
+      tmp.v = top;
+      tmp.negative = TRUE; /* left successor */
+      WriteSOP(MNG,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
     } else if (biddyManagerType == BIDDYTYPEZBDDC) {
       /* IMPLEMENTED */
       tmp.next = l;
@@ -3020,27 +3561,19 @@ WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
       tmp.next = l;
       tmp.v = top;
       tmp.negative = TRUE; /* left successor */
-
-      /* DEBUGGING */
-      /*
-      printf("WriteSOP: top = %u (%s), top.next = %u (%s)\n",top,Biddy_Managed_GetVariableName(MNG,top),
-              biddyVariableTable.table[top].next,Biddy_Managed_GetVariableName(MNG,biddyVariableTable.table[top].next));
-      */
-
       WriteSOP(MNG,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
-    } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
-                (biddyManagerType == BIDDYTYPETZBDDC))
+    } else if (biddyManagerType == BIDDYTYPETZBDDC)
     {
-      fprintf(stderr,"WriteSOP: this GDD type is not supported, yet!\n");
+      fprintf(stderr,"WriteSOP: this BDD type is not supported, yet!\n");
       return;
     } else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
                 (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
                 (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
     {
-      fprintf(stderr,"WriteSOP: this GDD type is not supported, yet!\n");
+      fprintf(stderr,"WriteSOP: this BDD type is not supported, yet!\n");
       return;
     } else {
-      fprintf(stderr,"WriteSOP: Unsupported GDD type!\n");
+      fprintf(stderr,"WriteSOP: Unsupported BDD type!\n");
       return;
     }
 
@@ -3094,12 +3627,10 @@ WriteSOP(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable top,
 
 static void
 WriteSOPx(Biddy_Manager MNG, FILE *s, Biddy_Edge f, Biddy_Variable top,
-         Biddy_Boolean mark, VarList *l, unsigned int *maxsize)
+         Biddy_Boolean mark, BiddyVarList *l, unsigned int *maxsize)
 {
-  VarList tmp;
+  BiddyVarList tmp;
   Biddy_Variable v;
-
-  assert( !(BiddyIsSmaller(top,BiddyV(f))) );
 
   if (*maxsize == 0) return; /* SOP to large */
 
@@ -3110,12 +3641,20 @@ WriteSOPx(Biddy_Manager MNG, FILE *s, Biddy_Edge f, Biddy_Variable top,
   printf("WriteSOPx: top = %u (%s), v = %u (%s)\n",top,Biddy_Managed_GetVariableName(MNG,top),v,Biddy_Managed_GetVariableName(MNG,v));
   */
 
+  assert( !(BiddyIsSmaller(BiddyV(f),top)) );
+
   if ((top != v) && (f != biddyZero)) {
 
     if (biddyManagerType == BIDDYTYPEOBDD) {
       /* IMPLEMENTED */
     } else if (biddyManagerType == BIDDYTYPEOBDDC) {
       /* IMPLEMENTED */
+    } else if (biddyManagerType == BIDDYTYPEZBDD) {
+      /* IMPLEMENTED */
+      tmp.next = l;
+      tmp.v = top;
+      tmp.negative = TRUE; /* left successor */
+      WriteSOPx(MNG,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
     } else if (biddyManagerType == BIDDYTYPEZBDDC) {
       /* IMPLEMENTED */
       tmp.next = l;
@@ -3128,19 +3667,18 @@ WriteSOPx(Biddy_Manager MNG, FILE *s, Biddy_Edge f, Biddy_Variable top,
       tmp.v = top;
       tmp.negative = TRUE; /* left successor */
       WriteSOPx(MNG,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize);
-    } else if ((biddyManagerType == BIDDYTYPEZBDD) ||
-                (biddyManagerType == BIDDYTYPETZBDDC))
+    } else if (biddyManagerType == BIDDYTYPETZBDDC)
     {
-      fprintf(stderr,"WriteSOP: this GDD type is not supported, yet!\n");
+      fprintf(stderr,"WriteSOP: this BDD type is not supported, yet!\n");
       return;
     } else if ((biddyManagerType == BIDDYTYPEOFDD) || (biddyManagerType == BIDDYTYPEOFDDC) ||
                 (biddyManagerType == BIDDYTYPEZFDD) || (biddyManagerType == BIDDYTYPEZFDDC) ||
                 (biddyManagerType == BIDDYTYPETZFDD) || (biddyManagerType == BIDDYTYPETZFDDC))
     {
-      fprintf(stderr,"WriteSOP: this GDD type is not supported, yet!\n");
+      fprintf(stderr,"WriteSOP: this BDD type is not supported, yet!\n");
       return;
     } else {
-      fprintf(stderr,"WriteSOP: Unsupported GDD type!\n");
+      fprintf(stderr,"WriteSOP: Unsupported BDD type!\n");
       return;
     }
 
@@ -3208,11 +3746,10 @@ enumerateNodes(Biddy_Manager MNG, Biddy_Edge f, unsigned int n)
 
         if (((biddyManagerType == BIDDYTYPEOBDD) ||
              (biddyManagerType == BIDDYTYPEZBDD) ||
-             (biddyManagerType == BIDDYTYPETZBDD))
-            &&
-            (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
+             (biddyManagerType == BIDDYTYPETZBDD)
+            ) && (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
         {
-          /* two terminal nodes only if they are different */
+          /* two terminal nodes only if complemented edges are not used and they are different */
           if (Biddy_IsTerminal(BiddyE(f))) {
             n++;
           }
@@ -3289,7 +3826,7 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
       if (biddyVariableTable.table[v].value == biddyZero) {
         biddyVariableTable.table[v].value = biddyOne;
         name = strdup(Biddy_Managed_GetVariableName(MNG,v));
-        while ((hash = strchr(name, '#'))) hash[0] = '_';
+        while ((hash = strchr(name,'#'))) hash[0] = '_';
         fprintf(dotfile,"{ rank = same; ");
         fprintf(dotfile,"\" %s \";\n",name);
         free(name);
@@ -3335,7 +3872,7 @@ WriteDotNodes(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, int id, Biddy_Bool
       } else {
         name = getshortname(MNG,li->back,id);
       }
-      while ((hash = strchr(name, '#'))) hash[0] = '_';
+      while ((hash = strchr(name,'#'))) hash[0] = '_';
       fprintf(dotfile,"  node [shape = circle, label = \"%s\"] %u;\n",name,li->data.enumerator);
       free(name);
       if ((biddyManagerType == BIDDYTYPEOBDD) ||
@@ -3506,7 +4043,7 @@ WriteDotEdges(Biddy_Manager MNG, FILE *dotfile, Biddy_Edge f, Biddy_Boolean cudd
       if (((biddyManagerType == BIDDYTYPEOBDD) ||
            (biddyManagerType == BIDDYTYPEZBDD) ||
            (biddyManagerType == BIDDYTYPETZBDD))
-          && (Biddy_IsTerminal(BiddyE(f))) 
+          && (Biddy_IsTerminal(BiddyE(f)))
           && (Biddy_GetMark(BiddyE(f)) != Biddy_GetMark(BiddyT(f))))
       {
         n2 = n1 + 2;
@@ -3672,7 +4209,7 @@ WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge f)
           (biddyManagerType == BIDDYTYPEZBDD) ||
           (biddyManagerType == BIDDYTYPETZBDD))
       {
-        fprintf(funfile,"l");  
+        fprintf(funfile,"l");
       }
       else {
         if (Biddy_GetMark((BiddyE(f)))) {
@@ -3768,6 +4305,15 @@ static Biddy_String
 getname(Biddy_Manager MNG, void *p) {
   unsigned int i;
   Biddy_String newname;
+
+  if ((p == biddyZero) &&
+      ((biddyManagerType == BIDDYTYPEOBDD) ||
+      (biddyManagerType == BIDDYTYPEZBDD) ||
+      (biddyManagerType == BIDDYTYPETZBDD)))
+  {
+    newname = strdup("0");
+    return (newname);
+  }
 
   newname = strdup(Biddy_Managed_GetTopVariableName(MNG,(Biddy_Edge) p));
   for (i=0; i<strlen(newname); ++i) {

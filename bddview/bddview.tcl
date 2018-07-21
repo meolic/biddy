@@ -8,9 +8,9 @@ exec wish "$0" "$@"
 package require BWidget
 package provide bddview 1.0
 
-# ############################################
-# $Revision: 334 $
-# $Date: 2017-10-30 20:53:56 +0100 (pon, 30 okt 2017) $
+# ####################################################################
+# $Revision: 446 $
+# $Date: 2018-06-05 11:11:31 +0200 (tor, 05 jun 2018) $
 #
 # This file (bddview.tcl) is a Tcl/Tk script
 # Author: Robert Meolic (robert.meolic@um.si)
@@ -22,794 +22,480 @@ package provide bddview 1.0
 # for any purpose, without any conditions, unless such
 # conditions are required by law.
 #
-# YOU NEED Tcl/Tk AND BWidget PACKAGE
-# Both are included in ActiveTcl distribution
-# Mac OS X: You can also use TclTk Aqua Batteries-Included
+# bddview script is part of Biddy project (http://biddy.meolic.com/)
+# bddview script is used in EST project (http://est.meolic.com/)
 #
-# http://www.tcl.tk/
-# http://www.activestate.com/Products/activetcl/
-# http://tcltkaqua.sourceforge.net/
-# http://sourceforge.net/projects/tcllib/
-# http://users.pandora.be/koen.vandamme1/tcl_tools/bwidgets/bwidgets.html
-#
-# bddview is used in Biddy project
-# Homepage: http://biddy.meolic.com/
-#
-# bddview is used in EST project
-# Homepage: http://est.meolic.com/
+# INSTALATION:
+# You need Tcl/Tk and BWidget.
+# For MS Windows, both are included in ActiveTcl distribution.
 #
 # USAGE:
 # ./bddview.tcl example.bddview
 #
-# FORMAT:
-# bddview reads BDD from the file with the
-# following format:
+# BDDVIEW INTERNAL FORMAT:
+# bddview reads BDD from the file with the following format:
 #
+# type <bddtype>
+# var <variablelist>
 # label <n> <name> <x> <y>
 # node <n> <name> <x> <y>
-# terminal <n> 0 <x> <y>
-# terminal <n> 1 <x> <y>
-# connect <n1> <n2> <type>
+# terminal <n> <name> <x> <y>
+# connect <n1> <n2> <class> <tag1> <tag2>
 #
-# <n> is the unique number (integer)
-# <name> is a string
-# <x> and <y> are coordinates (integer)
-# <type> is one of the following:
+# "type" is optional, supported BDD types are ROBDD, ROBDDCE, ZBDD, ZBDDCE, TZBDD, TZBDDCE
+# "var" is optional, variables in <variablelist> are separated by space
+# <n>, <n1>, and <n2> are the unique sequence numbers (integer)
+# <name> is function's, variable's, or terminal's name, respectively (string)
+# <x> and <y> are coordinates (float)
+# <tag1> and <tag2> are variable's name, only used for TZBDD and TZBDDCE
+# <class> is one of the following:
 # s : single line
 # si : inverted single line
 # r : line to 'then' succesor
 # ri : inverted line to 'then' succesor
 # l : line to 'else' successor
 # li : inverted line to 'else' successor
-# d : double line (inverted left)
-# di : double line (inverted right)
-# e : double line (none inverted)
-# ei : double line (both inverted)
+# d : double line ('else' successor inverted)
+# di : double line ('then' succesor inverted)
+# e : double line (none succesor inverted)
+# ei : double line (both succesors inverted)
 #
 # REMARKS:
 # 1. (0,0) is top left corner.
 # 2. Only one label is supported.
-# 3. Single line (or inverted single line) should be
-#    used to connect a label and a node.
+# 3. If <variablelist> is given it determines the ordering of the listed variables.
+# 4. Single line (or inverted single line) must be used to connect a label and a node.
+# 5. Terminal's name must be either 0 or 1.
+# 6. Function's, variable's, and terminal's name can be given with or without
+#    quotation marks (in the last case the name must not include spaces)
+# 7. In an "incomplete bddview format" coordinates are omitted,
+#    such format cannot be used with bddview but it can be handled by BDD Scout
 #
-# API (see near the end of file):
-# proc not_implemented_yet { t }
+# EXAMPLE (example-robdd.bddview):
+# ---------------------------------------------------
+#type ROBDD
+#var "B" "i" "d" "y"
+#label 0 "Biddy" 58.0 18.0
+#node 1 "B" 58.0 90.0
+#terminal 2 "0" 28.0 162.0
+#node 3 "i" 90.0 162.0
+#node 4 "d" 64.0 234.0
+#terminal 5 "0" 28.0 306.0
+#node 6 "y" 90.0 306.0
+#terminal 7 "0" 54.0 378.0
+#terminal 8 "1" 126.0 378.0
+#node 9 "d" 118.0 234.0
+#terminal 10 "1" 154.0 306.0
+#connect 0 1 s
+#connect 1 2 l
+#connect 1 3 r
+#connect 3 4 l
+#connect 3 9 r
+#connect 4 5 l
+#connect 4 6 r
+#connect 6 7 l
+#connect 6 8 r
+#connect 9 6 l
+#connect 9 10 r
+# ---------------------------------------------------
+#
+# EXTERNAL API (see near the end of file):
+# proc bddview_message {text1 text2}
 # proc bddview_clear {}
-# proc bddview_draw {name}
-# proc bddview_saveas {win}
-# proc bddview_print {win}
-#
-# Example (example.bddview):
-# ---------------------------------------------------
-# label 0 "Biddy" 100.0 10
-# node 1 "B" 100 60
-# node 2 "i" 100 125
-# node 3 "d" 50 175
-# terminal 4 1 50 240
-# node 5 "y" 100 225
-# terminal 6 1 100 290
-# node 7 "d" 150 175
-# terminal 8 1 150 240
-# connect 0 1 s
-# connect 1 2 d
-# connect 2 3 l
-# connect 2 7 r
-# connect 3 4 l
-# connect 3 5 r
-# connect 5 6 d
-# connect 7 5 l
-# connect 7 8 r
-#
-# ---------------------------------------------------
-# KNOWN BUGS:
-# 1. bddview_saveas supports OBDDs, only
-#
-# ############################################
+# proc bddview_bendsOnOff {}
+# proc bddview_arrowsOnOff {}
+# proc bddview_gridsOnOff {}
+# proc bddview_open {filename}
+# proc bddview_save {filename}
+# proc bddview_export_tex {filename caption document}
+# proc bddview_print {filename}
+# ####################################################################
 
-set TITLE "BDDview, Robert Meolic"
+set BDDVIEWVERSION "1.3"
+set TITLE "BDDview v$BDDVIEWVERSION, Robert Meolic"
 set OS $tcl_platform(platform)
+set OS1 $tcl_platform(os)
 
 # DEBUGGING
-
 # if {$tcl_platform(platform) == "windows"} {console show}
+
 puts -nonewline "Starting $TITLE ... "
 
 # ####################################################################
 # IMAGES FOR TOOLBAR ICONS
 #
 # THEY ARE BASE64 ENCODED GIFS (32x32)
+# - create 32x32 PNG
+# - use command "base64 filename.png"
+# - use color: #49B2C2 (COLORBUTTON)
 #
-# --------------------------------------------------------------------
-#
-# Some images are from Kids Icons by Everaldo Coelho
-#
+# Icons made by Freepik (www.freepik.com)
+# Downloaded from Flaticon (www.flaticon.com)
+# License: Flaticon Basic License (free license with attribution)
 # Obtained from:
-# http://www.iconarchive.com/category/system/kids-icons-icons-by-everaldo.html
 #
-# License: Free for non-commercial use
+# <Print>
+# https://www.flaticon.com/packs/linear-color-web-interface-elements
 #
-# --------------------------------------------------------------------
+# <Pan>, <Zoom>, <Edit>, <Info>
+# https://www.flaticon.com/packs/web-interface-icons
 #
-# Some images are from Boomy toolbar icon set by Milosz Wlazlo
+# <GoUp>, <GoLeft>, <GoRight>, <GoDown>
+# https://www.flaticon.com/packs/color-arrow-collection
 #
-# Obtained from:
-# http://www.iconarchive.com/category/application/boomy-icons-by-milosz-wlazlo.html
+# <FullScreen>, <NoFullScreen>, <Iconify>, <Exit>
+# https://www.flaticon.com/packs/basic-application
 #
-# License: Free for non-commercial use
+# <TeX>
+# https://www.flaticon.com/packs/file-formats-icons
 #
-# Details:
-# All icons in the Boomy toolbar package are for personal use only.
-# You may also use the icons in open source and freeware projects as
-# long as you give credits to the author of the icons and link to his
-# website (miloszwl.deviantart.com).
+# Icons made by Good Ware (www.flaticon.com/authors/good-ware)
+# Downloaded from Flaticon (www.flaticon.com)
+# License: CC 3.0 BY
 #
-# The image data may be changed by You in a limited way, only by
-# combining the included icons and adjusting hue, saturation, brightness.
-#
-# --------------------------------------------------------------------
-#
+# <Save>
+# https://www.flaticon.com/packs/document-3
 # ####################################################################
 
-set iconSave {
-R0lGODlhIAAgAOf/AEhIeExLfE9SiFNSg1BTiVVUhVdVh1NWjVlXiVRailpY
-illahV5YhVZcjFpbh1ddjV1bjlxdiF1eirNGIl9dkFpgkF5fi19gjGFfkWBh
-jV1ik2JgkmFijmNhlGJjj7RNK2NkkGdki2RlkbVPMmVmkmdkmGZnlGlmmm1m
-lGhplmprl2xpnWtsmWluoG9soLlZPnJulm9vnLtaP2xxpHVunXJvo3BxnnFy
-n25zpXdwn3lyoXl1nXV2o3d4pXl5p394qHt7qXd8r3x9q4F9poV+rYODsYSE
-s4mCsoiErYqDs4WJsI2GtpODto2JsoiMs4+IuJWGuYuLuo2Mu46OsZaKtpGN
-t5yIto6OvY2RuZKRtJCQv8OCgKCMupKSwZOTwpyQvMSIf5SUw5aWxZWZwaWS
-wJiYyKGVwZaaz5ubvpqayqOXw6SYxJyczKCcxp2dzaaaxquYxsOUnp+fz66a
-yKKhxKCg0MmWlqKi0qufy86YkqGlzaOnw6ejzrKezaujyKqmxKinyqam1q+j
-0KOn3LWh0Kin2Kerx8agrqmo2bej0rCoza2txKqt1qys3LOvzbur066x28On
-2Lay0LWx3MCs27Oy48er3LG067a22rO34N+tn7i4z7m50Mqu38Oz2six27i3
-6Ly34syw4tqzrrq567+62ce3382138+z5dW14b7C3tK26MTA3s666cPC59i5
-5cPC9MrB6MjE48TH5MbF6sXE9snE8Ny96eO86tLG5+HB7s/L6tHN38zL/crN
-+MvP7NTM5svO+drJ8s7N/+rC8dTQ4tDP9M7S79XQ79TP/M/S/OrH7tbR/tLV
-/9PW/9nZ5ODV6dba6uXR9NnY/eXW8dvb8tjc+dva//vL/Nzb/+na6PHV++Le
-/eHi7OHg+N7h/9/i///V/+Hl/+bl/efo8urm+Ofn/ujp8/zd/evn+ujo/+zq
-7unp/+rq//ri/+zs9+/r/frn/evv//nq+O3x/+7y//Hy/fP0///x//b2//r3
-/Pz6/v78//n///7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-CBMqXMiwocOBJTZQgAABA4YODwu2OFEihhIsdAwZQjMFiIoMHDA07DGjxY8x
-s6qNu+evZj953oxl0tIjhggTCH3UoIEgSrZs4Mxpk1dv1IdR8spB4wbOn6MC
-HrIW9NFDzKwpFUgdBTPBjroXE16AszNhi753LvH00CqwRw024/yRu1Aj2LQJ
-abmxtfMN7QR/Uw7gQvfKRwYPAoPcwOTvHrcrBc44izPikDNnuZgNOzRiFC8B
-RFZhC9fEAsEYUvQZuwRpRQlfztTV05cvXz11yrz5A9KhT6RVxGJcKBjD1a9K
-pLoIAOSP37pu0aB1O5eP36YBRz7+Ubo1RwJkgiyMVCM1CVEJFXSMQDCg4MAB
-Ckr2tEDRJ1WnVzBkcFALmByDyE4dmABEFGF4UQUWRdTQQQRJWGIJMV9EcF5B
-LCDhzSSFDHIGIoXcIYccZZRRRRhffEFIJKjccgMHCN3Qgiy73IEIH3Ww4cYY
-YpQRhhZXePHGi8s8omFCLejhTR133FGHHnLo0QYWY3ShxRdr4EEJOm0siZAJ
-Y4zDCBt1jFHEChd1gEEMC5oBxyfoUGFeQihgUQ4mbXyBAQAsZJHFFFNYEIAH
-T8zxiTtNSEDjmGOAg0kUCSSwiT3+7LOPPufskQADS5jiThURCHgQCygA0s4k
-EITwjD7+sICiTDDNcINPMSFQ4Ak+fixgqkEpzEBLO2YwwIo8g0SQwCTcXOOM
-L+aossAc+OSigWsHmRAFN9ws8UAvvfDAwAA8mAPON84oA8sCTMQzzxALLFeQ
-CSZ4Yo4wVjyQjC8SLLCAB/n489s1zDxgxTL+SCIBtgSZ0Nw0qFiRQC/KPJDA
-v39Iosou4CSTgBWr4AOMCBFIUFAINAhiCyVkMKAFEB6EYIIHCxjAQAxIlBEB
-FZ9QAwgHC5hMkAgp/GBGH0lw4EEGKPwkwtMeXGAeCkwQ8gYMEYQQgUEmqLBD
-DvSGQFdBGVjgAQw7oMAAA1sfhAJKGy60QAjxMpBRQ/LerfcE3g4FBAA7
+set bddview_icon_GoUp {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE3ElEQVRYw61XS2xUVRj+zrnPuXfu
+PNqBUmgpQycWYTpKsDQFMbqoEhcQCcEHxo2RWtRIjAsMxoakhNpEF0iiCQtiQtSwcKEboItCjLRY
+ni00tJ3QgsVCp7TTztx53LkPF22H1pbOHZxvdXPPl/N/5z/f+c/5CWyiuau3ZCKtHVIzRn1My5Qn
+dN2hmRYFAJ4SU2LZpJNnhxWOa1M4pqWpNnjfzrwkF+Hgxe76aDpzfDieeMawLFtiGUJQ5pT6fSL/
+SXNd9bmnEvDttT7PnUn17GBM3WzaDLwY/C75csDtrP9sY1XUtoCmSzdD4Wj8z/G05kQB4BH4ZIUi
+7WzZEmrLKeDgxe7d/dHYL0ndYFBAiAw113ld7x7dEvr5iQK+6uxZ1zseu6nquq3gPKUAAM00bYuo
+8rq2z80Enf040tXrGoolOu0GB4Ad/pXY4V9pOwspw6RDU+pvhzp6ihYIGFFTv0eSabfdyZY5BOyt
+qsDeqgoscwi2RUxqGXEirZ2dJ6Dp0s3QUEx9KZ89bQxWgqMEHCVoDFbm5YfBKfWFLzt6Xs0KeJhI
+/2TkcdSe93mwuSSbRWwuKcJzPk9eIsZS2ncAQJq7eks6Hzx6YFcARwm+f3kTVkgiHqU0AECxyONB
+IoXG81eQMe0Xq5rl3jI6kda+yGf1O/2rsEISAQDHbgzg2I0BAMAKScRO/yrb8xiWhVjGOEjVjFGf
+r/EA4MroBNoHBtE+MIgroxMAkLchY5lMPY1pmdV2yJYF7K8OgKMEhmWh9Wrf9M+Zb8OywFGC/dUB
+2wLiml5GE7ou2SFvW+lDzXIvAOB0eBgjkUh2bCQSwenwMACgZrkXL5b6bAlI6LqDzl6pS8HBMti3
+YS0AIJJM40RPeAHnRE8YkWQaALBvw1o42Nz1TDMtSu0o3RMoR5HIAwCOd4ehq/EFHF2N43j3tLAi
+kceeQLmtLFCekiULeZlTwq7KaXd3jU6gvf/OE7nt/XfQNWPIXZWrsFqRctwlxKQSyyaWIu0PVoIh
+BBnTQuvV2zlX1Hr1NjKmBYYQfLhh6QopsWySKjx370mEraU+hHzT18Opvrt4GBnLKeBhZAyn+u4C
+AEI+95KGVHjub9bJsecArF/MeA0zxgOAULEbX9dvsbWv/BxrNQQrcS0SharrC3gyx7SxHoFrYQg5
+8N9qONd4ALBp5gjmC6/AYXegDD/eHlpQil0ce5QAQEP75d57scSzs4NunsPnG6vAUoJCQDctfHO9
+H9G0lv1Xocj9P7yyqYqdqeONw/HkedOyYFgWhsfG8OmZ0YI9xwhDISkuMGR6QZQQeATu4+x1fLg2
+eMGvyB0AkM7osAwThYQgK9ngAOBX5L9mn2VZt5TK4nYAxmJF5v+AER3gmcemLBL4+Fq3/NqCJ9mh
+mvVTDpb5gDC0cKlnWcgO8bHrWdbwu+Rtc3uEedF+fX3rydLi4tZCiRAkeV7wgMf5VnNd9fWcjcmb
+Zzrev/9o/ISl6099DFjZCYnnZtOeCHicdYdrg922W7OG9svl4Wj8Vio2pSDP1oywLJxOBSwl1hpF
+/sMtcG8cqasef6rm9O2znQf+iaktuhq3/dRRPF6sccm3SiThncVWnZeAWbzXdikYTWsnJ1Natalp
+vGXO3x7KCYYoCpPFonBhncf5UVNtcMTOvP8C4vDL+KynuZkAAAAASUVORK5CYII=
 }
 
-set iconPrint {
-R0lGODlhIAAgAOf/AD1CREFDQUBERkJGSERISkpMSk5QTU1RU05TVVFTUE9T
-YVNUUlFWWFNXWlNWZFhWWlRYW1VZXFZaXFhaV1VZZ1NbYldbXXRZH1xaXVhc
-X1tcWlpeYF5cYFpfYXNeKFtgYl5gXVtfbGFeYlxhY4JeDl1iZGBiX15jZWNh
-ZV9kZmJkYYxhAGBlZ2VjZ2BkcmFmaI5jAJJhAGJnaWVlbmdlaWNoapFlA2Rp
-a2lna2VqbGhqZ2ZrbWtpbWdrbmhsb2ltcJlrAGpucWxtdmtvcmxwc21xdKJt
-AGtzem5zdZ9wAHVzd3F2eJ92AKV1AJ92DHV6fKp5AHh9f3p/gpKAQLN8AJB+
-XXyBhLF/AK6BAKuADqSAIpWCQ36DhYOBhaCDMn+Eh5mFP4CFiJuGOrKFCIOI
-irCJC4SJjImHi6iKMoaLjbOMEKCMTLiLEpuPU8GMAImOkIqPkriQF46PmIyR
-k8WQAI6SlbyTG5SSlsOYApGWmLuYH5KXmb6aFZiWmr2aIbCXXsybAJWanKOe
-ZcGdGqefWpecnsmeDsKeJpidoMObNsWgHsSgKZ+docikIqWhk8OlLKymZ8ak
-PaWip8ynJqKnqaWmr8usKqSprNKsIqesr62rr9GxMNmxHNCxONuzK9e2Na6z
-tbOxtda3R9q5OdO6R9S5Xdm+PLS5vLy9lNi+RNe+TLe8v8q7o7+9wb7DxeDI
-XMXDx8HGyejMSsjFyuLLZu3PPMTJzMrHy+bRVenPW8fMzvDSSM7L0MnO0O7W
-StDN0fHUUsrQ0uvWWfPVS+jZW8zR1M3S1dPQ1e7ZXM/U19TS1vLcX9fV2dLY
-2tbb3fHjbPniXdzZ3t3a39jd4N/c4drf4vfoaeDe4tvh4/fqef7sXt7j5uXi
-5uDl6OLn6vbprujl6uTp7Orn7Pn0h/jxmubs7ujt8Pz0lv73g/vyr+/s8f/3
-kvjv1O3y9ffz5PTy9vL08fz6yfL3+f/+svb49P7/v/T5/P3/x//+zf3/2/f9
-//z/7//8+v78//3//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-CBNSoXLlCpQkQBJKJEgH0CZVr2jRElUm4sSEgHLF25fv3rxz60QBsWHjo0E3
-r/SxK3WIzyFLsiwBgQHDZUE+39zpgaLGThw1ih45WbnCp0AtiuJ9IzZuXLZn
-z4ThUvUpCwmncrx4wkfOlJ0xWBrG6YTLFxYPM1zKmSP2XqQkdvgssrRokZpN
-n5pUOSLjo5xQiRbNA7YLGDBfu3xBs6bt0wpWknBM5CLn1581qAQRWrNly5Qp
-awRBAnPBUawlJySmecNlCZEeLnLnpkDBgQIFDihYoMFDM8I7d7rwUKJER5Eg
-PGjQqFFDhIgNICxMSJCiR46Dc97+vCGDpAgRJTx86NBBo4UKFSA2SJjw4AGP
-4jcMnrkTqs96JDqgx0MONbSHgnUiSGBBAWlQwkMNBaWRhiTXFCICczzosEMO
-OLx3wggjWCCBBhoE0MU1c6BQ2EBnkLEKPHts4Nx9OOiAAw0HgvDBBhjUZyI3
-oOjQAkFcvBGMOn2IkGGGQrbg3gkiaKDdBAsEwEU5tyjxAkFd3IGNOoikkF57
-NMigAgomjBAlBmw+EEAf3CTTRWwDRfEGN/BogkILOhR4JprW8QhBAwscUIAm
-5VzDxZADdfGGN/C4ogMGNKjgXgkijCAlmxo8UKUGwSRKRgoELXFHOeX8IgkG
-EKAApQj+H1yHgQQMeDrAAppwcw02Z6BQ6hniwFNMMqE8gUEDECywwAMMKHsA
-ARh0EQo22OxKBgsEKUEGNvA084u3qxTCRRdDrKdEl5K0wkszyjBzDTNdMCqQ
-Elwwww82vxjTrjLG/OJvL7fookssrgSsTDPO6BIFqQMF6Eo//cBTzjTMeGtM
-L7rcYgsst3DsyrfXcNOKkAQBiAg29PDDjz/82AOPONxgM40zzlDLTTnucOMO
-M4zosGW2AZ6hiSvG1BwOPPbI00/O1zSjSyuhUFIHGUXQYFCGPbDQAgo6dNEF
-GXP0EUgfe6ThdXotLEkdQhzWSEOa1n2AQawigPAeDTaW6dMSjTmogEMOePuN
-Aw4FOmW4RAEBADs=
+set bddview_icon_GoLeft {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAEvElEQVRYw8VXa0xbZRh+zul3Ti+n
+peW2jcGmMGRkhTplWMY2zWKA6Q9NzDQu/jBLdIqbf/RP54hYszlc4iVOExNj1MRgpkajJmbKD4aJ
+QMfYZlsZbOg61wSBstKeXs61xx+4yp3Skvj+PN/lefK87/e856WQYbg9/lJeVl28LDfFJKUsoShG
+KaXRAMDSVMpESNLCMjc5RteVx5CT7c6asUzupVba0Nbnaw4J0ulgLFGlalpGZHUUhTKz6apNzxzp
+aHR0ZUXgWJ+vICxKP12Pxncgy6ApCuUW7nyFlWt56Z6t0xkTcPV6mwLR+PcRSTZgDaJAz8bK87g9
+x3fWXl5Acv6Ho73eAyPh6Nm1AgeAW6JkHg7zF1y93v3LKuDq9TaNhKNnBTVF5wpq07OYEkToqP8g
+OEJUe2HevW5njXeBAm9fGrHd4BPf5QrOEYKnq+/Ey9urkOCjkNRUei2uKLrR6VjfsT5fwQICo5FY
+17QoGXMB311ShA/31uHxyjIQmoKmpiBEI4gnhdnpMEVE+ds5BNr6fM25VPtmiwlvNNTCVVeNfD2z
+YF0VkuB5Pq1GgI/vaff4HQBAACAkSKezATYSHZ6o3ITHtpTOyfVioSkKhGgECmeGkWGo8YTYCaCG
+uD3+0oGJcFU2ch+yV6DAwAIA5JSGz0duwFFoRd26/CXPKfEYYoQgANjdHn8J4WXVlanDAUCxUY8X
+aitRPwtkYCKMUxeHMT4ZwptNjSveoSkK+Okwhg3sB4SX5aZMgBmawqPlpXhq6x1g6Bm5J5Mi3veO
+ovvqn1nVzpQgPkBiklK20sa7i2x40VGJDaYZb1I1DV+OBvGRbxRKPJb1qxEE0UoSimJcTu7Wmi24
+b3362WJwIoxTF0cwNjmZs0OmZFFHbrfU2cHSNB4p3zhH7ilBwnu/XUP3tevAKmpmxYaF/zlolqZS
+8z9KqRS+/iOIQ90XcH78FgCg0MDC7bTjneZdKCkuXjsCJkKSSy1OJkW8PjCEtn4//k7M2Gndunx0
+tjjR2rAdhDPnBE7RRKMtLHNzpY2XQ9NoPTeIT68EIKc06CgKB+7ahDMPNWJvVUUO8rMSzTG6rkw2
+yyktnZaBiXD6lbiddrzVshvri4tWTcBqYH10vp49sZKPz0/La57f0TE4jFuCBACoX5ePzuYGHNxR
+C5bOvK5tevYgBQDPdw+O3ODjq+4HyzUj31QEh3/8ZcmzhDOLPfsfNNAzTJgj9CpUuB1JRcVnwwEc
+7rkEbyiyiuqjsNHCudI+0NHo6Cq3cOezLaZgLIFX+n04OSsty4XBksd/0dLw7hwjqrByLQV6NpbL
+s/p1LITnzg3iq9EglNTibkkRolXazPZFf0rbPX6HbypyMamoulwNxsoyCIZC0Gb9E1I6GqVFRc+c
+2bfz40Wt2O2s8VbZLE9yhKi5EohIMkyWvLRZUToaJYWFp2aDLzmYvNrvqw7wif7JpGhdI8dVjUT3
+7DcP7/ok49HsxMBQ3lhc+CHAx+9Xs+x+/45mfSWcYd+x+m3RrIbTdo/fMZ4QO4OxhH01w2mp2Xhl
+g8nQ6nbW9OQ0Hd+O4wND68OidDQuq028JG9OKIpp3niesLDMX2aG/GzTMx1t9dvGM7n3HwZ69Iiw
+3/GRAAAAAElFTkSuQmCC
 }
 
-set iconPan {
-R0lGODlhIAAgAPcAAEZLeUlPfUxQflRUf0dQg05SgFVWgVhXg1dYhFlZhVFX
-iVdai1xcjF1ekV1emWRhjmJilGpllG1plmVlmmhnmGtqnHNtnXZwn2Zmomxs
-o29vqnVuonNxpHpyo354pnNzq3p2qHx6rXd3s3x8snx8uIF3p4V5qot+roJ+
-sYSDtY2EtoODuoyHuoqJvJeEt5KLvZyLvKCNvo2Nw5qPwJWUxZ2QwpubwpeX
-y5uazJ6e0qGPwqSSxKyWxqiVyKeZyquazLKazaOe0a6f0aOi1aqi1aam2aqm
-2auq3bKh1Lyi07Wm2bmn27Op3bys3rGx07Oz3r29366u4rat4Lut4LOz5biy
-5by85Le36ru77b298MGk1cKm2MKq3cir3MOu4suv4dCv4sSx5Muz5sy26c26
-7NW159m25tW44tO26dO57dy67Ny+8uG97+S+8cHB48nJ6tPT7dnZ7MPD883N
-98nJ+tPD9N7C9d/P/tXU9t/f/uPC9evC9e3G+eLM/enK/PHE9/LF+frH/PbL
-/PrK/e/Q//7T///Z/+jo9ufn/+jo//Hx9/b2//39/wAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAACH5BAEAAI0ALAAAAAAgACAAAAj+ABsJHEiwoMGD
-CBNq4JAhQ4UKCSMS/JBhIcMMEzJmlHjwg0cSN6IU0ZCBxo0RFSBMgMBx4AcR
-JFa8WQTFoxtEeeYcSbGSJUcNJKxQGRHHiQMSV+RQoYJlDp0hHBr4TPhShhUb
-H1pMkCEHS5QjR4rkOJLlCIcHDRSKsPIEAwYNGIrQwUIlChWwYocMWdHgwYOO
-GoowUvTBrYgrdK5cuQv2SI4VFSykkMCAgcEMKxAxgkPyA4cQZBcvPUKDA4QQ
-OHZWLqhBwxFGh1Zg+CCjCIcJN66IzZGiQQUaeocEoWx5YAYReBbRcJBDxAo6
-VD5MICE9Y4ohRHIEGcIkRYLiAjH+tEgEhTmWDyOuZKGCYoHKBRlyFMGBnUmT
-FwwSGK8wBA+HFXKYNcJSWeSgUUYtCIeEElwsMdl3AjlEGgdUXDHEByEsVUQI
-UjXAAAc3YLdEE2rswMIGCejXSAUlfcBEFWF5REURH5wWAgULgEAEEwymkYYJ
-SlyQokAPcUBEHUxIwcQIGhghAgMtFDEEDu2xEEYYaBASwwlhbHCAihmhcAcZ
-U3gRxgsThAABC0cQUQQTT4CQABJ6DGJGBEl4UYEBYE7wQh9pfDFGExw2kMIU
-PCqxhBhjVNBBG4WYcAIbSDxgwAEDpVmHHWas0UOHKowRhhdfMMqHGRd0UIIE
-YNgxQwL+BhAEQQVL+KEGH1ooQAAEOuihhhlqsNHGIHtYEAAAEqiRRgcGxDoQ
-BGv2oQcgQECwwQbD7qHtH4AUsscFAggQARpCMNBsQb4tQQgYF2hxhgdmFAJI
-IIMMEoghgEgQwAA7jLHBAM7K2oAHYdRgQiGCuLCDIfXWy3AJBmwBww8qHHCu
-QQw0AIIKX/AhiBYn/CHvvYJ0AAAPhYTRwQEDDJAQWhssYYcebMCQRCEis2HB
-yX6QwUICA6iYUGUVzBCGHRKrUUgXlgqxhhAdtOwyR98xYMEMSOyAxA8pzuBD
-CUC33JJA+aX4gAUWRPCABBKEHfTYBKWYAAIDIHAAyy0jADcLQikiYDemewcu
-UUAAOw==
+set bddview_icon_GoRight {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAEv0lEQVRYw61XW0xcVRRd9z2vOzPA
+UCShlioplDKkLeWlxrYfqDHRBNNaJY3aGKOJNtFoGmobEUMVf/pjK7U19suYqDHxxxb4INqWMgK2
+DgyWOkAtg7RA531n5r79UKdToDAP1ue9Z5+97l7r7Hs2gTTRMThWFBTl1qisPBGR5AdjimKSNJ0E
+AJYkNBNNx3iWuWlmqN48jv3kaG3l7XT2JVZb0OYa3XkrluiaicY3q7qeFlmKIFBiMXmKTFxLe32V
+OysCxwbHrLNC4vxURGjU0ky8HJFS3vxLsdnwzJHaynDaBJ776dKBuKKeAUBhDVBo5EKlvKnhowbn
+tcXvyMUP9p7r/3TO7/8qHAhQMUmGmuXXp2I+LtrG/JHR1n73nhUrsO/85VdnFha+1FXt7gKKRInD
+gZAk50zESFOqs8C2PdUXyQq83je0fuaO/0xqcgDQVQ3vbSvHyxWlMNK5KRJXVMobjF46fmXcvoSA
+Nxj16IqyrCdoksDeshJ8sasGjxY7ciLhFyXLZEjovofAi90DbyciYX614HwDi8M1Ffi4wYkSiylr
+ElMRoa61392UJPB3ROhEBmardthwcue2rGXRdB1BUT4BAORLva4qRYhy6QQOzwVw9o8bkDUdFHFX
+lseKHcj0sPiisU0dg2NFZFCUzqYbJGkazg6NoKVnAINzgaQsrTUV+LB+CwqNXNoEVF1HQJSOkKGE
+5My0hLfnF/Bu90W0uTyYj4sAgNp1eTi9ewf2PFwChiTS2keQ1SZSkyQ2WzP1XZ/EvnP9+ObPaai6
+DoYk8MrmUnTtqsFWh33V+Igkryd1TSFyOVaKEEXXwFW0dLsw/J8sD5gM6Giowge1lSvKElMUI4k1
+wuz8PN7puYQ2lwd3EhIAoK4oPykLS5LLeEon14xAtqDXaqPiwkIc2l6OmnV5yWe/3vaja3QiadTF
+YElCo0mGU1U1nnWTp80WvOYsw/NlJaCIf+10K5bAZ24vfl8Irhhrouk4bTBwISERz88m+e5ND+Gt
+6rKk0WRNx9fjf+HHqRnI2uqdycLSPrrAwP0sAM2ZJC4qdODQ9grUppR7cC6Az0e89y33cuAZppeu
+sFveDCSk5mg0Al1RVgxgSRIHdjixv3xDstn4ExJOeyZxcXYh4+saz1CdBAC80Tc8eiMsbInLMhQh
+umTxyacfh7PAtqSV/jAxg2+904grasbybeDN10/trimnAaDIxLX4orGrJpYhJMoGMSasWA33Qgin
+PBO4GYllfWocBvZg8nfcXl/lLuXNFwCApUjwPA/KYFwSFBBldA5fw/sDIzkl32g1D3U0Onvu6QM2
+jmnO59hpvyiZAMBsNEBiWYhCBIqm4zuvD997fRBW8clqsHNsvMxmaVr2UtrmGq323An/JigKlap1
+gYFDUJRyblYGitTK86xPdT5S3bvstby9vspdZre8YKZpNdWta5W8Is+6PzX5fQeTo5dHtk6FhQt+
+UbKsRZu2sUyi1Gp+dnHyFUez41fG7ZMhoXsqItRpOQwnG63moTyOffJYo9Of1XDa2u9uCoryCV80
+tinD4fS6w8Ae/N/tWU/HSX+4RovDsnJYkNWmiCSvjymKcdF4HrewtI9nmF6eoTrb6qtm0tn3H29o
+DQnzGHrPAAAAAElFTkSuQmCC
 }
 
-set iconZoom {
-R0lGODlhIAAgAOf/AARGfwBIhQBLggBPhwBSfg5KgwBShABTfxBMfwFUgARV
-gQBYgwBYiRJTdBJVcABchwtYhABcjQBejwBfijFSTxBZhgNfkQBikgBlnAlj
-jwBmmApilABnnw9jlgBqohRlmABsqSRifQRvmgBurABxogBxqAttpX5RAwBy
-sH1VABtrlwB3qAB1s35WBlxeOhNvp4BXAIRVAAB5qjZuYYNaAAB6vVtmM4Vb
-AQB8wA14txxzrAB/wwCBvoVhBoheEQCByotgAJBfABR/sAiHvhqBsw2EyJJl
-BJNmAACLz41nEJBpBkV5fg6LuxeHyyOFtz9/j5psABWNvgWUyx2JzgqT0Jpy
-BR2QwSGNy6FyAB+RwgCc3xWT15x0Fgie4pl4Kap5ACmWx557G517JAuk2i6W
-zhKj4Caa3wCs6LKAAa+CAiqe3Bmn3q2CEaWCKzab1Bym47qBAC2g3reEAC+h
-3yOo5keb1TOj4baIDrmKAECf3yWs4z+h2jal5Ba167+LBDim5cGMACqv5Tuo
-5y6u6zur4x647S+x6D+q6SO670Ks7DS060Kv6DS350Su7k6s5saaAC2+9CvA
-8FGv6bKbTlqu4omni1Sx6z297TDD8l2x5TPE9Fez7b6eRUC/72Cw61m170HD
-7WK06Vy38jnI99OmDGW08EbG8MimP1+69VTB82i38zzN9knI8teqImy69tSt
-I0zL9UHQ+dqxCXS68U3P8m2/9Hi+9XfA8FHT9tu4FHrA94C/8HTF++C8BVXW
-+dG1Wty6MVjY+1ba9tu6Olva/YjG+Nm8Wd/CLd/HFt7CN+TFF+DIJ+fEO+HG
-ROTEU+fSANzGaOLIVdzSOerWAOjLQZ7R+ObUJ+7ZCqHU++nSRqjW9+rUUPDg
-AOrdMKzW/6zZ++/YTOTgRerXaO3VcP3lAPDbXrbb/uveZu7ZgLzc+fPhS/Hb
-gsHh//Lhf8nl/fLlkPjohv/nh/fplPv0UdPr/dbu//v2if31l/n4l+v0/O73
-//7/rP/+4fj9//7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-CA+iQPHChAcMCSMWzJEDxQgQHDhgwNBBYsIdNWrsqCOJkic1PDhYsBDBY8Ei
-O5Dc+kavHj133oo14tEhQkuX/4r82FKtn7963mZ58iSpFioqGhgwALqjSdF+
-7HapspToT548cQZRyVBBgceQofL1MzfLVahSjhJ10aLmjZ4hD6ZKrHHFnD52
-tnS5EuUpkac8ZtScYXQmgwICESvmcUev7axQnizVsaNGS5xAkQwJeRyRxQhP
-9LR5cqXqk6dGib5qKcOIViQmCyAnfAGCkjulTAsL4jO3DqFLtDo5OaAbIe86
-7EIZFpQoNmK6jGDh0sSE9G4MZLz+ifoj6GueOV3UdAkEStiqVCKYR9RYotYt
-QYQE2fmqhpAhU7gIY8oeE0DQHEIYcEBGLaks4uAZgRhSmy/E0MKIELl5pEEH
-JBDSSSSRmAIKK9oJIwwskGQxgQEOuMTRCpRcYgortASICy6sXJJFBg0UYAMc
-LkVwgQpZ6AGJKZ3A0kkhYwgxAQMBPLGMH3J4FAEDEVigAhFSgCGFFSLweAAA
-M4SzTzd4VCkRAw9U4OYEE7RZAQQIALBENtzMww8ycqDhEgMHBEpAoAYMEEIl
-8KhzDTf23PPIF0D9E2igDVDgwiTwyHPOMtNYg08yX2ARKUExGNEGNPLIk40y
-vYBTThpmUIxKUAs+TLLOO+Mckwsw5eBxhBGyCkSDD1wYg047zrRCSjl3AAFE
-sALR6oUx40TzCjDUVEEDDdBG64MXpwwzTDNsxBBDtwPR6kMYYSRxAgwwoDsQ
-vC28m0K88g50QgstnJsvUAEBADs=
+set bddview_icon_GoDown {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE6klEQVRYw61XW2wUVRj+zpnZmb2W
+3cK2qRS1ZHux0KJA5RZDmlgwJr4JMYYXTHhDHnwga2zSYEAxMcQEBEENiQka0WB4Eu2bYJtSFN3d
+Ekq2lEvX0rJsdzuX3bkeH+huCm2309L/aWbOP//3nXP+853/J3Boh/oSNTez8pePCtr2QkFbZhsa
+N32cUJ5RQdCXuYV4UBT2ftexKeEkLpnPoasv0Tqmat/fmVTWSNkJp3zB+/zacwFf9Iedm79YFIGP
+euOVOc345Y6kvGbajMiyBGaaWJARAnegQooE/WtOt2+875hAV1+iNZmVezOa7gUAVTdgKjIWa4Tn
+2crllft+fGPLt0+P0ac/RHtibw88mvy7CK5b9jOBAwAzTZJKp7/Z9WvPZ2VXoLM3/vLNCemaYpql
+BJOkRSz9XCvBUVRVVr534c1tZ2eswLHrg8HhSeXydHAlX1gycABglo28aX19pP9GxQwCt3PKbxlN
+9xffdcuGVchjKY33+QGAG1UKl54gEO2JdQxLyqvFjxZj0BRpScEJRyG6eADAsKRs6epLbAcAHgCy
+mnHCZqzkvNwt4pPN28BTsiTgps3w+fVB5HQDAGAzhgdq4RSAZv5QX6Kmf3yiYfoPWU1HMidjV6R2
+SQj8lBwpgRctJedfOtx/o5qfNMwPrWmzL9rPyRG8vqoaIdEFAPhrfAK6bTsCFCjFhqoQACBT0HE+
+OVODLMaQ1YworxhWx2xBFNPE6cQQohuaAACxRzmcvRZ3RGDvxpYSgdMDt5E3rVn9ZMPcQSXdWDVX
+oCujacTSOQDAnsYXUB1eMS94dXgF9jS+8Jh0Ooc/R9Nz+kq68TxVTdNTLuBXA0OwGIOLEhxc3zQv
+gYPrm+CiBBZjOJkYKuurmqaX6jaj5ZzuSSouDKUAAG1VIbQ3rJ7Tt71hNdqmlv7CUAojslqWgG4z
+Sp3s6fnkfWQKOgBgf2ukKCgzRGZ/a6Rs4s1mVKBk3tTOmxbODNwGAIQ9Iva1RGb47GuJIOwRAQBn
+yiTek6eF2NTL84709spoGv3jjwuS3ZFa1ITDpbGacBi7pzSjf3wCl/9LO5q9l+dV6hf4EaeCcjKe
+hGEzcITg4PpGgBBg6pkjBIbNcDKeBHEooAHBdY8GXK5upwQe5jWcG7wLANhQFUJ7fR3a6+tKZ/7c
+4F08zGuOFdLn4rppwMUd5Yhzzb84nMIDtQAAOLCuHgfW1QMAHqgFXBxOOY7DEYKQKHxKuzatTdX6
+vbec/mjYDMdjyalLS8BytwAAOBF7vD1OrdbvHehsax6jALDCLby/kMvl33QWV8cypferYxn8k84u
+aPbVXvHdUj1weEvL73UVvmsLIXEqMQTDZjBshlPzKN7T9mLA98ehTWtjpXoAAEKisDMj6KmcbrgX
+mpALSbywR8zV+NxvzVqURntiHYMTk5cKlu1IIYUpIXV6Tft43mquDKz9eHPLzVnL8qNbW7ubQhV7
+3Bx1FFG3bcfgHp6zIkH/O9PB52xMoj2xjruSejGr6Z6lqIgqRUGOBP3bivvuqDU7dn0wmMzJ3cOT
+ysbFAlNCUBfwXV29zLfzg1cas4tqTjt74zvSBf34iKw2zFa6zXXMav3eW0HRtf/o1tbuZ+qOp7Xn
+KyXDikqG0SHrZq1qmp5iLSFQYnt5Ph8QXPd9Lq47JApHOtuax5zE/R9cgChjVdkJdwAAAABJRU5E
+rkJggg==
 }
 
-set iconEdit {
-R0lGODlhIAAgAPepAB4SAB0aFiMfFiYpMyovOVw+AFpFHGBDCnNMAHpPAH5T
-AH9bCFZOPHliMVhTR0xQVmFlcYFVAINaAIpdAIJSCYJcEI5iAI5lCpNkAJVo
-A5tsAZ9xAItnHKBtAKNzAK18AKx/CLF+ALdFV7FLUblFYb1Mb75aacdsd7SD
-ALmGAbyKAK+FEL6PELSSKLqXKr+YK7KaMcGOAcWRAMqXAMOSDcueD9SeANmj
-ANGjEtKoHMGXJdWvJd21It24LMSiOd68NN2+OuG/MvbEAPnGAP3MAP7NDf/Q
-APTDEfbtAP//AP//CP79GOvNOvjsKf//IqiMSYqCZ6qPfManRcqpVsytWc6y
-W9C/WdLAXNzHWuPHReTKSu7XTejTV+rUW/ffWvLtSt/LaerZZO3daePQdeXa
-dfDhbf//Y/Hkcv//et0+ndxFl91BntpOmtB9h9dXpN9bpeBOpt1nqeNkrupn
-u+d1uehyuu17wtiPlsy7iNu+gd+Zo97Zg9PElefbgejXlPbugf/3gfbyjvz6
-k/7+munZoOzdrOrfsP//pP//qvTtvv//s/GLzfOA0PWU1siywfya5vqi4f6t
-6/++6v+t8P+z+9XBz8HM1+TJ2u/jx+/jyfLmw/Low//+1vz92snX4P/E6vHW
-6f/P8tjj8f/94f//6v7h9//s9uby/Pb9/////wAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAACH5BAEAAKoALAAAAAAgACAAAAj+AFUJHEiwoMGD
-CBMi1KBBoUOEHjJIxPCwoioPGqbk0YDBgkWFHzRQ4RRKTwYLHj8aROGByihJ
-kyjdsTBhgkqCKD5IGfVpUiRIj9pMkCDhpioVIV50MuUTUqNFjE5IUHAzRgod
-iUilKuV0kZ06c0wooGpRhgoWmsw46YQKlNc6ct7AGaGg6MMZMWhkQpMkSRNN
-py7RictmjYixd2XoHdQXCZEihkRViqNmDQkKCiI4lCEjRiHGSRwPIXKEjydH
-bkpUqEsWYYwYKgiBdkyEyBAbNvBYioIZcUIVKlL4QaQkdG3bN2zcuPFkQWa7
-CVGEGHOoOG3kym98GBuhNcIQH8DUVDdee0jy5R8idNesEMQHLIeWkDdiPnt6
-9ewTfvDgQ5F8JKNhh54E+D3kgQdkIPLFdeYtpx1++SWEkQuIDHLIFkLUdp52
-BEaoUAcZkHHIIIMEwoQQG97nYUIctUCiIH+cEcYO2YVQoEUYTGAFIjCWwYUW
-QOBwQwiZrZgQBhhcAMUegIjBRRY/8FCDB9ypVBMHEDhghRdZBJEDCBNUaeUE
-DTwwgAAw9LDCBAkUaRRRDBAQAAAFYNCmet59pJ4BByAQgQQJ3GiUKvgRBeGg
-BgmK6KIVBQQAOw==
+set bddview_icon_Save {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADNUlEQVRYw+1XXUhTYRh+vvPXXE0S
+PfNs/oEbJBpdSBA5I4gIQe2HokATM5wQ4rrRZEJFoNZNFzkCxdJKMeqiMkPWn3d5JejNWGlp0tQ5
+c0O3LDtnni4iaf7MsjMj6Ll7fzjv873f+33P+QiWICMjg/P5fDUMw5wRRVGLdSIqKurZ8PBwLgAp
+XB5ZaicnJ9s5jttnNpuZ1NTUdRVvbW1Ff38/OI5rGx0dLQYgr5bL/GwIgnB0YWFhf0dHB5Wenr7e
+xcNut8Pj8WBycvJkQkLC+7GxsQur5VIhBkXtS0tLk/6k+A8YDAZYLBYiy/J5nU5n/iUCsixv5nme
+hkIwmUwoLS0FRVFNOp3uyJoEIoGcnBzk5eURmqbv6/X6rLAzoCSmpqbQ29sLADAajeB5nvF6vU8T
+ExMzXS7XUEQJCIKA7u5uOJ3OpaEtsixbAZyOKAGr1Yry8vJl/qqqqmBPTw+9IVsQHR29zMey7MYP
+4Vr4rQ4EAgEcP3EMc3OBFeMqlRp3O+4hJiYmMgS8Xi+GBt9h1/EANHwwJPZ5lsKrNg08Hk/kCCze
+cru/IN4ohvhmJmm8atP89rf++gz8G0NoszXg+Us7xK/f207I6rpuOVuOTSoOpqy9qD5XrUwHYmPj
+4HQMwTf/FqYiP2JTxGU5Gm0Qe07N4hP1Fk7HELS8VrktKCgogMVigW+MxVa9BHqFvhECxBslTL/n
+UFZmRklJibKnoKKiAn6/H3eu3sIm9TRSMudD4hNvWHTV8cjPz0dlZVVkhtBqteLQwcN4Uh+Hidfc
+ov/jKIPHl7TINu1Ffd1lkJWGRAkChBDU1tYha3c2umq18H5gMOOm0XlRwI7tO9FwzQaGYZQ/BUsF
+xWa7juJTRXh0UQbNAikJ29DU2AyO4zbmHlCpVLjR3AIh1oAYdTJabt6GWq2OvBiFHDuNBg8fdEKW
+5XWtXJH/gZX0/b8W/BEBQkjA7XZLkSo2Pj4uEkL84R4mLwcHB7m+vj7Fiw8MDMDhcHAAXoR7nCIp
+KambEHKgsLCQNhgMihQfGRlBe3u7FAwGn7lcrtywBACwgiDUsCxbJkmSXhHNZ5hxURQb3W73FQAh
+UvoNAgsD3voX7AwAAAAASUVORK5CYII=
 }
 
-set iconInfo {
-R0lGODlhIAAgAOf/AEJ6Ykl4YUV5Z0N7Y0p5YkR8ZEt6Y0V9ZUx7ZEZ+Zkp/
-YUSCYk19ZUt+bEyAYkaDZE9+Z0mBaEqCakSHYU2AbkiFZU6DZVGBaU2GYUmH
-Z0eLWVOCa0eKY1CDcUWNYEGQW0iLZEuJaVKGaEyLX1WEbTaaUEOSXUqNZlGK
-ZTScWEiQY0STXkyOaD2ZVi+jSkaUYEKXWyuoSEuTZTyeVDiiUUWaXi6qSRK9
-MUqYY06ZXkSfXE+XaViSbCO1Q0yaZUidYTepUCuxRzKtTD2nVUqeYjetRkah
-XiO6OEKkWk6cZ0ufYzqrUkeiXz2rSz+oVlWaZkuiWVKdYkygZC23PkijYCm4
-RkWmXDutU02hZUGqWCK+QwDROlGfahXIMiDCNzuxSU6iZgrPMDiyUTK2TCy6
-SFybbj6vVTG6QUKvTgDXLVahZjS3TVCkaEynY1SkYh/FQhvKNUCxV0mrYDC8
-Sj+0TCjBRjq4R0muVVWkbmeYf0WyUR7LNlKpXzW9Q0+qZkOzWRXSMijHOyDM
-N0mxXlSrYTHDQD+4Vk2vYyvIPTPEQkG5Vzu9UinNL0+wZSXOOS3JPke3XGGm
-cWydhEy0YVeuZCLUKlawbFKzZ062Y2yhgkW9Wku6X0i7Z1C4ZB7YQlmzb028
-YVG8W1K6ZkrBXk++Y0bFWkvCX0rFU1C/ZFTAXjvSRk3EYUrIXVu8b0bNWlnA
-bFm+eEvKXlzAZmW5e0TPYk3LYH2rjEnPXHyviVTKZkXVWV3FcFrGd1DSV03T
-X2DLfIO+lpixqX3IimzRiXjNjX3SknPag4TQkaS9tIjUlYLajHzdjoDbk4Ha
-oI7UnYvYmXjmh4nblIzco6jPsJ7XqIzioYbnl4rlnZDlpK7Vt5riqZLnpqTi
-q6rpsqLtuqXttKPwsMTazMLcx6vtvMvY2bzkxb7mxrXvv9Pc18fnyb7vwbT3
-xdji3b7zysnt1d7o4sr30OXn5NH52eLx5Ovu6ujy7PDt8u7w7ej26uf65uX8
-7fP9+Pz++//9+/7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-CBMqXLiQRIcNFyBGYLiwwogWMzKm+IAhAgOKBjHkgPVMHTx457b9ujNjRISJ
-IEV8aHVuX75x15gxqzbO2zAnORx8ZCjiSbJ++aCpetTlxpEpdF41a9aoRoWh
-CS284NYPHCNAggS9SdSnTxUhaD4Ra5MjwgGFHor5gwaoriNBiBLNmSFHjBka
-lmYpcWkAYYVP+azVZeTI0aOxLYK9O2bDihE2YJJYaIAwx7h2ghozfvQo0ZlM
-/fpRq0zlR5IkIxgULujAj7xbgVQ5DlT6TZ9X+9z9uWM5Rw4fOyIMMJih2Dgv
-XhKRzpuoSI07o8RccQIFi5QoXJ7+iDAQgGCDHNqMHUmUaGyhQjTyoKsnqwgQ
-J1R0RMGiJgkIAQKYB4M3qfRRSFl9VJfHPf74I0oTWVihBBZYUMEGFycQEOBA
-DcCwzSJz2DFHH2TMMUE8/PjjjBARUkFEFGD40YgaLABIEAM1bEPHGnaAaEcJ
-yPTDTzlCmOEEEm74gEUbflyixggBlMdhDsyIoYgYYtAhRhn38OMOGkvQAIUS
-PhDhBiWdWMJGBjYOxIAKv+iBZRxiAGFLP/UMEkMLPACDBYyNdLLJJVxE0KZA
-DVQwCChy6mGGC7bwgw8XGuRBzzQ1gGFJJ6OIQokMAGxIUARUbLIJJH9kMQQe
-9vgTDzrf/ISjQxuNgDLKKpi4wUEAog7kgAp/KCLsJoNYIQ4/QmZjRaCjsJIL
-KpbIYECvBFXgxiijlFLKKIq0Yk46wvyxSbO11JLKJUlEAICUBkXAAR+olOKK
-K6ycUooppdRCCy2x0DLKJTksEKpCCYzgByir0HJLL7ro4ksvvvjy7CU7VDCA
-AOwilAAHYHQSSi78KlxLLqlM4sYICwCYcUIKVCADE43I0oksnFziRxQqVKDc
-oQwVkMACE6jwwgtPaADCAgdgvDJIBhSgQAEFvHQAAQODhJAABFAdJbVWd+31
-1wYFBAA7
+set bddview_icon_Print {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADKElEQVRYw+2XTUxUVxTHf+e+5wzT
+SDEhGUWxMcavFBsXTU1KHYV0mrRRk67cddOFDMSk2qiAC0O6AEdtrQv5cNN93TQxXbRSO3EIJtoP
+o7UNBRZSW1siRCjpMMx793QBTTCZGYYZoBvO6uXc887533Pvued/hDxS19SxzVMqKEFcYSLR2TqU
+a11yLRxoitdby02WQBRb39fdmsgKMOdPlo1zn/2i/FRUYGE3UGswm3JmaCEnovL5rZ7Tl4sBsL/h
+/AcqWpvPxvA/yyqAVQCrAASgLtaxxcecEeU1FV6cW1sLhIExYKJI/xVAJTAKTM2+K0wCdzzXae+/
+cvKR1B1t3+Ub5w5QDkwDqWXedAgoA520IntdX5yLs8G1acPY1qvXrh3xlytyJBY/ZsD4iiciV4xy
+2QXeQPk12dPStewHrrxtgb6e5kORWPw4sF8isbgCo6J8sUJXDlBUeBcI/9eMwiocZQVSkLUbGscd
+2nn4cGYly2/g+vU11ve2uQBiTLp8w8aa+Qbjg4PfDX97YzNKsMSsp7fWRx9Xbt/x6nNqYx7i5+ED
+T4cHp9TqeuBJCaUZQqkaGx76pXL7juIICcp7yZ7mb4oqu4b4mwi9eTljoc5qYxfCRry1hdim/PSf
+319t+6cg0lqI0b6Gc3sE+wNqCuodL5jQfWDPkgFwnelh3w99LBRI0Q39BdN2IKVoIJ9RorNtCji9
+tC+CBoCMC/xoM5m9E7+NPKjY/NIruQj2gYbzUd/IuufUlr+rxrfcWGz/eDYyct9mMjUg92Rf44Wo
+qP0a8JxAYMA4zgyAl06H1dpqlKiFCSPczQ7NvNXXdao3XxWIMY/dYHAUwPo24M+kd84OTTbq9nWd
+6o3Ezr0DcsmfmdmdbStrqlL3vL9C78/xg3kzg46Xu8Hkgum2tjqTSlXP0/wsxpy41dl60wVIdrd8
+Bbz8+olPQs50ugxArDmLcBwg0dbmAZ+VcOCfqrEfAfhlwenblz5MLTgbRhrj7SitKF8K/F5k69mE
+cBChI9nVfGZxZWjlCaIgHNTSr/wfi56OQaUudrHGE6+kZuSqm050n3wIknUf/wIW1yLCkjuphAAA
+AABJRU5ErkJggg==
 }
 
-set iconLeft {
-R0lGODlhIAAgAOf/AAANgQAPhAAWhgEbiBAUiQMbjQAhmAAklAAnmwAqkQAs
-mg4okQUvlwA0mhUpogA4qQE9qABCqCcxqwBHrABJryE/nig6tApJtwBUswxP
-sCdGqRNRuC1GvzdDvgBeywBhvShOvyxPyEdFxDhNyEFJxkhHvwBo3EpHxjVY
-pRtd0zpVrABs2UZMykVPvgB0zAB12kxR0Bxp1w1zywB6zEdW0yBtxEBirTNh
-4UpZ1gR91kNd2D1nt1RaywCD2kZh1UVqtUJk7SJ7zgKN2BiD1k9vrkdo6wiI
-72BlvRqF0Uxwuz9s9ACT42Zj0Sh+8Dt19BWO5Fh0u1R3twqW3jN7/z9661h5
-sl5w00p09nJn0SeN0zeB6kJ5+UR5/0iBygCi5TCH9wCi7DyA/wCj7QCj/wCl
-9mF73gCr6xya/0SG/y2S/2172QCs/06I7D2O/wCu+1iH50qM/jWX/wCy/356
-2Rmq/wC3/yyh/3OF1mmPvHCOvHaH0nSF4y+l/h+t/4WB1z6e/3WN0HSN14CI
-1ICL0VeY/V6b3zaq/VKd+he+/yy1/32Q6QDM/2+b4o6N3ISR5ADS/4Way0Gz
-/wDX/yLI/VCx/4Ojxm2l/gDd/wrZ/0e6/16w/zPG/16z/ADk/1e5/5Ck1nKs
-/yzQ/muw/wDp/xbf/nix8G62/wDy/1fG/kXP/2+6/me+/x3m/jfZ/3q6/4O3
-/pK6yTje/q+m5mzF/0zY/yTt/p250HfE/2TO/4K//23K/o27/FrV/0/e/2fU
-/3HR/o7E/nzN/1/d/3vQ/jH4/7q37IbP/3XY/47M/2zg/oDX/3be/YrX/5rP
-/77B60f6/pnS/pPV/4Tg/6LR/37k/bHS1Y3e/5bc/57a/6XX/47j/rvS5MPO
-6Zfi/8jL9a3X/7Td0aHh/6ng/7bb/rDe/73Z/qzn/7Pl/8fg5M/a9rvk/8Hi
-/8Pp173q/sPo/srm/sfz2d/h+9Ts/s7v/9jy6d3x/uHy+dv73eX/5e7/5Oz/
-6vD/8vf/9/j9//7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoEAS
-JEQYXMiwoIgSLEpARKiwocV/EmEUucJlyxYlRWAgvGhQxAkcW+C0IQTqlUtL
-cIqcqEgSY4sradpYylWu3Dt5QMuJ2gKDpkURNNDEIWSq2bdv46K+WyevHrAw
-LUhcLHGjTZwzuZo1g5Yt6rh179LWy3VlZkMROgidsZMLGTCxZLORI6cO7bt6
-pm6UYFgCx5m5s2YFC2asmTFs2PSSO+dO3Tx1cFhodcgijR07nkApUvRqWLBo
-qCGLm1x5niodgwuWoDLGDiVKe4o5a3Qr2DBmzFCLwybunDp316gY/QfXDh9D
-mdTI8tevkapfvoFfY0ZcXHF1djj+WCBY4gsdPpm0zPHnz9meWbh+/VL22xqz
-cMXPtfMUQsJAuHTQEckfWMTTTzxzUMILLr74csyDylhzjTXhmHMOLik48B8V
-cqzRBw/T+eMHG5lEcpspqyymjDTaSBjOOceYYMB/ZyRShxZY9OOPNzxYoUYj
-ggwCiB53BBIII6UYI0044fiyQgECWcABHXW4EUIx1B1ozz5c6oPPPfewU40t
-kAASjDbdHLMCAQJJAIIbiBjRgo7ssadjl/rks08++eBTSSEs0uKBAAIhAIIc
-m6xwhJ39fAJFEj/Y8AMRUeBRCSzgwJNHIdpIs8kFAAjkAAh1bPKCBnX68wMB
-BETQAxL+QyARRA017LBDF7wks0wmChD6jwEP1LGIGweowE2d20RRwQRgsOJs
-L7SkgsoxvQjTyhO+/nOAAm5MsggZEBRQwSc69kMPHgyAQUortLQSy7vVhrJB
-qAMR0EMoizwiSR0fHLBAFOiwh4IMo1xCSizu9tILJmIMkO0/AEzwyCSPLILJ
-JYsg8YAAKFSxgBedXBzLwe8uQgG9AwkggBiYPOLyxaN0YgYGEQjRCSk44/wu
-KTI8PBAAETzSMiYXk3IJK7WQkvTNN+PcyRICoEzQAADUwIrRBpNy89VM59zJ
-KEs43JDKM8TcydmksNIJ11p3cgopLqh8UdQfPFLLKM7mzQo43qeMYkYEAEg9
-NgAMCBFKLc+c8szitcTiRQZU10RQ4AdkEAQSWWTRBQYLUO2z5BBHHUAAgctN
-UkAAOw==
+set bddview_icon_Pan {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC9ElEQVRYw+1XTU8TURQ9900RxLXu
+4EcgFBd0ipiUtqYdWhVQE1f+B/kJ8htwhWAgSNspIVNIpJnWREuQxPgLCDt3Blwg6bsu+sF0PtqZ
+yk7epu27r++cue/MufcB//ug1pdksfKegRcARJfVNSjnUSOZvHALT5fLQ8NnislAuAumZGC9lFZf
+wQrWE7yxKFz/c+eeV/jWL3GXgYkeDy0IeNn6EbIGbGhHAD51ZoCO9ueip147789FT+N6dYFI3reF
+HgE07obVPoJEscK2dF8yaKGUiuT/5Yxn9cpjQdgGMGidN9IqwSPlxyBcgjFA4M34TjXTL3h8p5oR
+AnkAgyBcAjh2nIfL/w6kRAbABRgDxLwV1yuLgcF1M0vgTTAGWtkEcOCHAPY0dVcyngC4AKAQYS0I
+ibhuZknQhhXc6yg9Vd8viSDg6PXa7WnqLhM9b56fQgKrcd3MXhd4JwFCDQA3P9ujlIrkWfJiW5iC
+NtxIOMAlL9rBmemwYTn44iSgnEcRqo8aKfWjffOSFs3ZSSSKnxNXajeTDnAtmnPuE9lCqD6K0PlD
+hw8EFhewbaTVpw0br24zONsNvC8NuGUCLDQC5RhyuTVfJ14mUA4stCDgNyOwBtqCk3gtBb3dS6mH
+ADC7UwkLyUsgZcVITxlB9hPB7ZUKIMooTG/am0heAlEGJPVuPtGVwHS5PBQrmCMBTObdVR6VlV4+
+0RqxgjkyXS4POQgMnymmIugkrlef+TEZa6qN9JThx6ySRXNeEXRy+0yUHQSabRQRcdheUv2ZjNOs
+7KWcQRMN3dEDXxpwK6nd3vOSFs0FLeXiOgtLP1VUeLVRRPQhKLgnCYFVr87KjcCMtY3qty/sKOXN
+9g7AjB8CY/0+uUMTqUjeqgkAY/Y1Ie87AH8n8GSiaE5eTYlvJS2y1Q00WTTnuQOIAeCHrS13JSA7
+M0LjAMY7rwXMsYL51etuECuYIwza8GHx0s0H1q0Bj7TUlFu/f3pFGzGu9QRnXrspw63xF5QpqAmJ
+5fMuAAAAAElFTkSuQmCC
 }
 
-set iconRight {
-R0lGODlhIAAgAOf/AAAAKgECOgADQQcCSAAHUAEKWgIJYQANcAoJcgANeQoL
-awsIeQMQhQcQjgAUjAAXhwEalBoZVwAflQkdjwAkmxsgah4jZhAomQAvoR4m
-iwAzpwwxmSkqdQA4oS4sfxYysi4uiBw3mgNCtDgvkjIzlApEqwBLsjY6sABW
-thdOqzA+vUY4pDs/riBKwQBcui9LrwBgyklBs0REu01CvABrxElGxildsk1J
-yQBu10VN0hdm3DBb1wxx0VVN1R5rzAB7zUResQB62VBS2Qp40UpX2wh/0U9c
-2kdf4gx86SJy40Bl3wCH3ltgtwCG5Udqu0Jm6Dxq8Uls4FNvtgCW4D556guU
-5SGN1zOG0xCb30J//juD/UyEzj6F8l5+xF+Auhab9XB2yDWM9ASk/3V11kWH
-/y+T/yCb/wCs/3R61kOM/yuf3T+Q/xOo/wCy/yaf/jWY/0GU93WA2XKHxxus
-/UeW/32F0VSU/3+F2zGm/xy08Qq8/nqPv3aQxXWM40Oj/gDF/3uRzlSc/4uH
-3jG0/wDN/xvC/kau/4qWyADS/3ac8TW8/wDX/yHH/IOd1GGo+Fur/5GX5gDd
-/wnZ/0y5/3Cq/VK79ADk/3Wt7ETE/2O3/xXf/kDJ/07C/wDr/4uzwV2//zXU
-/5+k5gDx/3i0/4iw613E/h3m/pqq7TfZ/5ywyJ2t2nO9/6Wp7FzL/Z6y123E
-/zrf/0vX/7Kq6SXu/3XG/G3K/q6u5YTB/z7m/07e/4+9/6K59oPJ/3LS/2De
-/7K56DD3/6bGyZHH/7u374bP/3La/7656WLk/5DO/5vK/oDY/0X5/Hjf/pnS
-/pTX/6PS/6vQ/53Z/43k/6XY/67hxq/Y/83M8Zrk/6Dh/6je/sjR8KHm/LDe
-/7fc/6rl/rPl/8bd/bvk/8Li/9zY977r/8rm/sTp/97i+83u/tft6uLm9sf+
-yNXt/9L23uLs99vx/eLw8NH/0dL/2Nj/y9v/2uP/x+j/5PH5//D7/PT/7PX/
-+v37///+7///9v7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwIIgZ
-N2QkBFGwoUOCHmIIIXLkyZEjRG4IifGw478KMogoyUKGzJpAdtZogUKkBweP
-BVcIMUImjR1KwqCBEwcO2igyO3qQgCnwhhEtdso8SlatWzdx4tixc1ct0BOh
-MG88ofPGjK5nzaqJdSquXLl35QLtEBKh4w0lb974WYWsbrNp07h1Cxeu7Dtx
-dIzIeNhDiRm5r3jxquvMGd5s3PiGM8euGRkhFhreOPLGzdxXoIkJ05XMWbRo
-kPmaM/cu05HBBEcYeYMHT6ZPoHmtgsQq1Clh0bBhy/btWzhy0ajcKCiEiyE3
-cz59KlWqVSJj+u5Zk8VKV7Ns2Iz+k/vmJ0eFgSuUsMHDZpIiTpyqJ7Klz5+/
-feeMydoFDZu3b+hkskMGA91AxxlzDKIIJphs0sompfQByS/u7GPhPuMM8wt4
-5PSiwwUCefAEG23gQUUUXATihiG3VUJJH4KEcs59Fg6TzDbe9JIEBQKdQMUg
-c0QBRiqH1IHGGEfGEQeMd9hin33WkLLNNsVwMUGPYehhRg3B1DPPPPHI0046
-ZMKjj4VP+vMLKdJgo0wQV/6jghl6DKIEE55Qs4489NiTDz/9pPnkPXK8Io00
-vSDxgEAqsKFHnTi0IMILQEjhxR578MGHHF04oc19qmzBDDPSxAJDAgJ9gMej
-hfxRSBv+VSwRBA8++MDDD1U4kYI6/pzjRCXHjPqHCAak+oWrhbRKCCKISKKJ
-JJFoYgohKbiyjz9dWBFsMb7MQUEAAknQBCGtMkLIuecyKwkqkrggxX18ABEL
-LLn4gkoQDAz0gAvoosusuqBEkkcI8PhzSAd5HFMvKnpgUKxABmBQCLqgIMKu
-JItEkvEfG7jiSghYWAILLOzykC9BDiwRCSKgLNIytJHAbIkVG4BsiiYkR3KF
-BAMUlIDEGsMcSSSWED10J4gQ0okmljQ9hQQHOOQAChkPrQnTTDetdSdNa9JJ
-FRBE7RABDZiACNeWZJ211tKKYkkREjz8UAEOIDxLJ6bknTdKLnoDY0oeJjBA
-AFEBMDABDYyYAswywDS+zCyoYGECBAkAQNRABjAgwQs0XIGFGlb84AIGDhwA
-7uUFEYBAAgy0zsACCPSM+uyzBwQAOw==
+set bddview_icon_Zoom {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADhElEQVRYw72WTUwTURDH//No+TDl
+otUYuRqDFxPjRzxIoTEqbNmSIOFoohejxgiYGMALB1FMjBoI8eTFcFAkKq3SNmoKbfVA4sWDUW5+
+pNjEkx+A7e6OB17Lgk13S7Fz2nn78ub3ZubNDKGAtEzFtpKONgZUMHaCUAdGJQhJBn0mg8PkoKdT
+voY5rFMo3+Lx8JvNIp25DNBFANWWhxBeGgYuhds870oG8E1Oew0SjwBsybN/CYAGwJXnnwagJ+T3
+jBQDIFa5PBg/aQgRMRlnAj1mps60lnaH/J6akN9Tq1ctugA+wkyjABbkXgeAYSUwMwpmKtoDvslp
+ryFEBAynXHonBJ1+3trwttABrcE3dQbrwwxuR46a+8Jq45BtADUYdWtc8SF3c0Zk8Y/eMd3p/WXr
+GszU/Cw+SIw+uWIQs3eqrTFmKwQaV1wxuf09nJWdto0vZyGHVU8/ge5lz2Wim3ZCIY49fr0NwNns
+XYSgkyHl0I/1PKmFJa0L4JRUDyjBhM8SQDg0FUDVcjzoiVXMC8my12jIlAsdNkJAalYxGA9Qomgs
+xgEYMpd8VmEQBOzKKk6hRUsFeNF2OAngo1TdR5682myVhHXZIhNUvd+xIUJfc5eqqKyzAnDI7ww2
+SIg4vaIYVYUBCPPyu7ZpPOraCAA2OHdrJzlShQEYn7JKTbU4WKpx/2SiFkT1Uv2dTFbPWwFEVgqa
+aC8VICN0JddBGYm3Z/ZnCr8CBz01xe7U0cnEjvUaHxhgAab+3HkCE5Z1QA4TWYhNTuKRYrqZWWb3
+JboA7JH+TC249DFbvUAnvU/2czC4vflZfLBY40og3srMN3LhBPVOe71LtttxSyB2AcCwqcPdX/xj
+nLdqSgMDLGb3JbqkcYe0PhfyN9SDiIuaiJTAzCiDzpkeVAqgISODh5ETnlXZ3DQeddXUCJ+M+Z48
+B9+e8nt6ih7JmoMzvcQ0uGZaMmR5/QIgLavn7n/mRcYcaKW024EQaxfCauMQMXsJmF2zbzeAYwBa
+AexdbZxTDJwK+RvqCbi9woNuJRC7VfRUnJ1ylGDCx8QdYPgAuNfs+A1GggQmFlz6mDnhlEDsFgPd
+djxh+7mpwajbIGzXuGJTJcS3ZLJ6vlCRsQtB+I+iBOLXGdxrWroT8nu6ywZgB+K/A1hBlAWgEETZ
+APIlJoBrZQXIA/Gz7ADLfWfmKkAXiXH3LzCCdaoobeo3AAAAAElFTkSuQmCC
 }
 
-set iconUp {
-R0lGODlhIAAgAOf/AAAALgEANAEDOwADQQAHTwAIVwAIYAEIaAAMbwgJcQwI
-eQAQfAMQhQQPjQAWhgAXkBkZWQYblQAhkAAkjAAimSMfZQclnRckgAAroCMk
-dSgncBYqmyEmkwc2oi8sfywthhMysQRDqghDsgBKsDg0lh1AsBZKlzk3oAhO
-ryBAvys8uTw3pwBWthtQqgBbuRZSuQBbxT1BsEY/sQRkw0dEvARi3kBIyABr
-wiVW1DtN0BRpwlBLywRu3wBx2hhozzhdtCVi0QB20VNM1AJ4yU1Q1lBS2Uda
-yEpX2zth4UZe4QCD4UVssEhoxEttpTpp8Ct05EVn6Utn4z1x1SGB0UBt7kp2
-owCV4ltq10Zz7TV99SiI4mB1t2Zu00N5/SeJ+C6I8Fl5zSGX3ACk9QCj/0CD
-/xGd/CqU9Bqc9Wp9wwWm/QCs73Z210aH/zCT/yGb/12Pp1CJ7gCw/z+Q/w2w
-7GOG6DeZ/02O/wC3/zuc/gC98jGl/yGu/4iA3kuZ/0qa/XSM2X2LyoOE4G6a
-rQ68/y+s/wDG/yiz/nuO53SV4YaO2xfB/QDN/1Oj/4qO416g/gDS/y68/06t
-/wDX/0q1/2in/HavribJ/gDd/1yv/pGc2Q3Z/52Z5ADk/yzQ/nKw+XSu/5mi
-3RXf/new707C/wDr/6ic40TL/wDy/5qo70fQ/2PC/zjZ/x/n/zjd/o2+vlvM
-/ou1/nTC/qWs703Z/ybu/4vJs6yv5Uzc/lrV/52196+v7IjE/UDr/V3c/27U
-/5TC/XLW/KW+9jH4/2vb/2zg/nfe/b+98aPJ/5DT/kf6/rrC8ZrS/4Pe/43d
-/8bD76PS/6PfvK7YzKzS/6bY/4/k/7LT/pnj/6/Z/6je/tHM8qLi/7De/7bb
-/6rl/tLV87Pl/7vk/8Hh/9bd88Xs2rvr/8Xp/8vn/+Lh/+Hl9eTj+9Ts/s7v
-/+Dt7t3u9Nj059D/ytzw/eT27+7u/+D/zeT/6ez/1vH+3u//5ff4//P+6/r4
-/Pb7/vX/+vz/9f7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwYIUT
-NGic0FCwocOCGmQQOZKk4hEiRGI83Ciwwo4jULqQsWNHDpsuTi5+4NhQYhQ2
-cvp8+lWNW7Vjn9gkIUKC5UAiSNi06QNLGrdwSNXBg8fNURQiHnzugNKnDaNd
-y6Zdm3Y0nDml6xhBEcJSCJY+fSjBQsX22LRt27iBAxcOXjk/SWRsJIKljJtJ
-njZlO+dMV65n2MBtC1dunbplWYhAcEgjit9IsQ4Z87fPnz5nso5hw7aNbmNM
-SPQW/HDEDSM9qj4FwufPM+dzuoJpG/0NnDpkWXY03CFnjJ5Jquhs6ly7tj58
-xnQt6/btWzlybnJMHkgiip40eyD+RVqTzrY/ecb26duXTdczbdXJYcJxgSAR
-L3siTYIEZxPnRsro400jm8jTmTO/WNMNNuS8UgMHA2mQBHhx3GHIFd744w0X
-tviDziGi/OGMOKAcQ4023ZDjCw8YDLTCE5PEEccgZnDBjz+ZGAHKPuyA4Ysq
-iCAiSjPAMKMgME9IMJAMX9xRISRAgOIPO0xIAUg/8YBhSi+9AFPMMEY2Yw0w
-PSgpkAplDHLHIKPAgEY+gMCgBRr9uMPEK73MMsswfBZjJC4+ODAQmoNAAoki
-epTQgQh3aLFFPu78YMksveCCC5/MMENNKkAkMBAIYygyiCKKWDKIGINcEsQS
-94zTgiX+q9ySJ5fE9FKMIiIY8OkZpCpSSCGLdPLIJTM0YU80LXSyyrK3yGpr
-L2lEEMBADyixyK+LWLLItpK8UEU9rqDwSCut6BnrLcSs0oMCBC0Aw7XbLvLI
-vJKM8EY9grDQyiWrXBJKK81qMsgGBRBUwAaDbDvvI5pI8kgHlcxTxQykhBLK
-KuQCrMkMghb0QBCXLKyJJpcoMgE085gwBS0Wt9wKJ1ZQMEBDB2CQ6sgkc7LI
-BLVAM8EcFXMSCisWD0KBrg4xgIImoTDNydM3THCBC08LLTQtamCAwEYDNMBC
-KKRUzQkpaqjBCStns3IKKVZIsDVHBDwQgiK00MLK3XXfzctC2mqw8EDBPgXA
-AAU65BEKLckkngwvq4SBQgMJAOCTwQw80EELQ0wxhQ4jWPDAAdNO3tAABSSw
-gAIKJHDAzKK37npAADs=
+set bddview_icon_Edit {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADJUlEQVRYw+2XPWgUURDHf7MXckTF
+WBpiUPETG5FAxGY7yZ7gJhFBLEQQgx+NlWBjp2iRxsZOC4kKVrkV3RMTyb1GkwiiaAqJEbwoaiVe
+4scluWdxb+NjzYF3WbHJwLJ38z7+82bm/WcWluU/iyx1g32BEg0rtdbNgGjQCxsL0b8yUMx1udPx
+9c5SDdCwFhgUkSkRKTgiU07l95Rg3sIHEe51DgyvSdwAoBnYbc4aPeXo7JZsEMfZE1/ckIAB74Hz
+QA8wZ3QrgE1Ak+0s+dOopRnQOaBSoe8WgQvmIROoBqAXuPo3e9QdgkxWtYiw1wvybQu6QK0Gzljg
+c8B3K19IxAOZQG0Dbgq0g4x7WdUtwkdz8j4zrQg8Ar4AR6tdOacO8O3ATaDdqHaIcB84a4F/A/pB
+HzMJWdUDTh3g/QZcAzNmaLNJRIBpoD/03dMgKSCVSA7EwAEmgYvmHck8MBj67gmL6OYt1puvywAT
+cxv8DXAq9N1LWuvDQMHoU0Crl1XbqPh+RsMLoAS8K8NEzVTsBapF4K7l9kkD/nBhTjbfISJ3gPVG
+9Vxr9ue63IIXqDSwizKfc93uZE23oDPIp0DvBGm3kuuaDQ5Qmi2NpRvT54DbRrVRhAPAlZzv/gSe
+VMNoWKSwrNXQLPA+9N1iJqteIYwDO4CVwHEvq4ZyXe5otC7dmO6wkhDgNTBUczXMBGoVMGi4/Xzo
+uxG7bQHum2wHKGjNwdJseSzd6HQAN4CtZuyZCdFIzUxoSmpUWHqsoY+WewHaRLiTbnQOAddj4Cf/
+FnyRHBDbI3MWvfZaLp432b4+ZlQEPloLtzix2q5jIWmI0es0lRsxFttnATwTKKnbAAtfm5LaG6PX
+W6Hv9mjNEeA58BV4amI+ChD6rq67JfOy+VYRmTIG/LDqefE3vUZzVZu5akOh775MpCf0svl1IlKI
+zZkD7lUKi6RMgzfzwHdnkmhKHarEwJLZSkmVPhOOywK93oBKJ2FAnAnLi8xpiuq55baSFkaAx0kb
+UAQUsKGKNyJ5h/Dpn3wXdA4MrxHH2RM1kNpu701JLcPEA999u/xZtSxJyC9KxhobQBQu+gAAAABJ
+RU5ErkJggg==
 }
 
-set iconDown {
-R0lGODlhIAAgAOf/AAABJQEALwABNAAEOgADQQMGOAMGUAAHVgAGXQMKcQAO
-aQAOeg0JegAPgwkQjgAXiAAWjhcYVQAZkwAhkAAglwkdjwgmjyUgZgAtlAAr
-oQAsqSUnciIpiBAxqQA5qhMznC4sfxQzoyAuoTMtiAs6txE8nRM9pQBIrQhD
-sjI0lDg2ngBLxwBUtABWvStJpkM8rkA/qxpUriFPzQBhyUREuz1GxTVRqABp
-wgBqyQxlxSRevB9gyE1JySNkuDtbr09N1EFW1Rtn5E1S0Q90xlZP0VBS2UpX
-21RV3ACD0wh67wCA5hKB0zlo8ExqujtxzkRp6wCQ2khq5RyG0k91uhKJ90Vy
-7EVx8jN89z92/QCd5gCe4VF31yqK4CyF+ACe9ReS+F96wi+S2E+E1QKm+keC
-/wCp8hme72OBwUOG/gik/y2S/x6a/0KN/ziU/2CG4Caf/wCz/wC19wG38Dib
-/AC3/1OU3z6Z/3aG0Tal5HSLyG6OySCu/zGm/3eRxw68/2yQ7ADH/1qb/yq0
-/2iZ7ADN/wDQ/xzD/wDS/zS7/0qx/4SdzQDX/3qc7yLI/Vys/wDd/wrZ/0m7
-/1C684ykzinO/ADj/z3E/1W4/2uu/2+v85Sk0Iuj703B/2uz/kDJ/wDr/xbg
-/5il35yh6lq//wDw/3yz/zXY/13E/pqt05et3B3m/lTK/3e6+Hi7/5ut9GrE
-/wD6/6Wq7Tne/0nW/2HL/iHs/XfE/6ey4Dzl/nLK/03d/7Cz6orD/6252oLI
-/6218UDr/aS5+S32/1/d/5rC/l/i/mzc/3XZ/7m85o/N/2vg/bLB4rTE14HY
-/5jN/5jQ/Xjg/5HU/6HM/0f6/rjI3ITg/6rP/47e/5Xb/8DL5rzP6abZ/6zW
-/5Xi/sLT4KHh/6jf/8bX3cbW6rHe/6rl/rne/7Pl/8zh4Lvk/8Hi/77s/9nh
-98Xq/8vn/8Tt/Nbn7dPt5NXu/9Xy/dzw/d/75OL39tz/6Oz1/ef/4+7/5Pr3
-/Pb/5vv/7v//9v7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiw4L8N
-NBJeMMiw4UCERI4ImXiEBwyHGP+BoHHkCRYyaEJiYWKkSIqMBnkcscKGTSBM
-xKxJI1aKzZMfF1FqLPKk5ZxW3NClW8cu3rx0mKwcUYFyxJErgdR0krZtHLdx
-5cqla2e0VZUfGzCCMIJmzZpOyZ45Cxbsajl07YjGw/SEh8MLRdC8+WkrmS9X
-yLL94gYO3dui5toYGdHwxxU+by7ZepWLlyh6+X5JA8cZnTl283xVsWvwRRTI
-iUa9otwpFD16v6xh4zwOnbp45tQIiWDQiB0+fEYJP5Vr0y188FxFw7YN27dx
-5D4nksGh4IsqY/jsiTTq1KlVg5b+4Tsnqlmza86/FVaXKwhTgr4TJRIUiRMn
-S6sYZcvnbZP5ZtikZ446zSTRAUEqRDHGGNshEgl+nrjhDT/LDHLMMdVUc003
-33RDDjZUHDgQDVTQAQccdPjhhyUsuhEOP70MMowtndiiIYfkdNNGBgTV8AYc
-gtDnhyGWeOLJFhPeYgYrd4RyByvQbNhNN3PwOFANewiSIh2WAAJII4044U0/
-mnAhRi/+LCMGNNBU0w00XFAwUAEywKEiHYYYwgcchRCSAzP+KKJDE/UEWscw
-x7RpjBIPDDTACimuaMgMIYSwgx84oOLPJB/o4Y83PkhSDJvQzDLDAgMJQAIc
-hnjpxQf+73hjgwcm9LEpBtT4k0cPw/Q6jDGGeHAAQRqMQQgghYxhgTj++NNH
-A1P4o80Z/txjAx64mKKLMqZ4AQEABFHAxbGEHHLCss2ikk2zzd4SAySyyKKL
-LqacWtACLRxCSLmHsDBBHuwG3MQSqsQbbxkUEFDQARXQAckhh0ACChIVuLBO
-wOuU0Ago8YJyCAoJMNSADo9AYvIjtfT7rz7NghHDJ6qAAgokOjTQkAESQFEJ
-JI88UkkltWjxAQY+2GCBHLWAEjMOEATgUAIUaFFLJaD8rAoplWhxwxBywExK
-vw0MkFECECDxCSmqpA20MGyTIgwkUITQALgoKeDACVqAUgsz29P0DQwhSHjg
-wLA6CTTAAhCEwMIQUkAhxQ0nQMAA4YUTFAACCSzAwAMMLICAAJWHXnhAADs=
+set bddview_icon_Info {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAi0lEQVRYw+2VoRWDQBAFhzwKwFBC
+Ukb8iqSXUERselmBitoeSBFUgUFgzrB5d+aPGrU35r8DIUQC8xjNY8zcuCQen4AVWHevGwC8C14t
+4Hfw5eyRPhFwBz67v7SIVjM087BWM3wCMzCbx6PFCq4Hv7UI+AsKUIACMgFdwasFfAte9S8YzGPQ
+ryhEhg00ZRzY+bxIcwAAAABJRU5ErkJggg==
 }
 
-set iconCenter {
-R0lGODlhIAAgAOf/AAAAGAABJQAALQ4BCQABNAADSQADUgUCTRkFCQAHXjIF
-AA8QMAMMawAPdz0HAEUIAQQPjS0RHQAUiwAYiAAahFoLADEaMhEjZGcRAAUo
-nBAokgAxjwAymxElvkMqIXcYAgY6jXoaAB4rtG4mCQBBqhYxyIcdABY3tipA
-Xxg/oZEgABpNbzVHUSNFoVg+ORBXjKErAABZxQBlnZc3AHRCKWdLJa8xACRW
-tgBqrSxVqo1DAzFNypE/FkhWZ1FXTSRct0RA/DpK4wdqzSpubDdWz8w1AblC
-AKZMAcY8AEZsXAB8xmJkPx5ysZpTCVRL/8BFAHljLSh/gQCE1Nw8AFFU/yx0
-yMBPAMdNABWLmQCRs+09AACN3UtswtpNAExyvS6B1ZtnOv9CAFlx4NNdAP9L
-AhOhxACi8/9RAORfAwep0m1u/2R/x/1YAGKE0R+k6FiNzv9hANt1AL1+TQa7
-/v9sAPpxBHiOzTup5YWB/ye26QDG//91AHyS4+6EAADO/wLS//+BAJGN/42T
-9v+HANyMUoOj1f+MAv+HIO6WAADk//+SAG+x5BjZ/46l2UDJ+f+PL/+TG/+a
-AFjH8vSlAP6dEv+WO6Gi/ZCw45iw2/+dKf+lAP6lA/mdWP+fPf2tAP+nIv+h
-SHnG7zbm/0Ph//+nQP+zAP+sNv+pTJfF5f+rWP6wQP60K/+3Gf+8AP+yUVLq
-/Uvw/v/EAP+0YP67Pv++Mv+9TIjZ+/3HJ//OA/+9X/+/WP+8bWzt//7VAMPE
-///IR/7EbP/NO4Po/8DN6//Ff3/v///OVf/YKv/Je//RZP/VT63f+Xj5/6Pl
-+f7YSP/Ra//XYIz1//zeVJjy///Xef/Uiv3def7fbI/9///hZP/Zmf7eh8Pn
-/f/rSNzb/6P4///ilv/oev/gpv/nh/3nqLL9///oo/3tkf3wjL38///up/7x
-nufs/v/uuP/wwsz//v/4rv/3tOz0/db///jx/v75zeH//v/61/r3/Or//vL/
-//v/7v//6Pn+//7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-CBMqXGjwAQwrECNKvGKk4hOKKhjCmNSrI66PsVq1KlXKkyZNkTQNsqFAoQpE
-3dCFy5ZNmbNgt2LRKolSkc8rFRJ+iNMN3jh017JBUxbsF6tSJ30aGmQITQiE
-FcYcW7du3Dho0H79okVrlSdKkQYNqtMFEB0YCI3ciqdunbW70IzNmrXq06dI
-gADV0XFkDx0kDgzC0ASvHTl126g9S6Zrr99Mg/bsMZIFChw6XTAUNNFn3b12
-5sBVk6xLVy1SpjBrnjLkzxI2cLRkHJj13D53qFUje6bLlSpSmSDRocOmhh5G
-SciwOWNj4IMr1vzdq9dOnLZtyHb+AXOFvJNbNjPS+PkTJQyZM0UeCJzxzN++
-e8C9VwsvKxUo82ewUQQWf+jxBxZakEGGFldZ0EQy9dwjoTviiEMMMbv0B8oj
-bLAxRRKM+OGIH2VMoSAZcP2zgAc0gCEHIZykIssurqRySiWH0EHGFD4wwsgf
-QOZhxIkpCiTABkzI8MIKLLhAAw9GFKFFGDD08McoPv7BiB48hHEGEiMUFAMs
-2IjyhyNzmLGFEji8cAETvMDyiiiiYPkHChEgMIBBMWDTjz3lRMPLnIkkokcG
-oTAjyR15jIglCAAgJEQ5+sxTzjfF8DLKpm5oIEw0P3RQgggZjEgBQgJM2s88
-6XwzTTH+xYwCixQpuMoBEFQAsUMxdzSAahXv+GPPO+W8miksQuQwTzMnUJFr
-Fdh8cQBCBghhDz72zEOsq5m24IU/qJyghhpBLFLODwQgVACi/eSjbTqXfiMM
-B5jgUwgRgeBBRDPpcKDQBBksoo8+2b5DrC0asOOPHWJYEggX9ixzqkIMQPCG
-PQRrO88iG/jjjxeW+CKIHfhcwgBDBUhwAzf4DOzPGyl47IUv3vAxjD9tFMCQ
-QA1kUEg/Mt/gDzskEy1PPzcEsLNAKZNQiDze+jNMI/30Q3UjEyxNUAMQaCAB
-F+wU0gg7l/xwgwQCaF1QAg00QMEEFFDAwAFpq2333XgLFBAAOw==
+set bddview_icon_Tex {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAD00lEQVRYw+2XX2xTdRTHv+d3266l
+o1EUAhiIAZQQDNE4hcjauYS4/h+EzMQHIRFDEKL4QoohJj6pkQfMQiKgJiYaVIi4e7uud0DScFsW
+YzQxgT3wAiJLNpM5B+3azvb+jg+b0HW69Q91PniS+/D73l/u/fzO7/zOOT9Cmfm1ZJDBXwJoRu32
+bjzsOVLJRCoXfKpxCoS1UtJ7tfxZCD4JYA0RXusLeU7MN99SLjCBCDTSv919sRYAv2akGQAzjvs1
+Y7gv7FHnBEbjTGHgtE9LbVkoAABYBEitQ02sWygAAFgqSNE69IElCwUAABuUSbPn+UTC3nAABhf+
+Vid2O9LKW/OeglqsI2o8C5NcQkhZENhlLXIApLgAOcygUQAg4jcYWFkVgD9qvCrBywXTEgbWgxGH
+wKp4yBOZsTpbblCZdHwFYPBisO2wX005JUm3HnKfABEDgE9LbgcY1XlAKBf0wNabHaoRIJBN73Qf
+D/Rees6rJrtKpy2+PXyuYLW9PKkoA17VOM2QW/Sw51hFiWuul32BrTfLtViwbYBIHiNrWtM73WcF
+zPG8Y01Tz472cWJ5kAj9OZf5ScWZs7ZIo4l7PuQr0VBLduprtBSMlD1j2dtYAABkOnd6tUt72LTs
+BgBvNNVqEt+C1baHmPf7Y8nH7xuAQuwUxM4ZTlAmvtHDbZ8KITW/mvQS5AEbN/8Y921OE7ifTT7l
+/TbxaNXFqNy6zgzasnJ0SAr+PNCbfDAWdP8OuldFn/nBc+37J1OueMjz0t3YAQ5W6sl5Ac6+uPEP
+AAN/jQO9iSckI4/i4t1e1ch+h+RTUpgf17qVVSeiWLD9KoBNJdIX9SSxf6sW/A9QbQxwqz9qnLmv
+VZJ5M4DzlQbhamas/i9swagQtLb8AfNPJHnTDA10AYzXSaH1AEYA/AJTWQfgSD0ATillxGTeGQu6
+r0uJbVLKCIhWWkj5WZq8QkoZkVJGAH6MiA78OuS4AdCHYO42F2VGAN5fTx5wALSXGCkAR4l4GzN1
+lXQ/DxHo6enhcgbbl63I7msyzZM5R5MQeXEYxI807BTonW1aPOxpiYc9LQBuTMtv9uxoH3fdGbpN
+NPfq627JvGqyi4jfn75jrZpqePijF85dXobiA+NMY93E/E7DAASQBuH61DGDAqDQnH+4O9009nbG
+MnbLCsfRIrKvAP98ouoC6Ot06wB0APCrxgcgXM47chZi3gcga885PpuwTxxi0NcVAxCDZ19Z0erT
+DOaSnrJA8o5PM0racQDAoSJn72oZ+2+Tpfdf4tld6awglIAKINOAnJNhwT3l4p+Sm4Qnm54iCQAA
+AABJRU5ErkJggg==
 }
 
-set iconFullScreen {
-R0lGODlhIAAgAOf/AAAEMQIFNwAHSQAKUgANXAgKagAOegASZwgNcwAShQUS
-fwAcWAAZgwAXkAoB9gIalBcA/wAM/wsegQAjjAAhmAweiQAV8RgP3w8sZhAj
-lQMvfwAa/w0okQMvlwcwkQAvrAYvngAj/xgZ/xEziwI4pgAr/wI4tbkAAAAy
-/wBAtcQAAAQ26xcq/wA3/7MMAMwAAq4PCAA/4iM+jQA8/9oAAgBG3h5CpNMG
-ABtEreYAAN8EABVF0swQABpIuwBJ/+oDABBQt7UaGBNC/8kVArwaDRNM0x5J
-xwlM/wBS//8AAPcFAB1PyxRO6u0MANoWA8AgFwVX8QBX/xdXxSBT2BNa1xVU
-9i1Wq94cAABf/wBk/yVdxdkkDwxi9QBo/7M2LA5j/b0yLB9b/wBs//8aAKM9
-QC9X9TFb280xHbM6NcczJQdt/9gvGQBy/yxj4TdjxgB3/y9j8L4+NAB6/yVp
-9ihr8LRERUFpzqpLUQCD/0hrvLxHQgqA/yR0/wCI/59WYI1ahEBu7sVLSUNx
-6rJVWTt19QCT/z52/Ud25TR7/8xQSNJORBmK/wCZ/zh+/QCd/0V89b9cWa5j
-ZwCg/qpmbSCR/0CC/8NgY2R/x4lzpkSG/wCq/wum/r1oaliH57dsdVqF7wCy
-/wC1/rJ0eCqg/8VvcFCQ/9FuaVSU/zKm/wu8/gPC/3WV0ADI/2OY/22Y6sp/
-gbaIksOLk2qn/9GJin+k8Hil/72VnY+h57WZq4qq7rWgsJCs5tiWmoay/9Se
-ocyjrKiw3pq255227qG26JW8+b2yxaa45dmps5i8/5HC/eSoqtCwvKe/66TB
-8rG95fKxqOi1tKnL/7DL+rDO9bbS6bPT8MDP8NLM2OvGx8TT+9/V27Xn9NHb
-8/DS0Mve+MXj8N7Y59vc5sjk/Mvj/+7b29Hk/vfZ19Pn9MDy/9vm/8ny/9Dx
-//ni4cf3/t7u/9L3/+Py/8v//9n6/dX+//zu7+n2/dv9//Ty9uP8/+H//Or/
-/v/5+PH///n///7//P///yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-Bgk1etQok8NKEBEZMsRnjkU4XLJ8KVOlCpMpNgiWGpUKlCZJhQr1kcNHzJcq
-SHwIaYGihIgQEXLmXNFDoJtTqlSFOsmIEh45bLpgiXJEyIwWJULgzAmhKoQa
-C/4RGsWqpCZHhRYdZfNlaVMhNaWKoGr1goZ/griW3ARW7Bs1XcIw9UEzqogN
-ERxYhbDBwz8ZqLqCohv2qJosZWI6hRpibU4HmB1cMIwBlarFYPvgacRGTJcv
-UJikrrGj9ZQiRpb0kOIGCAiBpyo1QsTnDaJGdOgAEnToUKdOrlzd2iUMGDNr
-4+Dx89eMA+5avZAhu4XpT7Zz8Or+9fO3r/y+fv3oEbmy5swZUv2YWf8ny585
-U2l00AiCvry/8eP9xw8/kCiRRBJjgNFPdQLJwgsPOSDIwzH97OPPhRheiB44
-deQwhoFxxDcBbsfoMMYYTUDyX4YZjufLCUqcOEYSITIz4j+ZgOPEiU0McUYi
-7LCIXj/8hKPCjCcMMYYeC0ogUCPlrIHiiUqcYE6G5xHJjz6x0HADLLYMoYc/
-w1QgECHrKKKCHjokcQI2AWpIpD505uMFGvbYI8ok/DRj5j9tiPOMMv4kQgQ2
-FmKoJT/16IOPPuecM88786jjTzAMCNSGNOiRR895imqJTz744GNPPpO+8446
-/BiT6T/+SyCjYaKhDkhnqfi8I4+q6qDDqqsC4dDLhbTKaaujpqpKaTzrtINO
-qwYINEItK7Y4J7Kl2oPPPN/coUs821ADrbStkAcNef1AQo6o2eY6TzyD3ACD
-NWT4wU8wCAikwSf9sOMCKfvMokIgW96aa6nveEKDEk3AQAMa+uAr0AKV+MOO
-EzoMQkQSNPyyZZ6lrhNPMS7IeCAR+BgTrUCA9NPNFWPoEGMSQeCqLKXi4DIJ
-DE18+EI4zKz8Dx38dHMDlTo88QquufLaDrhPyEiDL9MoMJAZ7nRDg4xDXJPs
-O02r02s7d/yghA48eIFN1QMtMQ42LtxwwxUqeKKtqSDjs2VuPXEkMssy3Iwj
-zipWC7RENv/dw0430HRDZD3wlDONM7usckkeVgABBAkTZNDAAwkMZAQt2UjT
-TC+0uNKJHVr0YIIJFHyQQAMJKGAAAggUUAABAwggwEAk9AACCB1IcAAByA8Q
-AAAAIOT889A/HxAAOw==
+set bddview_icon_FullScreen {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACCUlEQVRYw+2XsWvUUBzHPy8JVxeP
+IuW8FxRO6BYci6tQhC6im4uzODkouDg6ii6tSxdtcRCRbi5aOrgVF/8AkUOveYl6h8MhJ5fk5+BF
+ctc7vVyaLt53ennk5fN9v/fl9wj871LZB9d1L4nIDeDcPxcqteX7/nqtVjvtOM4bETk/JbMH3DPG
+PAJwMvCrIrIzamqCEmANwLKstRxwgBMicgcYNpAkyV31Ww+A13/7goj89H3/G4DjOLtRFH1QSi1P
+XXalFg4dgdb6K7Bk2/aZVqt1kPcsG43GYpIkQ9Xr9XoV27afAxdHXm8bY5aGKpCaUUrJLGFqNpvf
+s8+e51X6/f6TMfAhWWUk2/O8SrvdfglcyUzvHIsBz/MqnU7nhVLqcmZ6E7hduoEUPrLzTWPMzUlH
+ax0HHJBSMzAr/EgMFIEXNjAu7SKyMQEu48ZWUXg27SKyEQTBrXE7930/AD4Nes1+Ou/MyHfywAfq
+J0myopRasW17r5ABrfU1IA8cgDAMvwCvjiIDn1OYiKxPA8/I1lpfL1QBY8zber1+QUROhmG4N+06
+13XPish74AfwrEgGCILgXd41lmUtxHF8amCgvMsol6m5gbmBuYFMOz0AiKJodcp/g9ysOI5XB5dR
+61AnVEptAQ+Bba31dpm7FpGnf/pyOuh2u/vVarUHLAOLJbE/AveNMY+Za6BfeULw5v++vscAAAAA
+SUVORK5CYII=
 }
 
-set iconNoFullScreen {
-R0lGODlhIAAgAPcAAAAYSgAbVAwmWgElbAAhYxc1bQAncx49eyJAfjVFeLob
-Da4rJLI7NsMMANcKAMcUAcAbCN4QANQdAdwdAOsTAO0dAOcZAPYfAMkjDdwk
-BNUpDNopCc0qFMohEtUwGOQkAOojAOUoAvIlAPwqAPgoAP40AP85APcyAcY4
-J9A8Jb9BN89CL8lIOdFMObpQTa5OULNPUL5dWrZUVa1cYbNeYLxpar95e8xP
-QcVTTMddV8x0bwAsjgEsgwIxjwArlAAtngAnmQEylQs7mwM1mhA/nQQ4oxNB
-nidPlitRngxAqRZGphlMsSFOqCZSpCRVtzhjt05qtQAA/wEL/QAU/gEb/hAo
-6gEj/wEq/wwh9xAi8QEz/wE8/xk16htP1h1S2i5exCpbyidY2C9jyzZoyjtv
-1jZp0D9x1R5b5gFE/wFM/wFT/wFb/ylT5h5l7QFj/wFs/xxr8QF1/wF8/xl4
-9jpt7zlr5z5z7051xF9/wEp52Fd90k1/40Z97El/60Z640R68gGE/wGN/xKI
-+wGV/wGd/w2W/gKk/wGs/wio/wG0/wG8/w65/1KA31uG3GiGyGSM3G+U3nWV
-132YzEyD7keB7lmJ6UyF8U6L9laN9liO8U2U+kud/V2S8VyU+1+Z/WSO6WmT
-6WaO8miZ+nSd+USu/0mk/1+k/0qz/2ql/3il/QHD/wHL/xPD/76DiK2NnbeL
-lLOpvMiKi9WKhtiSj8eOkc+Ym82QkdKWltqcms2go92qqdm1uMeutuKqpOCw
-r+G1tOW9vOO5toil2pau36u835i35ouy/oKx/5m394aq7ay+46O75qO/+MW+
-zNq/wr/A0K/C5a3J57LC5bzJ5bbJ7brM7KvD97rO87DG9bvT+rvn+t3T3cvL
-2enDwubIyPHPyunZ3OXV2czX5srY7d7c4MbW9M/c983l/Mzt/sTv/9Xi8dLv
-/97t+9nl+sz2/835/9Ty/9zz/9T5/9v7//bq6eTt9uPt/OP1/+r2/uP7/+z7
-/+rz9/P8//3///f09wAAACH5BAEAAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-Bj+F4sTJk0OHnTphmmhpUh8+ff5opEOnDpknBFGRYrVoUSJEhAoVCgRITpw3
-b9aoUYNmy5YrVqxQwcJmjEA9plapUpXokCFDgwIFkiMHppuZaWpqwUllihQp
-YQr8C0VKqKKihgglbfkypsyoW6bqtBqFy5GtXVV9NSqWZUuYa9akiTqVKtss
-Tf5BOeUVLFKWLt+4ybs3rdqqV6sETkCY6ElDKgUJmjMHjuc2Z0J78dKlSxgw
-YL58YSIQValNmjRhsmSJUp8+e3LnbvQIUqRkxYotg1atnLplSlqPGpXKmDFk
-yKxhu1bOXDt7/vjp69evWy/uwXL+4OtXLfm/Y+P7hcvxnbv79/348bvVIFc+
-Fg5akTciMFU/f7NwYAEL/gQDDHzxyTefCBrAEEIJHIBzDX//iNKPLA6MYEIG
-DDygw3sKKmiLCCWAUIIJFOgwoUCi6PMNDhuUUKIIs8CnID76xEKijBq40E01
-FIZiD3c2TGBCibi4FyI+OOooIwkuvMMPNUIIlEk7/fjiwQgnguCLkvpox6Q+
-tHSgwQYZQNAMP9JU+c8e53yjwAd0WiDBLwnqow+TTN7DjjricNMML+Lo06ZA
-fpRDTzfA/OKLLrrQE2KYfd5zzzzxyDOPPOiwOYRAeWCDIHcK7tlnPKjGA886
-66CTjqH+QQg0BjOjZiefqZaiuuk887zzjjuwCtQEMqNqp+ee+dyjKy812GBD
-K628so80PQiERDLc4TILLrrs4o2elaY6Tw0UiGBuBC/oA021/xwxCnc5RAAC
-nSjUg2uqqsagoQkh1KCNPsqwewQo3NWSgYwjpFAPPrmmumoOMpaAgSv/ErPD
-QJmAc0OMEa9gD8PKogqPPOfcUEEIR36gwjbRsPvPJNtgIKMEE5TAgj35OLzq
-OucwQMMLIJgAwgLkVBMrovfI8oEIMcRgQQvs5Cwyq64+kw4sDUgwQzT5THP0
-P2S04w8KD2yTDw4q6Mwq1fK0bcsu+czTj9cDlVFOP7vUomdePc5Maqo97Ywz
-DTHLCCOJI4488bUY15C6pz3nVKPMMMJE4sgdTzihRBJFFPHDDz4A4YMPX5fR
-CCSN5DHGF044sUQSQgwRRBA8GDDAAAQEAAAACP1zQAECCND78AcFBAA7
+set bddview_icon_NoFullScreen {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACBElEQVRYw+2Xv4sTQRTHv9/JLuZ+
+EEEMu0MwhQbBSrCyEQUbKy3srhIEbUVQ4ZATBblCC7Gz8eCEK46rRMTKztrSP2BlZsOFSxGv2T3m
+2SSyl8S4t7dbmdfMr535fPfNzHsM8L8bM3VPa/1ERO6QPDc2NmEi8iyO4xd5Qc1mc7lWq22RvEry
+gTFm45CAMAzXSD7PuV6SpunpXq83yAv3PO8zgCvDru/W2ksA4P1xBXl3WK54nvdl1oKDwcD1+/2i
+cIjI1sQWaK0dADrnlrvd7v6sRVut1kXn3DbJPefczTiOd/PCAaxba1dHDVXk4IjIfQDnReQyydtF
+4YUFOOfqmebC+HgQBEu+73/Mwkm+GocfOgNlWRAES0qpTyJyLQs3xjye9r2qAg4gF7xUAX+Bv54F
+L03ADPijf80tQ8BiUXhZh/ApgOytWDfGrOadXIYH6tk/n3bVqvbAyPZEpKG1fjclcPV9338bRZGp
+UsApAPemplwSaZpeAHCrrC34ceS8T+4DQKfTOaG1fnisZATAC8NwRSmlc4buX0mSfKjX6wcisgtg
+wVqrjrMFB3Ecbx510jBBLQKQSkJxEZsLmAuYC8jGgZ8AziilbrTb7a9VwJIkuT6sRhMCSG6IyBqA
+nTRNq3mGkaPk9H7UV8s8Nr41Gg0BcBbAyYo8HpF8Y619CcBhbgB+A/M7yzyOGsNUAAAAAElFTkSu
+QmCC
 }
 
-set iconIconify {
-R0lGODlhIAAgAPcAAAAXYwAcZgAjbQcqbQAlcQArdA0ucAA/dQA0fgsxfRV/
-RQV3VwBBdgBFeQBKfRtDdyVKdSNBewW1KwbHFxbUFhvSHhDwCyjgHx7PICTO
-JS3BMCyfS1W3WlSfbU2CdVyOfVi6YWm0eAA8hQA8iRU1gh86igo5lABBgANO
-ggBDjgFLjARRgwxUhABSjAtSiBdXghNZhxVbiBteiwBDkABLlgBHmgBMmgBS
-lQBVmANcnDZQhDtcmB5hjRhilSZkjS1giS5pjyB1iyRkkSdokilpkzRrkjJs
-mTptmzdwlTVymz12nD95ngBUpABcpABUrABZqwBcsD1IvABipABmrABitQBp
-tABluQBpvQBzvktijlZiikZ3jkN5nWF0mG98m0Z9ogBqwABzxQByyQB6ywB8
-1FyHjmaXgGmcgmqggE6DplKEpVyIplaIqlyNrWWPqnWEo2ORrn2ZomSSsWmV
-sG6ZtXKbtXuetXSeuXegu3yjvACE3wCF4QCK4wCM6ACR7QCW9ACY9wCe/gCg
-/4mSp4iTq5ifsZGuoIOmvZ6ttrG0vYWpwYutxI+vyI+xx5KxxpOzyZu2yJ26
-zaG9z7q/xaO+0ZGE/73CxqbB0q3F1a/F2bDE0bXJ17PK2bvO277R3sLCxsPH
-yMfKys3MzM/QztPTz8PV39bT0NzQ1t7a1MXW4cva5dTf59Hf6NPg6dzm7eDo
-7uTs8ezy9vL19vL2+fb4+v7+/gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAACH5BAEAALYALAAAAAAgACAAAAj+AG0JHEiwoMGD
-CBMqXMiwoUOHDSI2YHCAQQNbDiYy2CjRgQMUDliIjMHDhxEladK0kUMnz6FG
-jRSxWNGmTh5FjiJRwtQpVStXsWTVGjqU1qxZsV61StVJU6xaLBy0Iko11qpS
-myg5OlTHjRouSHzEeDBzRQsVXFyxsBVp6KEiPl6EXGG2xQ0cOaRMuRJmjB49
-ffz8ARRGiaq1dIa6UTGlCha/gf0AmhyosqDLgS5frrJGlQNbS4YuqlI5M+bS
-mk1bxtzETqrPMZ5qkgKotO3btzX/uQGp02cHnmqtyrEH0J/jxo8jV54cuZ4W
-nSRdtLWolqweYvz02c69u3fufsb+rHC1iIFAOEOTXNnzd4/7v/Dbk3nv/goL
-WnjM20oylM0TMgAGKOCAAz4hRC1yDMTCK7XgQUMYYkQYIYRiUGihhGLcwEUt
-agzkACe1RDIDFFVMIUUVYFyRooorXuGiFVQ8kQJ6ShCURy2puFCDDRJMsMIT
-TjwhpJBOOMEEEzbYQIMNIhxSyxAEqVELLC6MIEIFFZwwwgxczpAClymMkMKX
-XjbQVgwEDVELLTyMUMQGCowg55x01imCA53QstZA49WihAmVREEAAoQWioAI
-hSJa6HiurEBQA5fUMscOQSwAQQkkJFCAAJwS4CkBBYQaKgw4fkbQHbUsEscF
-FoAQQgeyHhDyRhdZ6BCBAQMIEMCuAhhRCyamDrRhJmVokAEGGFDAwSmooGKK
-KKF8kkghg3ihxQNphDjdQDzguMUHH5hxxhmGTDKJJeiCEkooooxCCimIJFZe
-QSiwQoscRxihrxFCyOCvvz4EDAQQRRTxQ3V36DeQmVRRRcvDSMWSlCsUr6IK
-LQgetEQjjzjyyMeR6ESJJJSUXPIlJl+CCSZJHBQRRxxJJPPMEXkU7EM456zz
-zgoFBAA7
+set bddview_icon_Iconify {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkUlEQVRYw+3OuxGDMBCE4b0hVwGq
+xz05hcxtOaAWKVdCdmQMjLHQ4+yE3fjm/g/gOI7jOI7j7j7x3j9V9fWL56o6xhin3M2QUpqdcwuA
+x7/jADAAgDWiNL4BLBE18QPAAlEb/wD0IFrip4AWRGv8K6AG0RPPAkoQvfFLQA5hES8CnCGs4sWA
+HUJE5B1CMIkDwAo3EogqC2dPJAAAAABJRU5ErkJggg==
 }
 
-set iconExit {
-R0lGODlhIAAgAOf9AIAAA4IAAIEABIMCAIgAAYkAAoQDAIsAAIwAAIsAA40B
-AJMAAJQAAZUAApcAAJgAAJkCAJ8AAKAAAaEAAqIAAJoFAKQBAJsHAKkAAKwA
-AaUEAK0AAa4AAqYGALQAALUAALADALcAALgAAKcJALkAALEGALsCAcEAAMIA
-AMMAAMQAALwFAsYBAL0IAMcEANAAANEAANIDAMAOANsAAtwAA9MGAN4BAMoL
-AeYAAN8FAOkAAdYOAOAJAOoEAvMAAPQAANcRAfYCAOENAOwIAOsIBPYCDP8A
-AP8AAOMQAPcGAO0MAOQTAO4QAPgLAuUWAPATAOcYAfoPA/sSAPIYAP0VAP4Y
-AP4YB/8bAP8bCP8dAP8dCvkjAP8eFf8gC/8gFv4qCv8sC/MsLf8sFv8uDf8u
-F/8wIf83DP43GP85Gf86Gv85If86Iv85KP88I/87Kf88Kv9CD/FBPf9CGv5C
-Iv9DG/5CKv9DI/9DK/9FJP9EMf9FLPZGQf9GM/9FOf9LJf5LLP9NH/9MJv5M
-M/9OJ/9NNP9NOv9ONf9PNv9PPP9PQv9VKP9WKf9VL/9VNv9VPP9WN/ZXS/9W
-Pf9XOP9WQ/9XPv9YRP9YSv9dMv9dP/9dRf9eQP9eRv9fQf9fR/9eUv5jOv9k
-O/9kSP5kTv9lSP9mSf9nVf9rRP9oXP9tTP9tUv5wRf9yTf5yU/9zTv90W/91
-Vvx0a/91Yf93aP16Yv96Xf99a/6AX/+BYP6BbP+Iaf+Jav+ObP+QaP+Qbv+R
-df+Vdv+XeP+Yf/+dgf+fg/6ejf+fjv+jhP6kiv6lkf6ohv6pjf+rj/+ooP+s
-lv+tl/+vnv+ymf++tP7Br/nDwvrEw//Fs//Jr/3RwP/Twv/Uw//Uyf/VxP/W
-y/3ZzP/bz//d0P/e0f3h0v/f2Pzi2f/i0//j1P3j2v/k2//l3P/n3f/p2P/o
-3vzq3v7r3/zs5//s4f/t4v/u4/7u6fzx5P/v6v/w6/7y5f/y7P727v/37//4
-8f/5+P7//P///////////yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-CBMqXMiwocOCJThk0KBhgsWHBFOsEMERBIYMICZCGNmgZEMWGlO4ENIEDJqX
-ZrpkmbJDhoYGChoodKEChxlTvYwpazb0GDBdtlA1UqNlxs2ELF6g4WVtm7Zq
-x3KxahTIjh0yYL2qETJB58EVWZKhOwfNliRFgei8BAMmSxYtWsio+SLCrEEW
-dLJ1u7VoERwzgOwEMgMlS13HaNqouQHhIIkbrbT9AgTKyYpJdOiQ4VBET5Uq
-Rrqo+WMHx4SDIoDskqbqkhMZ1PgVyzIiTj5yk4ZM6YKGD58pGhQYFEEk2DNF
-ZkTk5scP1p587tixKzVcDSFCVTD+KC8ooouwX3O+eOKXjx69ffnklTs3Lp6o
-H2oaEWoyYvzADB6YMUwqZtBhRzT80OPOPe+sc84354TDRxJlRNKIFuIVBIIH
-ZAgjCRl0ecFMPvG4g85a6GyThxBZqCEJJbwlUNAIK5ABDB0ubTECJPmgY+I5
-57yTyA5MdGEHJZFo0V9BGtS4CxlddDFCGPL8SN835CAzBQ5a8IFJJEZgQACT
-HmjBikxCEGHPO0CKI8433pDDzjNedEHIJo38kFxBF3CQBSZZbCFEIWy+SY46
-5HjTTTfsSKMGJagQAgUEBhRkERGSzPQDEbXEA6E2slxzDjnhJLrJJqnosUMD
-lRYEQQ7pdnTxwxRTEFGMPd/0MUMepXoTTi2bvDKKGio0AIBBDdSIRhdaZPFD
-F8WIgoMPPpwyjjizUEKLKzCCMKZBEIzggxpdgAWlEUaApYYas8ySyiu0bOLG
-DBB8W1ADEKigmhp66MGHIP82gsmpo7DCyih6MJFcAAhBoIELUpThBiGNFBLJ
-wJuMojElenThRAYNCKBQAxN8UMMPeanhxr98uEGGF1MAQYIEChDAsEIKQHDB
-CCK4AAQQOeSwQw0reGCBAwoYQMCxDCWQgAI5TXDBBBRccAFOCRBgANMYKeB0
-0kkbIIDYGJVt9tkEBQQAOw==
+set bddview_icon_Exit {
+iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB70lEQVRYw+2Xv24TQRCHvzkfL4CU
+RFDQ2efDtCBRgZ3XMTHiRfJHIJ4CngDH0FLj+GJ3KZBiKOjtu6GIHS3x3nlvNxEFTLVa7c7vm9vZ
+mT34103WAwXJaPcFHQA7wGlOPOgwvggRGNN51GB5AnSBH4octcneCegfABnJAXB8Y/+8INp/zOSb
+j3hGkgAj4IE5r8irlOwtQGTMv7b42I0ohmekT25L/CpqPViPTYD7Jb52G+SfpjRTV/EpzVTQLzbx
+le3YAEZlDhXZU2TkAjGlmSoyUmSvYtlwAyAnHgh6GQLhIi7oZU78ZgOgw/hCkRfA9yqIguizLScy
+kqQgGm6JfL4k3jdvlpQkzynwsMqReTuqEs7ck9PodTgbW+uAL0REsfAVLwWoc57ro6laI2i3xWxS
+WQkDvgQ+kTsBBEJsFXcC8IRwEncGqAnhLH6zEtbqntWLVG7VoeM99+qicgfitSDkjsSdIf56IYrK
+IndtLCENrKoZ1artPg3MChDS1XwhxHy9xiy+hpyna94sufds/Sa4zoEGy5MQcYAWs4mg3W0vq5jF
+oS0JX4aI14To2QB+VmW7i7gJseV2zDcAFDkKbSymtTk/B3o2CEGPNwCufpe0D8yAX8CHnPipj7gJ
+kRM/F/TjyudM0H6L6Xv+28p+A8AyIalgLZ6KAAAAAElFTkSuQmCC
 }
-
-set iconMouse {
-R0lGODlhIAAgAOeYAD09PT4+Pj8/P0BAQEFBQUJCQkNDQ0dHR0hISEtLS0xM
-TE9PT1FRUVJSUlNTU1VVVVZWVlhYWFlZWVxcXF5eXl9fX2BgYGFhYQCmAGJi
-YgCpAGRkZGZmZmhoaGtra21tbQO6C3JycnNzc1hu2QDEAHR0dHZ2dnd3d3p6
-ent7e3x8fADSA319fX5+fiu3NYCAgIGBgYKCgg7SFGmFxQDgAIWFhVaXpYeH
-h4iIiIqKiouLi4yMjEW/Uo+PjzvFVJOTk5SUlJWVlZeXl5mZmZqampycnETZ
-TZ2dnWTCc56enp+fn6CgoKGhoaOjo6amplvcYaioqKmpqaurq4jEn66urq+v
-r4jIl7CwsLGxsbKysrOzs7e3t5bMqLi4uLKx/7q6ury8vL29vb6+vr+/v5rX
-psLCwqDZrsTExMXFxcbGxsfHx8jIyMzMzM3Nzc7OztHR0dLS0tPT07rlxLnn
-vtbW1tfX19nZ2dra2tvb287n2d7e3uDg4OHh4eLi4uPj4+Xl5dbv3ubm5ufn
-5+Pn+Ojo6Orq6t7y4+Hy5+zs7O3t7e7u7u/v7/Hx8fLy8vT09PX19ff39/j4
-+Pn5+fr6+vT++Pz8/Pn+/P7+/v//////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-/////////////////////yH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGD
-CBMqXPgPggkcOmCoaMGQ4YUiNSj8+4CiRo8eLCoedLAkxsEXRK5IiZJljch/
-HZxEeCnSQpOZNCv+gJGz4oQcFXoynKCISQEKJ05M3IEDhVCBL5isuYSpqiM7
-bd5cQtTjQggGLyHYqUp2kiNGaoAogQIJ06IkGxhW0MMGjJg6jiL5UVRIShZF
-ZMnaKSIhYQqyjdJUAVPoT5M+gSNjgnQEwUEdkgJLesOEySOyeQ5JruoGbEEl
-dDBVcoRI0KQmjMgCWiFjDlkuZMiiMXC6DCNGfuosKvMmMCUjGqZUNYPBhSWy
-IQp6+HPlD5w3f6hIHjRjhI8nIHj+GKpK9UrBAGX6HEHzaAtkyV5s0CCBJPBq
-OgkKSpDkZ0iSJqORJYcVkUVCyB4NGKSCaljo0EWAASrShx0JFgSAE1bdAEQh
-ZFEFYR98fHHAQQdocUklmIxRgxOIVFXJi5fEGCMmjtRRxwkEIHQAE4h8xggV
-MCxBxySqTWKkkZXoAYcQDyg0AAp1KNIWIljggAMWe0QSWCBg6GCCAgsBkMEY
-fyTySCWQxMGElUE4gUUSLaAARAYVBQBBFngIskgjkFTSCB5OvCBCCUKEkYIA
-LyWQwxl03KEHH3vY8QYaZaSBxQcF5DRABT9c8cUYY4CxxRVJqMAAoj0NUMAC
-HJjAAgoRH0RwwABPEUSAALjSWutTAQEAOw==
-}
-
-image create photo icon.save.small
-icon.save.small put $iconSave
-
-image create photo icon.print.small
-icon.print.small put $iconPrint
-
-image create photo icon.pan.small
-icon.pan.small put $iconPan
-
-image create photo icon.zoom.small
-icon.zoom.small put $iconZoom
-
-image create photo icon.edit.small
-icon.edit.small put $iconEdit
-
-image create photo icon.info.small
-icon.info.small put $iconInfo
-
-image create photo icon.left.small
-icon.left.small put $iconLeft
-
-image create photo icon.right.small
-icon.right.small put $iconRight
 
 image create photo icon.up.small
-icon.up.small put $iconUp
+icon.up.small put $bddview_icon_GoUp
+
+image create photo icon.left.small
+icon.left.small put $bddview_icon_GoLeft
+
+image create photo icon.right.small
+icon.right.small put $bddview_icon_GoRight
 
 image create photo icon.down.small
-icon.down.small put $iconDown
+icon.down.small put $bddview_icon_GoDown
 
-image create photo icon.center.small
-icon.center.small put $iconCenter
+image create photo icon.save.small
+icon.save.small put $bddview_icon_Save
+
+image create photo icon.print.small
+icon.print.small put $bddview_icon_Print
+
+image create photo icon.pan.small
+icon.pan.small put $bddview_icon_Pan
+
+image create photo icon.zoom.small
+icon.zoom.small put $bddview_icon_Zoom
+
+image create photo icon.edit.small
+icon.edit.small put $bddview_icon_Edit
+
+image create photo icon.info.small
+icon.info.small put $bddview_icon_Info
+
+image create photo icon.tex.small
+icon.tex.small put $bddview_icon_Tex
 
 image create photo icon.iconify.small
-icon.iconify.small put $iconIconify
+icon.iconify.small put $bddview_icon_Iconify
 
 image create photo icon.fullscreen.small
-icon.fullscreen.small put $iconFullScreen
-set FULLSCREENON icon.fullscreen.small
+icon.fullscreen.small put $bddview_icon_FullScreen
+set bddview_icon_FullScreenOn icon.fullscreen.small
 
 image create photo icon.nofullscreen.small
-icon.nofullscreen.small put $iconNoFullScreen
-set FULLSCREENOFF icon.nofullscreen.small
+icon.nofullscreen.small put $bddview_icon_NoFullScreen
+set bddview_icon_FullScreenOff icon.nofullscreen.small
 
 image create photo icon.exit.small
-icon.exit.small put $iconExit
+icon.exit.small put $bddview_icon_Exit
 
 # ############################################
 # INITIALIZATION
 # ############################################
 
-#OS: unix, windows, Darwin
-set OS $tcl_platform(platform)
+#DPI - adjust for defaults in different OS
+#used for print and export
+if {($OS == "unix") && !($OS1 == "Darwin")} {
+  set DPI 75
+} elseif {($OS == "unix") && ($OS1 == "Darwin")} {
+  set DPI 75
+} elseif {$OS == "windows"} {
+  set DPI 96
+} else {
+  set DPI 100
+}
 
 #STATE: pan, zoom, edit, info
 set STATE ""
@@ -826,17 +512,9 @@ set ZOOM 16
 set DOUBLELINE [expr $ZOOM/4.0]
 set ARROWSIZE [expr round(2*sqrt($ZOOM))]
 set INVSIZE [expr $ZOOM/8.0 + 1]
-set DPI 100
-
-if {($OS == "unix")} {
-  set DPI 100
-}
-if {($OS == "windows")} {
-  set DPI 150
-}
-if {($OS == "Darwin")} {
-  set DPI 100
-}
+set LABELOFFSETX 0
+set LABELOFFSETY 0
+set GRID [expr $ZOOM * 8]
 
 #XMAX,YMAX: $XMAX*$ZOOM and $YMAX*$ZOOM are max coordinates
 #these are used to determine the size of box and grid
@@ -850,20 +528,26 @@ set SCROLL 8
 
 #GRID
 set GRIDON 0
-set GRIDRESOLUTION 400
-set GRID [expr $ZOOM * 8]
+set GRIDRESOLUTION 36
+set GRIDOFFSETX 0
+set GRIDOFFSETY 0
 
-#ARROW
+#ARROWS
 set ARROWSON 0
-set ARROWSIZE 7
+
+#BENDS
+set BENDSON 0
 
 #BDD
 set BDDNAME ""
 array unset BDD
+set BDDVARIABLES ""
 set BDDNODES ""
 set TERMINALS ""
 
 #these are used internal
+#LISTF is sometimes used as a list of left edges, sometimes it is a list of elements reachable from a given item
+#LISTT is sometimes used as a list of right edges, sometimes it is a list of elements pointing to a given item
 set SELECTED ""
 set TERMSELECTED ""
 set LISTF ""
@@ -875,34 +559,30 @@ set TERMDEPTH 0
 # GUI
 # ############################################
 
-set COLORBG "#FFF8C8"
+set COLORFRAME "#E8E8E8"
+set COLORMENU "#FAF8F4"
+set COLORBUTTON "#49B2C2"
+set COLORBG "#FFFACA"
 set COLORFG "#000737"
-set COLORMENU "#F5F6F7"
-set COLORBUTTON "#90F0FF"
-
-if {($OS == "unix")} {
-  set COLORMENU gray80
-}
-if {($OS == "windows") || ($OS == "Darwin")} {
-  set COLORMENU "#F5F6F7"
-}
 
 set COLORGRID "#90A8CF"
 set COLORNODE "#F8F8F0"
 set COLORLEFT "#006828"
 set COLORRIGHT "#002868"
 
-set FONTLABEL TkFixedFont
-set FONTTAG TkFixedFont
-set FONTINFO TkSmallCaptionFont
-set FONTLABELSIZE [expr ($ZOOM - 1)*100/$DPI]; #change also in zoomIn and zoomOut
-set FONTTAGSIZE [expr $ZOOM*10/14]; #change also in zoomIn and zoomOut
+set FONTFAMILYLABEL TkFixedFont
+set FONTSIZELABEL "(\$ZOOM - 1)*75/\$DPI";
+set FONTFAMILYTAG TkFixedFont
+set FONTSIZETAG "(\$ZOOM - 1)*60/\$DPI";
+set FONTFAMILYINFO TkSmallCaptionFont
+set FONTSIZEINFO 10
 
 wm title . $TITLE
 wm iconname . BDDview
 
 # CREATE AND PREPARE $mainframe
 
+set mainwin ""
 set mainframe [MainFrame .mainframe -bg $COLORMENU -textvariable STATUSBAR]
 $mainframe.status.label configure -fg black
 $mainframe showstatusbar status
@@ -916,10 +596,10 @@ $toolbar configure -bg $COLORMENU -relief flat
 set bb0 [ButtonBox $toolbar.bb0 -bg $COLORMENU -homogeneous 0 -spacing 4]
 $bb0 add -image icon.save.$toolbarsize \
     -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Save As" -command {bddview_saveas $mainwin}
+    -background $COLORMENU -helptext "Save As" -command {savefile}
 $bb0 add -image icon.print.$toolbarsize \
     -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Print to File" -command {bddview_print $mainwin}
+    -background $COLORMENU -helptext "Print to File" -command {printfile}
 
 pack $bb0 -side left -anchor w
 
@@ -928,17 +608,21 @@ pack $sep1 -side left -fill y -padx 4 -anchor w
 
 set bb1 [ButtonBox $toolbar.bb1 -bg $COLORMENU -homogeneous 0 -spacing 4]
 $bb1 add -image icon.pan.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -background $COLORMENU -helptext "Pan" -command {state pan $mainwin $bb1}
+    -takefocus 0 -relief flat -background $COLORMENU -highlightbackground $COLORBUTTON \
+    -borderwidth 2 -highlightthickness 0 \
+    -helptext "Pan" -command {state pan $mainwin $bb1}
 $bb1 add -image icon.zoom.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -background $COLORMENU -helptext "Zoom" -command {state zoom $mainwin $bb1}
+    -takefocus 0 -relief flat -background $COLORMENU -highlightbackground $COLORBUTTON \
+    -borderwidth 2 -highlightthickness 0 \
+    -helptext "Zoom" -command {state zoom $mainwin $bb1}
 $bb1 add -image icon.edit.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -background $COLORMENU -helptext "Edit" -command {state edit $mainwin $bb1}
+    -takefocus 0 -relief flat -background $COLORMENU -highlightbackground $COLORBUTTON \
+    -borderwidth 2 -highlightthickness 0  \
+    -helptext "Edit" -command {state edit $mainwin $bb1}
 $bb1 add -image icon.info.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -background $COLORMENU -helptext "Info" -command {state info $mainwin $bb1}
+    -takefocus 0 -relief flat -background $COLORMENU -highlightbackground $COLORBUTTON \
+    -borderwidth 2 -highlightthickness 0 \
+    -helptext "Info" -command {state info $mainwin $bb1}
 
 pack $bb1 -side left -anchor w
 
@@ -946,59 +630,74 @@ set sep2 [Separator $toolbar.sep2 -bg $COLORMENU -orient vertical]
 pack $sep2 -side left -fill y -padx 4 -anchor w
 
 set bb2 [ButtonBox $toolbar.bb2 -bg $COLORMENU -homogeneous 0 -spacing 4]
-$bb2 add -image icon.left.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Left" -command {compass "w" $mainwin}
-$bb2 add -image icon.right.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Right" -command {compass "e" $mainwin}
 $bb2 add -image icon.up.$toolbarsize \
     -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Up" -command {compass "n" $mainwin}
+    -background $COLORMENU -helptext "Up" -command {compass "n" $mainwin}
+$bb2 add -image icon.left.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -background $COLORMENU -helptext "Left" -command {compass "w" $mainwin}
+$bb2 add -image icon.right.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -background $COLORMENU -helptext "Right" -command {compass "e" $mainwin}
 $bb2 add -image icon.down.$toolbarsize \
     -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Down" -command {compass "s" $mainwin}
-$bb2 add -image icon.center.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Center" -command {compass "c" $mainwin}
+    -background $COLORMENU -helptext "Down" -command {compass "s" $mainwin}
 
 pack $bb2 -side left -anchor w
 
 set sep3 [Separator $toolbar.sep3 -bg $COLORMENU -orient vertical]
 pack $sep3 -side left -fill y -padx 4 -anchor w
 
-set bb3 [ButtonBox $toolbar.bb3 -bg $COLORMENU -homogeneous 0 -spacing 8]
-$bb3 add -text "Arrows On/Off" -fg black -bg $COLORBUTTON \
-    -highlightbackground snow -highlightthickness 1 -font [list TkHeadingFont 10] \
-    -padx 4 -pady 2 -takefocus 0 -relief flat -borderwidth 0 \
+set bb3 [ButtonBox $toolbar.bb3 -bg $COLORMENU -homogeneous 0 -spacing 4]
+$bb3 add -text "Bends On/Off" -fg black -bg $COLORFRAME \
+    -takefocus 0 -relief flat -padx 4 -pady 4 \
+    -activebackground $COLORFRAME -highlightbackground $COLORBUTTON \
+    -borderwidth 2 -highlightthickness 0 \
+    -font [list TkHeadingFont 10] \
+    -helptext "Arrows On/Off" -command {bendsOnOff $mainwin $bb3}
+$bb3 add -text "Arrows On/Off" -fg black -bg $COLORFRAME \
+    -takefocus 0 -relief flat -padx 4 -pady 4 \
+    -activebackground $COLORFRAME -highlightbackground $COLORBUTTON \
+    -borderwidth 2 -highlightthickness 0 \
+    -font [list TkHeadingFont 10] \
     -helptext "Arrows On/Off" -command {arrowsOnOff $mainwin $bb3}
-$bb3 add -text "Grid On/Off" -fg black -bg $COLORBUTTON \
-    -highlightbackground snow -highlightthickness 1 -font [list TkHeadingFont 10] \
-    -padx 4 -pady 2 -takefocus 0 -relief flat -borderwidth 0 \
+$bb3 add -text "Grid On/Off" -fg black -bg $COLORFRAME \
+    -takefocus 0 -relief flat -padx 4 -pady 4 \
+    -activebackground $COLORFRAME -highlightbackground $COLORBUTTON \
+    -borderwidth 2 -highlightthickness 0 \
+    -font [list TkHeadingFont 10] \
     -helptext "Grid On/Off" -command {gridOnOff $mainwin $bb3}
-$bb3 add -text "Grid +" -fg black -bg $COLORBUTTON \
-    -highlightbackground snow -highlightthickness 1 -font [list TkHeadingFont 10] \
-    -padx 4 -pady 2 -takefocus 0 -relief flat -borderwidth 0 \
+$bb3 add -text "Grid +" -fg black -bg $COLORFRAME \
+    -takefocus 0 -relief flat -padx 4 -pady 4 \
+    -activebackground $COLORFRAME \
+    -borderwidth 0 -highlightthickness 0 \
+    -font [list TkHeadingFont 10] \
     -helptext "Grid +" -command {gridPlus $mainwin}
-$bb3 add -text "Grid -" -fg black -bg $COLORBUTTON \
-    -highlightbackground snow -highlightthickness 1 -font [list TkHeadingFont 10] \
-    -padx 4 -pady 2 -takefocus 0 -relief flat -borderwidth 0 \
+$bb3 add -text "Grid -" -fg black -bg $COLORFRAME \
+    -takefocus 0 -relief flat -padx 4 -pady 4 \
+    -activebackground $COLORFRAME \
+    -borderwidth 0 -highlightthickness 0 \
+    -font [list TkHeadingFont 10] \
     -helptext "Grid -" -command {gridMinus $mainwin}
 
 pack $bb3 -side left -anchor w
 
-set bb4 [ButtonBox $toolbar.bb4 -bg $COLORMENU -homogeneous 0 -spacing 2]
-$bb4 add -image icon.iconify.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Minimize" -command {iconify}
-set FULLSCREENICON [$bb4 add -image icon.fullscreen.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "FullScreen" -command {fullscreen}]
-$bb4 add -image icon.exit.$toolbarsize \
-    -takefocus 0 -relief flat -borderwidth 0 \
-    -helptext "Exit" -command {exit}
+set sep4 [Separator $toolbar.sep4 -bg $COLORMENU -orient vertical]
+pack $sep4 -side left -fill y -padx 4 -anchor w
 
-pack $bb4 -side right -anchor w
+set bb4 [ButtonBox $toolbar.bb4 -bg $COLORMENU -homogeneous 0 -spacing 4]
+$bb4 add -image icon.tex.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -background $COLORMENU -helptext "Export to TeX/TikZ" -command {exporttex}
+
+pack $bb4 -side left -anchor w
+
+set bb5 [ButtonBox $toolbar.bb5 -bg $COLORMENU -homogeneous 0 -spacing 2]
+$bb5 add -image icon.fullscreen.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -background $COLORMENU -helptext "FullScreen" -command {fullscreen}
+
+pack $bb5 -side right -anchor w
 
 # CREATE VERTICAL AND HORIZONTAL PANED WINDOW
 # bddview WILL ADD ONLY ONE WINDOW TO THE CREATED FORM
@@ -1009,7 +708,7 @@ set horizontalwindow [panedwindow $mainframe.verticalwindow.horizontalwindow -or
 
 # CREATE MAIN CANVAS
 
-set mainwin [canvas $mainframe.verticalwindow.horizontalwindow.scrolledcanvas -relief flat -highlightthickness 1 -highlightcolor gray80 -bg $COLORBG]
+set mainwin [canvas $mainframe.verticalwindow.horizontalwindow.scrolledcanvas -relief flat -highlightthickness 1 -highlightcolor $COLORMENU -bg $COLORBG]
 
 # ENABLE MOUSE WHEEL
 
@@ -1032,14 +731,11 @@ bind $mainwin <Control-MouseWheel> {
 
 # INITIAL WINDOW POSITION AND SIZE
 
-set sw [winfo screenwidth .]
-set sh [winfo screenheight .]
-set reqX [expr {($sw-$XWIN)/2}]
-set reqY [expr {($sh-$YWIN)/2}]
-if {$reqX < 0} {set reqX 0}
-if {$reqY < 0} {set reqY 0}
-#puts "$XWIN / $YWIN / $sw / $sh / $reqX / $reqY"
-wm geometry . [expr $XWIN]x[expr $YWIN]+$reqX+$reqY
+set bddview__reqX [expr {([winfo screenwidth .]-$XWIN)/2}]
+set bddview__reqY [expr {([winfo screenheight .]-$YWIN)/2}]
+if {$bddview__reqX < 0} {set bddview__reqX 0}
+if {$bddview__reqY < 0} {set bddview__reqY 0}
+wm geometry . [expr $XWIN]x[expr $YWIN]+$bddview__reqX+$bddview__reqY
 bind . <F11> {fullscreen}
 
 if {($OS == "unix")} {
@@ -1063,9 +759,11 @@ pack $mainframe -fill both -expand yes
 # Fullscreen window
 proc fullscreen {} {
   global OS
-  global FULLSCREENICON
-  global FULLSCREENON
-  global FULLSCREENOFF
+  global COLORMENU
+  global bb5
+  global toolbarsize
+  global bddview_icon_FullScreenOn
+  global bddview_icon_FullScreenOff
 
   if {($OS == "windows") || ($OS == "Darwin")} {
     set oldstate [wm state .]
@@ -1074,10 +772,24 @@ proc fullscreen {} {
   }
 
   if {[wm attributes . -fullscreen]} {
-    $FULLSCREENICON configure -image $FULLSCREENON
+    $bb5 delete 2
+    $bb5 delete 1
+    $bb5 delete 0
+    $bb5 add -image icon.fullscreen.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -background $COLORMENU -helptext "FullScreen" -command {fullscreen}
     wm attributes . -fullscreen false
   } else {
-    $FULLSCREENICON configure -image $FULLSCREENOFF
+    $bb5 delete 0
+    $bb5 add -image icon.iconify.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -background $COLORMENU -helptext "Minimize" -command {iconify}
+    $bb5 add -image icon.nofullscreen.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -background $COLORMENU -helptext "Exit FullScreen" -command {fullscreen}
+    $bb5 add -image icon.exit.$toolbarsize \
+    -takefocus 0 -relief flat -borderwidth 0 \
+    -background $COLORMENU -helptext "Exit" -command {exit}
     wm attributes . -fullscreen true
   }
 
@@ -1162,8 +874,8 @@ bind $mainwin <ButtonRelease-1> {
   }
 
   if {$STATE == "edit"} {
-    boxit $mainwin
     fixedges $mainwin
+    boxit $mainwin
     $mainwin itemconfigure "outline" -activeoutline black
     foreach item $SELECTED {$mainwin itemconfigure $item -state normal}
     foreach item $LISTF {
@@ -1285,8 +997,8 @@ bind $mainwin <ButtonRelease-3> {
   }
 
   if {$STATE == "edit"} {
-    boxit $mainwin
     fixedges $mainwin
+    boxit $mainwin
     $mainwin itemconfigure "outline" -activeoutline black
     foreach item $SELECTED {$mainwin itemconfigure $item -state normal}
     foreach item $LISTF {
@@ -1344,85 +1056,20 @@ bind $mainwin <B3-Motion> {
 # CANVAS PROCEDURES
 # ############################################
 
-proc boxit {win} {
-  global SELECTED
-  global LISTF
-  global LISTT
+proc drawbox {win} {
+  global COLORFG
   global ZOOM
-  global GRIDON
-  global GRID
-  global GRIDRESOLUTION
   global XMAX
   global YMAX
 
-  removebox $win
-  if {$GRIDON == 1} {removegrid $win}
+  $win create rectangle \
+       0 0 [expr $XMAX*$ZOOM] [expr $YMAX*$ZOOM] \
+       -outline $COLORFG -state normal \
+       -tags [list line box]
+}
 
-  # REPAIR NEGATIVE COORDINATES (min = 2)
-
-  set koord [$win bbox all]
-  set x1 [lindex $koord 0]
-  set y1 [lindex $koord 1]
-
-  set nok 0
-  if {$x1>2} {set x1 2} else {set nok [expr $nok + 1]}
-  if {$y1>2} {set y1 2} else {set nok [expr $nok + 1]}
-
-  if {$nok != 0} {motion $win [expr - $x1 + 2] [expr - $y1 + 2]}
-
-  if {[llength $SELECTED] > 0} {
-
-    # IF SOMETHING IS SELECTED THEN
-    # SNAP TO GRID THE FIRST NODE IN THE SELECTION
-
-    if {$GRIDON == 1} {
-
-      set igrid [expr round($GRIDRESOLUTION*$ZOOM/$GRID)]
-      set igrid2 [expr round($igrid/2)]
-
-      set item [lindex $SELECTED 0]
-      set koord [$win coords $item]
-      set x1 [lindex $koord 0]
-      set y1 [lindex $koord 1]
-      set x2 [lindex $koord 2]
-      set y2 [lindex $koord 3]
-
-      set xc [expr round(($x1+$x2)/2)]
-      set yc [expr round(($y1+$y2)/2)]
-
-      if {$xc < $igrid} {
-        set xg [expr $xc - $igrid]
-      } else {
-        set xg [expr $xc % $igrid]
-        if {$xg > $igrid2} {set xg [expr $xg-$igrid]}
-      }
-
-      if {$yc < $igrid} {
-        set yg [expr $yc - $igrid]
-      } else {
-        set yg [expr $yc % $igrid]
-        if {$yg > $igrid2} {set yg [expr $yg-$igrid]}
-      }
-
-      # MOVE SELECTED NODES
-      motion $win [expr -$xg] [expr -$yg]
-    }
-
-  }
-
-  # set XMAX and YMAX
-
-  set koord [$win bbox all]
-  if {$koord == ""} {set koord [list 0 0 0 0]}
-  set x2 [lindex $koord 2]
-  set y2 [lindex $koord 3]
-  set XMAX [expr round(1+(1.0*$x2)/$ZOOM)]
-  set YMAX [expr round(1+(1.0*$y2)/$ZOOM)]
-
-  $win configure -scrollregion [list 0 0 [expr 1+$XMAX*$ZOOM] [expr 1+$YMAX*$ZOOM]]
-
-  drawbox $win
-  if {$GRIDON == 1} {drawgrid $win}
+proc removebox {win} {
+  $win delete box
 }
 
 proc centerpoint {win x y} {
@@ -1480,117 +1127,8 @@ proc centerpoint {win x y} {
   $win configure -xscrollincrement $SCROLL -yscrollincrement $SCROLL
 }
 
-proc zoomIn {win px py} {
-    global ZOOM
-    global DPI
-    global FONTLABEL
-    global FONTLABELSIZE
-    global FONTTAGSIZE
-    global DOUBLELINE
-    global ARROWSIZE
-    global INVSIZE
-    global GRIDON
-    global GRID
-    global LISTF
-    global LISTT
-
-    if {$ZOOM < 64} {
-
-      removebox $win
-      if {$GRIDON == 1} {removegrid $win}
-
-      set LISTF [$win find withtag left]
-      set LISTT [$win find withtag right]
-      hidearrows $win
-
-      set ZOOM [expr $ZOOM * 2]
-      set FONTLABELSIZE [expr ($ZOOM - 1)*100/$DPI];
-      set FONTTAGSIZE [expr $ZOOM*10/14]
-      set DOUBLELINE [expr $ZOOM/4.0]
-      set ARROWSIZE [expr round(2*sqrt($ZOOM))]
-      set INVSIZE [expr $ZOOM/8.0 + 1]
-
-      if {$GRIDON == 1} {
-        gridPlus $win
-      } else {
-         if {$GRID<[expr $ZOOM*32]} {
-           set GRID [expr $GRID*2]
-         }
-      }
-
-      $win scale all 0 0 2 2
-      $win itemconfigure tekst -font [list $FONTLABEL $FONTLABELSIZE]
-      $win itemconfigure "left||right" \
-        -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
-
-      boxit $win
-      fixedges $win
-
-      set LISTF ""
-      set LISTT ""
-
-      centerpoint $win [expr 2 * $px] [expr 2 * $py]
-
-    }
-}
-
-proc zoomOut {win px py} {
-    global ZOOM
-    global DPI
-    global FONTLABEL
-    global FONTLABELSIZE
-    global FONTTAGSIZE
-    global DOUBLELINE
-    global ARROWSIZE
-    global INVSIZE
-    global GRIDON
-    global GRID
-    global LISTF
-    global LISTT
-
-    if {$ZOOM > 1} {
-
-      removebox $win
-      if {$GRIDON == 1} {removegrid $win}
-
-      set LISTF [$win find withtag left]
-      set LISTT [$win find withtag right]
-      hidearrows $win
-
-      set ZOOM [expr $ZOOM / 2]
-      set FONTLABELSIZE [expr ($ZOOM - 1)*100/$DPI];
-      set FONTTAGSIZE [expr $ZOOM*10/14]
-      set DOUBLELINE [expr $ZOOM/4.0]
-      set ARROWSIZE [expr round(2*sqrt($ZOOM))]
-      set INVSIZE [expr $ZOOM/8.0 + 1]
-
-      if {$GRIDON == 1} {
-        gridMinus $win
-      } else {
-         if {$GRID>[expr $ZOOM*4]} {
-           set GRID [expr $GRID/2]
-         }
-      }
-
-      $win scale all 0 0 0.5 0.5
-      $win itemconfigure tekst -font [list $FONTLABEL $FONTLABELSIZE]
-      $win itemconfigure "left||right" \
-        -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
-
-      boxit $win
-      fixedges $win
-
-      set LISTF ""
-      set LISTT ""
-
-      centerpoint $win [expr $px/2.0] [expr $py/2.0]
-
-    }
-}
-
 proc compass {direction win} {
   global ZOOM
-  global SCROLL
   global XMAX
   global YMAX
   global XWIN
@@ -1622,17 +1160,224 @@ proc compass {direction win} {
 
 }
 
+proc zoomIn {win px py} {
+    global ZOOM
+    global DPI
+    global FONTFAMILYLABEL
+    global FONTSIZELABEL
+    global DOUBLELINE
+    global ARROWSIZE
+    global INVSIZE
+    global GRIDON
+    global GRID
+    global LISTF
+    global LISTT
+
+    if {$ZOOM < 64} {
+
+      removebox $win
+      if {$GRIDON == 1} {removegrid $win}
+
+      set LISTF [$win find withtag left]
+      set LISTT [$win find withtag right]
+      hidearrows $win
+
+      set ZOOM [expr $ZOOM * 2]
+      set DOUBLELINE [expr $ZOOM/4.0]
+      set ARROWSIZE [expr round(2*sqrt($ZOOM))]
+      set INVSIZE [expr $ZOOM/8.0 + 1]
+
+      if {$GRIDON == 1} {
+        gridPlus $win
+      } else {
+         if {$GRID<[expr $ZOOM*32]} {
+           set GRID [expr $GRID*2]
+         }
+      }
+
+      $win scale all 0 0 2 2
+      $win itemconfigure tekst -font [list -family $FONTFAMILYLABEL -size [expr $FONTSIZELABEL]]
+      $win itemconfigure "left||right" \
+        -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
+
+      fixedges $win
+      boxit $win
+
+      set LISTF ""
+      set LISTT ""
+
+      centerpoint $win [expr 2 * $px] [expr 2 * $py]
+
+    }
+}
+
+proc zoomOut {win px py} {
+    global ZOOM
+    global DPI
+    global FONTFAMILYLABEL
+    global FONTSIZELABEL
+    global DOUBLELINE
+    global ARROWSIZE
+    global INVSIZE
+    global GRIDON
+    global GRID
+    global LISTF
+    global LISTT
+
+    if {$ZOOM > 1} {
+
+      removebox $win
+      if {$GRIDON == 1} {removegrid $win}
+
+      set LISTF [$win find withtag left]
+      set LISTT [$win find withtag right]
+      hidearrows $win
+
+      set ZOOM [expr $ZOOM / 2]
+      set DOUBLELINE [expr $ZOOM/4.0]
+      set ARROWSIZE [expr round(2*sqrt($ZOOM))]
+      set INVSIZE [expr $ZOOM/8.0 + 1]
+
+      if {$GRIDON == 1} {
+        gridMinus $win
+      } else {
+         if {$GRID>[expr $ZOOM*4]} {
+           set GRID [expr $GRID/2]
+         }
+      }
+
+      $win scale all 0 0 0.5 0.5
+      $win itemconfigure tekst -font [list -family $FONTFAMILYLABEL -size [expr $FONTSIZELABEL]]
+      $win itemconfigure "left||right" \
+        -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
+
+      fixedges $win
+      boxit $win
+
+      set LISTF ""
+      set LISTT ""
+
+      centerpoint $win [expr $px/2.0] [expr $py/2.0]
+
+    }
+}
+
+proc bendsOnOff {win bb} {
+  global OS
+  global BENDSON
+  global LISTF
+  global LISTT
+
+  if {$BENDSON == 1} {
+    if {$OS == "windows"} {
+      $bb itemconfigure 0 -relief flat
+    } else {
+      $bb itemconfigure 0 -bd 2 -highlightthickness 0
+    }
+    set BENDSON 0
+  } else {
+    if {$OS == "windows"} {
+      $bb itemconfigure 0 -relief solid
+    } else {
+      $bb itemconfigure 0 -bd 0 -highlightthickness 2
+    }
+    set BENDSON 1
+  }
+  set LISTF [$win find withtag left]
+  set LISTT [$win find withtag right]
+
+  if {$LISTF != ""} {
+    fixedges $win
+    boxit $win
+  }
+
+  set LISTF ""
+  set LISTT ""
+}
+
+proc noarrows {win} {
+  $win itemconfigure "left||right" -arrow none
+}
+
+proc showarrows {win} {
+  $win itemconfigure "left||right" -arrow last
+}
+
+proc arrowsOnOff {win bb} {
+  global OS
+  global ARROWSON
+
+  if {$ARROWSON == 1} {
+    if {$OS == "windows"} {
+      $bb itemconfigure 1 -relief flat
+    } else {
+      $bb itemconfigure 1 -bd 2 -highlightthickness 0
+    }
+    noarrows $win
+    set ARROWSON 0
+  } else {
+    if {$OS == "windows"} {
+      $bb itemconfigure 1 -relief solid
+    } else {
+      $bb itemconfigure 1 -bd 0 -highlightthickness 2
+    }
+    showarrows $win
+    set ARROWSON 1
+  }
+}
+
+proc drawgrid {win} {
+  global COLORGRID
+  global GRIDRESOLUTION
+  global GRIDOFFSETX
+  global GRIDOFFSETY
+  global ZOOM
+  global XMAX
+  global YMAX
+  global GRID
+
+  set igrid [expr round(($GRIDRESOLUTION*$ZOOM*$ZOOM)/($GRID*2))]
+
+  for {set i $GRIDOFFSETY} {$i < [expr $YMAX*$ZOOM]} {set i [expr $i + $igrid]} {
+    $win create line 0 $i [expr $XMAX*$ZOOM] $i \
+      -fill $COLORGRID -dash "2 4" -state normal \
+      -tags [list line grid]
+  }
+
+  for {set i $GRIDOFFSETX} {$i < [expr $XMAX*$ZOOM]} {set i [expr $i + $igrid]} {
+    $win create line $i 0 $i [expr $YMAX*$ZOOM] \
+      -fill $COLORGRID -dash "2 4" -state normal \
+      -tags [list line grid]
+  }
+
+  $win lower grid
+}
+
+proc removegrid {win} {
+  $win delete grid
+}
+
 proc gridOnOff {win bb} {
+  global OS
   global GRIDON
+  global COLORFRAME
   global COLORBUTTON
-  global COLORBG
 
   if {$GRIDON == 1} {
-    $bb itemconfigure 1 -bg $COLORBUTTON
+    if {$OS == "windows"} {
+      $bb itemconfigure 2 -relief flat
+    } else {
+      $bb itemconfigure 2 -bd 2 -highlightthickness 0
+    }
     removegrid $win
     set GRIDON 0
   } else {
-    $bb itemconfigure 1 -bg $COLORBG
+    if {$OS == "windows"} {
+      $bb itemconfigure 2 -relief solid
+    } else {
+      $bb itemconfigure 2 -bd 0 -highlightthickness 2
+    }
+    removegrid $win
     drawgrid $win
     set GRIDON 1
   }
@@ -1666,216 +1411,15 @@ proc gridMinus {win} {
   }
 }
 
-proc drawbox {win} {
-  global COLORFG
-  global ZOOM
-  global XMAX
-  global YMAX
-
-  $win create rectangle \
-       0 0 [expr $XMAX*$ZOOM] [expr $YMAX*$ZOOM] \
-       -outline $COLORFG -state normal \
-       -tags [list line box]
-}
-
-proc removebox {win} {
-  $win delete box
-}
-
-proc drawgrid {win} {
-  global COLORGRID
-  global GRIDRESOLUTION
-  global ZOOM
-  global XMAX
-  global YMAX
-  global GRID
-
-  set igrid [expr round($GRIDRESOLUTION*$ZOOM/$GRID)]
-
-  for {set i $igrid} {$i < [expr $YMAX*$ZOOM]} {set i [expr $i + $igrid]} {
-    $win create line 0 $i [expr $XMAX*$ZOOM] $i \
-      -fill $COLORGRID -dash "2 4" -state normal \
-      -tags [list line grid]
-  }
-
-  for {set i $igrid} {$i < [expr $XMAX*$ZOOM]} {set i [expr $i + $igrid]} {
-    $win create line $i 0 $i [expr $YMAX*$ZOOM] \
-      -fill $COLORGRID -dash "2 4" -state normal \
-      -tags [list line grid]
-  }
-
-  $win lower grid
-}
-
-proc removegrid {win} {
-  $win delete grid
-}
-
-proc drawinfo {win item x y mode} {
-  global COLORFG
-  global FONTLABEL
-  global FONTINFO
-  global SELECTED
-  global TERMSELECTED
-  global DEPTH
-  global TERMDEPTH
-  global BDD
-  global LISTF
-  global LISTT
-
-  # mode 0: show info only
-  # mode 1: show info + depth
-  # mode 2: show info + coordinates
-
-  set koord [$win bbox $item]
-  set x [lindex $koord 2]
-  set y [lindex $koord 3]
-
-  set TERMDEPTH 0
-  if { [lsearch -exact [$win gettags $item] "label"] != -1 } {
-    foreach node [lindex [array get BDD $item] 1] {
-      if {$node != "i"} {set variable [$win itemcget "$node && tekst" -text]}
-    }
-    addSelectedDepth $item 0
-    set nodes -1
-  } else {
-    set variable [$win itemcget "$item && tekst" -text]
-    addSelectedDepth $item 1
-    set nodes 0
-  }
-
-  foreach item $TERMSELECTED {
-    lappend SELECTED $item
-    lappend DEPTH $item
-    lappend DEPTH $TERMDEPTH
-  }
-
-  foreach item $SELECTED {
-    set LISTF [concat $LISTF [$win find withtag [string replace $item 0 0 "f"]]]
-    set LISTT [concat $LISTT [$win find withtag [string replace $item 0 0 "t"]]]
-  }
-
-  #puts "SELECTED"
-  #puts $SELECTED
-  #puts "TERMSELECTED"
-  #puts $TERMSELECTED
-  #puts "DEPTH"
-  #puts $DEPTH
-
-  set nodes [expr $nodes + [llength $SELECTED] - [llength $TERMSELECTED]]
-
-  set info1 "Root variable: "
-  set info2 "Internal BDD nodes: "
-  set info3 "BDD terminal depth: "
-  set info "$info1$variable\n$info2$nodes\n$info3$TERMDEPTH"
-
-  $win create text $x $y \
-     -text $info -font [list $FONTINFO 12 bold] -anchor w \
-     -fill $COLORFG -state normal \
-     -tags [list info]
-
-  foreach item $SELECTED {
-    set koord [$win bbox $item]
-    set x1 [lindex $koord 0]
-    set y1 [lindex $koord 1]
-    set x2 [lindex $koord 2]
-    set y2 [lindex $koord 3]
-
-    if { $mode == 1 } {
-      set infodepth [lindex $DEPTH [expr [lsearch -exact $DEPTH $item] + 1]]
-      if {$infodepth != 0} {
-
-        set infonum [string replace $item 0 0 "#"]
-        $win create text $x2 [expr $y1-4] \
-          -text $infonum -font [list $FONTLABEL 10] -anchor e \
-          -fill black -state normal \
-          -tags [list infonum]
-
-        $win create text [expr round($x1+0.95*($x2-$x1))] [expr round($y1+1.15*($y2-$y1))] \
-          -text $infodepth -font [list $FONTINFO 10 bold] -anchor e \
-          -fill black -state normal \
-          -tags [list infonum]
-
-      }
-    }
-
-    if { $mode == 2 } {
-
-      set infonum [string replace $item 0 0 "#"]
-      $win create text $x2 [expr $y1-4] \
-        -text $infonum -font [list $FONTLABEL 10] -anchor e \
-        -fill black -state normal \
-        -tags [list infonum]
-
-      set infocoords "([expr round($x1+$x2)/2],[expr round($y1+$y2)/2])"
-      $win create text $x1 [expr round($y1+1.15*($y2-$y1))] \
-         -text $infocoords -font [list $FONTINFO 10] -anchor w \
-         -fill black -state normal \
-         -tags [list infonum]
-    }
-
-  }
-
-  set DEPTH ""
-}
-
-proc removeinfo {win} {
-  $win delete info
-  $win delete infonum
-}
-
-proc drawborder {win} {
-  global SELECTED
-
-  foreach item $SELECTED {
-    $win addtag selection withtag $item
-  }
-
-  set koord [$win bbox selection]
-  set x1 [lindex $koord 0]
-  set y1 [lindex $koord 1]
-  set x2 [lindex $koord 2]
-  set y2 [lindex $koord 3]
-
-  $win create rectangle $x1 $y1 $x2 $y2 \
-       -outline red -dash "2 4" -state normal \
-       -tags [list line border]
-
-  $win create rectangle \
-       [expr $x1-2] [expr $y1-2] [expr $x1+2] [expr $y1+2]\
-       -outline red -fill red -state normal \
-       -tags [list line border]
-
-  $win create rectangle \
-       [expr $x2-2] [expr $y1-2] [expr $x2+2] [expr $y1+2]\
-       -outline red -fill red -state normal \
-       -tags [list line border]
-
-  $win create rectangle \
-       [expr $x1-2] [expr $y2-2] [expr $x1+2] [expr $y2+2]\
-       -outline red -fill red -state normal \
-       -tags [list line border]
-
-  $win create rectangle \
-       [expr $x2-2] [expr $y2-2] [expr $x2+2] [expr $y2+2]\
-       -outline red -fill red -state normal \
-       -tags [list line border]
-
-  $win dtag selection
-}
-
-proc removeborder {win} {
-  $win delete border
-}
-
 # ############################################
 # DRAWING PROCEDURES
 # ############################################
 
 proc addTerminal {win num label x y} {
     global ZOOM
-    global FONTLABEL
-    global FONTLABELSIZE
+    global DPI
+    global FONTFAMILYLABEL
+    global FONTSIZELABEL
     global COLORNODE
     global BDDNODES
     global TERMINALS
@@ -1887,22 +1431,37 @@ proc addTerminal {win num label x y} {
     set sizex [expr 8+$len*$ZOOM/2]
     set sizey [expr 8+$ZOOM/2]
 
+    if {$label == "0"} {
+      set zero "zero"
+    } else {
+      set zero ""
+    }
+
     $win create rectangle \
        [expr $x-$sizex] [expr $y-$sizey] \
        [expr $x+$sizex] [expr $y+$sizey] \
        -outline black -activeoutline black -disabledoutline red -fill $COLORNODE -state normal \
-       -tags [list "n$num" outline node]
+       -tags [list "n$num" outline node terminal $zero]
 
-    $win create text $x [expr $y+1] \
-       -text $label -font [list $FONTLABEL $FONTLABELSIZE] -anchor center \
+    $win create text $x $y \
+       -text $label \
+       -font [list -family $FONTFAMILYLABEL -size [expr $FONTSIZELABEL]] \
+       -anchor center \
        -fill black -activefill black -disabledfill red -state normal \
-       -tags [list "n$num" tekst node]
+       -tags [list "n$num" tekst node terminal $zero]
+}
+
+proc addVariable {label} {
+  global BDDVARIABLES
+
+  lappend BDDVARIABLES $label
 }
 
 proc addNode {win num label x y} {
     global ZOOM
-    global FONTLABEL
-    global FONTLABELSIZE
+    global DPI
+    global FONTFAMILYLABEL
+    global FONTSIZELABEL
     global COLORNODE
     global BDDNODES
 
@@ -1916,18 +1475,24 @@ proc addNode {win num label x y} {
        [expr $x-$sizex] [expr $y-$sizey] \
        [expr $x+$sizex] [expr $y+$sizey] \
        -outline black -activeoutline black -disabledoutline red -fill $COLORNODE -state normal \
-       -tags [list "n$num" outline node]
+       -tags [list "n$num" outline node internal]
 
-    $win create text $x [expr $y+1]\
-       -text $label -font [list $FONTLABEL $FONTLABELSIZE] -anchor center \
+    $win create text $x $y \
+       -text $label \
+       -font [list -family $FONTFAMILYLABEL -size [expr $FONTSIZELABEL]] \
+       -anchor center \
        -fill black -activefill black -disabledfill red -state normal \
-       -tags [list "n$num" tekst node]
+       -tags [list "n$num" tekst node internal]
 }
 
 proc addLabel {win num label x y} {
     global ZOOM
-    global FONTLABEL
-    global FONTLABELSIZE
+    global DPI
+    global GRIDOFFSETX
+    global GRIDOFFSETY
+    global GRIDRESOLUTION
+    global FONTFAMILYLABEL
+    global FONTSIZELABEL
     global COLORBG
     global BDDNAME
     global BDDNODES
@@ -1939,14 +1504,23 @@ proc addLabel {win num label x y} {
     set sizex [expr 9+$len*$ZOOM/2]
     set sizey [expr 7+$ZOOM/2]
 
+    if {$x > 0} {
+      set GRIDOFFSETX [expr round($x) % round($GRIDRESOLUTION)]
+    }
+    if {$y > 0} {
+      set GRIDOFFSETY [expr round($y) % round($GRIDRESOLUTION)]
+    }
+
     $win create oval \
        [expr $x-$sizex] [expr $y-$sizey] \
        [expr $x+$sizex] [expr $y+$sizey] \
        -outline $COLORBG -fill $COLORBG -state normal \
        -tags [list "n$num" outline node label]
 
-    $win create text $x [expr $y+1]\
-       -text $label -font [list $FONTLABEL $FONTLABELSIZE] -anchor center \
+    $win create text $x $y\
+       -text $label \
+       -font [list -family $FONTFAMILYLABEL -size [expr $FONTSIZELABEL]] \
+       -anchor center \
        -fill black -activefill black -disabledfill red -state normal \
        -tags [list "n$num" tekst node label]
 }
@@ -1958,6 +1532,7 @@ proc addPoint {win x y tag} {
        -tags [list line $tag node]
 }
 
+# inverters and tags are created in proc fixedges
 proc connect {win num1 num2 type tag1 tag2} {
     global ZOOM
     global BDD
@@ -1965,14 +1540,17 @@ proc connect {win num1 num2 type tag1 tag2} {
     global COLORLEFT
     global COLORRIGHT
 
+    set tag1 [string map {\" ""} $tag1]
+    set tag2 [string map {\" ""} $tag2]
+
+    #puts "connect $num1 $num2 $type $tag1 $tag2"
+
     set item [lindex [array get BDD "n$num1"] 1]
 
-    if {$tag1 == "0"} { set tag1 "" }
     if {$tag1 != ""} {
       set tag1 "#$tag1"
     }
 
-    if {$tag2 == "0"} { set tag2 "" }
     if {$tag2 != ""} {
       set tag2 "#$tag2"
     }
@@ -1986,8 +1564,39 @@ proc connect {win num1 num2 type tag1 tag2} {
     set center2x [expr ([lindex $koord2 0]+[lindex $koord2 2])/2]
     set center2y [expr ([lindex $koord2 1]+[lindex $koord2 3])/2]
 
+# s : single line
+# si : inverted single line
+# r : line to 'then' succesor
+# ri : inverted line to 'then' succesor
+# l : line to 'else' successor
+# li : inverted line to 'else' successor
+# d : double line (inverted left)
+# di : double line (inverted right)
+# e : double line (none inverted)
+# ei : double line (both inverted)
+
+    if {$type == "s"} {
+      set item [linsert $item 0 "n$num2"]
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
+      $win create line $center1x $center1y $center2x $center2y \
+         -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
+         -width 1 -fill black -disabledfill red -state normal \
+         -tags [list line "f$num1" "t$num2" left right node $tag1]
+    }
+
+    if {$type == "si"} {
+      set item [linsert $item 0 "n$num2"]
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
+      set item [linsert $item 0 "i"]
+      $win create line $center1x $center1y $center2x $center2y \
+         -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
+         -width 1 -fill black -disabledfill red -state normal \
+         -tags [list line "f$num1" "t$num2" left right inverted node $tag1]
+    }
+
     if {$type == "l"} {
       set item [linsert $item 0 "n$num2"]
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
       $win create line $center1x $center1y $center2x $center2y \
          -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
          -width 1 -fill $COLORLEFT -disabledfill red -state normal \
@@ -1996,6 +1605,7 @@ proc connect {win num1 num2 type tag1 tag2} {
 
     if {$type == "li"} {
       set item [linsert $item 0 "n$num2"]
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
       set item [linsert $item 0 "i"]
       $win create line $center1x $center1y $center2x $center2y \
        -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
@@ -2005,6 +1615,7 @@ proc connect {win num1 num2 type tag1 tag2} {
 
     if {$type == "r"} {
       set item [linsert $item end "n$num2"]
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
       $win create line $center1x $center1y $center2x $center2y \
          -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
          -width 1 -fill $COLORRIGHT -disabledfill red -state normal \
@@ -2013,6 +1624,7 @@ proc connect {win num1 num2 type tag1 tag2} {
 
     if {$type == "ri"} {
       set item [linsert $item end "n$num2"]
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
       set item [linsert $item 0 "i"]
       $win create line $center1x $center1y $center2x $center2y \
          -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
@@ -2020,25 +1632,11 @@ proc connect {win num1 num2 type tag1 tag2} {
          -tags [list line "f$num1" "t$num2" right inverted node $tag1]
     }
 
-    if {$type == "s"} {
-      set item [linsert $item 0 "n$num2"]
-      $win create line $center1x $center1y $center2x $center2y \
-         -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
-         -width 1 -fill black -disabledfill red -state normal \
-         -tags [list line "f$num1" "t$num2" left right node $tag1]
-    }
-
-    if {$type == "si"} {
-      set item [linsert $item 0 "n$num2"]
-      set item [linsert $item 0 "i"]
-      $win create line $center1x $center1y $center2x $center2y \
-         -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
-         -width 1 -fill black -disabledfill red -state normal \
-         -tags [list line "f$num1" "t$num2" left right inverted node $tag1]
-    }
-
     if {$type == "d"} {
       set item "n$num2"
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
+      if {$tag2 != ""} {set item [linsert $item end $tag2]}
+      set item [linsert $item 0 "i"]
       $win create line [expr $center1x] [expr $center1y] \
                        [expr $center2x] [expr $center2y] \
          -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
@@ -2053,6 +1651,9 @@ proc connect {win num1 num2 type tag1 tag2} {
 
     if {$type == "di"} {
       set item "n$num2"
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
+      if {$tag2 != ""} {set item [linsert $item end $tag2]}
+      set item [linsert $item 0 "i"]
       $win create line [expr $center1x] [expr $center1y] \
                        [expr $center2x] [expr $center2y] \
          -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
@@ -2067,6 +1668,8 @@ proc connect {win num1 num2 type tag1 tag2} {
 
     if {$type == "e"} {
       set item "n$num2"
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
+      if {$tag2 != ""} {set item [linsert $item end $tag2]}
       $win create line [expr $center1x] [expr $center1y] \
                        [expr $center2x] [expr $center2y] \
          -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
@@ -2081,6 +1684,8 @@ proc connect {win num1 num2 type tag1 tag2} {
 
     if {$type == "ei"} {
       set item "n$num2"
+      if {$tag1 != ""} {set item [linsert $item end $tag1]}
+      if {$tag2 != ""} {set item [linsert $item end $tag2]}
       $win create line [expr $center1x] [expr $center1y] \
                        [expr $center2x] [expr $center2y] \
          -arrow none -arrowshape [list $ARROWSIZE $ARROWSIZE [expr $ARROWSIZE/2]] \
@@ -2095,245 +1700,120 @@ proc connect {win num1 num2 type tag1 tag2} {
 
     $win lower line
 
+    #DEBUGGING
+    #puts "connect <$num1> <$num2> <$type> <$tag1> <$tag2>"
+    #puts "n$num1: <$item>"
+
     array set BDD [list "n$num1" $item]
 }
 
-proc parsefile {win filename} {
-  set f [open $filename r]
-
-  while {[gets $f line] >= 0} {
-    if {($line != "") && ([string index $line 0] != "#")} {
-
-      set i 0
-      set end 0
-      while {$end < [string length $line]} {
-        set line [string range $line $end end]
-        set line [string trim $line]
-        set end [string first " " $line 0]
-        if {$end == -1} {
-          set end [string length $line]
-        }
-        set word [string range $line 0 [expr $end -1]]
-        set "arg$i" $word
-        set i [expr $i+1]
-      }
-
-      if {$arg0 == "node"} {
-        set arg2 [string map {\" ""} $arg2]
-        addNode $win $arg1 $arg2 $arg3 $arg4
-      }
-
-      if {$arg0 == "terminal"} {
-        set arg2 [string map {\" ""} $arg2]
-        addTerminal $win $arg1 $arg2 $arg3 $arg4
-      }
-
-      if {$arg0 == "label"} {
-        set arg2 [string map {\" ""} $arg2]
-        addLabel $win $arg1 $arg2 $arg3 $arg4
-      }
-
-      if {$arg0 == "connect"} {
-        if {$i == 6} {
-          connect $win $arg1 $arg2 $arg3 $arg4 $arg5
-        } else {
-          if {$i == 5} {
-            connect $win $arg1 $arg2 $arg3 $arg4 ""
-          } else {
-            connect $win $arg1 $arg2 $arg3 "" ""
-          }
-        }
-      }
-
-    }
-  }
-
-  close $f
-}
-
-# ############################################
-# USER PROCEDURES
-# ############################################
-
-proc state {s win bb} {
-  global STATE
-  global STATUSBAR
-  global COLORMENU
-
-  if {$s != $STATE} {
-    switch $STATE {
-      pan {$bb itemconfigure 0 -relief flat -bd 0 -background $COLORMENU}
-      zoom {$bb itemconfigure 1 -relief flat -bd 0 -background $COLORMENU}
-      edit {$bb itemconfigure 2 -relief flat -bd 0 -background $COLORMENU}
-      info {$bb itemconfigure 3 -relief flat -bd 0 -background $COLORMENU}
-    }
-    switch $s {
-      pan {
-             $win itemconfigure "tekst" -activefill black
-             $win itemconfigure "outline" -activeoutline black
-             $bb itemconfigure 0 -relief flat -bd 0 -background plum
-             $win configure -cursor hand2
-             set STATUSBAR "\[Pan\]  Left button + drag = scroll  /  Right button = center"
-           }
-      zoom {
-             $win itemconfigure "tekst" -activefill black
-             $win itemconfigure "outline" -activeoutline black
-             $bb itemconfigure 1 -relief flat -bd 0 -background plum
-             $win configure -cursor target
-             set STATUSBAR "\[Zoom\]  Left button = zoom in  /  Right button = zoom out"
-           }
-      edit {
-             $win itemconfigure "tekst" -activefill red
-             $win itemconfigure "outline" -activeoutline black
-             $bb itemconfigure 2 -relief flat -bd 0 -background plum
-             $win configure -cursor fleur
-             set STATUSBAR "\[Edit\]  Left button + drag = move subgraph  /  Right button + drag = move node"
-           }
-      info {
-             $win itemconfigure "tekst" -activefill red
-             $win itemconfigure "outline" -activeoutline black
-             $bb itemconfigure 3 -relief flat -bd 0 -background plum
-             $win configure -cursor arrow
-             set STATUSBAR "\[Info\]  Left button = subgraph info /  Right button = subgraph bounding box"
-           }
-    }
-    set STATE $s
-  }
-}
-
-proc selectnode {win item} {
+# THIS IS USED TO CALCULATE AND DRAW BOX ARROUND THE WHOLE GRAPH
+# IT ALSO PERFORMS SNAP TO GRID
+proc boxit {win} {
+  global XMAX
+  global YMAX
   global SELECTED
-  global LISTF
-  global LISTT
+  global ZOOM
+  global LABELOFFSETX
+  global LABELOFFSETY
+  global GRIDON
+  global GRID
+  global GRIDRESOLUTION
+  global GRIDOFFSETX
+  global GRIDOFFSETY
 
-  set SELECTED [list $item]
-  set LISTF [$win find withtag [string replace $item 0 0 "f"]]
-  set LISTT [$win find withtag [string replace $item 0 0 "t"]]
-}
+  removebox $win
+  if {$GRIDON == 1} {removegrid $win}
 
-proc addSelected {root} {
-  global SELECTED
-  global TERMSELECTED
-  global BDD
-  global TERMINALS
+  #DEBUGGING
+  #set item [$win find withtag "n1&&outline"]
+  #set koord [$win bbox $item]
+  #set x1 [lindex $koord 0]
+  #set y1 [lindex $koord 1]
+  #set x2 [lindex $koord 2]
+  #set y2 [lindex $koord 3]
+  #puts "boxit start for n1: x1=$x1, y1=$y1, x1=$x2, y1=$y2"
 
-  if { [lsearch -exact $SELECTED $root] == -1 } {
-    lappend SELECTED $root
-    if { [lsearch -exact $TERMINALS $root] != -1 } {
-      lappend TERMSELECTED $root
-    } else {
-      foreach item [lindex [array get BDD $root] 1] {
-        if {$item != "i"} {addSelected $item}
-      }
-    }
+  # REPAIR NEGATIVE COORDINATES (xmin = 8, ymin = 2)
+  set koord [$win bbox all]
+  set x1 [lindex $koord 0]
+  set y1 [lindex $koord 1]
+
+  set repair 0
+  if {$x1<8} {
+    motion $win [expr - $x1 + 8] 0
+    set LABELOFFSETX [expr $LABELOFFSETX - $x1 + 8]
+    set repair 1
   }
-}
-
-proc addSelectedDepth {root num} {
-  global SELECTED
-  global TERMSELECTED
-  global DEPTH
-  global TERMDEPTH
-  global BDD
-  global TERMINALS
-
-  if { [lsearch -exact $TERMINALS $root] != -1 } {
-    if {$TERMDEPTH == 0} {
-      set TERMDEPTH $num
-    } elseif {$num > $TERMDEPTH} {
-      set TERMDEPTH $num
-    }
-    if { [lsearch -exact $TERMSELECTED $root] == -1 } {
-      lappend TERMSELECTED $root
-    }
-  } elseif { [lsearch -exact $SELECTED $root] == -1 } {
-    lappend SELECTED $root
-    lappend DEPTH $root
-    lappend DEPTH $num
-    foreach item [lindex [array get BDD $root] 1] {
-      if {$item != "i"} {addSelectedDepth $item [expr $num + 1]}
-    }
-  } else {
-    set i [expr [lsearch -exact $DEPTH $root] + 1]
-    set inum [lindex $DEPTH $i]
-    if {$num > $inum} {
-      set DEPTH [lreplace $DEPTH $i $i $num]
-      foreach item [lindex [array get BDD $root] 1] {
-        if {$item != "i"} {addSelectedDepth $item [expr $num + 1]}
-      }
-    }
+  if {$y1<2} {
+    motion $win 0 [expr - $y1 + 2]
+    set LABELOFFSETY [expr $LABELOFFSETY - $x1 + 8]
+    set repair 1
   }
-}
-
-proc selectgraph {win item} {
-  global SELECTED
-  global LISTF
-  global LISTT
-
-  addSelected $item
-  foreach item $SELECTED {
-    set LISTF [concat $LISTF [$win find withtag [string replace $item 0 0 "f"]]]
-    set LISTT [concat $LISTT [$win find withtag [string replace $item 0 0 "t"]]]
-  }
-}
-
-proc pan {win xd yd} {
-  global SCROLL
-
-  $win xview scroll [expr round((-1.0*$xd)/(2.0*$SCROLL))] units
-  $win yview scroll [expr round((-1.0*$yd)/(2.0*$SCROLL))] units
-}
-
-proc motion {win xd yd} {
-  global SELECTED
-  global LISTF
-  global LISTT
 
   if {[llength $SELECTED] > 0} {
 
-    foreach item $SELECTED {
-      $win move $item $xd $yd
-    }
+    # IF SOMETHING IS SELECTED THEN
+    # SNAP TO GRID THE FIRST NODE IN THE SELECTION
+    if {$GRIDON == 1} {
 
-    foreach item $LISTF {
+      set igrid [expr round(($GRIDRESOLUTION*$ZOOM*$ZOOM)/($GRID*2))]
+      set igrid2 [expr round($igrid/2)]
+
+      set item [lindex $SELECTED 0]
       set koord [$win coords $item]
       set x1 [lindex $koord 0]
       set y1 [lindex $koord 1]
       set x2 [lindex $koord 2]
       set y2 [lindex $koord 3]
 
-      set x1 [expr $x1+$xd]
-      set y1 [expr $y1+$yd]
+      set xc [expr round(($x1+$x2)/2)]
+      set yc [expr round(($y1+$y2)/2)]
 
-      $win coords $item $x1 $y1 $x2 $y2
-    }
+      if {$xc < $GRIDOFFSETX} {
+        set xg [expr $xc-$GRIDOFFSETX]
+      } else {
+        set xg [expr [expr $xc-$GRIDOFFSETX] % $igrid]
+        if {$xg > $igrid2} {set xg [expr $xg-$igrid]}
+      }
 
-    foreach item $LISTT {
-      set koord [$win coords $item]
-      set x1 [lindex $koord 0]
-      set y1 [lindex $koord 1]
-      set x2 [lindex $koord 2]
-      set y2 [lindex $koord 3]
+      if {$yc < $GRIDOFFSETY} {
+        set yg [expr $yc-$GRIDOFFSETY]
+      } else {
+        set yg [expr [expr $yc-$GRIDOFFSETY] % $igrid]
+        if {$yg > $igrid2} {set yg [expr $yg-$igrid]}
+      }
 
-      set x2 [expr $x2+$xd]
-      set y2 [expr $y2+$yd]
-
-      $win coords $item $x1 $y1 $x2 $y2
-    }
-
-  } else {
-
-    foreach item [$win find withtag node] {
-      $win move $item $xd $yd
+      # MOVE SELECTED NODES
+      motion $win [expr -$xg] [expr -$yg]
+      set repair 1
     }
 
   }
+
+  if {$repair == 1} {
+    #fixedges should be used after motion is finished
+    fixedges $win
+  }
+
+  # set XMAX and YMAX
+  set koord [$win bbox all]
+  if {$koord == ""} {set koord [list 0 0 0 0]}
+  set x2 [lindex $koord 2]
+  set y2 [lindex $koord 3]
+  set XMAX [expr round(1+(1.0*$x2)/$ZOOM)]
+  set YMAX [expr round(1+(1.0*$y2)/$ZOOM)]
+
+  $win configure -scrollregion [list 0 0 [expr 1+$XMAX*$ZOOM] [expr 1+$YMAX*$ZOOM]]
+
+  drawbox $win
+  if {$GRIDON == 1} {drawgrid $win}
 }
 
 proc fixedgenode {win item tags dir a b dx dy} {
-  global XARROW #used as parameter called by reference
-  global YARROW #used as parameter called by reference
   global DOUBLELINE
+  global XARROW
+  global YARROW
 
   if {[lsearch -exact $tags "double"] == -1} {
     set diff [expr sqrt($dy*$dy*$a*$a+$dx*$dx*$b*$b)]
@@ -2370,9 +1850,9 @@ proc fixedgenode {win item tags dir a b dx dy} {
 }
 
 proc fixedgeterminal {win item tags dir a b dx dy} {
-  global XARROW #used as parameter called by reference
-  global YARROW #used as parameter called by reference
   global DOUBLELINE
+  global XARROW
+  global YARROW
 
   if {$dx == 0} {
     if {[lsearch -exact $tags "double"] == -1} {
@@ -2443,18 +1923,21 @@ proc fixedgeterminal {win item tags dir a b dx dy} {
 }
 
 # THIS IS USED TO RESTORE EDGES BETWEEN NODES
-# FUNCTION ALSO CREATES INVERTERS
+# IT FIX ONLY EDGES LISTED IN GLOBAL VARIABLES LISTF AND LISTT
+# THIS FUNCTION ALSO CREATES BENDS, INVERTERS, AND TAGS
 proc fixedges {win} {
-  global ZOOM
-  global FONTTAG
-  global FONTTAGSIZE
-  global XARROW #used as parameter called by reference
-  global YARROW #used as parameter called by reference
   global LISTF
   global LISTT
+  global ZOOM
+  global BENDSON
+  global DPI
+  global FONTFAMILYTAG
+  global FONTSIZETAG
   global COLORLEFT
   global COLORRIGHT
   global INVSIZE
+  global XARROW
+  global YARROW
 
   foreach item $LISTF {$win addtag selection withtag $item}
   foreach item $LISTT {$win addtag selection withtag $item}
@@ -2488,7 +1971,6 @@ proc fixedges {win} {
 
     set dx [expr $xarrow2 - $xarrow1]
     set dy [expr $yarrow1 - $yarrow2]
-    if {($dx == 0)&&($dy == 0)} {set dx 1}
 
     if {([lsearch -exact $tags "double"] == -1) &&
         ([lsearch -exact $tags "left"] != -1)} {
@@ -2515,26 +1997,40 @@ proc fixedges {win} {
     if {$edgetag != ""} {
       set edgetag [string range $edgetag 1 end]
     }
+    if {$edgetag == "0"} {
+      set edgetag ""
+    }
 
-    if {([lsearch -exact $tags "double"] == -1) &&
-        ([lsearch -exact $tags "left"] != -1) && ($dy < 0)} \
+    #do not use bends if they are not required or if the edge is oriented towards up
+    #every edge has tag left, right, or both of them (top edge)
+    if {($BENDSON == 1) &&
+        ([lsearch -exact $tags "double"] == -1) &&
+        ([lsearch -exact $tags "left"] != -1) &&
+        ([lsearch -exact $tags "right"] == -1) && ($dy <= 0)} \
     {
-      set other [$win gettags "[lindex $tags 1]&&right"]
-      set onode [$win bbox [string replace [lindex $other 2] 0 0 "n"]]
-      set oxarrow2 [expr ([lindex $onode 0] + [lindex $onode 2])/2.0]
-      set oyarrow2 [expr ([lindex $onode 1] + [lindex $onode 3])/2.0]
-      set odx [expr $oxarrow2 - $xarrow1]
-      set ody [expr $yarrow1 - $oyarrow2]
-      if {($odx == 0)&&($ody == 0)} {set odx 1}
+      if {($dx == 0)&&($dy == 0)} {set dx 8}
+      #we have check if left node is on the left side
 
-      if {([expr $dy*$odx] > [expr $dx*$ody]) && ($ody < 0)} {
+      # VARIANT 1 - simple
+      if {$dx > [expr 6*$ZOOM/16]} {
+      # VARIANT 2 - more complex and compact but not much better
+      #set other [$win gettags "[lindex $tags 1]&&right"]
+      #set onode [$win bbox [string replace [lindex $other 2] 0 0 "n"]]
+      #set oxarrow2 [expr ([lindex $onode 0] + [lindex $onode 2])/2.0]
+      #set oyarrow2 [expr ([lindex $onode 1] + [lindex $onode 3])/2.0]
+      #set odx [expr $oxarrow2 - $xarrow1]
+      #set ody [expr $yarrow1 - $oyarrow2]
+      #if {($odx == 0)&&($ody == 0)} {set odx 1}
+      #if {([expr $dy*$odx] > [expr $dx*$ody]) && ($ody < 0)} {}
 
         set point [expr abs([lindex $koord1 1]-[lindex $koord1 3])]
-#        addPoint $win [expr $yarrow1+$point] [expr $xarrow1-$point] "p$item"
+
+        #DEBUGGING
+        #addPoint $win [expr $yarrow1+$point] [expr $xarrow1-$point] "p$item"
 
         $win create line $xarrow1 $yarrow1 [expr $xarrow1-$point] [expr $yarrow1+$point] \
            -arrow none -width 1 -fill $COLORLEFT -disabledfill red -state normal \
-           -tags [list line "p$item" node]
+           -tags [list line "p$item" node leftline]
 
         $win lower "p$item"
 
@@ -2544,15 +2040,16 @@ proc fixedges {win} {
             [expr (8*$xarrow1-5*$point)/8+$INVSIZE] [expr (8*$yarrow1+5*$point)/8+$INVSIZE] \
             -outline $COLORLEFT -disabledoutline red \
             -fill $COLORLEFT -disabledfill red -state normal \
-            -tags [list line "i$item" node]
+            -tags [list line "i$item" node leftmark]
         }
 
         if {$edgetag != ""} {
           $win create text \
             [expr (8*$xarrow1-5*$point)/8-$INVSIZE/4] [expr (8*$yarrow1+5*$point)/8+2*$INVSIZE] \
-             -text $edgetag -anchor se -font [list $FONTTAG $FONTTAGSIZE] \
+             -text $edgetag -anchor se  \
+             -font [list -family $FONTFAMILYTAG -size [expr $FONTSIZETAG]] \
              -fill $COLORLEFT -disabledfill red -state normal \
-             -tags [list line "i$item" node]
+             -tags [list line "i$item" node lefttag]
         }
 
         set xarrow1 [expr $xarrow1-$point]
@@ -2564,26 +2061,36 @@ proc fixedges {win} {
       }
     }
 
-    if {([lsearch -exact $tags "double"] == -1) &&
-        ([lsearch -exact $tags "right"] != -1) && ($dy < 0)} \
+    #do not use bends if they are not required or if the edge is oriented towards up
+    #every edge has tag left, right, or both of them (top edge)
+    if {($BENDSON == 1) &&
+        ([lsearch -exact $tags "double"] == -1) &&
+        ([lsearch -exact $tags "right"] != -1) &&
+        ([lsearch -exact $tags "left"] == -1) && ($dy <= 0)} \
     {
+      if {($dx == 0)&&($dy == 0)} {set dx -8}
+      #we have check if right node is on the right side
 
-      set other [$win gettags "[lindex $tags 1]&&left"]
-      set other [$win bbox [string replace [lindex $other 2] 0 0 "n"]]
-      set oxarrow2 [expr ([lindex $other 0] + [lindex $other 2])/2.0]
-      set oyarrow2 [expr ([lindex $other 1] + [lindex $other 3])/2.0]
-      set odx [expr $oxarrow2 - $xarrow1]
-      set ody [expr $yarrow1 - $oyarrow2]
-      if {($odx == 0)&&($ody == 0)} {set odx 1}
-
-      if {([expr $dy*$odx] < [expr $dx*$ody]) && ($ody < 0)} {
+      # VARIANT 1 - simple
+      if {$dx < [expr -6*$ZOOM/16]} {
+      # VARIANT 2 - more complex and compact but not much better
+      #set other [$win gettags "[lindex $tags 1]&&left"]
+      #set onode [$win bbox [string replace [lindex $other 2] 0 0 "n"]]
+      #set oxarrow2 [expr ([lindex $onode 0] + [lindex $onode 2])/2.0]
+      #set oyarrow2 [expr ([lindex $onode 1] + [lindex $onode 3])/2.0]
+      #set odx [expr $oxarrow2 - $xarrow1]
+      #set ody [expr $yarrow1 - $oyarrow2]
+      #if {($odx == 0)&&($ody == 0)} {set odx 1}
+      #if {([expr $dy*$odx] < [expr $dx*$ody]) && ($ody < 0)} {}
 
         set point [expr abs([lindex $koord1 1]-[lindex $koord1 3])]
-#        addPoint $win [expr $yarrow1+$point] [expr $xarrow1+$point] "p$item"
+
+        #DEBUGGING
+        #addPoint $win [expr $yarrow1+$point] [expr $xarrow1+$point] "p$item"
 
         $win create line $xarrow1 $yarrow1 [expr $xarrow1+$point] [expr $yarrow1+$point] \
            -arrow none -width 1 -fill $COLORRIGHT -disabledfill red -state normal \
-           -tags [list line "p$item" node]
+           -tags [list line "p$item" node rightline]
 
         $win lower "p$item"
 
@@ -2593,15 +2100,16 @@ proc fixedges {win} {
             [expr (8*$xarrow1+5*$point)/8+$INVSIZE] [expr (8*$yarrow1+5*$point)/8+$INVSIZE] \
             -outline $COLORRIGHT -disabledoutline red \
             -fill $COLORRIGHT -disabledfill red -state normal \
-            -tags [list line "i$item" node]
+            -tags [list line "i$item" node rightmark]
         }
 
         if {$edgetag != ""} {
           $win create text \
             [expr (8*$xarrow1+5*$point)/8+$INVSIZE] [expr (8*$yarrow1+5*$point)/8+2*$INVSIZE] \
-             -text $edgetag -anchor sw -font [list $FONTTAG $FONTTAGSIZE] \
+             -text $edgetag -anchor sw \
+             -font [list -family $FONTFAMILYTAG -size [expr $FONTSIZETAG]] \
              -fill $COLORRIGHT -disabledfill red -state normal \
-             -tags [list line "i$item" node]
+             -tags [list line "i$item" node righttag]
         }
 
         set xarrow1 [expr $xarrow1+$point]
@@ -2609,7 +2117,7 @@ proc fixedges {win} {
 
         set dx [expr $xarrow2 - $xarrow1]
         set dy [expr $yarrow1 - $yarrow2]
-        if {($dx == 0)&&($dy == 0)} {set dx 1}
+        if {($dx == 0)&&($dy == 0)} {set dx -1}
       }
     }
 
@@ -2649,22 +2157,23 @@ proc fixedges {win} {
 
       if {([lsearch -exact $tags "left"] != -1) &&
           ([lsearch -exact $tags "right"] == -1)} {
-        
+
         if {[lsearch -exact $tags "inverted"] != -1} {
           $win create oval \
             [expr (5*$xarrow1+3*$xarrow2)/8-$INVSIZE] [expr (5*$yarrow1+3*$yarrow2)/8-$INVSIZE] \
              [expr (5*$xarrow1+3*$xarrow2)/8+$INVSIZE] [expr (5*$yarrow1+3*$yarrow2)/8+$INVSIZE] \
              -outline $COLORLEFT -disabledoutline red \
              -fill $COLORLEFT -disabledfill red -state normal \
-             -tags [list line "i$item" node]
+             -tags [list line "i$item" node leftmark]
         }
 
         if {$edgetag != ""} {
           $win create text \
             [expr ($xarrow1+$xarrow2)/2-$INVSIZE/4] [expr ($yarrow1+$yarrow2)/2+$INVSIZE] \
-             -text $edgetag -anchor se -font [list $FONTTAG $FONTTAGSIZE] \
+             -text $edgetag -anchor se \
+             -font [list -family $FONTFAMILYTAG -size [expr $FONTSIZETAG]] \
              -fill $COLORLEFT -disabledfill red -state normal \
-             -tags [list line "i$item" node]
+             -tags [list line "i$item" node lefttag]
         }
       }
 
@@ -2677,15 +2186,16 @@ proc fixedges {win} {
              [expr (5*$xarrow1+3*$xarrow2)/8+$INVSIZE] [expr (5*$yarrow1+3*$yarrow2)/8+$INVSIZE] \
              -outline $COLORRIGHT -disabledoutline red \
              -fill $COLORRIGHT -disabledfill red -state normal \
-             -tags [list line "i$item" node]
+             -tags [list line "i$item" node rightmark]
         }
 
         if {$edgetag != ""} {
           $win create text \
             [expr ($xarrow1+$xarrow2)/2+$INVSIZE/4] [expr ($yarrow1+$yarrow2)/2+$INVSIZE] \
-             -text $edgetag -anchor sw -font [list $FONTTAG $FONTTAGSIZE] \
+             -text $edgetag -anchor sw \
+             -font [list -family $FONTFAMILYTAG -size [expr $FONTSIZETAG]] \
              -fill $COLORRIGHT -disabledfill red -state normal \
-             -tags [list line "i$item" node]
+             -tags [list line "i$item" node righttag]
         }
       }
 
@@ -2702,7 +2212,7 @@ proc hidearrows {win} {
   global LISTF
   global LISTT
   global DOUBLELINE
-  
+
   foreach item $LISTF {$win addtag selection withtag $item}
   foreach item $LISTT {$win addtag selection withtag $item}
   $win itemconfigure "selection&&double&&left" \
@@ -2729,36 +2239,511 @@ proc hidearrows {win} {
   }
 }
 
-proc noarrows {win} {
-  $win itemconfigure "left||right" -arrow none
-}
+proc parsefile {win filename} {
+  global BDDVARIABLES
+  global LABELOFFSETX
+  global LABELOFFSETY
 
-proc showarrows {win} {
-  $win itemconfigure "left||right" -arrow last
-}
+  set type ""
+  set BDDVARIABLES ""
+  set LABELOFFSETX 0
+  set LABELOFFSETY 0
+  set f [open $filename r]
 
-proc arrowsOnOff {win bb} {
-  global ARROWSON
-  global COLORBUTTON
-  global COLORBG
+  while {[gets $f line] >= 0} {
+    if {($line != "") && ([string index $line 0] != "#")} {
 
-  if {$ARROWSON == 1} {
-    $bb itemconfigure 0 -bg $COLORBUTTON
-    noarrows $win
-    set ARROWSON 0
-  } else {
-    $bb itemconfigure 0 -bg $COLORBG
-    showarrows $win
-    set ARROWSON 1
+      set i 0
+      set end 0
+      while {$end < [string length $line]} {
+        set line [string range $line $end end]
+        set line [string trim $line]
+        set end [string first " " $line 0]
+        if {$end == -1} {
+          set end [string length $line]
+        }
+        set word [string range $line 0 [expr $end -1]]
+        set "arg$i" $word
+        set i [expr $i+1]
+      }
+
+      if {$arg0 == "type"} {
+        set arg1 [string map {\" ""} $arg1]
+        set type $arg1
+      }
+
+      if {$arg0 == "var"} {
+        for {set j 1} {$j < $i} {incr j} {
+          set arg$j [string map {\" ""} [subst $[subst arg$j]]]
+          addVariable [subst $[subst arg$j]]
+        }
+      }
+
+      if {$arg0 == "node"} {
+        set arg2 [string map {\" ""} $arg2]
+        addNode $win $arg1 $arg2 $arg3 $arg4
+      }
+
+      if {$arg0 == "terminal"} {
+        set arg2 [string map {\" ""} $arg2]
+        addTerminal $win $arg1 $arg2 $arg3 $arg4
+      }
+
+      if {$arg0 == "label"} {
+        set arg2 [string map {\" ""} $arg2]
+        addLabel $win $arg1 $arg2 $arg3 $arg4
+      }
+
+      if {$arg0 == "connect"} {
+        if {$i == 6} {
+          #double edge with tags
+          #no edge to terminal zero should be a double edge
+          connect $win $arg1 $arg2 $arg3 $arg4 $arg5
+        } else {
+          if {$i == 5} {
+            #single edge with tag
+            #edge to terminal zero is always tagged with "1"
+            #we change it to "0" to make it invisible, see drawing proc
+            if {[$win find withtag "n$arg2 && zero"] != ""} {
+              set arg4 "0"
+            }
+            connect $win $arg1 $arg2 $arg3 $arg4 ""
+          } else {
+            #single or double edge without tags
+            connect $win $arg1 $arg2 $arg3 "" ""
+          }
+        }
+      }
+
+    }
   }
+
+  close $f
+  return $type
+}
+
+# ############################################
+# USER PROCEDURES
+# ############################################
+
+proc savefile {} {
+  global mainwin
+  global BDDNAME
+
+  set filename [tk_getSaveFile -title "Save As" -initialfile "$BDDNAME.bddview" -parent $mainwin]
+  if {[string length $filename] != 0} {
+    #invoke cd to remember last path
+    cd [file dirname $filename]
+
+    bddview_save $filename
+  }
+}
+
+proc exporttex {} {
+  global mainwin
+  global BDDNAME
+
+  set filename [tk_getSaveFile -title "Export as Tex/TikZ" -initialfile "$BDDNAME.tex" -parent $mainwin]
+  if {[string length $filename] != 0} {
+    #invoke cd to remember last path
+    cd [file dirname $filename]
+
+    set caption $BDDNAME
+    set caption [string map {"_" "\\_"} $caption]
+    bddview_export_tex $filename $caption 1
+  }
+}
+
+proc printfile {} {
+  global mainwin
+  global BDDNAME
+
+  set filename [tk_getSaveFile -title "Print to File (postscript)" -initialfile "$BDDNAME.ps" -parent $mainwin]
+  if {[string length $filename] != 0} {
+    bddview_print $filename
+  }
+}
+
+proc state {s win bb} {
+  global OS
+  global STATE
+  global STATUSBAR
+  global COLORMENU
+  global COLORGRID
+  global COLORNODE
+
+  if {$s != $STATE} {
+    switch $STATE {
+      pan {$bb itemconfigure 0 -relief flat -bd 2 -highlightthickness 0}
+      zoom {$bb itemconfigure 1 -relief flat -bd 2 -highlightthickness 0}
+      edit {$bb itemconfigure 2 -relief flat -bd 2 -highlightthickness 0}
+      info {$bb itemconfigure 3 -relief flat -bd 2 -highlightthickness 0}
+    }
+    switch $s {
+      pan {
+             $win itemconfigure "tekst" -activefill black
+             $win itemconfigure "outline" -activeoutline black
+             if {$OS == "windows"} {
+               $bb itemconfigure 0 -relief solid
+             } else {
+               $bb itemconfigure 0 -bd 0 -highlightthickness 2
+             }
+             $win configure -cursor hand2
+             set STATUSBAR "\[Pan\]  Left button + drag = scroll  /  Right button = center"
+           }
+      zoom {
+             $win itemconfigure "tekst" -activefill black
+             $win itemconfigure "outline" -activeoutline black
+             if {$OS == "windows"} {
+               $bb itemconfigure 1 -relief solid
+             } else {
+               $bb itemconfigure 1 -bd 0 -highlightthickness 2
+             }
+             $win configure -cursor target
+             set STATUSBAR "\[Zoom\]  Left button = zoom in  /  Right button = zoom out"
+           }
+      edit {
+             $win itemconfigure "tekst" -activefill red
+             $win itemconfigure "outline" -activeoutline black
+             if {$OS == "windows"} {
+               $bb itemconfigure 2 -relief solid
+             } else {
+               $bb itemconfigure 2 -bd 0 -highlightthickness 2
+             }
+             $win configure -cursor fleur
+             set STATUSBAR "\[Edit\]  Left button + drag = move subgraph  /  Right button + drag = move node"
+           }
+      info {
+             $win itemconfigure "tekst" -activefill red
+             $win itemconfigure "outline" -activeoutline black
+             if {$OS == "windows"} {
+               $bb itemconfigure 3 -relief solid
+             } else {
+               $bb itemconfigure 3 -bd 0 -highlightthickness 2
+             }
+             $win configure -cursor arrow
+             set STATUSBAR "\[Info\]  Left button = subgraph info /  Right button = subgraph bounding box"
+           }
+    }
+    set STATE $s
+  }
+}
+
+proc selectnode {win item} {
+  global SELECTED
+  global LISTF
+  global LISTT
+
+  set SELECTED [list $item]
+  set LISTF [$win find withtag [string replace $item 0 0 "f"]]
+  set LISTT [$win find withtag [string replace $item 0 0 "t"]]
+}
+
+proc addSelected {root} {
+  global SELECTED
+  global TERMSELECTED
+  global BDD
+  global TERMINALS
+
+  if { [lsearch -exact $SELECTED $root] == -1 } {
+    lappend SELECTED $root
+    if { [lsearch -exact $TERMINALS $root] != -1 } {
+      lappend TERMSELECTED $root
+    } else {
+      foreach item [lindex [array get BDD $root] 1] {
+        if {($item != "i") && ([string index $item 0] != "#")} {
+          addSelected $item
+        }
+      }
+    }
+  }
+}
+
+proc addSelectedDepth {root num} {
+  global SELECTED
+  global TERMSELECTED
+  global DEPTH
+  global TERMDEPTH
+  global BDD
+  global TERMINALS
+
+  if { [lsearch -exact $TERMINALS $root] != -1 } {
+    if {$TERMDEPTH == 0} {
+      set TERMDEPTH $num
+    } elseif {$num > $TERMDEPTH} {
+      set TERMDEPTH $num
+    }
+    if { [lsearch -exact $TERMSELECTED $root] == -1 } {
+      lappend TERMSELECTED $root
+    }
+  } elseif { [lsearch -exact $SELECTED $root] == -1 } {
+    lappend SELECTED $root
+    lappend DEPTH $root
+    lappend DEPTH $num
+    foreach item [lindex [array get BDD $root] 1] {
+      if {($item != "i") && ([string index $item 0] != "#")} {
+        addSelectedDepth $item [expr $num + 1]
+      }
+    }
+  } else {
+    set i [expr [lsearch -exact $DEPTH $root] + 1]
+    set inum [lindex $DEPTH $i]
+    if {$num > $inum} {
+      set DEPTH [lreplace $DEPTH $i $i $num]
+      foreach item [lindex [array get BDD $root] 1] {
+        if {($item != "i") && ([string index $item 0] != "#")} {
+          addSelectedDepth $item [expr $num + 1]
+        }
+      }
+    }
+  }
+}
+
+proc selectgraph {win item} {
+  global SELECTED
+  global LISTF
+  global LISTT
+
+  addSelected $item
+  foreach item $SELECTED {
+    set LISTF [concat $LISTF [$win find withtag [string replace $item 0 0 "f"]]]
+    set LISTT [concat $LISTT [$win find withtag [string replace $item 0 0 "t"]]]
+  }
+}
+
+proc pan {win xd yd} {
+  global SCROLL
+
+  $win xview scroll [expr round((-1.0*$xd)/(2.0*$SCROLL))] units
+  $win yview scroll [expr round((-1.0*$yd)/(2.0*$SCROLL))] units
+}
+
+proc motion {win xd yd} {
+  global SELECTED
+  global LISTF
+  global LISTT
+
+  if {[llength $SELECTED] > 0} {
+
+    foreach item $SELECTED {
+      $win move $item $xd $yd
+    }
+
+    foreach item $LISTF {
+      set koord [$win coords $item]
+      set x1 [lindex $koord 0]
+      set y1 [lindex $koord 1]
+      set x2 [lindex $koord 2]
+      set y2 [lindex $koord 3]
+
+      set x1 [expr $x1+$xd]
+      set y1 [expr $y1+$yd]
+
+      $win coords $item $x1 $y1 $x2 $y2
+    }
+
+    foreach item $LISTT {
+      set koord [$win coords $item]
+      set x1 [lindex $koord 0]
+      set y1 [lindex $koord 1]
+      set x2 [lindex $koord 2]
+      set y2 [lindex $koord 3]
+
+      set x2 [expr $x2+$xd]
+      set y2 [expr $y2+$yd]
+
+      $win coords $item $x1 $y1 $x2 $y2
+    }
+
+  } else {
+
+    foreach item [$win find withtag node] {
+      $win move $item $xd $yd
+    }
+
+  }
+}
+
+proc drawinfo {win item x y mode} {
+  global COLORFG
+  global FONTFAMILYLABEL
+  global FONTFAMILYINFO
+  global SELECTED
+  global TERMSELECTED
+  global DEPTH
+  global TERMDEPTH
+  global BDD
+  global LABELOFFSETX
+  global LABELOFFSETY
+  global LISTF
+  global LISTT
+
+  # mode 0: show info only
+  # mode 1: show info + depth
+  # mode 2: show info + coordinates
+
+  set koord [$win bbox $item]
+  set x [lindex $koord 2]
+  set y [lindex $koord 3]
+
+  set TERMDEPTH 0
+  if { [lsearch -exact [$win gettags $item] "label"] != -1 } {
+    foreach node [lindex [array get BDD $item] 1] {
+      if {($item != "i") && ([string index $item 0] != "#")} {
+        set variable [$win itemcget "$node && tekst" -text]
+      }
+    }
+    addSelectedDepth $item 0
+    set nodes -1
+  } else {
+    set variable [$win itemcget "$item && tekst" -text]
+    addSelectedDepth $item 1
+    set nodes 0
+  }
+
+  foreach item $TERMSELECTED {
+    lappend SELECTED $item
+    lappend DEPTH $item
+    lappend DEPTH $TERMDEPTH
+  }
+
+  foreach item $SELECTED {
+    set LISTF [concat $LISTF [$win find withtag [string replace $item 0 0 "f"]]]
+    set LISTT [concat $LISTT [$win find withtag [string replace $item 0 0 "t"]]]
+  }
+
+  #puts "SELECTED"
+  #puts $SELECTED
+  #puts "TERMSELECTED"
+  #puts $TERMSELECTED
+  #puts "DEPTH"
+  #puts $DEPTH
+
+  set nodes [expr $nodes + [llength $SELECTED] - [llength $TERMSELECTED]]
+
+  set info1 "Root variable: "
+  set info2 "Internal BDD nodes: "
+  set info3 "BDD terminal depth: "
+  set info "$info1$variable\n$info2$nodes\n$info3$TERMDEPTH"
+
+  $win create text $x $y \
+     -text $info \
+     -font [list -family $FONTFAMILYINFO -size 12 -weight bold] \
+     -anchor w \
+     -fill $COLORFG -state normal \
+     -tags [list info]
+
+  foreach item $SELECTED {
+    set koord [$win bbox $item]
+    set x1 [lindex $koord 0]
+    set y1 [lindex $koord 1]
+    set x2 [lindex $koord 2]
+    set y2 [lindex $koord 3]
+
+    if { $mode == 1 } {
+      set infodepth [lindex $DEPTH [expr [lsearch -exact $DEPTH $item] + 1]]
+      if {$infodepth != 0} {
+
+        set infonum [string replace $item 0 0 "#"]
+        $win create text $x2 [expr $y1-4] \
+          -text $infonum \
+          -font [list -family $FONTFAMILYLABEL -size 10] \
+          -anchor e \
+          -fill black -state normal \
+          -tags [list infonum]
+
+        $win create text [expr round($x1+0.95*($x2-$x1))] [expr round($y1+1.15*($y2-$y1))] \
+          -text $infodepth \
+          -font [list -family $FONTFAMILYINFO -size 10 -weight bold] \
+          -anchor e \
+          -fill black -state normal \
+          -tags [list infonum]
+
+      }
+    }
+
+    if { $mode == 2 } {
+
+      set infonum [string replace $item 0 0 "#"]
+      $win create text $x2 [expr $y1-4] \
+        -text $infonum \
+        -font [list -family $FONTFAMILYLABEL -size 10] \
+        -anchor e \
+        -fill black -state normal \
+        -tags [list infonum]
+
+      set infocoords "([expr round($x1+$x2)/2-$LABELOFFSETX],[expr round($y1+$y2)/2-$LABELOFFSETY])"
+      $win create text $x1 [expr round($y1+1.15*($y2-$y1))] \
+         -text $infocoords \
+         -font [list -family $FONTFAMILYINFO -size 10] \
+         -anchor w \
+         -fill black -state normal \
+         -tags [list infonum]
+
+      #DEBUGGING
+      #puts "drawinfo: infonum=$infonum, x1=$x1, y1=$y1, x2=$x2, y2=$y2, LABELOFFSETX=$LABELOFFSETX, LABELOFFSETY=$LABELOFFSETY, $infocoords"
+
+    }
+  }
+
+  set DEPTH ""
+}
+
+proc removeinfo {win} {
+  $win delete info
+  $win delete infonum
+}
+
+proc drawborder {win} {
+  global SELECTED
+
+  foreach item $SELECTED {
+    $win addtag selection withtag $item
+  }
+
+  set koord [$win bbox selection]
+  set x1 [lindex $koord 0]
+  set y1 [lindex $koord 1]
+  set x2 [lindex $koord 2]
+  set y2 [lindex $koord 3]
+
+  $win create rectangle $x1 $y1 $x2 $y2 \
+       -outline red -dash "2 4" -state normal \
+       -tags [list line border]
+
+  $win create rectangle \
+       [expr $x1-2] [expr $y1-2] [expr $x1+2] [expr $y1+2]\
+       -outline red -fill red -state normal \
+       -tags [list line border]
+
+  $win create rectangle \
+       [expr $x2-2] [expr $y1-2] [expr $x2+2] [expr $y1+2]\
+       -outline red -fill red -state normal \
+       -tags [list line border]
+
+  $win create rectangle \
+       [expr $x1-2] [expr $y2-2] [expr $x1+2] [expr $y2+2]\
+       -outline red -fill red -state normal \
+       -tags [list line border]
+
+  $win create rectangle \
+       [expr $x2-2] [expr $y2-2] [expr $x2+2] [expr $y2+2]\
+       -outline red -fill red -state normal \
+       -tags [list line border]
+
+  $win dtag selection
+}
+
+proc removeborder {win} {
+  $win delete border
 }
 
 # ############################################
 # API
 # ############################################
 
-proc not_implemented_yet { t } {
-  tk_messageBox -icon info -message "$t" -type ok
+proc bddview_message {text1 text2} {
+  tk_messageBox -icon info -message "$text1" -detail "$text2" -type ok
 }
 
 proc bddview_clear {} {
@@ -2794,9 +2779,30 @@ proc bddview_clear {} {
   set TERMDEPTH 0
 }
 
-proc bddview_draw {name} {
+proc bddview_bendsOnOff {} {
+  global bb3
+
+  $bb3 invoke 0
+}
+
+proc bddview_arrowsOnOff {} {
+  global bb3
+
+  $bb3 invoke 1
+}
+
+proc bddview_gridsOnOff {} {
+  global bb3
+
+  $bb3 invoke 2
+}
+
+proc bddview_open {filename} {
   global mainwin
+  global bb1
+  global USEBDDTYPE
   global ZOOM
+  global STATE
   global ARROWSON
   global LISTF
   global LISTT
@@ -2805,32 +2811,34 @@ proc bddview_draw {name} {
 
   set activezoom $ZOOM
 
+  #change the zoom to default
   while {$ZOOM > 16} {
     zoomOut $mainwin 0 0
   }
-
   while {$ZOOM < 16} {
     zoomIn $mainwin 0 0
   }
 
-  parsefile $mainwin $name
-  boxit $mainwin
+  set type [parsefile $mainwin $filename]
 
   set LISTF [$mainwin find withtag left]
   set LISTT [$mainwin find withtag right]
+
   fixedges $mainwin
+  boxit $mainwin
 
   set LISTF ""
   set LISTT ""
 
+  #restore the zoom
   while {$ZOOM > $activezoom} {
     zoomOut $mainwin 0 0
   }
-
   while {$ZOOM < $activezoom} {
     zoomIn $mainwin 0 0
   }
 
+  #change position to default
   compass "c" $mainwin
   compass "n" $mainwin
 
@@ -2838,112 +2846,685 @@ proc bddview_draw {name} {
     showarrows $mainwin
   }
 
+  set s $STATE
+  set STATE ""
+  state $s $mainwin $bb1
+
+  set USEBDDTYPE $type
+  return $type
 }
 
-proc bddview_saveas {win} {
+proc bddview_save {filename} {
   global mainwin
-
-  global BDD
+  global ACTIVEBDDTYPE
+  global USEBDDTYPE
   global ZOOM
-  global BDDNAME
+  global LABELOFFSETX
+  global LABELOFFSETY
+  global BDD
+  global BDDVARIABLES
 
-  set filename [tk_getSaveFile -title "Save As" -initialfile "$BDDNAME.bddview" -parent $win]
   if {[string length $filename] != 0} {
 
-    #remember last path
-    cd [file dirname $filename]
-
+    #for better result, change the zoom and the position to default
     while {$ZOOM > 16} {
       zoomOut $mainwin 0 0
     }
-
     while {$ZOOM < 16} {
       zoomIn $mainwin 0 0
     }
+    compass "c" $mainwin
+    compass "n" $mainwin
 
     set f [open $filename w]
 
-    set i 0
-    set llist [$win find withtag "label && tekst"]
+    if {$ACTIVEBDDTYPE != ""} {
+      #if used from BDD Scout then ACTIVEBDDTYPE has a value
+      if {$ACTIVEBDDTYPE == "BIDDYTYPEOBDD"} {
+        puts $f "type ROBDD"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPEOBDDC"} {
+        puts $f "type ROBDDCE"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPEZBDD"} {
+        puts $f "type ZBDD"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPEZBDDC"} {
+        puts $f "type ZBDDCE"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPETZBDD"} {
+        puts $f "type TZBDD"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPETZBDDC"} {
+        puts $f "type TZBDDCE"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPEOFDD"} {
+        puts $f "type ROFDD"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPEOFDDC"} {
+        puts $f "type ROFDDCE"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPEZFDD"} {
+        puts $f "type ZFDD"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPEZFDDC"} {
+        puts $f "type ZFDDCE"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPETZFDD"} {
+        puts $f "type TZFDD"
+      } elseif {$ACTIVEBDDTYPE == "BIDDYTYPETZFDDC"} {
+        puts $f "type TZFDDCE"
+      }
+    } else {
+      puts $f "type $USEBDDTYPE"
+    }
+
+    puts -nonewline $f "var"
+    foreach item $BDDVARIABLES {
+      puts -nonewline $f " \"$item\""
+    }
+    puts $f ""
+
+    set llist [$mainwin find withtag "label && tekst"]
+    set nlist [$mainwin find withtag "node && !label && tekst"]
+
     foreach item $llist {
-      set name [string range [lindex [$win gettags $item] 0] 1 end]
-      set koord [$win coords $item]
-      set x [expr floor([lindex $koord 0]) - 18]
-      set y [expr floor([lindex $koord 1]) - 18]
-      set t [$win itemcget $item -text]
+      set name [string range [lindex [$mainwin gettags $item] 0] 1 end]
+      set koord [$mainwin coords $item]
+      set x [expr floor([lindex $koord 0])-$LABELOFFSETX]
+      set y [expr floor([lindex $koord 1])-$LABELOFFSETY]
+      set t [$mainwin itemcget $item -text]
       puts $f "label $name \"$t\" $x $y"
     }
 
-    set nlist [$win find withtag "node && !label && tekst"]
     foreach item $nlist {
-      set name [string range [lindex [$win gettags $item] 0] 1 end]
-      set koord [$win coords $item]
-      set x [expr floor([lindex $koord 0]) - 18]
-      set y [expr floor([lindex $koord 1]) - 18]
-      set t [$win itemcget $item -text]
-      if {$t == "1"} {
-        puts $f "terminal $name 1 $x $y"
+      set name [string range [lindex [$mainwin gettags $item] 0] 1 end]
+      set koord [$mainwin coords $item]
+      set x [expr floor([lindex $koord 0])-$LABELOFFSETX]
+      set y [expr floor([lindex $koord 1])-$LABELOFFSETY]
+      set t [$mainwin itemcget $item -text]
+      if {$t == "0"} {
+        puts $f "terminal $name \"0\" $x $y"
+      } elseif {$t == "1"} {
+        puts $f "terminal $name \"1\" $x $y"
       } else {
         puts $f "node $name \"$t\" $x $y"
       }
     }
 
     foreach item $llist {
-      set name [lindex [$win gettags $item] 0]
+      set name [lindex [$mainwin gettags $item] 0]
       set succ [lindex [array get BDD $name] 1]
-      if {[lindex $succ 0] == "i"} {set succ [lrange $succ 1 end]}
-      set linef [string replace $name 0 0 "f"]
-      set linet [string replace $succ 0 0 "t"]
-      if {[$win find withtag "$linef && $linet && inverted"] == ""} {
-        set inv ""
-      } else {
+      if {[lindex $succ 0] == "i"} {
         set inv "i"
+        set succ [lrange $succ 1 end]
+      } else {
+        set inv ""
       }
-      puts $f "connect [string range $name 1 end] [string range $succ 1 end] s$inv"
+      if {[llength $succ] == 1} {
+        #label
+        set dst [lindex $succ 0]
+        puts $f "connect [string range $name 1 end] [string range $dst 1 end] s$inv"
+      } elseif {[llength $succ] == 2} {
+        #label with tag
+        set dst [lindex $succ 0]
+        set tag [string range [lindex $succ 1] 1 end]
+        if {$tag == "0"} {
+          set tag "1"
+        }
+        puts $f "connect [string range $name 1 end] [string range $dst 1 end] s$inv \"$tag\""
+      } else {
+        puts "ERROR (bddview_save): corrupted internal structure"
+      }
     }
 
     foreach item $nlist {
-      set name [lindex [$win gettags $item] 0]
+      set name [lindex [$mainwin gettags $item] 0]
       set succ [lindex [array get BDD $name] 1]
-      if {[lindex $succ 0] == "i"} {set succ [lrange $succ 1 end]}
-      if {[llength $succ] == 1} {
-        set then [lindex $succ 0]
-        puts $f "connect [string range $name 1 end] [string range $then 1 end] d"
+      if {[lindex $succ 0] == "i"} {
+        set inv "i"
+        set succ [lrange $succ 1 end]
+      } else {
+        set inv ""
       }
-      if {[llength $succ] == 2} {
-        set else [lindex $succ 0]
-        set then [lindex $succ 1]
-        set linef [string replace $name 0 0 "f"]
-        set linet [string replace $else 0 0 "t"]
-        if {[$win find withtag "$linef && $linet && inverted"] == ""} {
+      if {[llength $succ] == 0} {
+        #terminal node
+      } elseif {[llength $succ] == 1} {
+        #double line
+        set dst [lindex $succ 0]
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dst 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && left && inverted"] == ""} {
+          if {$inv == ""} {
+            set type "e"
+          } else {
+            set type "di"
+          }
+        } else {
+          if {$inv == ""} {
+            set type "ei"
+          } else {
+            set type "d"
+          }
+        }
+        puts $f "connect [string range $name 1 end] [string range $dst 1 end] $type"
+      } elseif {[llength $succ] == 2} {
+        #two single lines
+        set dst [lindex $succ 0]
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dst 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && inverted"] == ""} {
           set inv ""
         } else {
           set inv "i"
         }
-        puts $f "connect [string range $name 1 end] [string range $else 1 end] l$inv"
-        puts $f "connect [string range $name 1 end] [string range $then 1 end] r"
+        puts $f "connect [string range $name 1 end] [string range $dst 1 end] l$inv"
+        set dst [lindex $succ 1]
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dst 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && inverted"] == ""} {
+          set inv ""
+        } else {
+          set inv "i"
+        }
+        puts $f "connect [string range $name 1 end] [string range $dst 1 end] r$inv"
+      } elseif {[llength $succ] == 3} {
+        #double line with tags
+        set dst [lindex $succ 0]
+        set tag1 [string range [lindex $succ 1] 1 end]
+        set tag2 [string range [lindex $succ 2] 1 end]
+        if {$tag1 == "0"} {
+          set tag1 "1"
+        }
+        if {$tag2 == "0"} {
+          set tag2 "1"
+        }
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dst 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && left && inverted"] == ""} {
+          if {$inv == ""} {
+            set type "e"
+          } else {
+            set type "di"
+          }
+        } else {
+          if {$inv == ""} {
+            set type "ei"
+          } else {
+            set type "d"
+          }
+        }
+        puts $f "connect [string range $name 1 end] [string range $dst 1 end] $type \"$tag1\" \"$tag2\""
+      } elseif {[llength $succ] == 4} {
+        #two single lines with tags
+        set dst [lindex $succ 0]
+        set tag [string range [lindex $succ 1] 1 end]
+        if {$tag == "0"} {
+          set tag "1"
+        }
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dst 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && inverted"] == ""} {
+          set inv ""
+        } else {
+          set inv "i"
+        }
+        puts $f "connect [string range $name 1 end] [string range $dst 1 end] l$inv \"$tag\""
+        set dst [lindex $succ 2]
+        set tag [string range [lindex $succ 3] 1 end]
+        if {$tag == "0"} {
+          set tag "1"
+        }
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dst 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && inverted"] == ""} {
+          set inv ""
+        } else {
+          set inv "i"
+        }
+        puts $f "connect [string range $name 1 end] [string range $dst 1 end] r$inv \"$tag\""
+      } else {
+        puts "ERROR (bddview_save): corrupted internal structure"
       }
     }
 
     close $f
-
-    compass "c" $mainwin
-    compass "n" $mainwin
   }
 
 }
 
-proc bddview_print {win} {
+proc bddview_export_tex {filename caption document} {
+  global mainwin
+  global BDDVIEWVERSION
+  global ACTIVEBDDTYPE
+  global USEBDDTYPE
+  global ZOOM
+  global LABELOFFSETX
+  global LABELOFFSETY
+  global BENDSON
+  global ARROWSON
+  global BDD
+  global BDDNAME
+
+  set scale 1.0
+
+  if {$ACTIVEBDDTYPE != ""} {
+    set USEBDDTYPE ""
+  }
+
+  if {[string length $filename] != 0} {
+
+    #for better result, change the zoom and the position to default
+    while {$ZOOM > 16} {
+      zoomOut $mainwin 0 0
+    }
+    while {$ZOOM < 16} {
+      zoomIn $mainwin 0 0
+    }
+    compass "c" $mainwin
+    compass "n" $mainwin
+
+    set llist [$mainwin find withtag "label && tekst"]
+    set nlist [$mainwin find withtag "node && !label && tekst"]
+
+    set f [open $filename w]
+
+    puts $f "%prepared using bddview v$BDDVIEWVERSION (biddy.meolic.com)"
+    if {$document == 1} {
+      puts $f "%date: [clock format [clock seconds] -format {%d.%m.%Y %H:%M:%S}]"
+      puts $f "%use 'pdflatex $filename' to produce pdf"
+      puts $f "%adapt papersize, \\resizebox and \\begin\{tikzpicture\} to fit the large graph"
+      puts $f ""
+      puts $f "\\documentclass\[a4paper\]\{report\}"
+      puts $f "\\usepackage\[margin=24mm,landscape\]\{geometry\}"
+      puts $f "\\usepackage\{tikz\}"
+      puts $f "\\usetikzlibrary\{arrows,shapes,decorations.markings\}"
+      puts $f ""
+      puts $f "\\begin\{document\}"
+      puts $f "\\pagenumbering\{gobble\}"
+      puts $f ""
+      puts $f "\\begin\{figure\}\[p\]"
+      puts $f "\\begin\{center\}"
+      puts $f "\\resizebox\{!\}\{!\}\{"
+      puts $f "%\\resizebox\{\\textwidth\}\{!\}\{"
+      puts $f "%\\resizebox\{!\}\{\\textheight\}\{"
+    } else {
+      puts $f ""
+    }
+    puts $f "\\begin\{tikzpicture\}\[x=0.15mm,y=-0.15mm\]"
+    puts $f "\\definecolor\{colorleft\}\{RGB\}\{0,104,40\}%"
+    puts $f "\\definecolor\{colorright\}\{RGB\}\{0,40,104\}%"
+    puts $f "\\tikzstyle\{top\}=\[ellipse, inner sep=1mm, fill=white, draw=white\]%"
+    puts $f "\\tikzstyle\{var\}=\[ellipse, solid, thick, minimum size=6mm, inner sep=0.5mm, fill=white, draw=black!70\]%"
+    puts $f "\\tikzstyle\{leaf\}=\[rectangle, solid, thick, minimum size=6mm, fill=white, draw=black!70\]%"
+
+    if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($USEBDDTYPE == "ROBDD")} {
+      puts $f "\\tikzstyle\{t\}=\[-, solid, thick, draw=colorright\]%"
+      puts $f "\\tikzstyle\{n\}=\[-, densely dashed, thick, draw=colorleft\]%"
+      puts $f "\\tikzstyle\{p\}=\[-, solid, thick, draw=colorright\]%"
+    }
+
+    if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC") || ($USEBDDTYPE == "ROBDDCE")} {
+      puts $f "\\tikzstyle\{t\}=\[-, solid, thick, draw=colorright\]%"
+      puts $f "\\tikzstyle\{n\}=\[-, densely dashed, thick, draw=colorleft\]%"
+      puts $f "\\tikzstyle\{p\}=\[-, solid, thick, draw=colorright\]%"
+      puts $f "\\tikzstyle\{dn\}=\[-, densely dashed, thick, bend right=10, draw=colorleft\]%"
+      puts $f "\\tikzstyle\{dp\}=\[-, solid, thick, bend left=10, draw=colorright\]%"
+      puts $f "\\tikzstyle\{tcomp\}=\[postaction=\{decorate, decoration=\{markings, mark=at position 0.6 with \{\\fill\[radius=1mm,fill=colorright\] (0,0) circle;\}\}\}\]%"
+      puts $f "\\tikzstyle\{comp\}=\[postaction=\{decorate, decoration=\{markings, mark=at position 0.5 with \{\\fill\[radius=1mm,fill=colorleft\] (0,0) circle;\}\}\}\]%"
+    }
+
+    if {($ACTIVEBDDTYPE == "BIDDYTYPEZBDD") || ($USEBDDTYPE == "ZBDD")} {
+      puts $f "\\tikzstyle\{t\}=\[-, solid, thick, draw=colorright\]%"
+      puts $f "\\tikzstyle\{n\}=\[-, densely dashed, thick, draw=colorleft\]%"
+      puts $f "\\tikzstyle\{p\}=\[-, solid, thick, draw=colorright\]%"
+      puts $f "\\tikzstyle\{dn\}=\[-, densely dashed, thick, bend right=10, color=colorleft]\%"
+      puts $f "\\tikzstyle\{dp\}=\[-, solid, thick, bend left=10,color=colorright\]%"
+    }
+
+    if {($ACTIVEBDDTYPE == "BIDDYTYPEZBDDC") || ($USEBDDTYPE == "ZBDDCE")} {
+      puts $f "\\tikzstyle\{t\}=\[-, solid, thick, draw=colorright\]%"
+      puts $f "\\tikzstyle\{n\}=\[-, densely dashed, thick, draw=colorleft\]%"
+      puts $f "\\tikzstyle\{p\}=\[-, solid, thick, draw=colorright\]%"
+      puts $f "\\tikzstyle\{dn\}=\[-, densely dashed, thick, bend right=10, draw=colorleft]\%"
+      puts $f "\\tikzstyle\{dp\}=\[-, solid, thick, bend left=10, draw=colorright\]%"
+      puts $f "\\tikzstyle\{tcomp\}=\[postaction=\{decorate, decoration=\{markings, mark=at position 0.6 with \{\\fill\[radius=1mm,fill=colorright\] (0,0) circle;\}\}\}\]%"
+      puts $f "\\tikzstyle\{comp\}=\[postaction=\{decorate, decoration=\{markings, mark=at position 0.5 with \{\\fill\[radius=1mm,fill=colorright\] (0,0) circle;\}\}\}\]%"
+    }
+
+    if {($ACTIVEBDDTYPE == "BIDDYTYPETZBDD") || ($USEBDDTYPE == "TZBDD")} {
+      puts $f "\\tikzstyle\{t\}=\[-, solid, thick, draw=colorright, anchor=225, pos=0.8, color=colorright\]%"
+      puts $f "\\tikzstyle\{n\}=\[-, densely dashed, thick,  draw=colorleft, anchor=10, pos=0.15, color=colorleft\]%"
+      puts $f "\\tikzstyle\{p\}=\[-, solid, thick, draw=colorright, anchor=170, pos=0.15, color=colorright\]%"
+      puts $f "\\tikzstyle\{dn\}=\[-, densely dashed, thick, bend right=10, draw=colorleft, anchor=305, pos=0.9, color=colorleft]\%"
+      puts $f "\\tikzstyle\{dp\}=\[-, solid, thick, bend left=10, draw=colorright, anchor=145, pos=0, color=colorright\]%"
+    }
+
+    if {($ACTIVEBDDTYPE == "BIDDYTYPETZBDDC") || ($USEBDDTYPE == "TZBDDCE")} {
+      puts $f "\\tikzstyle\{t\}=\[-, solid, thick, draw=colorright, anchor=225, pos=0.8, color=colorright\]%"
+      puts $f "\\tikzstyle\{n\}=\[-, densely dashed, thick,  draw=colorleft, anchor=10, pos=0.15, color=colorleft\]%"
+      puts $f "\\tikzstyle\{p\}=\[-, solid, thick, draw=colorright, anchor=170, pos=0.15, color=colorright\]%"
+      puts $f "\\tikzstyle\{dn\}=\[-, densely dashed, thick, bend right=10, draw=colorleft, anchor=305, pos=0.9, color=colorleft]\%"
+      puts $f "\\tikzstyle\{dp\}=\[-, solid, thick, bend left=10, draw=colorright, anchor=145, pos=0, color=colorright\]%"
+      puts $f "\\tikzstyle\{tcomp\}=\[postaction=\{decorate, decoration=\{markings, mark=at position 0.6 with \{\\fill\[radius=1mm,fill=colorright\] (0,0) circle;\}\}\}\]%"
+      puts $f "\\tikzstyle\{comp\}=\[postaction=\{decorate, decoration=\{markings, mark=at position 0.5 with \{\\fill\[radius=1mm,fill=colorleft\] (0,0) circle;\}\}\}\]%"
+    }
+
+    #WRITE LABEL
+    foreach item $llist {
+      set name [string range [lindex [$mainwin gettags $item] 0] 1 end]
+      set t [$mainwin itemcget $item -text]
+      set t [string map {"_" "\\_"} $t]
+      set koord [$mainwin coords $item]
+      set xcenter [expr floor([lindex $koord 0])-$LABELOFFSETX]
+      set ycenter [expr floor([lindex $koord 1])-$LABELOFFSETY]
+    }
+    puts $f "\\draw ($xcenter,$ycenter) node\[top\] (n$name) \{$t\};"
+
+    #WRITE NODES
+    foreach item $nlist {
+      set name [string range [lindex [$mainwin gettags $item] 0] 1 end]
+      set koord [$mainwin coords $item]
+      set x [expr floor([lindex $koord 0])-$LABELOFFSETX]
+      set y [expr floor([lindex $koord 1])-$LABELOFFSETY]
+      set t [$mainwin itemcget $item -text]
+      set t [string map {"_" "\\_"} $t]
+      if {$t == "0"} {
+        puts $f "\\draw ($x,$y) node\[leaf\] (n$name) \{\$0\$\};"
+      } elseif {$t == "1"} {
+        puts $f "\\draw ($x,$y) node\[leaf\] (n$name) \{\$1\$\};"
+      } else {
+        puts $f "\\draw ($x,$y) node\[var\] (n$name) \{$t\};"
+      }
+    }
+
+    #WRITE TOP EDGE
+    foreach item $llist {
+      set name [lindex [$mainwin gettags $item] 0]
+      set succ [lindex [array get BDD $name] 1]
+      #puts "$name"
+      #puts "$succ"
+      if {[lindex $succ 0] == "i"} {
+        set inv "i"
+        set succ [lrange $succ 1 end]
+      } else {
+        set inv ""
+      }
+      if {[llength $succ] == 1} {
+        #label
+        set dst [lindex $succ 0]
+        if {$inv == "i"} {
+          puts $f "\\draw \[t\] (n[string range $name 1 end]) edge \[tcomp\] (n[string range $dst 1 end]);"
+        } else {
+          puts $f "\\draw \[t\] (n[string range $name 1 end]) edge (n[string range $dst 1 end]);"
+        }
+      } elseif {[llength $succ] == 2} {
+        #label with tag
+        set dst [lindex $succ 0]
+        set tag [string range [lindex $succ 1] 1 end]
+        if {$tag == "0"} {
+          set tag "1"
+        }
+        if {$inv == "i"} {
+          puts "inverted edges + tags are not supported, yet"
+        } else {
+          puts $f "\\draw \[t\] (n[string range $name 1 end]) edge node \{$tag\} (n[string range $dst 1 end]);"
+        }
+      } else {
+        puts "ERROR (bddview_export_tex): corrupted internal structure"
+      }
+    }
+
+    #WRITE EDGES
+    foreach item $nlist {
+      set name [lindex [$mainwin gettags $item] 0]
+      set succ [lindex [array get BDD $name] 1]
+      #puts "$name"
+      #puts "$succ"
+      if {[lindex $succ 0] == "i"} {
+        set inv "i"
+        set succ [lrange $succ 1 end]
+      } else {
+        set inv ""
+      }
+
+      if {[llength $succ] == 0} {
+        #terminal node does not have successors
+      } elseif {[llength $succ] == 1} {
+        #double line
+        set dst [lindex $succ 0]
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dst 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && left && inverted"] == ""} {
+          if {$inv == ""} {
+            set type "e"
+          } else {
+            set type "di"
+          }
+        } else {
+          if {$inv == ""} {
+            set type "ei"
+          } else {
+            set type "d"
+          }
+        }
+        if {($type == "d") || ($type == "ei")} {
+          puts $f "\\draw \[dn\] (n[string range $name 1 end]) edge \[comp\] (n[string range $dst 1 end]);"
+        } else {
+          puts $f "\\draw \[dn\] (n[string range $name 1 end]) edge (n[string range $dst 1 end]);"
+        }
+        if {($type == "di") || ($type == "ei")} {
+          puts $f "\\draw \[dp\] (n[string range $name 1 end]) edge \[comp\] (n[string range $dst 1 end]);"
+        } else {
+          puts $f "\\draw \[dp\] (n[string range $name 1 end]) edge (n[string range $dst 1 end]);"
+        }
+      } elseif {[llength $succ] == 2} {
+        #two single lines
+        set dstleft [lindex $succ 0]
+        set dstright [lindex $succ 1]
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dstleft 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && inverted"] == ""} {
+          set inv ""
+        } else {
+          set inv "i"
+        }
+        set bend ""
+        if {$BENDSON == 1} {
+          set koord1 [$mainwin bbox $name]
+          set koord2 [$mainwin bbox $dstleft]
+          set xarrow1 [expr ([lindex $koord1 0] + [lindex $koord1 2])/2.0]
+          set yarrow1 [expr ([lindex $koord1 1] + [lindex $koord1 3])/2.0]
+          set xarrow2 [expr ([lindex $koord2 0] + [lindex $koord2 2])/2.0]
+          set yarrow2 [expr ([lindex $koord2 1] + [lindex $koord2 3])/2.0]
+          set dx [expr $xarrow2 - $xarrow1]
+          set dy [expr $yarrow1 - $yarrow2]
+          if {($dx == 0)&&($dy == 0)} {set dx 8}
+          # VARIANT 1 - simple
+          if {$dx > [expr 6]} {
+          # VARIANT 2 - more complex and compact but not much better
+          #set onode [$mainwin bbox $dstright]
+          #set oxarrow2 [expr ([lindex $onode 0] + [lindex $onode 2])/2.0]
+          #set oyarrow2 [expr ([lindex $onode 1] + [lindex $onode 3])/2.0]
+          #set odx [expr $oxarrow2 - $xarrow1]
+          #set ody [expr $yarrow1 - $oyarrow2]
+          #if {($odx == 0)&&($ody == 0)} {set odx 1}
+          #if {([expr $dy*$odx] > [expr $dx*$ody]) && ($ody < 0)} {}
+            set bend " -- ++(-20,30)"
+          }
+        }
+        if {$inv == "i"} {
+          puts $f "\\draw \[n\] (n[string range $name 1 end])$bend edge \[comp\] (n[string range $dstleft 1 end]);"
+        } else {
+          puts $f "\\draw \[n\] (n[string range $name 1 end])$bend edge (n[string range $dstleft 1 end]);"
+        }
+        set lineto [string replace $dstright 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && inverted"] == ""} {
+          set inv ""
+        } else {
+          set inv "i"
+        }
+        set bend ""
+        if {$BENDSON == 1} {
+          set koord1 [$mainwin bbox $name]
+          set koord2 [$mainwin bbox $dstright]
+          set xarrow1 [expr ([lindex $koord1 0] + [lindex $koord1 2])/2.0]
+          set yarrow1 [expr ([lindex $koord1 1] + [lindex $koord1 3])/2.0]
+          set xarrow2 [expr ([lindex $koord2 0] + [lindex $koord2 2])/2.0]
+          set yarrow2 [expr ([lindex $koord2 1] + [lindex $koord2 3])/2.0]
+          set dx [expr $xarrow2 - $xarrow1]
+          set dy [expr $yarrow1 - $yarrow2]
+          if {($dx == 0)&&($dy == 0)} {set dx -8}
+          # VARIANT 1 - simple
+          if {$dx < [expr -6]} {
+          # VARIANT 2 - more complex and compact but not much better
+          #set onode [$mainwin bbox $dstleft]
+          #set oxarrow2 [expr ([lindex $onode 0] + [lindex $onode 2])/2.0]
+          #set oyarrow2 [expr ([lindex $onode 1] + [lindex $onode 3])/2.0]
+          #set odx [expr $oxarrow2 - $xarrow1]
+          #set ody [expr $yarrow1 - $oyarrow2]
+          #if {($odx == 0)&&($ody == 0)} {set odx 1}
+          #if {([expr $dy*$odx] < [expr $dx*$ody]) && ($ody < 0)} {}
+            set bend " -- ++(20,30)"
+          }
+        }
+        if {$inv == "i"} {
+          puts $f "\\draw \[p\] (n[string range $name 1 end])$bend edge \[comp\] (n[string range $dstright 1 end]);"
+        } else {
+          puts $f "\\draw \[p\] (n[string range $name 1 end])$bend edge (n[string range $dstright 1 end]);"
+        }
+      } elseif {[llength $succ] == 3} {
+        #double line with tags
+        set dst [lindex $succ 0]
+        set tag1 [string range [lindex $succ 1] 1 end]
+        set tag2 [string range [lindex $succ 2] 1 end]
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dst 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && left && inverted"] == ""} {
+          if {$inv == ""} {
+            set type "e"
+          } else {
+            set type "di"
+          }
+        } else {
+          if {$inv == ""} {
+            set type "ei"
+          } else {
+            set type "d"
+          }
+        }
+        if {($type == "d") || ($type == "ei")} {
+          puts "inverted edges + tags are not supported, yet"
+        } else {
+          puts $f "\\draw \[dn\] (n[string range $name 1 end]) edge node \{$tag1\} (n[string range $dst 1 end]);"
+        }
+        if {($type == "di") || ($type == "ei")} {
+          puts "inverted edges + tags are not supported, yet"
+        } else {
+          puts $f "\\draw \[dp\] (n[string range $name 1 end]) edge node \{$tag2\} (n[string range $dst 1 end]);"
+        }
+      } elseif {[llength $succ] == 4} {
+        #two single lines with tags
+        set dstleft [lindex $succ 0]
+        set tagleft [string range [lindex $succ 1] 1 end]
+        if {$tagleft == "0"} {
+          set tagleft "1"
+        }
+        set dstright [lindex $succ 2]
+        set tagright [string range [lindex $succ 3] 1 end]
+        if {$tagright == "0"} {
+          set tagright "1"
+        }
+        set linefrom [string replace $name 0 0 "f"]
+        set lineto [string replace $dstleft 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && inverted"] == ""} {
+          set inv ""
+        } else {
+          set inv "i"
+        }
+        set bend ""
+        if {$BENDSON == 1} {
+          set koord1 [$mainwin bbox $name]
+          set koord2 [$mainwin bbox $dstleft]
+          set xarrow1 [expr ([lindex $koord1 0] + [lindex $koord1 2])/2.0]
+          set yarrow1 [expr ([lindex $koord1 1] + [lindex $koord1 3])/2.0]
+          set xarrow2 [expr ([lindex $koord2 0] + [lindex $koord2 2])/2.0]
+          set yarrow2 [expr ([lindex $koord2 1] + [lindex $koord2 3])/2.0]
+          set dx [expr $xarrow2 - $xarrow1]
+          set dy [expr $yarrow1 - $yarrow2]
+          if {($dx == 0)&&($dy == 0)} {set dx 8}
+          # VARIANT 1 - simple
+          if {$dx > [expr 6]} {
+          # VARIANT 2 - more complex and compact but not much better
+          #set onode [$mainwin bbox $dstright]
+          #set oxarrow2 [expr ([lindex $onode 0] + [lindex $onode 2])/2.0]
+          #set oyarrow2 [expr ([lindex $onode 1] + [lindex $onode 3])/2.0]
+          #set odx [expr $oxarrow2 - $xarrow1]
+          #set ody [expr $yarrow1 - $oyarrow2]
+          #if {($odx == 0)&&($ody == 0)} {set odx 1}
+          #if {([expr $dy*$odx] > [expr $dx*$ody]) && ($ody < 0)} {}
+            set bend " -- ++(-20,30)"
+          }
+        }
+        if {$inv == "i"} {
+          puts "inverted edges + tags are not supported, yet"
+        } else {
+          puts $f "\\draw \[n\] (n[string range $name 1 end])$bend edge node \{$tagleft\} (n[string range $dstleft 1 end]);"
+        }
+        set lineto [string replace $dstright 0 0 "t"]
+        if {[$mainwin find withtag "$linefrom && $lineto && inverted"] == ""} {
+          set inv ""
+        } else {
+          set inv "i"
+        }
+        set bend ""
+        if {$BENDSON == 1} {
+          set koord1 [$mainwin bbox $name]
+          set koord2 [$mainwin bbox $dstright]
+          set xarrow1 [expr ([lindex $koord1 0] + [lindex $koord1 2])/2.0]
+          set yarrow1 [expr ([lindex $koord1 1] + [lindex $koord1 3])/2.0]
+          set xarrow2 [expr ([lindex $koord2 0] + [lindex $koord2 2])/2.0]
+          set yarrow2 [expr ([lindex $koord2 1] + [lindex $koord2 3])/2.0]
+          set dx [expr $xarrow2 - $xarrow1]
+          set dy [expr $yarrow1 - $yarrow2]
+          if {($dx == 0)&&($dy == 0)} {set dx -8}
+          # VARIANT 1 - simple
+          if {$dx < [expr -6]} {
+          # VARIANT 2 - more complex and compact but not much better
+          #set onode [$mainwin bbox $dstleft]
+          #set oxarrow2 [expr ([lindex $onode 0] + [lindex $onode 2])/2.0]
+          #set oyarrow2 [expr ([lindex $onode 1] + [lindex $onode 3])/2.0]
+          #set odx [expr $oxarrow2 - $xarrow1]
+          #set ody [expr $yarrow1 - $oyarrow2]
+          #if {($odx == 0)&&($ody == 0)} {set odx 1}
+          #if {([expr $dy*$odx] < [expr $dx*$ody]) && ($ody < 0)} {}
+            set bend " -- ++(20,30)"
+          }
+        }
+        if {$inv == "i"} {
+          puts "inverted edges + tags are not supported, yet"
+        } else {
+          puts $f "\\draw \[p\] (n[string range $name 1 end])$bend edge node \{$tagright\} (n[string range $dstright 1 end]);"
+        }
+      } else {
+        puts "ERROR (bddview_export_tex): corrupted internal structure"
+      }
+    }
+
+    puts $f "\\end\{tikzpicture\}"
+
+    if {$document == 1} {
+      puts $f "\}\\end\{center\}"
+      puts $f "\\caption\{$caption\}"
+      puts $f "\\label\{fig:$BDDNAME\}"
+      puts $f "\\end\{figure\}"
+      puts $f ""
+      puts $f "\\end\{document\}"
+    }
+
+    close $f
+  }
+}
+
+proc bddview_print {filename} {
+  global mainwin
   global ZOOM
   global XMAX
   global YMAX
-  global BDDNAME
 
-  if {$BDDNAME == ""} return
-  set koord [$win bbox all]
+  set koord [$mainwin bbox all]
   if {$koord == ""} return
 
-  set filename [tk_getSaveFile -title "Print to File (postscript)" -initialfile "$BDDNAME.ps" -parent $win]
   if {[string length $filename] != 0} {
 
     #remember last path
@@ -2956,20 +3537,24 @@ proc bddview_print {win} {
 
     if {[expr (1.0*($y2-$y1))/($x2-$x1)] > 1.415125082} {
 
-      $win postscript -file $filename -pageanchor nw -pagex 0m -pagey 297.039m -x $x1 -width [expr $x2-$x1] -y $y1 -height [expr $y2-$y1] -pageheight 297.039m
+      $mainwin postscript -file $filename -pageanchor nw -pagex 0m -pagey 297.039m -x $x1 -width [expr $x2-$x1] -y $y1 -height [expr $y2-$y1] -pageheight 297.039m
 
     } else {
 
-      $win postscript -file $filename -pageanchor nw -pagex 0m -pagey 297.039m -x $x1 -width [expr $x2-$x1] -y $y1 -height [expr $y2-$y1] -pagewidth 209.903m
+      $mainwin postscript -file $filename -pageanchor nw -pagex 0m -pagey 297.039m -x $x1 -width [expr $x2-$x1] -y $y1 -height [expr $y2-$y1] -pagewidth 209.903m
 
     }
-
   }
 }
 
 # ############################################
 # FINAL INITIALIZATION
 # ############################################
+
+# if ACTIVEBDDTYPE != "" THEN USEBDDTYPE is ignored
+# if ACTIVEBDDTYPE == "" THEN USEBDDTYPE is used
+set ACTIVEBDDTYPE ""
+set USEBDDTYPE ""
 
 state pan $mainwin $bb1
 puts "OK"
@@ -2979,9 +3564,12 @@ if { $argc != 0 } {
   set filename [lindex $argv 0]
 
   if {[file exists $filename]} {
-    bddview_draw $filename
+    bddview_open $filename
   } else {
     puts "Warning: $filename does not exists"
   }
 }
+
+#turn bends on
+$bb3 invoke 0
 

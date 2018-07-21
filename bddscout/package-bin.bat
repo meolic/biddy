@@ -1,11 +1,11 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 367 $
-REM  $Date: 2017-12-18 14:16:55 +0100 (pon, 18 dec 2017) $
+REM  $Revision: 465 $
+REM  $Date: 2018-07-19 15:56:29 +0200 (čet, 19 jul 2018) $
 REM
 REM  This file is part of Bdd Scout package.
-REM  Copyright (C) 2008, 2017 UM FERI
+REM  Copyright (C) 2008, 2018 UM FERI
 REM  UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 REM
 REM  Bdd Scout is free software; you can redistribute it and/or modify
@@ -52,7 +52,10 @@ echo *** Preparing bddview ...
 cd bddview
 cp bddview.tcl ../bddscout/%NAME%-%VERSION%
 cp CHANGES ../bddscout/%NAME%-%VERSION%/CHANGES_bddview
-cp example.bddview ../bddscout/%NAME%-%VERSION%
+cp example-robdd.bddview ../bddscout/%NAME%-%VERSION%
+cp example-robddce.bddview ../bddscout/%NAME%-%VERSION%
+cp example-zbddce.bddview ../bddscout/%NAME%-%VERSION%
+cp example-tzbdd.bddview ../bddscout/%NAME%-%VERSION%
 echo *** bddview OK.
 
 echo *** Building BDD Scout ...
@@ -82,6 +85,10 @@ cp Makefile.MINGW %NAME%-%VERSION%
 cp CHANGES %NAME%-%VERSION%/CHANGES_bddscout
 cp example.bf %NAME%-%VERSION%
 cp example.bdd %NAME%-%VERSION%
+mkdir %NAME%-%VERSION%/create
+cp ./create/*.tcl %NAME%-%VERSION%/create
+mkdir %NAME%-%VERSION%/scripts
+cp ./scripts/*.tcl %NAME%-%VERSION%/scripts
 
 cd %NAME%-%VERSION%
 make package -f Makefile.MINGW "CFLAGS = %CFLAGS%" "BIDDYDIR = ." "BIDDYLIB = ." "BIDDYLIBEXT = -L. -lbddscout " "BINDIR = ."
@@ -109,8 +116,8 @@ cp README.MINGW %NAME%-%VERSION%
 echo *** BDD Scout OK.
 
 %MYZIP% %NAME%-%VERSION%-Win.7z %NAME%-%VERSION%\*  -x!%NAME%-%VERSION%\lib*.*
-%MYZIP% %NAME%-%VERSION%-Win.7z IFIP\* -x!?svn -xr!?svn\*
-%MYZIP% %NAME%-%VERSION%-Win.7z BDDTRACES\* -x!?svn -xr!?svn\*
+%MYZIP% %NAME%-%VERSION%-Win.7z IFIP\*
+%MYZIP% %NAME%-%VERSION%-Win.7z BDDTRACES\*
 
 echo *** Creating %NAME%-%VERSION%-Win.exe ...
 echo ;!@Install@!UTF-8! > cfg.cfg

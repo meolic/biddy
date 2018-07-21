@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 465 $]
+#  Date        [$Date: 2018-07-19 15:56:29 +0200 (čet, 19 jul 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM FERI
+#               Copyright (C) 2008, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
@@ -65,7 +65,10 @@ echo "*** Preparing bddview ..."
 cd bddview
 cp bddview.tcl ../bddscout/$NAME-$VERSION
 cp CHANGES ../bddscout/$NAME-$VERSION/CHANGES_bddview
-cp example.bddview ../bddscout/$NAME-$VERSION
+cp example-robdd.bddview ../bddscout/$NAME-$VERSION
+cp example-robddce.bddview ../bddscout/$NAME-$VERSION
+cp example-zbddce.bddview ../bddscout/$NAME-$VERSION
+cp example-tzbdd.bddview ../bddscout/$NAME-$VERSION
 echo "*** bddview OK."
 
 echo "*** Building BDD Scout ..."
@@ -95,6 +98,10 @@ cp Makefile.$OS bddscout.map ./$NAME-$VERSION
 cp CHANGES ./$NAME-$VERSION/CHANGES_bddscout
 cp example.bf ./$NAME-$VERSION
 cp example.bdd ./$NAME-$VERSION
+mkdir ./$NAME-$VERSION/create
+cp ./create/*.tcl ./$NAME-$VERSION/create
+mkdir ./$NAME-$VERSION/scripts
+cp ./scripts/*.tcl ./$NAME-$VERSION/scripts
 
 cd ./$NAME-$VERSION
 make package -f Makefile.$OS "CFLAGS = $CFLAGS" "BIDDYDIR = ." "BIDDYLIB = ." "BIDDYLIBEXT = $osbiddylibext" "BINDIR = ."
@@ -123,9 +130,11 @@ echo "*** BDD Scout OK."
 
 echo "Creating $NAME-$VERSION-$OS.zip ..."
 zip -o "$NAME-$VERSION-$OS.zip" ./$NAME-$VERSION/*
-zip -o "$NAME-$VERSION-$OS.zip" IFIP/* -x .svn
-zip -o "$NAME-$VERSION-$OS.zip" IFIP/*/* -x .svn
-zip -o "$NAME-$VERSION-$OS.zip" BDDTRACES/* -x .svn
+zip -o "$NAME-$VERSION-$OS.zip" ./$NAME-$VERSION/create/*
+zip -o "$NAME-$VERSION-$OS.zip" ./$NAME-$VERSION/scripts/*
+zip -o "$NAME-$VERSION-$OS.zip" IFIP/*
+zip -o "$NAME-$VERSION-$OS.zip" IFIP/*/*
+zip -o "$NAME-$VERSION-$OS.zip" BDDTRACES/*
 
 rm -fr ./$NAME-$VERSION
 

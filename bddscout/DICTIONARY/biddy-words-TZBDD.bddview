@@ -1,0 +1,45 @@
+#GENERATED WITH BIDDY - biddy.meolic.com
+type TZBDD
+var "b01" "i01" "d01" "y01" ".01" "b02" "i02" "d02" "y02" ".02" "b03" "i03" "d03" "y03" ".03"
+label 0 DICT
+node 1 b01
+node 2 i01
+node 3 d01
+node 4 .01
+terminal 5 0
+terminal 6 1
+node 7 i02
+terminal 8 0
+node 9 d03
+terminal 10 1
+node 11 y03
+terminal 12 0
+terminal 13 1
+node 14 b02
+terminal 15 0
+node 16 d03
+terminal 17 0
+terminal 18 1
+node 19 d02
+terminal 20 0
+connect 0 1 s b01
+connect 1 2 l i01
+connect 1 19 r i01
+connect 2 3 l d01
+connect 2 14 r d01
+connect 3 4 l y01
+connect 3 7 r y01
+connect 4 5 l 0
+connect 4 6 r b02
+connect 7 8 l 0
+connect 7 9 r d02
+connect 9 11 l y03
+connect 9 10 r y03
+connect 11 12 l 0
+connect 11 13 r .03
+connect 14 15 l 0
+connect 14 16 r i02
+connect 16 17 l 0
+connect 16 18 r y03
+connect 19 20 l 0
+connect 19 16 r y02

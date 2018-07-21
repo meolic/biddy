@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutBRA.c]
-  Revision    [$Revision: 353 $]
-  Date        [$Date: 2017-12-07 13:25:28 +0100 (čet, 07 dec 2017) $]
+  Revision    [$Revision: 368 $]
+  Date        [$Date: 2018-01-28 23:23:28 +0100 (ned, 28 jan 2018) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM FERI
+               Copyright (C) 2008, 2018 UM FERI
                UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify

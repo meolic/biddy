@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 364 $]
-#  Date        [$Date: 2017-12-18 10:53:04 +0100 (pon, 18 dec 2017) $]
+#  Revision    [$Revision: 462 $]
+#  Date        [$Date: 2018-07-19 10:22:56 +0200 (čet, 19 jul 2018) $]
 #
 #  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2017 UM FERI
+#               Copyright (C) 2006, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
@@ -35,16 +35,13 @@
 # https://wiki.ubuntu.com/PbuilderHowto
 # http://wiki.debian.org/PbuilderTricks
 
-# We are using pdebuild which uses pbuilder. Initialize pbuilder as follows:
-# IMPORTANT: DO UPDATE AFTER IMPORTING biddy IN THE LOCAL REPOSITORY
-
 # 1A. If using pdebuild then initialize pbuilder as follows:
 # sudo pbuilder create
 # sudo pbuilder update
 
 # 1B. If using pbuilder-dist then initialize pbuilder as follows:
-# pbuilder-dist xenial create
-# pbuilder-dist xenial update
+# pbuilder-dist bionic create
+# pbuilder-dist bionic update
 
 # We are using biddy in other projects thus we upload the resulting deb files
 # cd ~/est/biddy/distribution/version-1.X/release-Y/
@@ -113,6 +110,7 @@ cp debian/source/format "distribution/version-$VERSION/release-$RELEASE/$NAME-$V
 
 cp VERSION README.md CHANGES "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 cp biddy.h biddyInt.h biddyMain.c biddyOp.c biddyStat.c biddyInOut.c "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
+cp biddy-cudd.h biddy-cudd.c "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 cp Makefile Makefile.Linux "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 
 pushd "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
@@ -132,21 +130,22 @@ echo ""
 # create a source distribution which match your system
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-echo "GENERATING SOURCE PACKAGE FOR DEFAULT DISTRO"
+echo "GENERATING SOURCE PACKAGE FOR $DISTRO"
 dch -M -v "$VERSION-$RELEASE" -D $DISTRO
 cp "debian/changelog" "../../changelog.deb"
 debuild -S -sa -kD22F409B
-mkdir `pwd`/../default
-mkdir `pwd`/../default/source
-mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../default/source
-mv `pwd`/../*.debian.tar.xz `pwd`/../default/source
-mv `pwd`/../*.build `pwd`/../default/source
-cp `pwd`/../*.orig.tar.gz `pwd`/../default/source
+mkdir `pwd`/../$DISTRO
+mkdir `pwd`/../$DISTRO/source
+mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$DISTRO/source
+mv `pwd`/../*.debian.tar.xz `pwd`/../$DISTRO/source
+mv `pwd`/../*.build `pwd`/../$DISTRO/source
+mv `pwd`/../*.buildinfo `pwd`/../$DISTRO/source
+cp `pwd`/../*.orig.tar.gz `pwd`/../$DISTRO/source
 
-# create a source distribution for trusty
+# create a source distribution for xenial
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=trusty
+ALTDISTRO=xenial
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -156,6 +155,7 @@ mkdir `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
 # create a source distribution for artful
@@ -171,6 +171,7 @@ mkdir `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.debian.tar.xz `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
+mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
 cd ..
@@ -182,19 +183,19 @@ echo "************************"
 echo ""
 
 # all target pbuilder environments must already exists and be updated
-# use e.g pbuilder-dist artful create
-# use e.g pbuilder-dist artful update
+# use e.g pbuilder-dist bionic create
+# use e.g pbuilder-dist bionic update
 
-echo "BUILDING FOR YOUR DIST: $DIST"
-pbuilder-dist $DISTRO build --buildresult `pwd`/default `pwd`/default/source/*.dsc
-#pushd `pwd`/default/source
+echo "BUILDING FOR YOUR DISTRO: $DISTRO"
+pbuilder-dist $DISTRO build --buildresult `pwd`/$DISTRO `pwd`/$DISTRO/source/*.dsc
+#pushd `pwd`/$DISTRO/source
 #dpkg-source -x *.dsc
 #cd "$NAME-$VERSION"
 #change key if you are not Robert Meolic
 #pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
 #popd
 
-ALTDISTRO=trusty
+ALTDISTRO=xenial
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 #pushd `pwd`/$ALTDISTRO/source

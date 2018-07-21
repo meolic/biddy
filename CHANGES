@@ -254,3 +254,16 @@ Changes v1.7.4 versus v1.7.3
 - added Biddy_IsLowest and Biddy_IsHighest
 - added Biddy_CreateMinterm and Biddy_CreateFunction
 - added Biddy_MinimizeBDD and Biddy_MaximizeBDD
+- added BRA example
+
+Changes v1.8.1 versus v1.7.4
+- released on Jul 19, 2018
+- implemented all operations on ZBDDs without complemented edges
+- added Biddy_SetAlphabeticOrdering, Biddy_MinNodes, and Biddy_MaxNodes
+- added Biddy_ConstructBDD and Biddy_ReadBddview
+- added Biddy_EvalProbability
+- adapted Biddy_Eval2 to recognize operators *&+|!~>^-#@<
+- fixed Biddy_Diff and Biddy_WriteBddview
+- fixed conversion from ZBDD to TZBDD
+- improved Biddy_Replace
+- improved BRA and Dictionary example

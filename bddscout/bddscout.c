@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.c]
-  Revision    [$Revision: 319 $]
-  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+  Revision    [$Revision: 451 $]
+  Date        [$Date: 2018-06-26 12:07:56 +0200 (tor, 26 jun 2018) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2017 UM FERI
+               Copyright (C) 2008, 2018 UM FERI
                UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@
 
 int SCAN_RESULT; /* used in readln macro */
 
-Biddy_Manager MNGROBDD,MNGROBDDCE,MNGZBDDCE,MNGTZBDD;
+Biddy_Manager MNGROBDD,MNGROBDDCE,MNGZBDD,MNGZBDDCE,MNGTZBDD;
 Biddy_Manager MNGACTIVE = NULL;
 
 /*-----------------------------------------------------------------------*/
@@ -109,6 +109,11 @@ Bddscout_ClearActiveManager()
     Biddy_InitMNG(&MNGROBDDCE,BIDDYTYPEOBDDC);
     MNGACTIVE = MNGROBDDCE;
   }
+  else if (MNGACTIVE == MNGZBDD) {
+    Biddy_ExitMNG(&MNGZBDD);
+    Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
+    MNGACTIVE = MNGZBDD;
+  }
   else if (MNGACTIVE == MNGZBDDCE) {
     Biddy_ExitMNG(&MNGZBDDCE);
     Biddy_InitMNG(&MNGZBDDCE,BIDDYTYPEZBDDC);
@@ -145,6 +150,9 @@ Bddscout_ChangeActiveManager(Biddy_String type)
   else if (!strcmp(type,"BIDDYTYPEOBDDC")) {
     MNGACTIVE = MNGROBDDCE;
   }
+  else if (!strcmp(type,"BIDDYTYPEZBDD")) {
+    MNGACTIVE = MNGZBDD;
+  }
   else if (!strcmp(type,"BIDDYTYPEZBDDC")) {
     MNGACTIVE = MNGZBDDCE;
   }
@@ -173,10 +181,11 @@ BddscoutInit()
 {
   Biddy_InitMNG(&MNGROBDD,BIDDYTYPEOBDD);
   Biddy_InitMNG(&MNGROBDDCE,BIDDYTYPEOBDDC);
+  Biddy_InitMNG(&MNGZBDD,BIDDYTYPEZBDD);
   Biddy_InitMNG(&MNGZBDDCE,BIDDYTYPEZBDDC);
   Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
   MNGACTIVE = MNGROBDD; /* this should be compatible with ACTIVEBDDTYPE in bddscout.tcl */
-  
+
   /* USE THIS TO USE ANONYMOUS MANAGER */
   /*
   MNGACTIVE = NULL;
@@ -196,6 +205,7 @@ BddscoutExit()
 {
   Biddy_ExitMNG(&MNGROBDD);
   Biddy_ExitMNG(&MNGROBDDCE);
+  Biddy_ExitMNG(&MNGZBDD);
   Biddy_ExitMNG(&MNGZBDDCE);
   Biddy_ExitMNG(&MNGTZBDD);
 
@@ -225,6 +235,9 @@ BddscoutCheckFormula(Biddy_String type, Biddy_String fname)
   else if (!strcmp(type,"BIDDYTYPEOBDDC")) {
     mng = MNGROBDDCE;
   }
+  else if (!strcmp(type,"BIDDYTYPEZBDD")) {
+    mng = MNGZBDD;
+  }
   else if (!strcmp(type,"BIDDYTYPEZBDDC")) {
     mng = MNGZBDDCE;
   }
@@ -238,7 +251,7 @@ BddscoutCheckFormula(Biddy_String type, Biddy_String fname)
   }
 
   /* VARIABLES ARE CONSIDERED AS FORMULAE BY BIDDY! */
-  if (idx == 0) OK = FALSE;
+  if (strcmp(fname,"0") && (idx == 0)) OK = FALSE;
 
   return OK;
 }
@@ -264,6 +277,9 @@ BddscoutCopyFormula(Biddy_String fname, Biddy_String type1,
   else if (!strcmp(type1,"BIDDYTYPEOBDDC")) {
     mng1 = MNGROBDDCE;
   }
+  else if (!strcmp(type1,"BIDDYTYPEZBDD")) {
+    mng1 = MNGZBDD;
+  }
   else if (!strcmp(type1,"BIDDYTYPEZBDDC")) {
     mng1 = MNGZBDDCE;
   }
@@ -277,6 +293,9 @@ BddscoutCopyFormula(Biddy_String fname, Biddy_String type1,
   }
   else if (!strcmp(type2,"BIDDYTYPEOBDDC")) {
     mng2 = MNGROBDDCE;
+  }
+  else if (!strcmp(type2,"BIDDYTYPEZBDD")) {
+    mng2 = MNGZBDD;
   }
   else if (!strcmp(type2,"BIDDYTYPEZBDDC")) {
     mng2 = MNGZBDDCE;
@@ -292,21 +311,27 @@ BddscoutCopyFormula(Biddy_String fname, Biddy_String type1,
 
 /**Function****************************************************************
   Synopsis    [Function BddscoutSyncFormula]
-  Description [BddscoutSyncFormula adapt or create formula with the given
-               name in all managers. Formula is given with the string form.]
-  SideEffects [TO DO: works only for form that could be parsed by eval2.]
+  Description [BddscoutSyncFormula adapt BDD with the given name in all
+               managers where BDD with the given name exists.]
+  SideEffects []
   SeeAlso     []
   ************************************************************************/
 
 void
-BddscoutSyncFormula(Biddy_Edge form, Biddy_String name)
+BddscoutSyncFormula(Biddy_String name)
 {
   Biddy_Edge tmp,bdd;
   unsigned int idx;
 
+  /* DEBUGGING */
+  /*
+  printf("BddscoutSyncFormula: f = %s\n",name);
+  */
+
   if (MNGACTIVE != MNGROBDD) {
     if (Biddy_Managed_FindFormula(MNGROBDD,name,&idx,&tmp)) {
-      bdd = Biddy_Managed_Eval2(MNGROBDD,form); /* TO DO: use convert instead of eval2 */
+      Biddy_Managed_CopyFormula(MNGACTIVE,MNGROBDD,name);
+      Biddy_Managed_FindFormula(MNGROBDD,name,&idx,&bdd);
       if (bdd != tmp) {
         Biddy_Managed_AddPersistentFormula(MNGROBDD,name,bdd);
       }
@@ -315,16 +340,28 @@ BddscoutSyncFormula(Biddy_Edge form, Biddy_String name)
 
   if (MNGACTIVE != MNGROBDDCE) {
     if (Biddy_Managed_FindFormula(MNGROBDDCE,name,&idx,&tmp)) {
-      bdd = Biddy_Managed_Eval2(MNGROBDDCE,form); /* TO DO: use convert instead of eval2 */
+      Biddy_Managed_CopyFormula(MNGACTIVE,MNGROBDDCE,name);
+      Biddy_Managed_FindFormula(MNGROBDDCE,name,&idx,&bdd);
       if (bdd != tmp) {
         Biddy_Managed_AddPersistentFormula(MNGROBDDCE,name,bdd);
       }
     }
   }
 
+  if (MNGACTIVE != MNGZBDD) {
+    if (Biddy_Managed_FindFormula(MNGZBDD,name,&idx,&tmp)) {
+      Biddy_Managed_CopyFormula(MNGACTIVE,MNGZBDD,name);
+      Biddy_Managed_FindFormula(MNGZBDD,name,&idx,&bdd);
+      if (bdd != tmp) {
+        Biddy_Managed_AddPersistentFormula(MNGZBDD,name,bdd);
+      }
+    }
+  }
+
   if (MNGACTIVE != MNGZBDDCE) {
     if (Biddy_Managed_FindFormula(MNGZBDDCE,name,&idx,&tmp)) {
-      bdd = Biddy_Managed_Eval2(MNGZBDDCE,form); /* TO DO: use convert instead of eval2 */
+      Biddy_Managed_CopyFormula(MNGACTIVE,MNGZBDDCE,name);
+      Biddy_Managed_FindFormula(MNGZBDDCE,name,&idx,&bdd);
       if (bdd != tmp) {
         Biddy_Managed_AddPersistentFormula(MNGZBDDCE,name,bdd);
       }
@@ -333,7 +370,8 @@ BddscoutSyncFormula(Biddy_Edge form, Biddy_String name)
 
   if (MNGACTIVE != MNGTZBDD) {
     if (Biddy_Managed_FindFormula(MNGTZBDD,name,&idx,&tmp)) {
-      bdd = Biddy_Managed_Eval2(MNGTZBDD,form); /* TO DO: use convert instread of eval2 */
+      Biddy_Managed_CopyFormula(MNGACTIVE,MNGTZBDD,name);
+      Biddy_Managed_FindFormula(MNGTZBDD,name,&idx,&bdd);
       if (bdd != tmp) {
         Biddy_Managed_AddPersistentFormula(MNGTZBDD,name,bdd);
       }
@@ -342,159 +380,90 @@ BddscoutSyncFormula(Biddy_Edge form, Biddy_String name)
 }
 
 /**Function****************************************************************
-  Synopsis    [Function BddscoutConstructBDD.]
-  Description [BddscoutConstructBDD is used to construct BDD from lists
-               of nodes and edges created by tcl functions.]
-  SideEffects [Implemented only for OBDDs.]
+  Synopsis    [Function BddscoutSyncVariable]
+  Description [BddscoutSyncVariable adapt variables value and data in all
+               managers where variable with the given name exists.]
+  SideEffects []
   SeeAlso     []
   ************************************************************************/
 
-typedef struct {
-  Biddy_String name;
-  int order;
-} BddscoutVariableOrder;
+void
+BddscoutSyncVariable(Biddy_String name)
+{
 
-typedef struct {
-  Biddy_String name;
-  int type;
-  int l,r;
-  Biddy_Edge f;
-  Biddy_Boolean created;
-} BddscoutTclBDD;
+  /* DEBUGGING */
+  /*
+  printf("BddscoutSyncVariable: var = %s\n",name);
+  */
 
-static void reorderVariables(BddscoutVariableOrder *tableV, BddscoutTclBDD *tableN, int id);
+  if (MNGACTIVE != MNGROBDD) {
+  }
 
-static void constructBDD(BddscoutTclBDD *table, int id);
+  if (MNGACTIVE != MNGROBDDCE) {
+  }
+
+  if (MNGACTIVE != MNGZBDD) {
+  }
+
+  if (MNGACTIVE != MNGZBDDCE) {
+  }
+
+  if (MNGACTIVE != MNGTZBDD) {
+  }
+}
+
+/**Function****************************************************************
+  Synopsis    [Function BddscoutConstructBDD.]
+  Description [BddscoutConstructBDD is used to construct BDD from lists
+               of nodes and edges created by tcl functions.]
+  SideEffects []
+  SeeAlso     []
+  ************************************************************************/
 
 void
 BddscoutConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4)
 {
-  BddscoutVariableOrder *tableV;
-  BddscoutTclBDD *tableN;
-  Biddy_String word;
-  int i,id;
+  Biddy_Manager MNGTMP;
+  Biddy_String name;
+  Biddy_Edge r;
 
   /*
-  fprintf(stderr,"Construct BDD\n");
+  fprintf(stderr,"BddscoutConstructBDD\n");
   fprintf(stderr,"%d variables\n",numV);
   fprintf(stderr,"%s\n",s2);
   fprintf(stderr,"%d nodes\n",numN);
   fprintf(stderr,"%s\n",s4);
   */
 
-  tableV = (BddscoutVariableOrder *) malloc(numV * sizeof(BddscoutVariableOrder));
-  if (!tableV) return;
-  tableN = (BddscoutTclBDD *) malloc(numN * sizeof(BddscoutTclBDD));
-  if (!tableN) return;
+  /* variables in the file may be ordered differently */
+  /* the easiest solution is to create new BDD in a tmp manager */
+  /* and then copy it to the original one */
+  /* TO DO: user should be noticed about the ordering problem */
 
-  if (numV) {
-    word = strtok(s2," "); /* parsing list of variables */
-    tableV[0].name = strdup(word);
-    tableV[0].order = 0;
-    for (i=1; i<numV; ++i) {
-      word = strtok(NULL," ");
-#pragma warning(suppress: 6386)
-      tableV[i].name = strdup(word);
-      tableV[i].order = 0;
-    }
+  Biddy_InitMNG(&MNGTMP,Biddy_Managed_GetManagerType(MNGACTIVE));
+
+  r = Biddy_Managed_ConstructBDD(MNGTMP,numV,s2,numN,s4);
+
+  if (r == Biddy_Managed_GetConstantZero(MNGTMP)) {
+    r = Biddy_Managed_GetConstantZero(MNGACTIVE);
+  } else {
+    r = Biddy_Managed_Copy(MNGTMP,MNGACTIVE,r);
   }
 
-  /* type == 0 : regular label, r = -1 */
-  /* type == 1 : complemented label, r = -1 */
-  /* type == 2 : terminal node, l = -1, r = -1 */
-  /* type == 3 : regular node */
-  /* type == 4 : node with complemented "else" */
+  name = strtok(s4," "); /* the name of BDD is the first word in s4 */
+  Biddy_Managed_AddPersistentFormula(MNGACTIVE,name,r);
 
-  word = strtok(s4," "); /* the name of BDD */
-  for (i=0; i<numN; ++i) {
-    word = strtok(NULL," "); /* node id */
-    id = atoi(word);
-    word = strtok(NULL," ");
-    tableN[id].name = strdup(word);
-    word = strtok(NULL," ");
-    tableN[id].type = atoi(word);
-    word = strtok(NULL," ");
-    tableN[id].l = atoi(word);
-    word = strtok(NULL," ");
-    tableN[id].r = atoi(word);
-
-    if (tableN[id].type == 2) {
-      tableN[id].created = TRUE;
-      tableN[id].f = Biddy_Managed_GetConstantOne(MNGACTIVE);
-    } else {
-      tableN[id].created = FALSE;
-      tableN[id].f = BDDNULL;
-    }
-  }
-
-  for (i=0; i<numV; ++i) {
-#pragma warning(suppress: 6385)
-    Biddy_Managed_AddVariableByName(MNGACTIVE,tableV[i].name); /* PROBABLY NOT CORRECT FOR ZBDDs AND ZFDDs! */
-  }
-
-  for (i=0; i<numN; ++i) {
-#pragma warning(suppress: 6385)
-    if (tableN[i].type == 0) {
-      reorderVariables(tableV,tableN,tableN[i].l);
-      constructBDD(tableN,tableN[i].l);
-      Biddy_Managed_AddPersistentFormula(MNGACTIVE,tableN[i].name,tableN[tableN[i].l].f);
-    }
-    if (tableN[i].type == 1) {
-      reorderVariables(tableV,tableN,tableN[i].l);
-      constructBDD(tableN,tableN[i].l);
-      Biddy_Managed_AddPersistentFormula(MNGACTIVE,tableN[i].name,Biddy_Managed_Not(MNGACTIVE,tableN[tableN[i].l].f));
-    }
-  }
-
-  for (i=0; i<numV; ++i) {
-    free(tableV[i].name);
-  }
-  for (i=0; i<numN; ++i) {
-    free(tableN[i].name);
-  }
-
-  free(tableV);
-  free(tableN);
-}
-
-static void
-reorderVariables(BddscoutVariableOrder *tableV, BddscoutTclBDD *tableN, int id)
-{
-  /* NOT IMPLEMENTED, YET */
-}
-
-static void
-constructBDD(BddscoutTclBDD *tableN, int id)
-{
+  /* DEBUGGING */
   /*
-  printf("Construct %d\n",id);
-  printf("TABLE[%d]: %s, l:%d, r:%d\n",
-          id,tableN[id].name,tableN[id].l,tableN[id].r);
+  printf("Function created.\n");
+  Biddy_Managed_PrintfBDD(MNGACTIVE,r);
+  Biddy_Managed_PrintfSOP(MNGACTIVE,r);
   */
 
-  if (!tableN[id].created) {
+  Biddy_ExitMNG(&MNGTMP);
 
-    if (!tableN[tableN[id].l].created) {
-      constructBDD(tableN,tableN[id].l);
-    }
-
-    if ((tableN[id].r != -1) && (!tableN[tableN[id].r].created)) {
-      constructBDD(tableN,tableN[id].r);
-    }
-
-    if (tableN[id].type == 3) {
-      tableN[id].f = Biddy_Managed_ITE(MNGACTIVE,Biddy_Managed_AddVariableByName(MNGACTIVE,tableN[id].name),
-                              tableN[tableN[id].r].f,tableN[tableN[id].l].f);
-    }
-
-    if (tableN[id].type == 4) {
-      tableN[id].f = Biddy_Managed_ITE(MNGACTIVE,Biddy_Managed_AddVariableByName(MNGACTIVE,tableN[id].name),
-                              tableN[tableN[id].r].f,Biddy_Managed_Not(MNGACTIVE,tableN[tableN[id].l].f));
-    }
-
-    tableN[id].created = TRUE;
-  }
-
+  /* ADAPT FORMULA WITH THE SAME NAME IN OTHER MANAGERS */
+  BddscoutSyncFormula(name);
 }
 
 /**Function****************************************************************
@@ -504,17 +473,18 @@ constructBDD(BddscoutTclBDD *tableN, int id)
   SeeAlso     []
   ************************************************************************/
 
-static void parseDot(FILE *dotfile, Biddy_XY *table, int *xsize, int *ysize);
+static void parseDot(FILE *dotfile, BiddyXY *table, int *xsize, int *ysize);
 
 int
 BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String name)
 {
   FILE *xdotfile;
   int n,m;
-  Biddy_XY *table;
+  BiddyXY *table;
   int xsize,ysize;
   Biddy_Edge f;
   unsigned int idx;
+  unsigned int num;
 #if defined(MINGW) || defined(_MSC_VER)
 #else
   pid_t childpid;
@@ -544,6 +514,8 @@ BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String na
     return 0 ;
   }
 
+  num = Biddy_Managed_CountNodes(MNGACTIVE,f);
+
 #if defined(MINGW) || defined(_MSC_VER)
   dotname = (Biddy_String) malloc(strlen(docdir)+strlen(appdir)+7+1);
   dotname[0] = 0;
@@ -570,27 +542,40 @@ BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String na
   /* DEBUGGING */
   /*
   printf("Biddy_Managed_WriteDot STARTED\n");
-  n = Biddy_Managed_WriteDot(MNGACTIVE,NULL,f,name,-1,FALSE);
+  */
+
+  n = Biddy_Managed_WriteDot(MNGACTIVE,dotname,f,name,-1,FALSE); /* FALSE is important */
+
+  /* DEBUGGING */
+  /*
   printf("Biddy_Managed_WriteDot FINISHED\n");
   */
-  
-  n = Biddy_Managed_WriteDot(MNGACTIVE,dotname,f,name,-1,FALSE); /* FALSE is important */
 
   if (n == 0) {
     fprintf(stderr,"BddscoutWriteBddview: Problem with function %s (n==0) !\n",name);
     return(0);
   }
 
+  /* if longer calculation is expected, report the start of it */
+  if (num > 15) {
+    printf("(%u nodes) dot -Gsplines=none -Gnslimit=1 -y -o %s %s...",num,xdotname,dotname);
+  }
+
 #if defined(MINGW) || defined(_MSC_VER)
-  _spawnlp(_P_WAIT, dotexe, "dot.exe", "-y", "-o",xdotname,dotname,NULL);
+  _spawnlp(_P_WAIT,dotexe,"dot.exe","-Gsplines=none","-Gnslimit=1","-y","-o",xdotname,dotname,NULL);
 #else
   childpid = fork();
   if (childpid == 0) {
-    execlp(dotexe, "dot", "-y", "-o",xdotname, dotname,NULL);
+    execlp(dotexe,"dot","-Gsplines=none","-Gnslimit=1","-y","-o",xdotname,dotname,NULL);
   } else if (childpid > 0) {
     waitpid(childpid,&status,0);
   }
 #endif
+
+  /* if longer calculation was expected, report the end of it */
+  if (num > 15) {
+    printf("OK.\n");
+  }
 
   xdotfile = fopen(xdotname,"r");
   if (!xdotfile) {
@@ -598,7 +583,7 @@ BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String na
     return(0);
   }
 
-  table = (Biddy_XY *) malloc((n+1) * sizeof(Biddy_XY)); /* n = nodes, add one label */
+  table = (BiddyXY *) malloc((n+1) * sizeof(BiddyXY)); /* n = nodes, add one label */
   if (!table) {
     fclose(xdotfile);
     return -1;
@@ -606,17 +591,25 @@ BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String na
   parseDot(xdotfile,table,&xsize,&ysize);
   fclose(xdotfile);
 
+  /* DEBUGGING */
+  /*
+  printf("BddscoutWriteBddview: parseDot finished\n");
+  */
+
   free(dotname);
   free(xdotname);
 
   /* DEBUGGING */
   /*
   printf("Biddy_Managed_WriteBddview STARTED\n");
-  m = Biddy_Managed_WriteBddview(MNGACTIVE,NULL,f,name,table);
-  printf("Biddy_Managed_WriteBddview FINISHED\n");
   */
 
-  m = Biddy_Managed_WriteBddview(MNGACTIVE,filename,f,name,table);
+  m = Biddy_Managed_WriteBddview(MNGACTIVE,filename,f,name,(void *)table);
+
+  /* DEBUGGING */
+  /*
+  printf("Biddy_Managed_WriteBddview FINISHED\n");
+  */
 
   free(table);
 
@@ -629,7 +622,7 @@ BddscoutWriteBddview(const char filename[], Biddy_String dotexe, Biddy_String na
 }
 
 static void
-parseDot(FILE *dotfile, Biddy_XY *table, int *xsize, int *ysize)
+parseDot(FILE *dotfile, BiddyXY *table, int *xsize, int *ysize)
 {
   char line[256];
   Biddy_String r,label,defaultlabel,pos;
@@ -642,9 +635,7 @@ parseDot(FILE *dotfile, Biddy_XY *table, int *xsize, int *ysize)
   while (r && !strstr(line,"bb=")) r = fgets(line,255,dotfile);
   if (r) {
     pos = (Biddy_String) malloc(strlen(line));
-#pragma warning(suppress: 6031)
     sscanf(&(strstr(line,"bb=")[4]),"%s",pos);
-#pragma warning(suppress: 6031)
     sscanf(pos,"%d,%d,%d,%d",&x,&y,xsize,ysize);
     free(pos);
   }
@@ -658,13 +649,11 @@ parseDot(FILE *dotfile, Biddy_XY *table, int *xsize, int *ysize)
       while (r && !strstr(line,"label=")) r = fgets(line,255,dotfile);
       if (defaultlabel) free(defaultlabel);
       defaultlabel = (Biddy_String) malloc(strlen(line));
-#pragma warning(suppress: 6031)
       sscanf(&(strstr(line,"label=")[6]),"%s",defaultlabel);
       defaultlabel[strlen(defaultlabel)-1] = 0;
       while (r && !strstr(line,"height=")) r = fgets(line,255,dotfile);
     }
     if (r) {
-#pragma warning(suppress: 6031)
       sscanf(line,"%d",&id);
       table[id].id = id;
     }
@@ -674,8 +663,6 @@ parseDot(FILE *dotfile, Biddy_XY *table, int *xsize, int *ysize)
       if (strstr(line,"label=")) {
         label = (Biddy_String) malloc(strlen(line));
         if (!label) return;
-#pragma warning(suppress: 6011)
-#pragma warning(suppress: 6031)
         sscanf(&(strstr(line,"label=")[6]),"%s",label);
         label[strlen(label)-1] = 0;
       } else {
@@ -687,15 +674,14 @@ parseDot(FILE *dotfile, Biddy_XY *table, int *xsize, int *ysize)
     if (r) {
       pos = (Biddy_String) malloc(strlen(line));
       if (!pos) return;
-#pragma warning(suppress: 6011)
-#pragma warning(suppress: 6031)
       sscanf(&(strstr(line,"pos=")[5]),"%s",pos);
-#pragma warning(suppress: 6031)
       sscanf(pos,"%f,%f",&xf,&yf);
 
       table[id].label = strdup(label);
       table[id].x = (int)xf; /* float -> int */
       table[id].y = (int)yf; /* float -> int */
+      if (table[id].x % 2) table[id].x++; /* make it even */
+      if (table[id].y % 2) table[id].y++; /* make it even */
       table[id].isConstant = FALSE;
       if (!strcmp(table[id].label,"0")||!strcmp(table[id].label,"1")) {
         table[id].isConstant = TRUE;
@@ -704,7 +690,7 @@ parseDot(FILE *dotfile, Biddy_XY *table, int *xsize, int *ysize)
       free(pos);
 
       /*
-      fprintf(stderr,"DEBUG: id = %d, label = %s, x = %d, y = %d\n",table[id].id,table[id].label,table[id].x,table[id].y);
+      printf("DEBUG: id = %d, label = %s, x = %d, y = %d\n",table[id].id,table[id].label,table[id].x,table[id].y);
       */
 
       /* TWO OR MORE NODES IN ONE LINE ARE NOT ALLOWED! */

@@ -9,7 +9,7 @@
     <ROW Property="ProductCode" Value="1033:{5953755C-CD2C-4F75-A4DA-7A0BECDF55CC} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="BDD Scout"/>
-    <ROW Property="ProductVersion" Value="1.7.4" Type="32"/>
+    <ROW Property="ProductVersion" Value="1.8.1" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{3F363708-FF05-41CD-8B2E-96C0AA55F847}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -29,12 +29,14 @@
     <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
     <ROW Directory="BDDTRACES_Dir" Directory_Parent="APPDIR" DefaultDir="BDDTRA~1|BDDTRACES"/>
     <ROW Directory="IFIP_Dir" Directory_Parent="APPDIR" DefaultDir="IFIP"/>
-    <ROW Directory="NewFolder_Dir" Directory_Parent="APPDIR" DefaultDir="bddscout"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
+    <ROW Directory="bddscout_Dir" Directory_Parent="APPDIR" DefaultDir="bddscout"/>
     <ROW Directory="cath_Dir" Directory_Parent="IFIP_Dir" DefaultDir="cath"/>
+    <ROW Directory="create_Dir" Directory_Parent="bddscout_Dir" DefaultDir="create"/>
     <ROW Directory="ex_Dir" Directory_Parent="IFIP_Dir" DefaultDir="ex"/>
     <ROW Directory="hachtel_Dir" Directory_Parent="IFIP_Dir" DefaultDir="hachtel"/>
     <ROW Directory="plasco_Dir" Directory_Parent="IFIP_Dir" DefaultDir="plasco"/>
+    <ROW Directory="scripts_Dir" Directory_Parent="bddscout_Dir" DefaultDir="scripts"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="BDDTRACES" ComponentId="{1A937E28-C5F0-480A-8E42-1CE7DB0519E2}" Directory_="BDDTRACES_Dir" Attributes="0" KeyPath="abp4.trace" Type="0"/>
@@ -44,14 +46,16 @@
     <ROW Component="IFIPHACHTEL" ComponentId="{96693B1A-5C33-460C-B890-0280A8FF985E}" Directory_="hachtel_Dir" Attributes="0" KeyPath="alupla20.be" Type="0"/>
     <ROW Component="IFIPPLASCO" ComponentId="{45ADD83D-20AC-434A-B4B8-847C5AE50CB6}" Directory_="plasco_Dir" Attributes="0" KeyPath="counter.be" Type="0"/>
     <ROW Component="ProductName" ComponentId="{3C550EF1-8BA7-40EA-86A1-A02DB9F7D61C}" Directory_="APPDIR" Attributes="4" KeyPath="ProductName"/>
-    <ROW Component="bddscout" ComponentId="{3796F8F9-648F-4F99-ABE1-8E603302C6FD}" Directory_="NewFolder_Dir" Attributes="0" KeyPath="CHANGES_1" Type="0"/>
-    <ROW Component="bddscout.dll" ComponentId="{6C799095-7D6E-497B-B712-6FA9F87C909B}" Directory_="NewFolder_Dir" Attributes="256" KeyPath="bddscout.dll"/>
-    <ROW Component="bddscoutBDDTRACES.dll" ComponentId="{5B6E528D-FCBD-40B2-8D15-9171E6308A2A}" Directory_="NewFolder_Dir" Attributes="256" KeyPath="bddscoutBDDTRACES.dll"/>
-    <ROW Component="bddscoutBRA.dll" ComponentId="{D5AB1725-4EE8-49CE-B22B-697C68C4ADBB}" Directory_="NewFolder_Dir" Attributes="256" KeyPath="bddscoutBRA.dll"/>
-    <ROW Component="bddscoutIFIP.dll" ComponentId="{C6AA8605-6EBB-4CBA-9D68-0D7CF50DEECE}" Directory_="NewFolder_Dir" Attributes="256" KeyPath="bddscoutIFIP.dll"/>
+    <ROW Component="bddscout" ComponentId="{3796F8F9-648F-4F99-ABE1-8E603302C6FD}" Directory_="bddscout_Dir" Attributes="0" KeyPath="CHANGES_1" Type="0"/>
+    <ROW Component="bddscout.dll" ComponentId="{6C799095-7D6E-497B-B712-6FA9F87C909B}" Directory_="bddscout_Dir" Attributes="256" KeyPath="bddscout.dll"/>
+    <ROW Component="bddscoutBDDTRACES.dll" ComponentId="{5B6E528D-FCBD-40B2-8D15-9171E6308A2A}" Directory_="bddscout_Dir" Attributes="256" KeyPath="bddscoutBDDTRACES.dll"/>
+    <ROW Component="bddscoutBRA.dll" ComponentId="{D5AB1725-4EE8-49CE-B22B-697C68C4ADBB}" Directory_="bddscout_Dir" Attributes="256" KeyPath="bddscoutBRA.dll"/>
+    <ROW Component="bddscoutIFIP.dll" ComponentId="{C6AA8605-6EBB-4CBA-9D68-0D7CF50DEECE}" Directory_="bddscout_Dir" Attributes="256" KeyPath="bddscoutIFIP.dll"/>
+    <ROW Component="bddscoutcreatefun2var.tcl" ComponentId="{10395DA3-62FF-4E5E-BE1A-21B906EB0A38}" Directory_="create_Dir" Attributes="0" KeyPath="bddscoutcreatefun2var.tcl" Type="0"/>
+    <ROW Component="bddscoutscriptexample1.tcl" ComponentId="{6525B9FC-B230-4B73-806F-3DF0CD03F9B7}" Directory_="scripts_Dir" Attributes="0" KeyPath="bddscoutscriptexample1.tcl" Type="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="BDDTRACES IFIP IFIPCATH IFIPEX IFIPHACHTEL IFIPPLASCO ProductName bddscout bddscout.dll bddscoutBDDTRACES.dll bddscoutBRA.dll bddscoutIFIP.dll"/>
+    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="BDDTRACES IFIP IFIPCATH IFIPEX IFIPHACHTEL IFIPPLASCO ProductName bddscout bddscout.dll bddscoutBDDTRACES.dll bddscoutBRA.dll bddscoutIFIP.dll bddscoutcreatefun2var.tcl bddscoutscriptexample1.tcl"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
@@ -62,7 +66,7 @@
     <ROW File="README" Component_="BDDTRACES" FileName="README" Attributes="0" SourcePath="..\bddscout\BDDTRACES\README" SelfReg="false" NextFile="README.trace"/>
     <ROW File="README.trace" Component_="BDDTRACES" FileName="README~1.TRA|README.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\README.trace" SelfReg="false" NextFile="short.trace"/>
     <ROW File="README_1" Component_="IFIP" FileName="README" Attributes="0" SourcePath="..\bddscout\IFIP\README" SelfReg="false" NextFile="WG10.21989cfp.txt"/>
-    <ROW File="README_2" Component_="bddscout" FileName="README" Attributes="0" SourcePath="..\bddscout\README" SelfReg="false" NextFile="example.bddview"/>
+    <ROW File="README_2" Component_="bddscout" FileName="README" Attributes="0" SourcePath="..\bddscout\README" SelfReg="false" NextFile="examplerobdd.bddview"/>
     <ROW File="WG10.21989cfp.txt" Component_="IFIP" FileName="WG102-~1.TXT|WG10.2-1989-cfp.txt" Attributes="0" SourcePath="..\bddscout\IFIP\WG10.2-1989-cfp.txt" SelfReg="false" NextFile="CHANGES"/>
     <ROW File="abp4.trace" Component_="BDDTRACES" FileName="ABP4~1.TRA|abp4.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\abp4.trace" SelfReg="false" NextFile="dme1.trace"/>
     <ROW File="add1.be" Component_="IFIPCATH" FileName="add1.be" Attributes="0" SourcePath="..\bddscout\IFIP\cath\add1.be" SelfReg="false" NextFile="add2.be"/>
@@ -84,6 +88,16 @@
     <ROW File="bddscoutBRA.tcl" Component_="bddscout" FileName="BDDSCO~2.TCL|bddscoutBRA.tcl" Attributes="0" SourcePath="..\bddscout\bddscoutBRA.tcl" SelfReg="false" NextFile="bddscoutIFIP.tcl"/>
     <ROW File="bddscoutIFIP.dll" Component_="bddscoutIFIP.dll" FileName="BDDSCO~3.DLL|bddscoutIFIP.dll" Attributes="0" SourcePath="Win32\bddscoutIFIP.dll" SelfReg="false" NextFile="pkgExtensionBRA.tcl"/>
     <ROW File="bddscoutIFIP.tcl" Component_="bddscout" FileName="BDDSCO~3.TCL|bddscoutIFIP.tcl" Attributes="0" SourcePath="..\bddscout\bddscoutIFIP.tcl" SelfReg="false" NextFile="bddscoutBRA.dll"/>
+    <ROW File="bddscoutcreatefun2var.tcl" Component_="bddscoutcreatefun2var.tcl" FileName="BDDSCO~1.TCL|bddscout-create-fun2var.tcl" Attributes="0" SourcePath="..\bddscout\create\bddscout-create-fun2var.tcl" SelfReg="false" NextFile="bddscoutcreatefun3var.tcl"/>
+    <ROW File="bddscoutcreatefun3var.tcl" Component_="bddscoutcreatefun2var.tcl" FileName="BDDSCO~2.TCL|bddscout-create-fun3var.tcl" Attributes="0" SourcePath="..\bddscout\create\bddscout-create-fun3var.tcl" SelfReg="false" NextFile="bddscoutscriptexample1.tcl"/>
+    <ROW File="bddscoutscriptcompare.tcl" Component_="bddscoutscriptexample1.tcl" FileName="BDDSCO~3.TCL|bddscout-script-compare.tcl" Attributes="0" SourcePath="..\bddscout\scripts\bddscout-script-compare.tcl" SelfReg="false" NextFile="bddscoutscriptdft.tcl"/>
+    <ROW File="bddscoutscriptdft.tcl" Component_="bddscoutscriptexample1.tcl" FileName="BDDSCO~4.TCL|bddscout-script-dft.tcl" Attributes="0" SourcePath="..\bddscout\scripts\bddscout-script-dft.tcl" SelfReg="false" NextFile="bddscoutscriptexportall.tcl"/>
+    <ROW File="bddscoutscriptexample1.tcl" Component_="bddscoutscriptexample1.tcl" FileName="BDDSCO~1.TCL|bddscout-script-example1.tcl" Attributes="0" SourcePath="..\bddscout\scripts\bddscout-script-example1.tcl" SelfReg="false" NextFile="bddscoutscriptexample2.tcl"/>
+    <ROW File="bddscoutscriptexample2.tcl" Component_="bddscoutscriptexample1.tcl" FileName="BDDSCO~2.TCL|bddscout-script-example2.tcl" Attributes="0" SourcePath="..\bddscout\scripts\bddscout-script-example2.tcl" SelfReg="false" NextFile="bddscoutscriptcompare.tcl"/>
+    <ROW File="bddscoutscriptexportall.tcl" Component_="bddscoutscriptexample1.tcl" FileName="BDDSCO~5.TCL|bddscout-script-export-all.tcl" Attributes="0" SourcePath="..\bddscout\scripts\bddscout-script-export-all.tcl" SelfReg="false" NextFile="bddscoutscriptintegram.tcl"/>
+    <ROW File="bddscoutscriptintegram.tcl" Component_="bddscoutscriptexample1.tcl" FileName="BDDSCO~6.TCL|bddscout-script-integram.tcl" Attributes="0" SourcePath="..\bddscout\scripts\bddscout-script-integram.tcl" SelfReg="false" NextFile="bddscoutscriptminmax.tcl"/>
+    <ROW File="bddscoutscriptmesh.tcl" Component_="bddscoutscriptexample1.tcl" FileName="BDDSCO~8.TCL|bddscout-script-mesh.tcl" Attributes="0" SourcePath="..\bddscout\scripts\bddscout-script-mesh.tcl" SelfReg="false"/>
+    <ROW File="bddscoutscriptminmax.tcl" Component_="bddscoutscriptexample1.tcl" FileName="BDDSCO~7.TCL|bddscout-script-minmax.tcl" Attributes="0" SourcePath="..\bddscout\scripts\bddscout-script-minmax.tcl" SelfReg="false" NextFile="bddscoutscriptmesh.tcl"/>
     <ROW File="bddview.tcl" Component_="bddscout" FileName="bddview.tcl" Attributes="0" SourcePath="..\bddview\bddview.tcl" SelfReg="false" NextFile="bddscout.tcl"/>
     <ROW File="counter.be" Component_="IFIPPLASCO" FileName="counter.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\counter.be" SelfReg="false" NextFile="d3.be"/>
     <ROW File="d3.be" Component_="IFIPPLASCO" FileName="d3.be" Attributes="0" SourcePath="..\bddscout\IFIP\plasco\d3.be" SelfReg="false" NextFile="hostint1.be"/>
@@ -94,8 +108,11 @@
     <ROW File="dme2.trace" Component_="BDDTRACES" FileName="DME2~1.TRA|dme2.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\dme2.trace" SelfReg="false" NextFile="gigamax.trace"/>
     <ROW File="ex2.be" Component_="IFIPEX" FileName="ex2.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\ex2.be" SelfReg="false" NextFile="mul03.be"/>
     <ROW File="example.bdd" Component_="bddscout" FileName="example.bdd" Attributes="0" SourcePath="..\bddscout\example.bdd" SelfReg="false" NextFile="example.bf"/>
-    <ROW File="example.bddview" Component_="bddscout" FileName="EXAMPL~1.BDD|example.bddview" Attributes="0" SourcePath="..\bddview\example.bddview" SelfReg="false"/>
     <ROW File="example.bf" Component_="bddscout" FileName="example.bf" Attributes="0" SourcePath="..\bddscout\example.bf" SelfReg="false" NextFile="CHANGES_1"/>
+    <ROW File="examplerobdd.bddview" Component_="bddscout" FileName="EXAMPL~1.BDD|example-robdd.bddview" Attributes="0" SourcePath="..\bddview\example-robdd.bddview" SelfReg="false" NextFile="examplerobddce.bddview"/>
+    <ROW File="examplerobddce.bddview" Component_="bddscout" FileName="EXAMPL~2.BDD|example-robddce.bddview" Attributes="0" SourcePath="..\bddview\example-robddce.bddview" SelfReg="false" NextFile="exampletzbdd.bddview"/>
+    <ROW File="exampletzbdd.bddview" Component_="bddscout" FileName="EXAMPL~3.BDD|example-tzbdd.bddview" Attributes="0" SourcePath="..\bddview\example-tzbdd.bddview" SelfReg="false" NextFile="examplezbddce.bddview"/>
+    <ROW File="examplezbddce.bddview" Component_="bddscout" FileName="EXAMPL~4.BDD|example-zbddce.bddview" Attributes="0" SourcePath="..\bddview\example-zbddce.bddview" SelfReg="false" NextFile="bddscoutcreatefun2var.tcl"/>
     <ROW File="f51m.be" Component_="IFIPHACHTEL" FileName="f51m.be" Attributes="0" SourcePath="..\bddscout\IFIP\hachtel\f51m.be" SelfReg="false" NextFile="misg.be"/>
     <ROW File="gigamax.trace" Component_="BDDTRACES" FileName="GIGAMA~1.TRA|gigamax.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\gigamax.trace" SelfReg="false" NextFile="guidance.trace"/>
     <ROW File="guidance.trace" Component_="BDDTRACES" FileName="GUIDAN~1.TRA|guidance.trace" Attributes="0" SourcePath="..\bddscout\BDDTRACES\guidance.trace" SelfReg="false" NextFile="mutex.trace"/>
@@ -142,7 +159,7 @@
     <ROW File="ztwaalf2.be" Component_="IFIPEX" FileName="ztwaalf2.be" Attributes="0" SourcePath="..\bddscout\IFIP\ex\ztwaalf2.be" SelfReg="false" NextFile="alupla20.be"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="bddscout-1-7-4-Win32" Languages="en" InstallationType="4" UseLargeSchema="true"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="bddscout-1-8-1-Win32" Languages="en" InstallationType="4" UseLargeSchema="true"/>
     <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.CacheComponent">

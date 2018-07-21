@@ -1,12 +1,6 @@
 # SPEC file for package bddscout
 # Usage: rpmbuild -bb bddscout.spec
 #
-# You may have to create/change your ~/.rpmmacros
-# http://rpm5.org/docs/api/macros.html
-#
-# Here is my ~/.rpmmacros which has only a single line:
-# %_topdir        /home/meolic/biddy/rpm
-#
 # This file has been constructed using the following examples:
 #
 # http://www.rpm-based.org/how-to-create-rpm-package
@@ -31,8 +25,8 @@ Packager: meolic
 BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
 
  You can move nodes and subgraphs. The zoom-out capability allows you to
-see the whole BDD. Graph can be saved, printed or exported as PNG image
-and PDF document. Currently, only Biddy BDD package is supported.
+see the whole BDD. Graph can be saved, printed or exported.
+Currently, only Biddy BDD package is supported.
 
 http://biddy.meolic.com/
 
@@ -66,8 +60,8 @@ Group: Education
 BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
 
  You can move nodes and subgraphs. The zoom-out capability allows you to
-see the whole BDD. Graph can be saved, printed or exported as PNG image
-and PDF document. Currently, only Biddy BDD package is supported.
+see the whole BDD. Graph can be saved, printed or exported.
+Currently, only Biddy BDD package is supported.
 
 http://biddy.meolic.com/
 
@@ -82,8 +76,8 @@ Group: Education
 BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
 
  You can move nodes and subgraphs. The zoom-out capability allows you to
-see the whole BDD. Graph can be saved, printed or exported as PNG image
-and PDF document. Currently, only Biddy BDD package is supported.
+see the whole BDD. Graph can be saved, printed or exported.
+Currently, only Biddy BDD package is supported.
 
 http://biddy.meolic.com/
 
@@ -98,8 +92,8 @@ Group: Education
 BDD Scout is a tool for visualization of Binary Decision Diagrams (BDDs).
 
  You can move nodes and subgraphs. The zoom-out capability allows you to
-see the whole BDD. Graph can be saved, printed or exported as PNG image
-and PDF document. Currently, only Biddy BDD package is supported.
+see the whole BDD. Graph can be saved, printed or exported.
+Currently, only Biddy BDD package is supported.
 
 http://biddy.meolic.com/
 
@@ -135,19 +129,24 @@ echo "Sources OK. Let's go building!"
 %{_libdir}/bddscout/bddview.tcl
 %{_libdir}/bddscout/bddscout.so
 %{_libdir}/bddscout/pkgIndex.tcl
+%{_libdir}/bddscout/create
+%{_libdir}/bddscout/scripts
 %{_sharedir}/bddscout/README
 %{_sharedir}/bddscout/README.Linux
-%{_sharedir}/bddscout/example.bddview
+%{_sharedir}/bddscout/example-robdd.bddview
+%{_sharedir}/bddscout/example-robddce.bddview
+%{_sharedir}/bddscout/example-zbddce.bddview
+%{_sharedir}/bddscout/example-tzbdd.bddview
 %{_sharedir}/bddscout/example.bdd
 %{_sharedir}/bddscout/example.bf
 
 %files ifip-data
 %defattr(-, root, root, 0755)
-%{_sharedir}/IFIP/
+%{_sharedir}/IFIP
 
 %files bddtraces-data
 %defattr(-, root, root, 0755)
-%{_sharedir}/BDDTRACES/
+%{_sharedir}/BDDTRACES
 
 %files ifip
 %defattr(-, root, root, 0755)

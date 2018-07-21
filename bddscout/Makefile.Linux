@@ -3,11 +3,11 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 319 $]
-#  Date        [$Date: 2017-09-30 22:37:26 +0200 (sob, 30 sep 2017) $]
+#  Revision    [$Revision: 458 $]
+#  Date        [$Date: 2018-07-18 13:53:04 +0200 (sre, 18 jul 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2017 UM FERI
+#               Copyright (C) 2008, 2018 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
@@ -61,6 +61,8 @@ all: local
 install:
 	$(MKDIR) $(DESTDIR)/bin
 	$(MKDIR) $(DESTDIR)/$(LIBDIR)/bddscout
+	$(MKDIR) $(DESTDIR)/$(LIBDIR)/bddscout/create
+	$(MKDIR) $(DESTDIR)/$(LIBDIR)/bddscout/scripts
 	$(MKDIR) $(DESTDIR)/share/bddscout
 	$(CP) $(BINDIR)/bddscout $(DESTDIR)/bin
 	$(CP) $(BINDIR)/bddscout.tcl $(DESTDIR)/$(LIBDIR)/bddscout
@@ -69,9 +71,14 @@ install:
 	$(CP) $(BINDIR)/pkgIndex.tcl $(DESTDIR)/$(LIBDIR)/bddscout
 	$(CP) $(BINDIR)/README $(DESTDIR)/share/bddscout
 	$(CP) $(BINDIR)/README.Linux $(DESTDIR)/share/bddscout
-	$(CP) $(BINDIR)/example.bddview $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/example-robdd.bddview $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/example-robddce.bddview $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/example-zbddce.bddview $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/example-tzbdd.bddview $(DESTDIR)/share/bddscout
 	$(CP) $(BINDIR)/example.bdd $(DESTDIR)/share/bddscout
 	$(CP) $(BINDIR)/example.bf $(DESTDIR)/share/bddscout
+	$(CP) $(BINDIR)/create/*.tcl $(DESTDIR)/$(LIBDIR)/bddscout/create
+	$(CP) $(BINDIR)/scripts/*.tcl $(DESTDIR)/$(LIBDIR)/bddscout/scripts
 
 install_bddscoutIFIP:
 	$(CP) $(BINDIR)/bddscoutIFIP.so $(DESTDIR)/$(LIBDIR)/bddscout
