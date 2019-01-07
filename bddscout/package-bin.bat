@@ -1,8 +1,8 @@
 @echo off
 
 REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 465 $
-REM  $Date: 2018-07-19 15:56:29 +0200 (čet, 19 jul 2018) $
+REM  $Revision: 529 $
+REM  $Date: 2018-12-21 14:59:34 +0100 (pet, 21 dec 2018) $
 REM
 REM  This file is part of Bdd Scout package.
 REM  Copyright (C) 2008, 2018 UM FERI
@@ -85,9 +85,9 @@ cp Makefile.MINGW %NAME%-%VERSION%
 cp CHANGES %NAME%-%VERSION%/CHANGES_bddscout
 cp example.bf %NAME%-%VERSION%
 cp example.bdd %NAME%-%VERSION%
-mkdir %NAME%-%VERSION%/create
+mkdir %NAME%-%VERSION%\create
 cp ./create/*.tcl %NAME%-%VERSION%/create
-mkdir %NAME%-%VERSION%/scripts
+mkdir %NAME%-%VERSION%\scripts
 cp ./scripts/*.tcl %NAME%-%VERSION%/scripts
 
 cd %NAME%-%VERSION%

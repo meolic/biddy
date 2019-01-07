@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 465 $]
-#  Date        [$Date: 2018-07-19 15:56:29 +0200 (čet, 19 jul 2018) $]
+#  Revision    [$Revision: 524 $]
+#  Date        [$Date: 2018-12-21 12:41:38 +0100 (pet, 21 dec 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2018 UM FERI
@@ -192,10 +192,10 @@ mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for artful
+# create a source distribution for cosmic
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=artful
+ALTDISTRO=cosmic
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -240,7 +240,7 @@ pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/s
 #pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
 #popd
 
-ALTDISTRO=artful
+ALTDISTRO=cosmic
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 #pushd `pwd`/$ALTDISTRO/source

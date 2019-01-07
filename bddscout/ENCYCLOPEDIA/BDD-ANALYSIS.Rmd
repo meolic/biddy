@@ -50,7 +50,7 @@ for (TYPE in c("OBDD","OBDDCE","ZBDD","ZBDDCE")) {
   for (SIZE in c(2,3,4,5)) {
     NAME <- paste("SUM.",TYPE,".0",SIZE,sep="")
     FULLNAME <- paste(NAME,"FULL",sep=".")
-    FILENAME <- paste("~/est/r/","SUM-",TYPE,"-0",SIZE,".TXT",sep="")
+    FILENAME <- paste("./","SUM-",TYPE,"-0",SIZE,".TXT",sep="")
     TABLE <- read.table(FILENAME, header=TRUE, quote="\"")
     data.table::setnames(TABLE,"NODES", "N")
     assign(FULLNAME,TABLE)

@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutTcl.c]
-  Revision    [$Revision: 463 $]
-  Date        [$Date: 2018-07-19 10:40:21 +0200 (čet, 19 jul 2018) $]
+  Revision    [$Revision: 489 $]
+  Date        [$Date: 2018-09-24 08:31:44 +0200 (pon, 24 sep 2018) $]
   Authors     [Robert Meolic (robert.meolic@um.si)]
   Description [File bddscoutTcl.c contains definitions of Tcl commands,
                which can be used for manipulating with BDDs from
@@ -173,300 +173,327 @@ static int BiddyEvalCmd(ClientData clientData, Tcl_Interp *interp, int argc, con
 /* 38 Biddy_Managed_EvalProbability */
 static int BiddyEvalProbabilityCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 64 Biddy_Managed_SetAlphabeticOrdering */
+/* 66 Biddy_Managed_SetAlphabeticOrdering */
 static int BiddySetAlphabeticOrderingCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 65 Biddy_Managed_SwapWithHigher */
+/* 67 Biddy_Managed_SwapWithHigher */
 static int BiddySwapWithHigherCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 66 Biddy_Managed_SwapWithLower */
+/* 68 Biddy_Managed_SwapWithLower */
 static int BiddySwapWithLowerCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 67 Biddy_Managed_Sifting */
+/* 69 Biddy_Managed_Sifting */
 static int BiddySiftingCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 static int BiddySiftingOnFunctionCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 68 Biddy_Managed_MinimizeBDD */
+/* 70 Biddy_Managed_MinimizeBDD */
 static int BiddyMinimizeBDDCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 69 Biddy_Managed_MaximizeBDD */
+/* 71 Biddy_Managed_MaximizeBDD */
 static int BiddyMaximizeBDDCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* ****************************************************************** */
 /* commands used to perform Biddy functions exported from biddyOp.c   */
 /* ****************************************************************** */
 
-/* 73 Biddy_Managed_Not */
+/* 75 Biddy_Managed_Not */
 static int BiddyNotCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 74 Biddy_Managed_ITE */
+/* 76 Biddy_Managed_ITE */
 static int BiddyITECmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 75 Biddy_Managed_And */
+/* 77 Biddy_Managed_And */
 static int BiddyAndCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 76 Biddy_Managed_Or */
+/* 78 Biddy_Managed_Or */
 static int BiddyOrCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 77 Biddy_Managed_Nand */
+/* 79 Biddy_Managed_Nand */
 static int BiddyNandCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 78 Biddy_Managed_Nor */
+/* 80 Biddy_Managed_Nor */
 static int BiddyNorCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 79 Biddy_Managed_Xor */
+/* 81 Biddy_Managed_Xor */
 static int BiddyXorCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 80 Biddy_Managed_Xnor */
+/* 82 Biddy_Managed_Xnor */
 static int BiddyXnorCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 81 Biddy_Managed_Leq */
+/* 83 Biddy_Managed_Leq */
 static int BiddyLeqCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 82 Biddy_Managed_Gt */
+/* 84 Biddy_Managed_Gt */
 static int BiddyGtCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 83 Biddy_Managed_IsLeq */
+/* 85 Biddy_Managed_IsLeq */
 static int BiddyIsLeqCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 84 Biddy_Managed_Restrict */
+/* 86 Biddy_Managed_Restrict */
 static int BiddyRestrictCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 85 Biddy_Managed_Compose */
+/* 87 Biddy_Managed_Compose */
 static int BiddyComposeCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 86 Biddy_Managed_E */
+/* 88 Biddy_Managed_E */
 static int BiddyECmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 87 Biddy_Managed_A */
+/* 89 Biddy_Managed_A */
 static int BiddyACmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 88 Biddy_Managed_IsVariableDependent */
+/* 90 Biddy_Managed_IsVariableDependent */
 static int BiddyIsVariableDependentCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 89 Biddy_Managed_ExistAbstract */
+/* 91 Biddy_Managed_ExistAbstract */
 static int BiddyExistAbstractCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 90 Biddy_Managed_UnivAbstract */
+/* 92 Biddy_Managed_UnivAbstract */
 static int BiddyUnivAbstractCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 91 Biddy_Managed_AndAbstract */
+/* 93 Biddy_Managed_AndAbstract */
 static int BiddyAndAbstractCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 92 Biddy_Managed_Constrain */
+/* 94 Biddy_Managed_Constrain */
 static int BiddyConstrainCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 93 Biddy_Managed_Simplify */
+/* 95 Biddy_Managed_Simplify */
 static int BiddySimplifyCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 94 Biddy_Managed_Support */
+/* 96 Biddy_Managed_Support */
 static int BiddySupportCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 95 Biddy_Managed_Replace */
+/* 97 Biddy_Managed_Replace */
 static int BiddyReplaceCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 96 Biddy_Managed_Change */
+/* 98 Biddy_Managed_Change */
 static int BiddyChangeCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 97 Biddy_Managed_Subset */
-static int BiddySubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+/* 99 Biddy_Managed_VarSubset */
+static int BiddyVarSubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 98 Biddy_Managed_CreateMinterm */
+/* 100... Biddy_Managed_ElementAbstract */
+/* static int BiddyElementAbstractCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+
+/* 100 Biddy_Managed_Product */
+/* static int BiddyProductCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+
+/* 101 Biddy_Managed_SelectiveProduct */
+/* static int BiddySelectiveProductCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+
+/* 102 Biddy_Managed_Supset */
+/* static int BiddySupsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+
+/* 103 Biddy_Managed_Subset */
+/* static int BiddySubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+
+/* 104 Biddy_Managed_Permitsym */
+static int BiddyPermitsymCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+
+/* 105 Biddy_Managed_Stretch */
+static int BiddyStretchCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+
+/* 106 Biddy_Managed_CreateMinterm */
 static int BiddyCreateMintermCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 99 Biddy_Managed_CreateFunction */
+/* 107 Biddy_Managed_CreateFunction */
 static int BiddyCreateFunctionCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 100 Biddy_Managed_RandomFunction */
+/* 108 Biddy_Managed_RandomFunction */
 static int BiddyRandomFunctionCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 101 Biddy_Managed_RandomSet */
+/* 109 Biddy_Managed_RandomSet */
 static int BiddyRandomSetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+
+/* 110 Biddy_Managed_ExtractMinterm */
+/* static int BiddyExtractMintermCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
 
 /* ****************************************************************** */
 /* commands used to perform Biddy functions exported from biddyStat.c */
 /* ****************************************************************** */
 
-/* 102 Biddy_Managed_CountNodes */
+/* 111 Biddy_Managed_CountNodes */
 static int BiddyCountNodesCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 103 Biddy_MaxLevel */
+/* 112 Biddy_MaxLevel */
 static int BiddyMaxLevelCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 104 Biddy_AvgLevel */
+/* 113 Biddy_AvgLevel */
 static int BiddyAvgLevelCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 105 Biddy_Managed_VariableTableNum */
+/* 114 Biddy_Managed_VariableTableNum */
 static int BiddyVariableTableNumCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 106 Biddy_Managed_NodeTableSize */
+/* 115 Biddy_Managed_NodeTableSize */
 static int BiddyNodeTableSizeCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 107 Biddy_Managed_NodeTableBlockNumber */
+/* 116 Biddy_Managed_NodeTableBlockNumber */
 static int BiddyNodeTableBlockNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 108 Biddy_Managed_NodeTableGenerated */
+/* 117 Biddy_Managed_NodeTableGenerated */
 static int BiddyNodeTableGeneratedCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 109 Biddy_Managed_NodeTableMax */
+/* 118 Biddy_Managed_NodeTableMax */
 static int BiddyNodeTableMaxCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 110 Biddy_Managed_NodeTableNum */
+/* 119 Biddy_Managed_NodeTableNum */
 static int BiddyNodeTableNumCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 111 Biddy_Managed_NodeTableNumVar */
+/* 120 Biddy_Managed_NodeTableNumVar */
 static int BiddyNodeTableNumVarCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 112 Biddy_Managed_NodeTableResizeNumber */
+/* 121 Biddy_Managed_NodeTableResizeNumber */
 static int BiddyNodeTableResizeNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 113 Biddy_Managed_NodeTableFoaNumber */
+/* 122 Biddy_Managed_NodeTableFoaNumber */
 static int BiddyNodeTableFoaNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 114 Biddy_Managed_NodeTableFindNumber */
+/* 123 Biddy_Managed_NodeTableFindNumber */
 static int BiddyNodeTableFindNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 115 Biddy_Managed_NodeTableCompareNumber */
+/* 124 Biddy_Managed_NodeTableCompareNumber */
 static int BiddyNodeTableCompareNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 116 Biddy_Managed_NodeTableAddNumber */
+/* 125 Biddy_Managed_NodeTableAddNumber */
 static int BiddyNodeTableAddNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 117 Biddy_Managed_NodeTableGCNumber */
+/* 126 Biddy_Managed_NodeTableGCNumber */
 static int BiddyNodeTableGCNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 118 Biddy_Managed_NodeTableGCTime */
+/* 127 Biddy_Managed_NodeTableGCTime */
 static int BiddyNodeTableGCTimeCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 119 Biddy_Managed_NodeTableGCObsoleteNumber */
+/* 128 Biddy_Managed_NodeTableGCObsoleteNumber */
 static int BiddyNodeTableGCObsoleteNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 120 Biddy_Managed_NodeTableSwapNumber */
+/* 129 Biddy_Managed_NodeTableSwapNumber */
 static int BiddyNodeTableSwapNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 121 Biddy_Managed_NodeTableSiftingNumber */
+/* 130 Biddy_Managed_NodeTableSiftingNumber */
 static int BiddyNodeTableSiftingNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 122 Biddy_Managed_NodeTableDRTime */
+/* 131 Biddy_Managed_NodeTableDRTime */
 static int BiddyNodeTableDRTimeCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 123 Biddy_Managed_NodeTableITENumber */
+/* 132 Biddy_Managed_NodeTableITENumber */
 static int BiddyNodeTableITENumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 124 Biddy_Managed_NodeTableITERecursiveNumber */
+/* 133 Biddy_Managed_NodeTableITERecursiveNumber */
 static int BiddyNodeTableITERecursiveNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 125 Biddy_Managed_NodeTableANDORNumber */
+/* 134 Biddy_Managed_NodeTableANDORNumber */
 static int BiddyNodeTableANDORNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 126 Biddy_Managed_NodeTableANDORRecursiveNumber */
+/* 135 Biddy_Managed_NodeTableANDORRecursiveNumber */
 static int BiddyNodeTableANDORRecursiveNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 127 Biddy_Managed_NodeTableXORNumber */
+/* 136 Biddy_Managed_NodeTableXORNumber */
 static int BiddyNodeTableXORNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 128 Biddy_Managed_NodeTableXORRecursiveNumber */
+/* 137 Biddy_Managed_NodeTableXORRecursiveNumber */
 static int BiddyNodeTableXORRecursiveNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 129 Biddy_Managed_FormulaTableNum */
+/* 138 Biddy_Managed_FormulaTableNum */
 static int BiddyFormulaTableNumCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 130 Biddy_Managed_ListUsed */
+/* 139 Biddy_Managed_ListUsed */
 static int BiddyListUsedCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 131 Biddy_Managed_ListMaxLength */
+/* 140 Biddy_Managed_ListMaxLength */
 static int BiddyListMaxLengthCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 132 Biddy_Managed_ListAvgLength */
+/* 141 Biddy_Managed_ListAvgLength */
 static int BiddyListAvgLengthCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 133 Biddy_Managed_OPCacheSearch */
+/* 142 Biddy_Managed_OPCacheSearch */
 static int BiddyOPCacheSearchCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 134 Biddy_Managed_OPCacheFind */
+/* 143 Biddy_Managed_OPCacheFind */
 static int BiddyOPCacheFindCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 135 Biddy_Managed_OPCacheInsert */
+/* 144 Biddy_Managed_OPCacheInsert */
 static int BiddyOPCacheInsertCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 136 Biddy_Managed_OPCacheOverwrite */
+/* 145 Biddy_Managed_OPCacheOverwrite */
 static int BiddyOPCacheOverwriteCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 137 Biddy_Managed_CountNodesPlain */
+/* 146 Biddy_Managed_CountNodesPlain */
 static int BiddyCountNodesPlainCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 138 Biddy_Managed_DependentVariableNumber */
+/* 147 Biddy_Managed_DependentVariableNumber */
 static int BiddyDependentVariableNumberCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 139 Biddy_Managed_CountComplementedEdges */
+/* 148 Biddy_Managed_CountComplementedEdges */
 static int BiddyCountComplementedEdgesCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 140 Biddy_Managed_CountPaths */
+/* 149 Biddy_Managed_CountPaths */
 static int BiddyCountPathsCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 141 Biddy_Managed_CountMinterms */
+/* 150 Biddy_Managed_CountMinterms */
 static int BiddyCountMintermsCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 static int BiddyCountMintermsDomainCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 142 Biddy_Managed_DensityOfFunction */
+/* 151 Biddy_Managed_DensityOfFunction */
 static int BiddyDensityOfFunctionCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 143 Biddy_Managed_DensityOfBDD */
+/* 152 Biddy_Managed_DensityOfBDD */
 static int BiddyDensityOfBDDCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 144 Biddy_MinNodes */
+/* 153 Biddy_MinNodes */
 static int BiddyMinNodesCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 145 Biddy_MaxNodes */
+/* 154 Biddy_MaxNodes */
 static int BiddyMaxNodesCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 146 Biddy_Managed_ReadMemoryInUse */
+/* 155 Biddy_Managed_ReadMemoryInUse */
 static int BiddyReadMemoryInUseCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 147 Biddy_Managed_PrintInfo */
+/* 156 Biddy_Managed_PrintInfo */
 static int BiddyPrintInfoCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* ******************************************************************* */
 /* commands used to perform Biddy functions exported from biddyInOut.c */
 /* ******************************************************************* */
 
-/* 148 Biddy_Managed_Eval0 */
+/* 157 Biddy_Managed_Eval0 */
 static int BiddyEval0Cmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 149 Biddy_Managed_Eval1 */
+/* 158 Biddy_Managed_Eval1 */
 static int BiddyEval1Cmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 150 Biddy_Managed_Eval2 */
+/* 159 Biddy_Managed_Eval2 */
 static int BiddyEval2Cmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 151 Biddy_Managed_ReadBddview */
+/* 160 Biddy_Managed_ReadBddview */
 static int BiddyReadBddviewCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 152 Biddy_Managed_ReadVerilogFile */
+/* 161 Biddy_Managed_ReadVerilogFile */
 static int BiddyReadVerilogFileCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 153 Biddy_Managed_PrintfBDD */
+/* 162 Biddy_Managed_PrintfBDD */
 static int BiddyPrintfBDDCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 154 Biddy_Managed_WriteBDD */
+/* 163 Biddy_Managed_WriteBDD */
 static int BiddyWriteBDDCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 155 Biddy_Managed_PrintfTable */
+/* 164 Biddy_Managed_PrintfTable */
 static int BiddyPrintfTableCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 156 Biddy_Managed_WriteTable */
+/* 165 Biddy_Managed_WriteTable */
 static int BiddyWriteTableCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 157 Biddy_Managed_PrintfSOP */
+/* 166 Biddy_Managed_PrintfSOP */
 static int BiddyPrintfSOPCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 158 Biddy_Managed_WriteSOP */
+/* 167 Biddy_Managed_WriteSOP */
 static int BiddyWriteSOPCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 159 Biddy_Managed_WriteDot */
+/* 168 Biddy_Managed_PrintfMinterms */
+static int BiddyPrintfMintermsCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+
+/* 169 Biddy_Managed_WriteDot */
 static int BiddyWriteDotCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
-/* 160 Biddy_Managed_WriteBddview */
+/* 170 Biddy_Managed_WriteBddview */
 static int BiddyWriteBddviewCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /*-----------------------------------------------------------------------*/
@@ -722,7 +749,10 @@ Bddscout_Init(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "biddy_change", BiddyChangeCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
-  Tcl_CreateCommand(interp, "biddy_subset", BiddySubsetCmd,
+  Tcl_CreateCommand(interp, "biddy_varsubset", BiddyVarSubsetCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_permitsym", BiddyPermitsymCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
   Tcl_CreateCommand(interp, "biddy_create_minterm", BiddyCreateMintermCmd,
@@ -917,6 +947,9 @@ Bddscout_Init(Tcl_Interp *interp)
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
   Tcl_CreateCommand(interp, "biddy_write_sop", BiddyWriteSOPCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_printf_minterms", BiddyPrintfMintermsCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
   Tcl_CreateCommand(interp, "biddy_write_dot", BiddyWriteDotCmd,
@@ -3683,14 +3716,15 @@ BiddyChangeCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 
 /**Function****************************************************************
   Synopsis    []
-  Description [biddy_subset(r,f,v,value) calculates r = Subset(f,v,value)]
+  Description [biddy_varsubset(r,f,v,value) calculates
+               r = VarSubset(f,v,value)]
   SideEffects [This is a command used to perform Biddy function exported
                from biddyOp.c]
   SeeAlso     []
   ************************************************************************/
 
 static int
-BiddySubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+BiddyVarSubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc,
            const char **argv)
 {
   Biddy_Manager MNG;
@@ -3719,9 +3753,9 @@ BiddySubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc,
       (v != 0))
   {
     if (b == 0) {
-      r = Biddy_Managed_Subset(MNG,f,v,FALSE);
+      r = Biddy_Managed_VarSubset(MNG,f,v,FALSE);
     } else {
-      r = Biddy_Managed_Subset(MNG,f,v,TRUE);
+      r = Biddy_Managed_VarSubset(MNG,f,v,TRUE);
     }
     Biddy_Managed_AddPersistentFormula(MNG,s1,r);
   }
@@ -3730,6 +3764,51 @@ BiddySubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   free(s2);
   free(s3);
   free(s4);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_permitsym(r,f,n) calculates r = Permitsym(f,n)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddyPermitsymCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+                  const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f;
+  unsigned int idx;
+  unsigned int n;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  sscanf(s3,"%u",&n);
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f))
+  {
+    r = Biddy_Managed_Permitsym(MNG,f,n);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
 
   Tcl_SetResult(interp, (char *) "", TCL_STATIC);
   return TCL_OK;
@@ -6099,6 +6178,97 @@ BiddyWriteSOPCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   if (!sup) return TCL_ERROR;
   Tcl_SetResult(interp, (char *) "not implemented, yet", TCL_STATIC);
   free(sup);
+
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [command used to perform Biddy functions exported from biddyInOut.c]
+  SideEffects []
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddyPrintfMintermsCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+                       const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1;
+  unsigned int idx;
+  Biddy_Edge f;
+
+  if (argc != 2) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  if (!Biddy_Managed_FindFormula(MNG,s1,&idx,&f)) {
+
+    printf("BiddyPrintfMintermsCmd: Function %s does not exists!\n",s1);
+    Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+
+  } else {
+
+    FILE *tmpfile;
+    char line[256];
+    Biddy_String oneline,result;
+    char* tmpname;
+#if defined(MINGW) || defined(_MSC_VER)
+    char* docdir;
+    char* appdir;
+    docdir = getenv("USERPROFILE");
+    appdir = strdup("\\AppData\\Local\\");
+#endif
+
+#if defined(MINGW) || defined(_MSC_VER)
+    tmpname = (Biddy_String) malloc(strlen(docdir)+strlen(appdir)+7+1);
+    tmpname[0] = 0;
+    strcat(tmpname,docdir);
+    strcat(tmpname,appdir);
+    strcat(tmpname,"biddy.tmp");
+    free(appdir);
+#elif UNIX
+    tmpname = strdup("/tmp/XXXXXX");
+    close(mkstemp(tmpname));
+#else
+    tmpname = strdup("biddy.tmp");
+#endif
+
+    /* DEBUGGING */
+    /**/
+    Biddy_Managed_PrintfMinterms(MNG,f,FALSE); /* use true for full minterms */
+    /**/
+
+    /* Biddy_Managed_WriteMinterms is not implemented, yet */
+    Biddy_Managed_WriteTable(MNG,tmpname,f);
+
+    result = NULL;
+    tmpfile = fopen(tmpname,"r");
+    if (!tmpfile) {
+      fprintf(stderr,"BiddyPrintfMintermsCmd: File error (%s)!\n",tmpname);
+    } else {
+      oneline = fgets(line,255,tmpfile);
+      if (oneline) result = strdup(oneline);
+      while (oneline) {
+        oneline = fgets(oneline,255,tmpfile);
+        if (oneline) concat(&result,oneline);
+      }
+
+      fclose(tmpfile);
+    }
+
+    free(tmpname);
+
+    Tcl_SetResult(interp, result, TCL_VOLATILE);
+    free(result);
+  }
+
+  free(s1);
 
   return TCL_OK;
 }

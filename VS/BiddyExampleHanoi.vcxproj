@@ -22,7 +22,7 @@
     <ProjectGuid>{A6B61673-3AC7-471D-9D37-2120F6F1EB92}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>BiddyExampleHanoi</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

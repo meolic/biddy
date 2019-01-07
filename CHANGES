@@ -267,3 +267,16 @@ Changes v1.8.1 versus v1.7.4
 - fixed conversion from ZBDD to TZBDD
 - improved Biddy_Replace
 - improved BRA and Dictionary example
+
+Changes v1.8.2 versus v1.8.1
+- released on Dec 21, 2018
+- renamed Biddy_Subset to Biddy_VarSubset
+- added Biddy_GetOrdering and Biddy_SetOrdering
+- added Biddy_Supset (Restriction) and Biddy_Subset (Permission)
+- added Biddy_Product and Biddy_SelectiveProduct
+- added Biddy_Permitsym and Biddy_Stretch
+- added Biddy_ExtractMinterm and Biddy_PrintfMinterms
+- fixed Biddy_PrintfSOP and Biddy_WriteSOP
+- fixed Biddy_Eval for ZBDD without complemented edges
+- added Production Planning example
+- added Task Allocation example

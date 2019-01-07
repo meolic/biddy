@@ -34,25 +34,20 @@ proc generatePaths {src dst sw m} {
     set newPaths ""
     foreach item $paths {
       set last [lindex $item end]
-      if {[lsearch [concat $src $sw] $last] == -1} {
-        lappend newPaths $item
-      } else { foreach next [set mesh($last)] {
-        if {($next == $dst) ||
-            (([lsearch $sw $next] != -1) &&
-             ([lsearch $item $next] == -1))
-        } { lappend newPaths [concat $item $next] }
-    }}}
+      if {[lsearch [concat $src $sw] $last] == -1} {lappend newPaths $item} else {
+      foreach next [set mesh($last)] { if {
+        ($next == $dst) || (([lsearch $sw $next] != -1) && ([lsearch $item $next] == -1))
+      } { lappend newPaths [concat $item $next] }}}
+    }
     set paths $newPaths
   }
   return $newPaths
 }
 
-# generate structure function for the set of paths
-proc generateSF {name paths} {
+# generate failure function for the set of paths
+proc generateF {name paths} {
   EVAL "$name = 0"
-  foreach path $paths {
-    EVAL "$name = $name + !([join $path " + "])"
-  }
+  foreach p $paths { EVAL "$name = $name + !([join $p " + "])" }
   EVAL "$name = !$name"
 }
 
@@ -61,20 +56,16 @@ set sw {SWa1 SWa2 SWa3 SWa4 SWb1 SWb2 SWb3 SWb4}
 array set mesh {
   SRa {SWa2 SWb2} SRb {SWa3 SWb3}
   SAa {SWa1 SWb1} SAb {SWa4 SWb4}
-  SWa1 {SAa SWa2 SWa3}
-  SWa2 {SRa SWa1 SWa3 SWa4}
-  SWa3 {SRb SWa1 SWa2 SWa4}
-  SWa4 {SAb SWa2 SWa3}
-  SWb1 {SAa SWb2 SWb3}
-  SWb2 {SRa SWb1 SWb3 SWb4}
-  SWb3 {SRb SWb1 SWb2 SWb4}
-  SWb4 {SAb SWb2 SWb3}
+  SWa1 {SAa SWa2 SWa3} SWa2 {SRa SWa1 SWa3 SWa4}
+  SWa3 {SRb SWa1 SWa2 SWa4} SWa4 {SAb SWa2 SWa3}
+  SWb1 {SAa SWb2 SWb3} SWb2 {SRa SWb1 SWb3 SWb4}
+  SWb3 {SRb SWb1 SWb2 SWb4} SWb4 {SAb SWb2 SWb3}
 }
 
-generateSF FAA [generatePaths SRa SAa $sw mesh]
-generateSF FAB [generatePaths SRa SAb $sw mesh]
-generateSF FBA [generatePaths SRb SAa $sw mesh]
-generateSF FBB [generatePaths SRb SAb $sw mesh]
+generateF FAA [generatePaths SRa SAa $sw mesh]
+generateF FAB [generatePaths SRa SAb $sw mesh]
+generateF FBA [generatePaths SRb SAa $sw mesh]
+generateF FBB [generatePaths SRb SAb $sw mesh]
 
 EVAL "FAILURE = FAA * FAB * FBA * FBB"
 
@@ -93,9 +84,10 @@ bddscout_update
 # show resulting function
 bddscout_show FAILURE
 
-# bddscout_count_nodes - write to console
-puts "Function FAILURE has [bddscout_count_nodes FAILURE] nodes"
+# write results to console
 puts "Number of nodes: [bddscout_count_nodes FAILURE]"
+puts "Number of minterms: [biddy_count_minterms FAILURE]"
+puts "Function FAILURE has [bddscout_count_nodes FAILURE] nodes"
 
 # bddscout_eval_probability - write to console
 puts "Function FAA is evaluated to probabilty [bddscout_eval_probability FAA]"

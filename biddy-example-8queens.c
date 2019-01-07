@@ -1,5 +1,5 @@
-/* $Revision: 456 $ */
-/* $Date: 2018-07-14 21:11:41 +0200 (sob, 14 jul 2018) $ */
+/* $Revision: 476 $ */
+/* $Date: 2018-09-16 22:23:52 +0200 (ned, 16 sep 2018) $ */
 /* This file (biddy-example-8queens.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -177,9 +177,8 @@ int main(int argc, char** argv) {
     board_not[0][i] = board_not[i][0] = NULL;
   }
 
-  /* create BDD variables */
-  if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC) ||
-      (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
+  /* create OBDD variables */
+  if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC))
   {
     for (i=1; i<=size; i++) {
       for (j=1; j<=size; j++) {
@@ -191,9 +190,11 @@ int main(int argc, char** argv) {
     }
   }
 
-  /* for Biddy, ZBDD variables are added in the reverse order to get consistent results */
+  /* for Biddy, ZBDD and TZBDD variables are added in the reverse order */
+  /* thus, creating variables is adapted to get consistent results */
 #ifdef BIDDY
-  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC))
+  if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC) ||
+      (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
   {
     for (i=1; i<=size; i++) {
       for (j=1; j<=size; j++) {

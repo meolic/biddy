@@ -9,8 +9,8 @@ package require BWidget
 package provide bddview 1.0
 
 # ####################################################################
-# $Revision: 446 $
-# $Date: 2018-06-05 11:11:31 +0200 (tor, 05 jun 2018) $
+# $Revision: 469 $
+# $Date: 2018-09-03 21:48:21 +0200 (pon, 03 sep 2018) $
 #
 # This file (bddview.tcl) is a Tcl/Tk script
 # Author: Robert Meolic (robert.meolic@um.si)
@@ -3204,12 +3204,12 @@ proc bddview_export_tex {filename caption document} {
     foreach item $llist {
       set name [string range [lindex [$mainwin gettags $item] 0] 1 end]
       set t [$mainwin itemcget $item -text]
-      set t [string map {"_" "\\_"} $t]
+      #set t [string map {"_" "\\_"} $t]
       set koord [$mainwin coords $item]
       set xcenter [expr floor([lindex $koord 0])-$LABELOFFSETX]
       set ycenter [expr floor([lindex $koord 1])-$LABELOFFSETY]
     }
-    puts $f "\\draw ($xcenter,$ycenter) node\[top\] (n$name) \{$t\};"
+    puts $f "\\draw ($xcenter,$ycenter) node\[top\] (n$name) \{\$$t\$\};"
 
     #WRITE NODES
     foreach item $nlist {
@@ -3218,13 +3218,13 @@ proc bddview_export_tex {filename caption document} {
       set x [expr floor([lindex $koord 0])-$LABELOFFSETX]
       set y [expr floor([lindex $koord 1])-$LABELOFFSETY]
       set t [$mainwin itemcget $item -text]
-      set t [string map {"_" "\\_"} $t]
+      #set t [string map {"_" "\\_"} $t]
       if {$t == "0"} {
         puts $f "\\draw ($x,$y) node\[leaf\] (n$name) \{\$0\$\};"
       } elseif {$t == "1"} {
         puts $f "\\draw ($x,$y) node\[leaf\] (n$name) \{\$1\$\};"
       } else {
-        puts $f "\\draw ($x,$y) node\[var\] (n$name) \{$t\};"
+        puts $f "\\draw ($x,$y) node\[var\] (n$name) \{\$$t\$\};"
       }
     }
 

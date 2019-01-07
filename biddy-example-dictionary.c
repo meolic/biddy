@@ -1,5 +1,5 @@
-/* $Revision: 455 $ */
-/* $Date: 2018-07-14 12:11:54 +0200 (sob, 14 jul 2018) $ */
+/* $Revision: 528 $ */
+/* $Date: 2018-12-21 14:31:07 +0100 (pet, 21 dec 2018) $ */
 /* This file (biddy-example-dictionary.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -848,7 +848,7 @@ createLevenshteinTemplate(unsigned int wordlength, unsigned char alphabet[],
   VarTable *vartable;
   Biddy_Edge lgraph,hgraph,igraph,dgraph,fgraph;
   unsigned int i;
-  char name[255];
+  /* char name[255]; */
 
   if (!usenullsymbol) {
     printf("Without null symbol Levenshtein is not implemented\n");
@@ -976,7 +976,8 @@ createLevenshteinTemplatePerPartes(unsigned int wordlength, unsigned char alphab
   VarTable *vartable;
   Biddy_Edge *lgraph;
   Biddy_Edge *fgraph;
-  Biddy_Edge hgraph,igraph,dgraph,llgraph,ffgraph;
+  Biddy_Edge hgraph,igraph,dgraph;
+  /* Biddy_Edge llgraph,ffgraph; */
   unsigned int i,j;
   char name[255];
 

@@ -8,8 +8,8 @@ exec wish "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 463 $]
-#  Date        [$Date: 2018-07-19 10:40:21 +0200 (čet, 19 jul 2018) $]
+#  Revision    [$Revision: 469 $]
+#  Date        [$Date: 2018-09-03 21:48:21 +0200 (pon, 03 sep 2018) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2018 UM FERI
@@ -248,6 +248,7 @@ set CMDLIST [list \
   "bddview_export_tex" \
   "biddy_get_then" \
   "biddy_get_else" \
+  "biddy_permitsym" \
   "biddy_eval" \
   "biddy_eval_probability" \
   "biddy_set_alphabetic_ordering" \
@@ -266,6 +267,7 @@ set CMDLIST [list \
   "biddy_max_nodes" \
   "biddy_printf_table" \
   "biddy_printf_sop" \
+  "biddy_printf_minterms" \
   "bddscout_count_nodes" \
   "bddscout_reset_all_values" \
   "bddscout_set_values" \
@@ -1542,7 +1544,7 @@ proc menu_help_about {} {
   text .helpAbout.w -bg $COLORMENU -height 20 -width 100
   .helpAbout.w insert 1.0 "\
   BDD Scout v$BIDDYVERSION\n\
-  \$Date: 2018-07-19 10:40:21 +0200 (čet, 19 jul 2018) $ \n\n\
+  \$Date: 2018-09-03 21:48:21 +0200 (pon, 03 sep 2018) $ \n\n\
   Author: Robert Meolic (robert.meolic@um.si)\n\n\
   Copyright (C) 2006, 2018 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\n\
   Biddy is free software; you can redistribute it and/or modify it under the terms\n\
@@ -1970,6 +1972,8 @@ proc parseinput { } {
           set INPUT [string cat $CMD " " $BDDNAME "_T " $BDDNAME]
         } elseif {$CMD == "biddy_get_else"} {
           set INPUT [string cat $CMD " " $BDDNAME "_E " $BDDNAME]
+        } elseif {$CMD == "biddy_permitsym"} {
+          set INPUT [string cat $CMD " " $BDDNAME "_1 " $BDDNAME " 1"]
         } elseif {$CMD == "biddy_support"} {
           set INPUT [string cat $CMD " " $BDDNAME "_SUPPORT " $BDDNAME]
         } elseif {$CMD == "bddscout_reset_all_values"} {
@@ -2152,36 +2156,40 @@ proc update_info {  } {
     $selectwin.browser see $BDDNAME
   }
 
-  if {($num == 0) || ($num > 99)} {
-    set maxnodes "-"
-    set maxdepth "-"
-    set avgdepth "-"
-  } else {
+  set maxnodes "-"
+  set maxdepth "-"
+  set avgdepth "-"
+
+  if {($num > 0) && ($num < 100)} {
+
+    # maxlevel and avglevel are disabled because the problem with efficiency
 
     set listNumber [bddscout_list_formulae_by_node_number]
-    set listMax [bddscout_list_formulae_by_node_max_level]
-    set listAvg [bddscout_list_formulae_by_node_avg_level]
+    #set listMax [bddscout_list_formulae_by_node_max_level]
+    #set listAvg [bddscout_list_formulae_by_node_avg_level]
 
     set f [join [lindex $listNumber end]]
     set maxnodes [string range $f 0 [expr [string last "(" $f] -1]]
     set nodes [findData $maxnodes $listNumber]
-    set max [findData $maxnodes $listMax]
-    set avg [findData $maxnodes $listAvg]
+    #set max [findData $maxnodes $listMax]
+    set max "-"
+    #set avg [findData $maxnodes $listAvg]
+    set avg "-"
     set maxnodes "$maxnodes (nodes = $nodes, depth = $max, avg depth = $avg)"
 
-    set f [join [lindex $listMax end]]
-    set maxdepth [string range $f 0 [expr [string last "(" $f] -1]]
-    set nodes [findData $maxdepth $listNumber]
-    set max [findData $maxdepth $listMax]
-    set avg [findData $maxdepth $listAvg]
-    set maxdepth "$maxdepth (nodes = $nodes, depth = $max, avg depth = $avg)"
+    #set f [join [lindex $listMax end]]
+    #set maxdepth [string range $f 0 [expr [string last "(" $f] -1]]
+    #set nodes [findData $maxdepth $listNumber]
+    #set max [findData $maxdepth $listMax]
+    #set avg [findData $maxdepth $listAvg]
+    #set maxdepth "$maxdepth (nodes = $nodes, depth = $max, avg depth = $avg)"
 
-    set f [join [lindex $listAvg end]]
-    set avgdepth [string range $f 0 [expr [string last "(" $f] -1]]
-    set nodes [findData $avgdepth $listNumber]
-    set max [findData $avgdepth $listMax]
-    set avg [findData $avgdepth $listAvg]
-    set avgdepth "$avgdepth (nodes = $nodes, depth = $max, avg depth = $avg)"
+    #set f [join [lindex $listAvg end]]
+    #set avgdepth [string range $f 0 [expr [string last "(" $f] -1]]
+    #set nodes [findData $avgdepth $listNumber]
+    #set max [findData $avgdepth $listMax]
+    #set avg [findData $avgdepth $listAvg]
+    #set avgdepth "$avgdepth (nodes = $nodes, depth = $max, avg depth = $avg)"
 
   }
 

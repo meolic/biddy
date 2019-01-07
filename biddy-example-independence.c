@@ -1,5 +1,5 @@
-/* $Revision: 456 $ */
-/* $Date: 2018-07-14 21:11:41 +0200 (sob, 14 jul 2018) $ */
+/* $Revision: 476 $ */
+/* $Date: 2018-09-16 22:23:52 +0200 (ned, 16 sep 2018) $ */
 /* This file (biddy-example-independence.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  /* CREATE ZBDD OR TZBDD VARIABLES */
+  /* CREATE ZBDD AND TZBDD VARIABLES */
   /* NOTE for Biddy: ZBDDs and TZBDDs variables are added in the reverse order by default */
   /* NOTE for Biddy: usaState[0] = europeState[0] and it is last added */
   /* NOTE for CUDD: usaState[0] = europeState[0] and it is first added */

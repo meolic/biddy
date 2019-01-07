@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 454 $]
-    Date        [$Date: 2018-07-02 20:10:14 +0200 (pon, 02 jul 2018) $]
+    Revision    [$Revision: 501 $]
+    Date        [$Date: 2018-10-10 15:21:44 +0200 (sre, 10 okt 2018) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
@@ -101,8 +101,8 @@ See also: biddy.h
 /* BIDDY IS NOT EFFICIENT WITH MANY VARIABLES! */
 /* #define BIDDYVARMAX 1024 */
 /* #define BIDDYVARMAX 2048 */
-/* #define BIDDYVARMAX 4096 */
-#define BIDDYVARMAX 6144
+#define BIDDYVARMAX 4096
+/* #define BIDDYVARMAX 6144 */
 /* #define BIDDYVARMAX 8192 */
 
 /* the following constants are used in Biddy_ReadVerilogFile */
@@ -712,7 +712,7 @@ extern void BiddySjtInit(Biddy_Manager MNG);
 extern void BiddySjtExit(Biddy_Manager MNG);
 extern Biddy_Boolean BiddySjtStep(Biddy_Manager MNG);
 extern void BiddySetOrdering(Biddy_Manager MNG, BiddyOrderingTable ordering);
-extern void BiddySetOrderingByData(Biddy_Manager MNG, BiddyOrderingTable ordering);
+extern void BiddySetOrderingByData(Biddy_Manager MNG);
 
 extern Biddy_Edge BiddyCopy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
 extern Biddy_Edge BiddyCopyOBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
@@ -766,7 +766,15 @@ extern Biddy_Edge BiddyManagedSimplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Ed
 extern Biddy_Edge BiddyManagedSupport(Biddy_Manager MNG, Biddy_Edge f);
 extern Biddy_Edge BiddyManagedReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv, const unsigned int key);
 extern Biddy_Edge BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
-extern Biddy_Edge BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
+extern Biddy_Edge BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
+extern Biddy_Edge BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
+extern Biddy_Edge BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
+extern Biddy_Edge BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge cube);
+extern Biddy_Edge BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
+extern Biddy_Edge BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
+extern Biddy_Edge BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest, unsigned int n);
+extern Biddy_Edge BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge f);
+extern Biddy_Edge BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f, Biddy_Edge m);
 
 #define BiddyManagedUnion(MNG,f,g) BiddyManagedOr(MNG,f,g)
 #define BiddyManagedIntersect(MNG,f,g) BiddyManagedAnd(MNG,f,g)

@@ -1,5 +1,5 @@
-/* $Revision: 455 $ */
-/* $Date: 2018-07-14 12:11:54 +0200 (sob, 14 jul 2018) $ */
+/* $Revision: 469 $ */
+/* $Date: 2018-09-03 21:48:21 +0200 (pon, 03 sep 2018) $ */
 /* This file (biddy-example-random.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
@@ -149,7 +149,7 @@ int main() {
     printf("Function result has density = %.2e.\n",Biddy_DensityOfFunction(result,SIZE));
 
     /*
-    printf("Function represented by %s depends on %u variables.\n", Biddy_GetManagerName(), Biddy_DependentVariableNumber(result, FALSE));
+    printf("Function represented by %s depends on %u variables.\n",Biddy_GetManagerName(),Biddy_DependentVariableNumber(result,FALSE));
     printf("%s for function result has %u nodes (including terminals).\n",Biddy_GetManagerName(),Biddy_CountNodes(result));
     printf("%s for function result has %u plain nodes (including terminals).\n",Biddy_GetManagerName(),Biddy_CountNodesPlain(result));
     printf("%s for function result has %llu one-paths.\n",Biddy_GetManagerName(),Biddy_CountPaths(result));

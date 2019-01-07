@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyStat.c]
-    Revision    [$Revision: 456 $]
-    Date        [$Date: 2018-07-14 21:11:41 +0200 (sob, 14 jul 2018) $]
+    Revision    [$Revision: 476 $]
+    Date        [$Date: 2018-09-16 22:23:52 +0200 (ned, 16 sep 2018) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
@@ -163,6 +163,8 @@ extern "C" {
 unsigned int
 Biddy_MaxLevel(Biddy_Edge f)
 {
+  /* TO DO: NOT EFFICIENT FOR LARGE DEPTH, E.G. >100 */
+
   unsigned int max;
 
   if (Biddy_IsNull(f)) return 0;
@@ -182,7 +184,7 @@ Biddy_MaxLevel(Biddy_Edge f)
 ### Description
 ### Side effects
     The result may not be compatible with your definition of Average Level
-    for DAG. The result is especially problematic if there exists a node with
+    for DAG. The result is especially problematic if there exist nodes with
     two equal descendants (e.g for ZBDDs and TZBDDs).
 ### More info
     Macro Biddy_Managed_AvgLevel(f) is defined for user convenience.
@@ -197,6 +199,8 @@ Biddy_AvgLevel(Biddy_Edge f)
 {
   float sum;
   unsigned int n;
+
+  /* TO DO: NOT EFFICIENT FOR LARGE DEPTH, E.G. >100 */
 
   if (Biddy_IsNull(f)) return 0;
 
@@ -1265,7 +1269,7 @@ Biddy_Managed_CountNodesPlain(Biddy_Manager MNG, Biddy_Edge f)
     the function will unselect them.
 ### Side effects
     For ZBDDs, variables above the top variable (which are always
-    all dependent) are not counted and not selected!
+    all dependent) are also counted and selected!
 ### More info
     Macro Biddy_DependentVariableNumber(f) is defined for use with anonymous
     manager.
@@ -1326,7 +1330,9 @@ Biddy_Managed_DependentVariableNumber(Biddy_Manager MNG, Biddy_Edge f,
     BiddyDeleteLocalInfo(MNG,f); /* FOR ZBDDs, localinfo IS USED BY BiddyNodeVarNumber */
     v = 0;
     for (i=1;i<biddyVariableTable.num;i++) {
-      if (BiddyIsSmaller(i,BiddyV(f)) || (biddyVariableTable.table[i].selected == TRUE))
+      /* variables above the top variable (which are always all dependent) are not selected, yet */
+      if (BiddyIsSmaller(i,BiddyV(f))) biddyVariableTable.table[i].selected = TRUE;
+      if (biddyVariableTable.table[i].selected == TRUE)
       {
         v++;
         if (!select) biddyVariableTable.table[i].selected = FALSE; /* deselect variable */
@@ -1505,12 +1511,19 @@ Biddy_Managed_CountPaths(Biddy_Manager MNG, Biddy_Edge f)
 \brief Function Biddy_Managed_CountMinterms.
 
 ### Description
+    For combination sets, this function coincides with combinations counting.
     Parameter nvars is a user-defined number of dependent variables.
-    If nvars == 0 then number of variables existing in the graph is used.
-    For combination sets, this function coincides with combination counting.
+    If (nvars == 0) then all noticeable variables are considered.
 ### Side effects
     We are using GNU Multiple Precision Arithmetic Library (GMP).
     For ZBDDs, this function coincides with the 1-path count.
+    For ZBDDs, result does not depend on the number of dependent variables.
+    For OBDD, noticeable variables are all variables existing in the graph.
+    For TZBDD, noticeable variables are all variables equal or below a top
+    variable (considering the tag).
+    For OBDDs and TZBDDs, if (nvars == 0) the result may not be consistent
+    with Biddy_PrintfMinterms because this function considers noticeable
+    variables, while Biddy_PrintfMinterms considers all created variables.
 ### More info
     Macro Biddy_CountMinterms(f,nvars) is defined for use with anonymous
     manager.
@@ -1577,7 +1590,7 @@ Biddy_Managed_CountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars)
   }
 
   /* nvars is the requested number of variables */
-  if (nvars == 0) nvars = depvar;
+  if (nvars == 0) nvars = var;
   if (nvars < depvar) {
     nvars = depvar;
     fprintf(stderr,"WARNING (Biddy_CountMinterms): nvars < depvar\n");
@@ -1598,6 +1611,11 @@ Biddy_Managed_CountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars)
     leftmost = FALSE; /* it is not used */
   }
 
+  /* DEBUGGING */
+  /*
+  printf("Biddy_CountMinterms: var = %u, depvar = %u, nvars = %u\n",var,depvar,nvars);
+  */
+
   mpz_init(result);
   mintermCount(MNG,f,max,result,&leftmost); /* select all nodes except terminal node */
 
@@ -1613,15 +1631,10 @@ Biddy_Managed_CountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars)
     }
   }
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
-    /* the requested number of variables cannot be greater than the number of noticeable variables */
-    if (nvars < var) {
-      while (nvars < var) {
-        mpz_divexact_ui(result,result,2);
-        nvars++;
-      }
-    }
+    /* the result does not depend on the requested number of variables */
   }
   else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+    /* the requested number of can be smaller are greater than the number of noticeable variables */
     if (nvars > var) {
       while (nvars > var) {
         mpz_mul_ui(result,result,2);
@@ -1823,7 +1836,7 @@ Biddy_Managed_DensityOfBDD(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars)
         the optimal ordering.
 
 ### Description
-    BDD is copyed into new empty manager and then Steinhaus–Johnson–Trotter
+    BDD is copied into new empty manager and then Steinhaus–Johnson–Trotter
     algorithm is used to check the node number for all possible orderings.
 ### Side effects
     Function will finish in a good time only for small number of variables.
@@ -1966,7 +1979,7 @@ Biddy_Managed_MinNodes(Biddy_Manager MNG, Biddy_Edge f) {
         the worst ordering.
 
 ### Description
-    BDD is copyed into new empty manager and then Steinhaus–Johnson–Trotter
+    BDD is copied into new empty manager and then Steinhaus–Johnson–Trotter
     algorithm is used to check the node number for all possible orderings.
 ### Side effects
     Function will finish in a good time only for small number of variables.
