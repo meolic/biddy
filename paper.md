@@ -92,9 +92,9 @@ which is supposed to be the underlying theme for all its design aspects in the
 future. After all, software engineering is about the product appearance as well.
 
 In conclusion, Biddy is free software to be used in applications that need to
-manipulate Boolean functions or combination sets. In its current version, it is
+manipulate Boolean functions or combination sets. In is
 a complete and efficient product suitable for many academic and commercial
-settings. The Biddy's binary packages, user manual, and other documentation can
+settings. The binary packages, the user manual, and the other documentation can
 be obtained from http://biddy.meolic.com/.
 
 # References
