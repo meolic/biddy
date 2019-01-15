@@ -29,8 +29,8 @@ biddy> make clean
 
 Dependencies:
 
-- on GNU/Linux, you need libgmp (https://gmplib.org/).
-- on MS Windows, you need MPIR library (http://mpir.org/).
+- on GNU/Linux, you need libgmp (https://gmplib.org/)
+- on MS Windows, you need MPIR library (http://mpir.org/)
 
 Alternatively, use the prepared Visual Studio project (VS/Biddy.sln).
 
@@ -44,15 +44,13 @@ Tests:
 
 - create a static Biddy library
 - compile the Hanoi example (notes for building are given in the source code)
-- alternatively, compile any of the other examples
+- alternatively, compile any of the other example
 
 ~~~
 biddy> make static
 biddy> gcc -DUNIX -DBIDDY -o hanoi biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp
 biddy> ./hanoi 10
 ~~~
-
-gcc -DREPORT -DUNIX -DBIDDY -DOBDD -O2 -o biddy-example-hanoi-obdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp
 
 There are two  aditional packages included into Biddy distribution:
 
@@ -775,5 +773,5 @@ If you find our work useful, please, cite us.
   Technical report, University of Maribor, 2016.
   https://dk.um.si/IzpisGradiva.php?id=68831
 
-- Robert Meolic. __Biddy.__ University of Maribor, 2019.
+- Robert Meolic. __The Biddy BDD package.__ University of Maribor, 2019.
   We are preparing a paper for JOSS.
