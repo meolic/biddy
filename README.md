@@ -686,18 +686,18 @@ a  second place  at  IEEE Region  Student  Paper Contest  (Paris-Evry,
 Representation of  Boolean functions with ROBDDs.   IEEE Student paper
 contest :  regional contest  winners 1990-1997 :  prize-winning papers
 demonstrating student excellence  worldwide, Piscataway, 2000" and can
-be obtained from http://research.meolic.com/papers/robdd.pdf
+be obtained from http://www.meolic.com/research/papers/robdd-casar-meolic.pdf .
 
 In 1995, this BDD package was  rewritten in C. Later, this BDD package
 become an  integral part of EST  package, a prototype  tool for formal
 verification of  concurrent systems.  The homepage for  EST project is
-http://est.meolic.com/
+http://est.meolic.com/ .
 
 In 2003, BDD package from EST  was included in the report presented at
 16th Symposium  on Integrated Circuits and  Systems Design (SBCCI'03).
 The report is available as a paper "G.  Janssen.  A Consumer Report on
 BDD Packages.  IBM T.J.  Watson  Research Center.  2003".  Get it from
-http://doi.ieeecomputersociety.org/10.1109/SBCCI.2003.1232832
+http://doi.ieeecomputersociety.org/10.1109/SBCCI.2003.1232832 .
 
 In 2006, BDD package in EST got the name Biddy.
 
@@ -718,7 +718,7 @@ fix errors,  and improve documentation, packaging, and Tcl/Tk GUI.
 
 In 2012, a research paper about Biddy library appears in
 Journal of Software (doi:10.4304/jsw.7.6.1358-1366)
-http://ojs.academypublisher.com/index.php/jsw/article/view/jsw070613581366/
+http://ojs.academypublisher.com/index.php/jsw/article/view/jsw070613581366/ .
 
 In 2013, Biddy  v1.1  was released. Biddy_Edge becames a pointer instead
 of a structure and all other structures were optimized.
@@ -727,7 +727,7 @@ In 2014, Biddy  v1.2  was released. Variable swapping and sifting algorithm
 were the most significant additions.
 
 In 2014, svn repositories for biddy, bddview and bddscout are moved
-to Savannah. http://svn.savannah.nongnu.org/viewvc/?root=biddy
+to Savannah. http://svn.savannah.nongnu.org/viewvc/?root=biddy .
 
 In 2015, Biddy  v1.3, v.1.4 and v1.5 was released. Various input/output methods
 have been added. Support for 64-bit arhitectures and support for Visual Studio
@@ -736,10 +736,10 @@ added. Comment's style changed to support doxygen. HTML and PDF documentation
 were produced.
 
 Also in 2015, Personal Package Archive ppa:meolic/biddy has been created
-https://launchpad.net/~meolic/+archive/ubuntu/biddy
+https://launchpad.net/~meolic/+archive/ubuntu/biddy .
 
 Also in 2015, sources became available on GitHub
-https://github.com/meolic/biddy
+https://github.com/meolic/biddy .
 
 In 2016, Biddy v1.6 was released. Formulae are not recursively refreshed
 all the time, anymore. The size of Node table became resizable.
