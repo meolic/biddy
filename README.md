@@ -760,6 +760,8 @@ a very interesting paper "Flexible job shop scheduling using zero-suppressed
 binary decision diagrams". Get it from
 http://apem-journal.org/Archives/2018/APEM13-4_373-388.pdf .
 Again, bddview and BDD Scout have been significantly improved.
+Started BDD Encyclopedia, check it out at
+http://svn.savannah.nongnu.org/viewvc/*checkout*/biddy/bddscout/ENCYCLOPEDIA/bddencyclopedia.html .
 
 ### 6. PUBLICATIONS
 ---------------
