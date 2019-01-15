@@ -47,7 +47,6 @@ package thoroughly supporting the tagged zero-suppressed BDDs
 Examples of BDDs of all the supported types are shown in Figure 1.
 
 ![F3-88-comparison.png](./design/F3-88-comparison.png)
-
 Figure 1: Representation of Boolean function
 F3[088] = (NOT x1) AND x3 OR x1 AND (NOT x2) AND (NOT x3).
 From left to right there are an ROBDD, an ROBDD with complemented edges,
@@ -83,7 +82,6 @@ make BDD Scout a unique tool for teaching and exploring properties of
 BDDs [@BddEncyclopedia].
 
 ![bddscout-small.png](./design/bddscout-small.png)
-
 Figure 2: An annotated screenshot from BDD Scout
 
 Similar to other BDD packages, the Biddy package itself is a kind of a low-level
