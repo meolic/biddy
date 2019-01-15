@@ -718,7 +718,7 @@ fix errors,  and improve documentation, packaging, and Tcl/Tk GUI.
 
 In 2012, a research paper about Biddy library appears in
 Journal of Software (doi:10.4304/jsw.7.6.1358-1366)
-http://ojs.academypublisher.com/index.php/jsw/article/view/jsw070613581366/ .
+http://www.jsoftware.us/vol7/jsw0706-23.pdf .
 
 In 2013, Biddy  v1.1  was released. Biddy_Edge becames a pointer instead
 of a structure and all other structures were optimized.
@@ -757,7 +757,8 @@ In 2018, Biddy v1.8. was released (there were 2 minor releases).
 Added support for 0-sup-BDDs without complemented edges.
 Added several new operations on 0-sup-BDDs that enable us to write
 a very interesting paper "Flexible job shop scheduling using zero-suppressed
-binary decision diagrams".
+binary decision diagrams". Get it from
+http://apem-journal.org/Archives/2018/APEM13-4_373-388.pdf .
 Again, bddview and BDD Scout have been significantly improved.
 
 ### 6. PUBLICATIONS
