@@ -23,7 +23,7 @@ There is no configuration script, you should edit Makefiles to adapt system
 configuration.
 
 ~~~
-biddy> make dynamic
+biddy> make static
 biddy> make clean
 ~~~
 
@@ -32,16 +32,40 @@ Dependencies:
 - on GNU/Linux, you need libgmp (https://gmplib.org/).
 - on MS Windows, you need MPIR library (http://mpir.org/).
 
+Alternatively, use the prepared Visual Studio project (VS/Biddy.sln).
+
 When using Biddy on GNU/Linux, you may have to tell bash about the library:
 
 ~~~
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
 ~~~
 
-There  are two  aditional packages included into Biddy distribution:
+Tests:
+
+- create a static Biddy library
+- compile the Hanoi example (notes for building are given in the source code)
+- alternatively, compile any of the other examples
+
+~~~
+biddy> make static
+biddy> gcc -DUNIX -DBIDDY -o hanoi biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp
+biddy> ./hanoi 10
+~~~
+
+gcc -DREPORT -DUNIX -DBIDDY -DOBDD -O2 -o biddy-example-hanoi-obdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp
+
+There are two  aditional packages included into Biddy distribution:
 
 - bddview is a pure Tcl/Tk script for visualization of BDDs,
 - BDD Scout is a demo application demonstrating the capability of Biddy and bddview.
+
+To create BDD Scout (please, check its dependencies):
+
+~~~
+biddy> make static
+biddy> cd bddscout
+bddscout> make
+~~~
 
 Biddy is free software maintained by Robert Meolic
 (robert.meolic@um.si) at University of Maribor, Slovenia.
@@ -722,8 +746,8 @@ https://github.com/meolic/biddy
 In 2016, Biddy v1.6 was released. Formulae are not recursively refreshed
 all the time, anymore. The size of Node table became resizable.
 
-In 2017, Biddy v1.7 was released (there were 4 minor releases, the
-last one was Biddy v1.7.4). Terminology has changed a lot,
+In 2017, Biddy v1.7 was released (there were 4 minor releases).
+Terminology has changed a lot,
 e.g. "formulae counter" became "system age". Added support for ROBDDs
 without complemented edges, 0-sup-BDDs and Tagged 0-sup-BDDs. Implemented
 creation and manipulaton of non-anonymous managers. Added manipulation of
@@ -731,8 +755,11 @@ combination sets. Improved many functionalities, e.g sifting.
 Many new CUDD-like functions have been added.
 Moreover, bddview and BDD Scout have been significantly improved.
 
-In 2018, Biddy v1.8. was released.
+In 2018, Biddy v1.8. was released (there were 2 minor releases).
 Added support for 0-sup-BDDs without complemented edges.
+Added several new operations on 0-sup-BDDs that enable us to write
+a very interesting paper "Flexible job shop scheduling using zero-suppressed
+binary decision diagrams".
 Again, bddview and BDD Scout have been significantly improved.
 
 ### 6. PUBLICATIONS
@@ -748,5 +775,5 @@ If you find our work useful, please, cite us.
   Technical report, University of Maribor, 2016.
   https://dk.um.si/IzpisGradiva.php?id=68831
 
-- Robert Meolic. __Biddy.__
-  We are preparing a paper for IEEE Access.
+- Robert Meolic. __Biddy.__ University of Maribor, 2019.
+  We are preparing a paper for JOSS.

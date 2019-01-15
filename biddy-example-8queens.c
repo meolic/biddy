@@ -1,12 +1,12 @@
-/* $Revision: 476 $ */
-/* $Date: 2018-09-16 22:23:52 +0200 (ned, 16 sep 2018) $ */
+/* $Revision: 537 $ */
+/* $Date: 2019-01-15 09:41:17 +0100 (tor, 15 jan 2019) $ */
 /* This file (biddy-example-8queens.c) is a C file */
 /* Author: Robert Meolic (robert.meolic@um.si) */
 /* This file has been released into the public domain by the author. */
 
 /* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 
-/* COMPILE WITH (remove -static if you have Biddy as a dynamic library): */
+/* COMPILE WITH (remove -static and -lgmp if you have Biddy as a dynamic library): */
 /* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DOBDD -DUNIX -O2 -o biddy-example-8queens-obdd biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DOBDDC -DUNIX -O2 -o biddy-example-8queens-obddc biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
 /* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DZBDD -DUNIX -O2 -o biddy-example-8queens-zbdd biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */

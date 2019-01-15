@@ -15,8 +15,8 @@ Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyMain.c]
-    Revision    [$Revision: 520 $]
-    Date        [$Date: 2018-12-20 06:52:09 +0100 (čet, 20 dec 2018) $]
+    Revision    [$Revision: 537 $]
+    Date        [$Date: 2019-01-15 09:41:17 +0100 (tor, 15 jan 2019) $]
     Authors     [Robert Meolic (robert.meolic@um.si)]
 
 ### Copyright

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 532 $]
-#  Date        [$Date: 2018-12-21 16:26:15 +0100 (pet, 21 dec 2018) $]
+#  Revision    [$Revision: 537 $]
+#  Date        [$Date: 2019-01-15 09:41:17 +0100 (tor, 15 jan 2019) $]
 #
 #  Copyright   [This file is part of Biddy.
 #               Copyright (C) 2006, 2018 UM FERI
@@ -31,7 +31,7 @@ make purge
 make clean
 
 cd ..
-zip -o "biddy/biddy-source-$VERSION.zip" biddy/* -x biddy/*.zip -x biddy/*.tmp -x biddy/bin/ -x biddy/logo/ -x biddy/doxygen/ -x biddy/biddy-studio/ -x biddy/doc/ -x biddy/test/ -x biddy/biddy-example-* -x biddy/distribution/ x biddy/distribution-bddscout/
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/* -x biddy/*.zip -x biddy/*.pdf -x biddy/*.tmp -x biddy/bin/ -x biddy/doxygen/ -x biddy/biddy-studio/ -x biddy/doc/ -x biddy/test/ -x biddy/biddy-example-* -x biddy/distribution/ x biddy/distribution-bddscout/
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/biddy-example-*.c biddy/biddy-example-*.h biddy/biddy-example-pp-data.csv
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*/*
