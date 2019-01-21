@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddy.h]
-    Revision    [$Revision: 489 $]
-    Date        [$Date: 2018-09-24 08:31:44 +0200 (pon, 24 sep 2018) $]
+    Revision    [$Revision: 540 $]
+    Date        [$Date: 2019-01-21 10:36:52 +0100 (pon, 21 jan 2019) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net)]
 
@@ -306,7 +306,7 @@ extern "C" {
 
 /* 1 */
 /*! Macros Biddy_Init and Biddy_InitAnonymous will initialize anonymous manager.*/
-#define Biddy_Init() Biddy_InitMNG(NULL,BIDDYTYPEOBDDC)
+#define Biddy_Init() Biddy_InitMNG(NULL,BIDDYTYPEOBDD)
 #define Biddy_InitAnonymous(bddtype) Biddy_InitMNG(NULL,bddtype)
 EXTERN void Biddy_InitMNG(Biddy_Manager *mng, int bddtype);
 

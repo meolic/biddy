@@ -151,6 +151,7 @@ Biddy consists of the following core files:
 - biddyOp.c (functions for operations on BDDs)
 - biddyStat.c (functions for statistic)
 - biddyInOut.c (parsers and generators for Boolean functions)
+- biddy-example-*.* (examples)
 - package-source (script used to build distribution)
 - package-bin (script used to build distribution)
 - package-bin.bat (script used to build distribution)
@@ -176,7 +177,7 @@ Precompiled packages include dynamically linked library
 and the appropriate C header biddy.h. Currently, there are no interfaces
 for other programming languages.
 
-For linking with Biddy library you have to use:
+For linking with Biddy library you have to use (remove -lgmp if you have Biddy as a dynamic library):
 
 ~~~
 -lbiddy -lgmp
@@ -191,52 +192,26 @@ IMPORTANT:
 You should define UNIX, MACOSX, or MINGW.
 You should define USE_BIDDY if you are using Biddy via dynamic library.
 
-~~~
-/* compile with gcc -o program.exe source.c -I. -L. -lbiddy -lgmp */
-#define UNIX
+~~~c
+/* Linux + gcc: compile with gcc -DUNIX -o program.exe source.c -I. -L. -lbiddy -lgmp */
+/* WINDOWS + MINGW: compile with gcc -DMINGW -o program.exe source.c -I. -L. -lbiddy -lgmp */
+/* in this example, x1, x2, and x3 are Boolean variables */
 #include "biddy.h"
-
-#define Str2Var(x) (Biddy_GetVariable((Biddy_String)x))
-
 int main() {
   Biddy_Edge f,g,h,r;
-
-  Biddy_Init(); /* use default, i.e. ROBDD WITHOUT COMPLEMENTED EDGES */
+  Biddy_Init(); /* use default, i.e. PLAIN ROBDDS WITHOUT COMPLEMENTED EDGES */
   printf("Biddy is using %s.\n",Biddy_GetManagerName());
-
-  f = Biddy_Eval1((Biddy_String)"(OR H E L L O)"); /* PREFIX INPUT */
-  g = Biddy_Eval1((Biddy_String)"(AND W O R L D)"); /* PREFIX INPUT */
-  h = Biddy_Eval2((Biddy_String)"~(H * E * L * L)"); /* INFIX INPUT */
-
-  /* BASIC OPERATION */
-  r = Biddy_Xor(f,g);
-
-  /* REPLACE SOME VARIABLES */
-  Biddy_ResetVariablesValue();
-  Biddy_SetVariableValue(Str2Var("H"),Biddy_GetVariableEdge(Str2Var("L")));
-  Biddy_SetVariableValue(Str2Var("K"),Biddy_GetVariableEdge(Str2Var("L")));
-  Biddy_SetVariableValue(Str2Var("W"),Biddy_GetVariableEdge(Str2Var("L")));
-  r = Biddy_Replace(r);
-
-  /* SIMPLE RESTRICTION */
-  r = Biddy_Restrict(r,Str2Var("E"),FALSE);
-
-  /* COUDERT AND MADRE'S RESTRICT FUNCTION */
-  r = Biddy_Simplify(r,h);
-
-  /* SOME STATS */
-  printf("Function r depends on %u variables.\n",Biddy_DependentVariableNumber(r,FALSE));
-  printf("Function r has %.0f minterms.\n",Biddy_CountMinterms(r,0));
-  printf("BDD for function r has %u nodes.\n",Biddy_CountNodes(r));
-
-  /* TRUTH TABLE */
-  printf("Here is a truth table for function r\n");
-  Biddy_PrintfTable(r);
-
-  /* GRAPHVIZ/DOT OUTPUT */
-  Biddy_WriteDot("biddy.dot",r,"r",-1,FALSE);
-  printf("USE 'dot -y -Tpng -O biddy.dot' to visualize BDD for function r.\n");
-
+  f = Biddy_Eval1((Biddy_String)"(OR (AND (NOT x1) x3) (AND x1 (NOT x2) (NOT x3)))"); /* PREFIX INPUT */
+  g = Biddy_Eval2((Biddy_String)"~x1*(~x3*0+x3*1)+x1*(~x2*(~x3*1+x3*0)+x2*0)"); /* INFIX INPUT */
+  if (f == g) printf("Boolean functions f and g are equal.\n");
+  if (f != Biddy_Not(g)) printf("Boolean functions f and ~g are not equal.\n");
+  printf("Boolean function f depends on %u variables.\n",Biddy_DependentVariableNumber(f,FALSE));
+  printf("Boolean function f has %.0f minterms.\n",Biddy_CountMinterms(f,0));
+  printf("BDD for function f has %u nodes (including both terminals).\n",Biddy_CountNodes(f));
+  printf("Here is a truth table for Boolean function f\n");
+  Biddy_PrintfTable(f);
+  Biddy_WriteDot("biddyexample1.dot",f,"f",-1,FALSE);
+  printf("USE 'dot -y -Tpng -O biddyexample1' to visualize BDD for Boolean function f.\n");
   Biddy_Exit();
 }
 ~~~
@@ -247,6 +222,55 @@ BIDDYTYPEOBDDC, BIDDYTYPEZBDD, BIDDYTYPEZBDDC, and BIDDYTYPETZBDD.
 
 ~~~
 Biddy_InitAnonymous(BIDDYTYPEZBDD);
+~~~
+
+Here is another example. Please note the explicite usage of a manager which enables working with different types of BDDs simultaneously.
+
+~~~c
+/* Linux + gcc: compile with gcc -DUNIX -o program.exe source.c -I. -L. -lbiddy -lgmp */
+/* WINDOWS + MINGW: compile with gcc -DMINGW -o program.exe source.c -I. -L. -lbiddy -lgmp */
+/* in this example, letters D, E, H, L, O, R, and W are Boolean variables */
+#include "biddy.h"
+#define Str2Var(mng,x) (Biddy_Managed_GetVariable(mng,(Biddy_String)x))
+int main() {
+  Biddy_Manager mngobdd, mngobddc;
+  Biddy_Edge f,g,r1,r2;
+
+  Biddy_InitMNG(&mngobdd,BIDDYTYPEOBDD); /* PLAIN ROBDDS WITHOUT COMPLEMENTED EDGES */
+  Biddy_InitMNG(&mngobddc,BIDDYTYPEOBDDC); /* ROBDDS WITH COMPLEMENTED EDGES */
+  f = Biddy_Managed_Eval1(mngobdd,(Biddy_String)"(EXOR H E L L O (AND W O R L D))"); /* PREFIX INPUT */
+  g = Biddy_Managed_Eval2(mngobdd,(Biddy_String)"~(H * E + R * O)"); /* INFIX INPUT */
+  /* BASIC OPERATION */
+  r1 = Biddy_Managed_Nor(mngobdd,f,g);
+  /* SOP OUTPUT */
+  printf("Here is Boolean function r1\n");
+  Biddy_Managed_PrintfSOP(mngobdd,r1);
+  /* REPLACE SOME VARIABLES: H-->L, R-->L */
+  Biddy_Managed_ResetVariablesValue(mngobdd);
+  Biddy_Managed_SetVariableValue(mngobdd,Str2Var(mngobdd,"H"),Biddy_Managed_GetVariableEdge(mngobdd,Str2Var(mngobdd,"L")));
+  Biddy_Managed_SetVariableValue(mngobdd,Str2Var(mngobdd,"R"),Biddy_Managed_GetVariableEdge(mngobdd,Str2Var(mngobdd,"L")));
+  r1 = Biddy_Managed_Replace(mngobdd,r1);
+  /* SOP OUTPUT AFTER REPLACING VARIABLES */
+  printf("Here is Boolean function r1 after replacing H-->L and R-->L\n");
+  Biddy_Managed_PrintfSOP(mngobdd,r1);
+  /* SIMPLE RESTRICTION */
+  r1 = Biddy_Managed_Restrict(mngobdd,r1,Str2Var(mngobdd,"E"),FALSE);
+  /* SOP OUTPUT AFTER REPLACING VARIABLES */
+  printf("Here is Boolean function r1 after restricting E\n");
+  Biddy_Managed_PrintfSOP(mngobdd,r1);
+  /* CONVERT OBDD TO OBDDC */
+  r2 = Biddy_Managed_Copy(mngobdd,mngobddc,r1);
+  /* SOME STATS */
+  printf("OBDD for Boolean function r1 has %u nodes.\n",Biddy_Managed_CountNodes(mngobdd,r1));
+  printf("OBDDC for the same Boolean function has %u nodes.\n",Biddy_Managed_CountNodes(mngobddc,r2));
+  /* GRAPHVIZ/DOT OUTPUT */
+  Biddy_Managed_WriteDot(mngobdd,"biddyexample2obdd.dot",r1,"r1",-1,FALSE);
+  printf("USE 'dot -y -Tpng -O biddyexample2obdd.dot' to visualize OBDD for function r1.\n");
+  Biddy_Managed_WriteDot(mngobddc,"biddyexample2obddc.dot",r2,"r2",-1,FALSE);
+  printf("USE 'dot -y -Tpng -O biddyexample2obddc.dot' to visualize OBDDC for function r2.\n");
+  Biddy_ExitMNG(&mngobdd);
+  Biddy_ExitMNG(&mngobddc);
+}
 ~~~
 
 ### 3.1 NODE MANAGEMENT THROUGH FORMULAE PROTECTING
