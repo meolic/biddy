@@ -20,44 +20,22 @@ bibliography: paper.bib
 
 # Summary
 
-A Binary Decision Diagram (BDD) is a data structure used in various applications
-including but not limited to the design, testing, optimization, and verification
-of digital circuits, communication protocols, and distributed systems
-[@Bryant1986] [@Knuth2009] [@Minato2013]. There exist many different types of
+A **Binary Decision Diagram** (BDD) is a data structure used in
+different areas including but not limited to the design, testing,
+optimization, and verification
+of digital circuits, communications protocols, and distributed systems
+[@Bryant1986]. There exist many different types of
 BDDs intended for different applications. The most notable types are used to
 represent Boolean functions and combination sets. For these purposes, BDDs can
 be very efficient, for example, they enable the representation and manipulation
-of sets of sparse cubes with 10^20 and more cubes [@Meolic2018].
+of set of sparse cubes with 10^47 cubes [@Minato2013].
 
-An efficient implementation of algorithms for BDDs is a rather complicated task,
-but several free BDD packages are accessible to the interested users.
-The cross-platform Biddy BDD package [@Biddy] is one of them. In fact, it is
-one of the oldest ones, with development going back to 1992 [@Meolic2012]. After
-the period of a rather slow progress, it has substantially changed throughout
-the last few years and became very competitive. Version 1.8.2 implements many
-standard functionalities, such as automatic garbage collection, complemented
-edges, and a manager. Dynamic variable ordering with a sifting algorithm and an
-exhaustive search over all the possible variable orderings are provided, too.
-Various statistics about global properties and the individual Boolean functions
-are available. Furthermore, the most distinguishing properties of Biddy are a
-refined C API and a uniform support for classical reduced ordered BDDs (ROBDDs)
-and zero-suppressed BDDs (0-sup-BDDs). At this moment, Biddy is the only
-package thoroughly supporting the tagged zero-suppressed BDDs
-[@Meolic2016] [@Meolic2017].
-Examples of BDDs of all the supported types are shown in Figure 1.
-
-![F3-88-comparison.png](./design/F3-88-comparison.png)
-Figure 1: Representation of Boolean function
-F3[088] = (NOT x1) AND x3 OR x1 AND (NOT x2) AND (NOT x3).
-From left to right there are an ROBDD, an ROBDD with complemented edges,
-a 0-sup-BDD, a 0-sup-BDD with complemented edges, and a tagged 0-sup-BDD.
-
-In BDD, every internal node contains a variable while leafs include
+In a BDD, every internal node contains a variable while leafs contain
 constants 0 and 1, respectively. For an ROBDD, each edge
 to internal node n with variable var(n), left successor else(n), and right
 successor then(n) corresponds to the Boolean function that is calculated as
 NOT(var(n)) AND else(n) OR var(n) AND then(n).
-For ROBDD in Figure 1 this is applied as:
+For the ROBDD in Figure 1 this is applied as follows:
 F3[088] =
 (NOT x1) AND (NOT(x3) AND 0 OR x3 AND 1) OR
 x1 AND (NOT(x2) AND (NOT(x3) AND 1 OR x3 AND 0) OR x2 AND 0).
@@ -66,15 +44,51 @@ leading to a leaf with constant 1 is considered to be a product of variables in
 which a negative literal is included if the path continues in the else successor
 and a positive literal is included if the path continues in the then successor.
 The resulting Boolean function is a sum of the obtained products. In this
-way, for the ROBDD in Figure 1 we obtain a minimal form
-F3[088] = (NOT x1) AND x3 OR x1 AND (NOT x2) AND (NOT x3),
+way, for the ROBDD in Figure 1 we directly obtain a minimal sum-of-products form,
 but in general, the result is not a minimal form. For the explanation of other
-types of BDDs we refer readers to the given references.
+types of BDDs we refer to the given references.
 
-The Biddy package is a part of the Biddy project that also focuses on
+![F3-88-comparison.png](./design/F3-88-comparison.png)
+Figure 1: Representation of Boolean function
+F3[088] = (NOT x1) AND x3 OR x1 AND (NOT x2) AND (NOT x3) with different types of BDDs.
+From left to right there are an ROBDD, an ROBDD with complemented edges,
+a 0-sup-BDD, a 0-sup-BDD with complemented edges, and a tagged 0-sup-BDD.
+
+Boolean functions are primarily used in digital circuit design where
+involving 1000 and more variables is not an unusual demand. It is impossible
+to represent so large Boolean functions with vectors and similar explicit
+representations of the truth table. Strings are also not an option because
+they are not canonical. On the other hand, many huge Boolean
+functions of practical importance have a managable representation with BDDs.
+Nowadays, however, logic synthesis is not the only, or even not the main, application area for
+Boolean functions and BDDs. They are also used as characteristic
+functions of sets and relations, which enables encoding
+combinatorial problems and solving them
+symbolically [@Knuth2009] [@Minato2013] [@Meolic2018].
+A very special method that has profited a lot from BDDs is model checking
+[@Chaki2018].
+
+An efficient implementation of algorithms for BDDs is a rather complicated task,
+but several free BDD packages are accessible to the interested users.
+The cross-platform Biddy BDD package [@Meolic2012] is one of them.
+Version 1.8.2 implements many standard functionalities, such as automatic
+garbage collection, complemented edges, and a manager. Dynamic variable ordering
+with a sifting algorithm and an exhaustive search over all the possible
+variable orderings are provided, too.
+Various statistics about global properties and the individual Boolean functions
+are available. Furthermore, a distinguishing properties of Biddy are:
+ - Can be built on various platforms using native environments,
+   including **gcc**, **mingw**, and **Visual Studio**.
+ - It follows a strict implementation style and a refined **C** API.
+ - It offers a uniform support for classical **reduced ordered BDDs** (ROBDDs)
+and **zero-suppressed BDDs** (0-sup-BDDs). At this moment, Biddy is the only
+package thoroughly supporting the **tagged zero-suppressed BDDs**
+[@Meolic2016] [@Meolic2017].
+
+The Biddy BDD package is a part of the Biddy project that also focuses on
 the visualization of BDDs. The application BDD Scout, which is bundled with the
 Biddy package, is an interactive tool (Figure 2).
-Its exciting features include the creation of a BDD from a
+Its features include the creation of a BDD from a
 Boolean expression, node manipulation and variable reordering in the displayed
 BDD, the conversion between the supported types of BDDs, and export to Latex
 format. As a bonus, scripting with Tcl language is integrated. These features
@@ -84,17 +98,10 @@ BDDs [@BddEncyclopedia].
 ![bddscout-small.png](./design/bddscout-small.png)
 Figure 2: An annotated screenshot from BDD Scout
 
-Similar to other BDD packages, the Biddy package itself is a kind of a low-level
-mathematical library that can be extremely powerful but also wicked if not used
-correctly. Because of this we coined a slogan for it,
-"An old witch on the block",
-which is supposed to be the underlying theme for all its design aspects in the
-future. After all, software engineering is about the product appearance as well.
-
 In conclusion, Biddy is free software to be used in applications that need to
 manipulate Boolean functions or combination sets. It is
 a complete and efficient product suitable for many academic and commercial
 settings. The binary executables, the user manual, and the other documentation can
-be obtained from http://biddy.meolic.com/.
+be obtained from Biddy's Homepage [@Biddy].
 
 # References

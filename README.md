@@ -201,8 +201,8 @@ int main() {
   Biddy_Edge f,g,h,r;
   Biddy_Init(); /* use default, i.e. PLAIN ROBDDS WITHOUT COMPLEMENTED EDGES */
   printf("Biddy is using %s.\n",Biddy_GetManagerName());
-  f = Biddy_Eval1((Biddy_String)"(OR (AND (NOT x1) x3) (AND x1 (NOT x2) (NOT x3)))"); /* PREFIX INPUT */
-  g = Biddy_Eval2((Biddy_String)"~x1*(~x3*0+x3*1)+x1*(~x2*(~x3*1+x3*0)+x2*0)"); /* INFIX INPUT */
+  f = Biddy_Eval1((Biddy_String)"(OR (AND (NOT x1) x3) (AND x1 (NOT x2) (NOT x3)))"); /* PREFIX */
+  g = Biddy_Eval2((Biddy_String)"~x1*(~x3*0+x3*1)+x1*(~x2*(~x3*1+x3*0)+x2*0)"); /* INFIX */
   if (f == g) printf("Boolean functions f and g are equal.\n");
   if (f != Biddy_Not(g)) printf("Boolean functions f and ~g are not equal.\n");
   printf("Boolean function f depends on %u variables.\n",Biddy_DependentVariableNumber(f,FALSE));
@@ -238,8 +238,8 @@ int main() {
 
   Biddy_InitMNG(&mngobdd,BIDDYTYPEOBDD); /* PLAIN ROBDDS WITHOUT COMPLEMENTED EDGES */
   Biddy_InitMNG(&mngobddc,BIDDYTYPEOBDDC); /* ROBDDS WITH COMPLEMENTED EDGES */
-  f = Biddy_Managed_Eval1(mngobdd,(Biddy_String)"(EXOR H E L L O (AND W O R L D))"); /* PREFIX INPUT */
-  g = Biddy_Managed_Eval2(mngobdd,(Biddy_String)"~(H * E + R * O)"); /* INFIX INPUT */
+  f = Biddy_Managed_Eval1(mngobdd,(Biddy_String)"(EXOR H E L L O (AND W O R L D))"); /* PREFIX */
+  g = Biddy_Managed_Eval2(mngobdd,(Biddy_String)"~(H * E + R * O)"); /* INFIX */
   /* BASIC OPERATION */
   r1 = Biddy_Managed_Nor(mngobdd,f,g);
   /* SOP OUTPUT */

@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 519 $]
-    Date        [$Date: 2018-11-16 11:18:52 +0100 (pet, 16 nov 2018) $]
+    Revision    [$Revision: 541 $]
+    Date        [$Date: 2019-01-21 21:25:47 +0100 (pon, 21 jan 2019) $]
     Authors     [Robert Meolic (robert.meolic@um.si),
                  Ales Casar (ales@homemade.net),
                  Volodymyr Mihav (mihaw.wolodymyr@gmail.com),
@@ -2283,6 +2283,7 @@ ReadBDD(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch)
   } else {
     varname = strdup(*ch);
     n = Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_GetVariable(MNG,varname)); /* variables should already exist */
+    if (!n) return biddyNull;
     nextCh(s,i,ch);
     if (strcmp(*ch,"(")) {
       /**/ printf("ERROR: <%s>\n",*ch); /**/
