@@ -31,8 +31,10 @@ be very efficient, for example, they enable the representation and manipulation
 of set of sparse cubes with $10^{47}$ cubes [@Minato2013].
 
 In a BDD, every internal node contains a variable while leafs contain
-constants $0$ and $1$, respectively. For a 	Reduced Ordered Binary Decision Diagram (ROBDD), each edge to internal node $n$ with variable $var(n)$, left successor $else(n)$, and right successor $then(n)$ corresponds to the Boolean function that is calculated as
-$\overline{var(n)}\ \&\ else(n) + var(n)\ \&\ then(n)$.
+constants $0$ and $1$, respectively. For a 	Reduced Ordered Binary Decision Diagram (ROBDD), each edge to internal node $n$ with variable $var(n)$, left successor $else(n)$, and right successor $then(n)$ corresponds to the Boolean function $f(n)$ that is calculated as:
+
+$$f(n) = \overline{var(n)}\ \&\ else(n) + var(n)\ \&\ then(n)$$
+
 For the ROBDD in Figure 1 this is applied as follows:
 $F3[088] = \overline{x1}\ \&\ (\overline{x3}\ \&\ 0 + x3\ \&\ 1) + x1\ \&\ (\overline{x2}\ \&\ (\overline{x3}\ \&\ 1\ + x3\ \&\ 0)\ + x2\ \&\ 0)$.
 The same result can be obtained if every path starting in the root and
@@ -73,18 +75,20 @@ with a sifting algorithm and an exhaustive search over all the possible
 variable orderings are provided, too.
 Various statistics about global properties and the individual Boolean functions
 are available. Furthermore, some distinguishing properties of Biddy are:
- - Can be built on various platforms using native environments,
-   including **gcc**, **mingw**, and **Visual Studio**.
- - It follows a strict implementation style and a refined **C** API.
- - It offers a uniform support for classical **reduced ordered BDDs** (ROBDDs)
-and **zero-suppressed BDDs** (0-sup-BDDs). At this moment, Biddy is the only
-package thoroughly supporting the **tagged zero-suppressed BDDs**
-[@Meolic2016] [@Meolic2017].
+
+- Can be built on various platforms using native environments,
+  including **gcc**, **mingw**, and **Visual Studio**.
+- It follows a strict implementation style and a refined **C** API.
+- It offers a uniform support for classical **reduced ordered BDDs** (ROBDDs)
+  and **zero-suppressed BDDs** (0-sup-BDDs). At this moment, Biddy is the only
+  package thoroughly supporting the **tagged zero-suppressed BDDs**
+  [@Meolic2016] [@Meolic2017].
 
 The Biddy BDD package is a part of the Biddy project that also focuses on
 the visualization of BDDs. The application **BDD Scout**, which is bundled with the
 Biddy package, is an interactive tool (Figure 2).
 Its key features are:
+
 - the creation of a BDD from a Boolean expression,
 - node manipulation and variable reordering in the displayed BDD,
 - conversion between the supported types of BDDs,
