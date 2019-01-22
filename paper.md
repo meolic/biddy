@@ -54,39 +54,44 @@ From left to right there are an ROBDD, an ROBDD with complemented edges,
 a 0-sup-BDD, a 0-sup-BDD with complemented edges, and a tagged 0-sup-BDD.
 
 Boolean functions are primarily used in digital circuit design where
- $1000$ or more variables are not unusual. It is impossible
+a thousand and more variables are not unusual. It is impossible
 to represent such large Boolean functions with vectors and similar explicit
 representations of the truth table. Strings are also not an option because
 they are not canonical. On the other hand, many huge Boolean
 functions of practical importance have a managable representation with BDDs.
-Nowadays, however, logic synthesis is not the only, or even not the main, application area for
+Nowadays, however, logic synthesis is not the only, or even not the main, target for
 Boolean functions and BDDs. They are also used as characteristic
 functions of sets and relations, which enables the encoding of
 combinatorial problems and their symbolic solution [@Knuth2009] [@Minato2013] [@Meolic2018].
 A very special method that has profited a lot from BDDs is model checking
-[@Chaki2018].
+[@Chaki2018]. Application areas where BDDs can also be applied are approximate
+string matching, fault tree analysis, reversible computing, and many others.
 
 An efficient implementation of algorithms for BDDs is a rather complicated task,
 but several free BDD packages are avaliable online.
-Herein we describe the cross-platform **Biddy BDD package** [@Meolic2012], one of the oldest continually developed of these BDD packages.
+Herein we describe the cross-platform **Biddy BDD package** [@Meolic2012], one of the oldest
+continually developed of these BDD packages.
 From version 1.8.2, many standard features are implemented, such as automatic
 garbage collection, complemented edges, and a management system. Dynamic variable ordering
 with a sifting algorithm and an exhaustive search over all the possible
 variable orderings are provided, too.
 Various statistics about global properties and the individual Boolean functions
-are available. Furthermore, some distinguishing properties of Biddy are:
+are available.
 
-- Can be built on various platforms using native environments,
-  including **gcc**, **mingw**, and **Visual Studio**.
-- It follows a strict implementation style and a refined **C** API.
-- It offers a uniform support for classical **reduced ordered BDDs** (ROBDDs)
-  and **zero-suppressed BDDs** (0-sup-BDDs). At this moment, Biddy is the only
-  package thoroughly supporting the **tagged zero-suppressed BDDs**
-  [@Meolic2016] [@Meolic2017].
+Some distinguishing properties of the Biddy BDD package are:
+
+- can be built on various platforms using native environments,
+  including **gcc**, **mingw**, and **Visual Studio**;
+- it follows a strict implementation style;
+- it has a refined **C** API;
+- it offers a uniform support for classical **reduced ordered BDDs** (ROBDDs)
+  and **zero-suppressed BDDs** (0-sup-BDDs);
+- at this moment, Biddy is the only package thoroughly supporting the
+  **tagged zero-suppressed BDDs** [@Meolic2016] [@Meolic2017].
 
 The Biddy BDD package is a part of the Biddy project that also focuses on
 the visualization of BDDs. The application **BDD Scout**, which is bundled with the
-Biddy package, is an interactive tool (Figure 2).
+Biddy BDD package, is an interactive tool (Figure 2).
 Its key features are:
 
 - the creation of a BDD from a Boolean expression,
