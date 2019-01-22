@@ -31,9 +31,10 @@ be very efficient, for example, they enable the representation and manipulation
 of set of sparse cubes with $10^{47}$ cubes [@Minato2013].
 
 In a BDD, every internal node contains a variable while leafs contain
-constants $0$ and $1$, respectively. For a 	Reduced Ordered Binary Decision Diagram (ROBDD), each edge to internal node $n$ with variable $var(n)$, left successor $else(n)$, and right successor $then(n)$ corresponds to the Boolean function that is calculated as $NOT$ $(var(n))$ $AND$ $else(n)$ $OR$ $var(n)$ $AND$ $then(n)$.
+constants $0$ and $1$, respectively. For a 	Reduced Ordered Binary Decision Diagram (ROBDD), each edge to internal node $n$ with variable $var(n)$, left successor $else(n)$, and right successor $then(n)$ corresponds to the Boolean function that is calculated as
+$\overline{var(n)}\ \&\ else(n) + var(n)\ \&\ then(n)$.
 For the ROBDD in Figure 1 this is applied as follows:
-$F3[088] = (NOT x1)\ AND\ (NOT(x3)\ AND\ 0\ OR\ x3\ AND\ 1)\ OR\ x1\ AND\ (NOT(x2)\ AND\ (NOT(x3)\ AND\ 1\ OR\ x3\ AND\ 0)\ OR\ x2\ AND\ 0)$
+$F3[088] = \overline{x1}\ \&\ (\overline{x3}\ \&\ 0 + x3\ \&\ 1) + x1\ \&\ (\overline{x2}\ \&\ (\overline{x3}\ \&\ 1\ + x3\ \&\ 0)\ + x2\ \&\ 0)$.
 The same result can be obtained if every path starting in the root and
 leading to a leaf with constant $1$ is considered to be a product of variables in
 which a negative literal is included if the path continues in the else successor
@@ -90,7 +91,7 @@ Its key features are:
 - exports to LaTeX, and
 - integrated Tcl scripting.
 
-These features make BDD Scout a unique tool for teaching and exploring properties of BDDs (for example, check the generated BDD Encyclopedia [@BddEncyclopedia]).
+These features make BDD Scout a unique tool for teaching and exploring properties of BDDs. For an example, check the generated BDD Encyclopedia [@BddEncyclopedia].
 
 ![bddscout-small.png](./design/bddscout-small.png)
 Figure 2: An annotated screenshot from BDD Scout
@@ -100,5 +101,11 @@ that need to manipulate Boolean functions or combination sets. It is
 a complete and efficient product suitable for many academic and commercial
 settings. The binary executables, the user manual, and the other documentation can
 be obtained from Biddy's Homepage [@Biddy].
+
+# Acknowledgements
+
+The development of the Biddy BDD package and BDD Scout application so far
+was supported by University of Maribor,
+Faculty of Electrical Engineering and Computer Science.
 
 # References
