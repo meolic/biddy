@@ -4,7 +4,7 @@ USER MANUAL
 ### TL;DR
 --------------
 
-Biddy is a multi-platform academic Binary Decision Diagrams package.
+**Biddy** is a multi-platform academic Binary Decision Diagrams package.
 It supports plain ROBDDs, ROBDDs with complemented edges,
 0-sup-BDDs, 0-sup-BDDs with complemented edges, and
 tagged 0-sup-BDDs.
@@ -14,33 +14,31 @@ Boolean functions, combination sets, and BDDs.
 
 Biddy is a library to be included in your C and C++ projects:
 
-~~~
+~~~c
 #include "/path/to/biddy.h"
 ~~~
 
-To compile Biddy library use "make static" or "make dynamic" or "make debug".
-There is no configuration script, you should edit Makefiles to adapt system
-configuration.
+To **compile** Biddy library use "make static" or "make dynamic" or "make debug".
+There is no configuration script, you should edit **Makefiles** to adapt the system
+configuration. Alternatively, use the prepared **Visual Studio project** (VS/Biddy.sln).
 
 ~~~
 biddy> make static
 biddy> make clean
 ~~~
 
-Dependencies:
+**Dependencies** (tested on Ubuntu and Windows 10):
 
 - on GNU/Linux, you need libgmp (https://gmplib.org/)
 - on MS Windows, you need MPIR library (http://mpir.org/)
 
-Alternatively, use the prepared Visual Studio project (VS/Biddy.sln).
-
 When using Biddy on GNU/Linux, you may have to tell bash about the library:
 
-~~~
+~~~bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
 ~~~
 
-Tests:
+**Tests**:
 
 - create a static Biddy library
 - compile the Hanoi example (notes for building are given in the source code)
@@ -52,10 +50,10 @@ biddy> gcc -DUNIX -DBIDDY -o hanoi biddy-example-hanoi.c -I. -L./bin -static -lb
 biddy> ./hanoi 10
 ~~~
 
-There are two  aditional packages included into Biddy distribution:
+There are two **aditional packages** included into Biddy distribution:
 
-- bddview is a pure Tcl/Tk script for visualization of BDDs,
-- BDD Scout is a demo application demonstrating the capability of Biddy and bddview.
+- **bddview** is a pure Tcl/Tk script for visualization of BDDs,
+- **BDD Scout** is a demo application demonstrating the capability of Biddy and bddview.
 
 To create BDD Scout (please, check its dependencies):
 
@@ -65,10 +63,13 @@ biddy> cd bddscout
 bddscout> make
 ~~~
 
-Biddy is free software maintained by Robert Meolic
-(robert.meolic@um.si) at University of Maribor, Slovenia.
+Biddy is **free software** maintained by Robert Meolic (robert@meolic.com).
 
-Homepage: http://biddy.meolic.com/
+- You can fork this project on https://github.com/meolic/biddy.
+- Fell free to report requests, bugs, and other issues on GitHub.
+- **Contributions** (patches and ideas) can be send also via author's email.
+
+**Homepage**: http://biddy.meolic.com/
 
 ### 1. AN OVERVIEW
 --------------
@@ -138,6 +139,7 @@ There are two types of C functions.
 Biddy consists of the following core files:
 
 - README.md (this file)
+- paper.md (JOSS paper)
 - CHANGES (history of changes)
 - COPYING (license file)
 - VERSION (project's version)
@@ -220,7 +222,7 @@ If you do not want to use the default BDD type you simply change the
 initialization call. Supported BDD types are BIDDYTYPEOBDD,
 BIDDYTYPEOBDDC, BIDDYTYPEZBDD, BIDDYTYPEZBDDC, and BIDDYTYPETZBDD.
 
-~~~
+~~~c
 Biddy_InitAnonymous(BIDDYTYPEZBDD);
 ~~~
 
@@ -327,7 +329,7 @@ This function is needed to implement user's operation caches, only.
 
 The first example is a straightforward calculation.
 
-~~~
+~~~c
 f1 = op(...);
 f2 = op(...);
 g1 = op(f1,f2,...);
@@ -345,7 +347,7 @@ Biddy_Clean(); /* only nodes from result remain preserved */
 If additional garbage collection is needed also after the calculation of g1,
 you can use the following code after the calculation of g1:
 
-~~~
+~~~c
 Biddy_KeepFormulaProlonged(g1,2); /* g1 is preserved for next two cleanings */
 Biddy_Clean(); /* g1 remains preserved for next cleaning */
 ~~~
@@ -357,7 +359,7 @@ started when there are no free nodes in the system).
 Alternatively, you can use the following code which is simpler but somehow
 less efficient because Biddy_Purge() always starts garbage collection:
 
-~~~
+~~~c
 f1 = op(...);
 f2 = op(...);
 g1 = op(f1,f2,...);
@@ -376,7 +378,7 @@ Biddy_Purge(); /* keep only nodes from non-obsolete named formulae */
 
 The second example is an iterative calculation:
 
-~~~
+~~~c
 result = op(...);
 while (!finish) {
   Biddy_KeepFormula(result); /* result is preserved for next cleaning */
@@ -392,7 +394,7 @@ Biddy_Clean(); /* tmp results are not needed, anymore */
 If garbage collection is needed also after the calculation of g, you must
 use the following code:
 
-~~~
+~~~c
 result = op(...);
 while (!finish) {
   Biddy_KeepFormulaProlonged(result,2); /* result is preserved for next two cleanings */
@@ -409,7 +411,7 @@ Biddy_Clean(); /* tmp results are not needed, anymore */
 
 The third example is an outline of an implementation of bisimulation:
 
-~~~
+~~~c
 init = AND(init_p,init_q)
 Biddy_KeepFormulaUntilPurge(init) /* init is preserved until Biddy_Purge() */
 eq = InitialEq(init_p,tr_p,init_q,tr_q,...);
@@ -427,7 +429,7 @@ Biddy_Purge(); /* immediately remove all nodes created during the calculation */
 
 The fourth example is an outline of an implementation of model checking:
 
-~~~
+~~~c
 sup = Prepare(...);
 Biddy_KeepFormulaUntilPurge(sup) /* preserve for the iteration */
 Z = Biddy_GetConstantZero();
@@ -449,7 +451,7 @@ here we are trying to benefit from regularly reordering
 delete all unnamed formulae, all obsolete formulae, and
 also all named non-obsolete tmp formulae):
 
-~~~
+~~~c
 sup = Prepare(...);
 Biddy_AddPersistentFormula("sup",sup) /* sup is permanently preserved */
 Z = 0;
@@ -470,7 +472,7 @@ Biddy_Purge(); /* remove nodes not belonging to result */
 The sixth example is an outline of an implementation of parallel composition
 where we are trying to benefit from intensive GC:
 
-~~~
+~~~c
 sacc = snew = AND(init_1,init_2,...,init_N);
 for (i=1;i<=N;i++) di[i] = 0;
 for (i=1;i<=N;i++) for (j=1;i<=N;j++) dij[i,j] = 0;
@@ -602,14 +604,10 @@ MSYS shell> pacman -S subversion
 ~~~
 
 Alternatively, you can use Visual Studio for building.
-There is a prepared solution consisting of many projects.
-You need to adapt include and lib folders.
+There is a prepared solution consisting of many projects
+(VS/Biddy.sln). You need to adapt include and lib folders.
 
-~~~
-./VS/Biddy.sln
-~~~
-
-To produce nice setup files, we use Advanced Installer
+To produce nice setup files, we use **Advanced Installer**
 (http://www.advancedinstaller.com/).
 We have been granted a free licence. MANY THANKS!
 
@@ -637,7 +635,7 @@ appropriate directory (may be local, e.g. user's home directory).
 
 When using this package on GNU/Linux, you have to tell bash about the library:
 
-~~~
+~~~bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
 ~~~
 

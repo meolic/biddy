@@ -31,7 +31,9 @@ be very efficient, for example, they enable the representation and manipulation
 of set of sparse cubes with $10^{47}$ cubes [@Minato2013].
 
 In a BDD, every internal node contains a variable while leafs contain
-constants $0$ and $1$, respectively. For a 	Reduced Ordered Binary Decision Diagram (ROBDD), each edge to internal node $n$ with variable $var(n)$, left successor $else(n)$, and right successor $then(n)$ corresponds to the Boolean function $f(n)$ that is calculated as:
+constants $0$ and $1$, respectively. For a 	Reduced Ordered Binary Decision Diagram (ROBDD),
+each edge to internal node $n$ with variable $var(n)$, left successor $else(n)$, and right
+successor $then(n)$ corresponds to the Boolean function $f(n)$ that is calculated as:
 
 $$f(n) = \overline{var(n)}\ \&\ else(n) + var(n)\ \&\ then(n)$$
 
@@ -65,7 +67,8 @@ functions of sets and relations, which enables the encoding of
 combinatorial problems and their symbolic solution [@Knuth2009] [@Minato2013] [@Meolic2018].
 A very special method that has profited a lot from BDDs is model checking
 [@Chaki2018]. Application areas where BDDs can also be applied are approximate
-string matching, fault tree analysis, reversible computing, and many others.
+string matching, fault tree analysis, scheduling algorithms, security algorithms,
+reversible computing, and many others.
 
 An efficient implementation of algorithms for BDDs is a rather complicated task,
 but several free BDD packages are avaliable online.
@@ -100,7 +103,8 @@ Its key features are:
 - exports to LaTeX, and
 - integrated Tcl scripting.
 
-These features make BDD Scout a unique tool for teaching and exploring properties of BDDs. For an example, check the generated BDD Encyclopedia [@BddEncyclopedia].
+These features make BDD Scout a unique tool for teaching and exploring properties of BDDs.
+For an example, check the generated BDD Encyclopedia [@BddEncyclopedia].
 
 ![bddscout-small.png](./design/bddscout-small.png)
 Figure 2: An annotated screenshot from BDD Scout
