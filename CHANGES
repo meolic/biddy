@@ -270,6 +270,8 @@ Changes v1.8.1 versus v1.7.4
 
 Changes v1.8.2 versus v1.8.1
 - released on Dec 21, 2018
+- documentation updated on Feb 11, 2019
+- published in The Journal of Open Source Software (JOSS)
 - renamed Biddy_Subset to Biddy_VarSubset
 - added Biddy_GetOrdering and Biddy_SetOrdering
 - added Biddy_Supset (Restriction) and Biddy_Subset (Permission)
@@ -280,3 +282,6 @@ Changes v1.8.2 versus v1.8.1
 - fixed Biddy_Eval for ZBDD without complemented edges
 - added Production Planning example
 - added Task Allocation example
+
+Changes v1.9.1 versus v1.8.2
+- not released, yet
