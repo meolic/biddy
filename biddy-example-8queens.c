@@ -1,7 +1,7 @@
-/* $Revision: 537 $ */
-/* $Date: 2019-01-15 09:41:17 +0100 (tor, 15 jan 2019) $ */
+/* $Revision: 545 $ */
+/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
 /* This file (biddy-example-8queens.c) is a C file */
-/* Author: Robert Meolic (robert.meolic@um.si) */
+/* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
 /* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */

@@ -14,13 +14,13 @@ Binary Decision Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyOp.c]
-    Revision    [$Revision: 523 $]
-    Date        [$Date: 2018-12-20 16:21:31 +0100 (čet, 20 dec 2018) $]
-    Authors     [Robert Meolic (robert.meolic@um.si)]
+    Revision    [$Revision: 545 $]
+    Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+    Authors     [Robert Meolic (robert@meolic.com)]
 
 ### Copyright
 
-Copyright (C) 2006, 2018 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;

@@ -7,12 +7,12 @@ exec wish "$0" "$@"
 # exec /usr/bin/wish8.4-X11 "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
-#  Authors     [Robert Meolic (robert.meolic@um.si)]
-#  Revision    [$Revision: 469 $]
-#  Date        [$Date: 2018-09-03 21:48:21 +0200 (pon, 03 sep 2018) $]
+#  Authors     [Robert Meolic (robert@meolic.com)]
+#  Revision    [$Revision: 545 $]
+#  Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2018 UM FERI
+#               Copyright (C) 2008, 2019 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
@@ -310,9 +310,9 @@ update idletasks
 set SPLASHTEXT ""
 label .splash.f.l -text "BDD Scout v$BIDDYVERSION" -font [list TkHeadingFont 36] -fg WHITE -bg BLACK
 pack .splash.f.l -expand 1
-label .splash.f.m1 -text "Copyright (C) 2008, 2018 UM FERI" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
+label .splash.f.m1 -text "Copyright (C) 2008, 2019 UM FERI" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
 pack .splash.f.m1 -fill x -expand 0
-label .splash.f.m2 -text "Robert Meolic (robert.meolic@um.si)" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
+label .splash.f.m2 -text "Robert Meolic (robert@meolic.com)" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
 pack .splash.f.m2 -fill x -expand 0
 label .splash.f.m3 -text "This is free software!" -font [list TkFixedFont 12 bold] -fg BLACK -bg WHITE
 pack .splash.f.m3 -fill x -expand 0
@@ -1544,9 +1544,9 @@ proc menu_help_about {} {
   text .helpAbout.w -bg $COLORMENU -height 20 -width 100
   .helpAbout.w insert 1.0 "\
   BDD Scout v$BIDDYVERSION\n\
-  \$Date: 2018-09-03 21:48:21 +0200 (pon, 03 sep 2018) $ \n\n\
-  Author: Robert Meolic (robert.meolic@um.si)\n\n\
-  Copyright (C) 2006, 2018 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\n\
+  \$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ \n\n\
+  Author: Robert Meolic (robert@meolic.com)\n\n\
+  Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\n\
   Biddy is free software; you can redistribute it and/or modify it under the terms\n\
   of the GNU General Public License as published by the Free Software Foundation;\n\
   either version 2 of the License, or (at your option) any later version.\n\n\

@@ -1,7 +1,7 @@
-/* $Revision: 450 $ */
-/* $Date: 2018-06-25 12:35:18 +0200 (pon, 25 jun 2018) $ */
+/* $Revision: 545 $ */
+/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
 /* This file (biddy-cudd.c) is a C file */
-/* Author: Robert Meolic (robert.meolic@um.si) */
+/* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
 /* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */

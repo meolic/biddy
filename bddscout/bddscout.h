@@ -3,14 +3,14 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.h]
-  Revision    [$Revision: 447 $]
-  Date        [$Date: 2018-06-18 13:14:00 +0200 (pon, 18 jun 2018) $]
-  Authors     [Robert Meolic (robert.meolic@um.si)]
+  Revision    [$Revision: 545 $]
+  Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+  Authors     [Robert Meolic (robert@meolic.com)]
   Description [The file bddscout.h contains declarations.]
   SeeAlso     []
 
   Copyright   [This file is part of Bdd Scout package.
-               Copyright (C) 2008, 2018 UM FERI
+               Copyright (C) 2008, 2019 UM FERI
                UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify

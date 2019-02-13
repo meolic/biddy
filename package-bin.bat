@@ -1,11 +1,11 @@
 @echo off
 
-REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 526 $
-REM  $Date: 2018-12-21 12:47:41 +0100 (pet, 21 dec 2018) $
+REM  Author: Robert Meolic (robert@meolic.com)
+REM  $Revision: 545 $
+REM  $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $
 REM
 REM  This file is part of Biddy.
-REM  Copyright (C) 2006, 2018 UM FERI
+REM  Copyright (C) 2006, 2019 UM FERI
 REM  UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 REM
 REM  Biddy is free software; you can redistribute it and/or modify
@@ -70,7 +70,7 @@ echo "Creating %NAME%-bin-%VERSION%-Win.exe ..."
 
 echo ;!@Install@!UTF-8! > cfg.cfg
 echo Title="Biddy x64 edition (binary version)" >> cfg.cfg
-echo BeginPrompt="Biddy x64 edition\nVersion %VVERSION%\n\nBiddy is a multi-platform academic Binary Decision Diagrams package.\n\nThis is free software. See GNU GPL (version 2).\n\nNOTE: No registry entry will be changed and no file will be\n            created outside the target folder. You can uninstall\n            this software by simply deleting the target folder.\n\nRobert Meolic (robert.meolic@um.si)" >> cfg.cfg
+echo BeginPrompt="Biddy x64 edition\nVersion %VVERSION%\n\nBiddy is a multi-platform academic Binary Decision Diagrams package.\n\nThis is free software. See GNU GPL (version 2).\n\nNOTE: No registry entry will be changed and no file will be\n            created outside the target folder. You can uninstall\n            this software by simply deleting the target folder.\n\nRobert Meolic (robert@meolic.com)" >> cfg.cfg
 echo ExtractPathText="Please, enter EMPTY or NONEXISTENT target folder:" >> cfg.cfg
 echo ExtractDialogText="Please, wait..." >> cfg.cfg
 echo ExtractTitle="Extracting..." >> cfg.cfg
@@ -85,7 +85,7 @@ echo "Creating %NAME%-%VERSION%-Win.exe ..."
 
 echo ;!@Install@!UTF-8! > cfg.cfg
 echo Title="Biddy x64 edition (development version)" >> cfg.cfg
-echo BeginPrompt="Biddy x64 edition\nVersion %VVERSION%\n\nBiddy is a multi-platform academic Binary Decision Diagrams package.\n\nThis is free software. See GNU GPL (version 2).\n\nNOTE: No registry entry will be changed and no file will be\n            created outside the target folder. You can uninstall\n            this software by simply deleting the target folder.\n\nRobert Meolic (robert.meolic@um.si)" >> cfg.cfg
+echo BeginPrompt="Biddy x64 edition\nVersion %VVERSION%\n\nBiddy is a multi-platform academic Binary Decision Diagrams package.\n\nThis is free software. See GNU GPL (version 2).\n\nNOTE: No registry entry will be changed and no file will be\n            created outside the target folder. You can uninstall\n            this software by simply deleting the target folder.\n\nRobert Meolic (robert@meolic.com)" >> cfg.cfg
 echo ExtractPathText="Please, enter EMPTY or NONEXISTENT target folder:" >> cfg.cfg
 echo ExtractDialogText="Please, wait..." >> cfg.cfg
 echo ExtractTitle="Extracting..." >> cfg.cfg

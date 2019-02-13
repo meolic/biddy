@@ -1,9 +1,9 @@
-#  Authors     [Robert Meolic (robert.meolic@um.si)]
+#  Authors     [Robert Meolic (robert@meolic.com)]
 #  Revision    [$Revision$]
 #  Date        [$Date$]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2018 UM FERI
+#               Copyright (C) 2008, 2019 UM FERI
 #               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify

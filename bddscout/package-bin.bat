@@ -1,11 +1,11 @@
 @echo off
 
-REM  Author: Robert Meolic (robert.meolic@um.si)
-REM  $Revision: 529 $
-REM  $Date: 2018-12-21 14:59:34 +0100 (pet, 21 dec 2018) $
+REM  Author: Robert Meolic (robert@meolic.com)
+REM  $Revision: 545 $
+REM  $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $
 REM
 REM  This file is part of Bdd Scout package.
-REM  Copyright (C) 2008, 2018 UM FERI
+REM  Copyright (C) 2008, 2019 UM FERI
 REM  UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
 REM
 REM  Bdd Scout is free software; you can redistribute it and/or modify
@@ -122,7 +122,7 @@ echo *** BDD Scout OK.
 echo *** Creating %NAME%-%VERSION%-Win.exe ...
 echo ;!@Install@!UTF-8! > cfg.cfg
 echo Title="BDD Scout" >> cfg.cfg
-echo BeginPrompt="BDD Scout\nVersion %VVERSION%\n\nBDD Scout is a demo application demonstrating the capability\nof BDD package Biddy and Tcl/Tk BDD viewer bddview.\n\nThis is free software. See GNU GPL (version 2).\n\nYou need ActiveTcl and graphviz installed on your computer.\nTo start the program click bddscout.exe in target folder.\n\nNOTE: No registry entry will be changed and no file will be\n            created outside the target folder. You can uninstall\n            this software by simply deleting the target folder.\n\nRobert Meolic (robert.meolic@um.si)" >> cfg.cfg
+echo BeginPrompt="BDD Scout\nVersion %VVERSION%\n\nBDD Scout is a demo application demonstrating the capability\nof BDD package Biddy and Tcl/Tk BDD viewer bddview.\n\nThis is free software. See GNU GPL (version 2).\n\nYou need ActiveTcl and graphviz installed on your computer.\nTo start the program click bddscout.exe in target folder.\n\nNOTE: No registry entry will be changed and no file will be\n            created outside the target folder. You can uninstall\n            this software by simply deleting the target folder.\n\nRobert Meolic (robert@meolic.com)" >> cfg.cfg
 echo ExtractPathText="Please, enter EMPTY OR NON-EXISTING target folder:" >> cfg.cfg
 echo ExtractDialogText="Please, wait..." >> cfg.cfg
 echo ExtractTitle="Extracting..." >> cfg.cfg

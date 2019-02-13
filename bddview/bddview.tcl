@@ -9,11 +9,11 @@ package require BWidget
 package provide bddview 1.0
 
 # ####################################################################
-# $Revision: 469 $
-# $Date: 2018-09-03 21:48:21 +0200 (pon, 03 sep 2018) $
+# $Revision: 545 $
+# $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $
 #
 # This file (bddview.tcl) is a Tcl/Tk script
-# Author: Robert Meolic (robert.meolic@um.si)
+# Author: Robert Meolic (robert@meolic.com)
 #
 # This file has been released into the public domain by
 # the author.

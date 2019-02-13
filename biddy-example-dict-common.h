@@ -1,7 +1,7 @@
-/* $Revision: 441 $ */
-/* $Date: 2018-05-22 12:58:10 +0200 (tor, 22 maj 2018) $ */
+/* $Revision: 545 $ */
+/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
 /* This file (biddy-example-dict-common.h) is a C header file */
-/* Author: Robert Meolic (robert.meolic@um.si) */
+/* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
 #include <stdio.h>

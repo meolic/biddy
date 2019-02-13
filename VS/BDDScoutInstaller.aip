@@ -3,7 +3,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="ALLUSERS" Value="1" MultiBuildValue="DefaultBuild:"/>
-    <ROW Property="ARPCONTACT" Value="robert.meolic@um.si"/>
+    <ROW Property="ARPCONTACT" Value="robert@meolic.com"/>
     <ROW Property="ARPURLINFOABOUT" Value="biddy.meolic.com"/>
     <ROW Property="Manufacturer" Value="University of Maribor"/>
     <ROW Property="ProductCode" Value="1033:{5BD6071F-76DC-4802-80E9-B1857C1540C4} " Type="16"/>
@@ -217,7 +217,7 @@
     <ROW Dialog_="WelcomeDlg" Control="Text_2" Type="Text" X="135" Y="106" Width="220" Height="10" Attributes="65539" Property="TEXT_2_PROP" Text="This is free software. See GNU GPL (Version 2)." TextStyle="DlgFont8" Order="900"/>
     <ROW Dialog_="WelcomeDlg" Control="Text_3" Type="Text" X="135" Y="120" Width="220" Height="20" Attributes="65539" Property="TEXT_3_PROP" Text="You need ActiveTcl and graphviz installed on your computer. To start the program click bddscout.tcl in target folder." TextStyle="DlgFont8" Order="1000"/>
     <ROW Dialog_="WelcomeDlg" Control="Text_4" Type="Text" X="135" Y="142" Width="220" Height="30" Attributes="65539" Property="TEXT_4_PROP" Text="NOTE: No registry entry will be changed and no file will be created outside the target folder. You can uninstall this software by simply deleting the target folder." TextStyle="DlgFont8" Order="1100"/>
-    <ROW Dialog_="WelcomeDlg" Control="Text_5" Type="Text" X="135" Y="180" Width="220" Height="10" Attributes="65539" Property="TEXT_5_PROP" Text="Robert Meolic (robert.meolic@um.si)" TextStyle="DlgFont8" Order="1200"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_5" Type="Text" X="135" Y="180" Width="220" Height="10" Attributes="65539" Property="TEXT_5_PROP" Text="Robert Meolic (robert@meolic.com)" TextStyle="DlgFont8" Order="1200"/>
     <ATTRIBUTE name="DeletedRows" value="ExitDialog#LaunchProdText@ExitDialog#ViewReadmeText"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiControlConditionComponent">

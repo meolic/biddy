@@ -1,7 +1,7 @@
 Source: bddscout
 Section: math
 Priority: extra
-Maintainer: Robert Meolic <robert.meolic@um.si>
+Maintainer: Robert Meolic <robert@meolic.com>
 Build-Depends: debhelper (>= 8.0.0), tcl-dev, tk-dev, libgmp-dev, libbiddy1-dev (>= 1.8)
 Standards-Version: 4.1.4
 

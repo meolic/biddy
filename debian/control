@@ -1,7 +1,7 @@
 Source: libbiddy1
 Section: libs
 Priority: extra
-Maintainer: Robert Meolic <robert.meolic@um.si>
+Maintainer: Robert Meolic <robert@meolic.com>
 Build-Depends: debhelper (>= 8.0.0), libgmp-dev
 Standards-Version: 4.1.4
 

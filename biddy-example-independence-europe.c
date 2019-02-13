@@ -1,7 +1,7 @@
-/* $Revision: 171 $ */
-/* $Date: 2016-07-02 17:41:54 +0200 (sob, 02 jul 2016) $ */
+/* $Revision: 545 $ */
+/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
 /* This file (biddy-example-independence-europe.c) is a C file */
-/* Author: Robert Meolic (robert.meolic@um.si) */
+/* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
 /* data were composed by Robert Meolic, 2016 */
