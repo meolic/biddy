@@ -103,6 +103,8 @@ Biddy  is  currently  used  in  the following  projects:
 
 - BDD Scout, demo project which allows visualization of BDDs and
 also includes some benchmarks
+- BDD Encyclopedia, a set of documents produced with Biddy and BDD Scout
+(http://svn.savannah.nongnu.org/viewvc/*checkout*/biddy/bddscout/ENCYCLOPEDIA/bddencyclopedia.html)
 - Efficient Symbolic Tools (EST), model checking and other algorithms
 for formal verification of systems (http://est.meolic.com/)
 
@@ -607,10 +609,6 @@ Alternatively, you can use Visual Studio for building.
 There is a prepared solution consisting of many projects
 (VS/Biddy.sln). You need to adapt include and lib folders.
 
-To produce nice setup files, we use **Advanced Installer**
-(http://www.advancedinstaller.com/).
-We have been granted a free licence. MANY THANKS!
-
 ### Dependencies
 
 On GNU/Linux, we are using libgmp (https://gmplib.org/).
@@ -779,24 +777,27 @@ In 2018, Biddy v1.8. was released (there were 2 minor releases).
 Added support for 0-sup-BDDs without complemented edges.
 Added several new operations on 0-sup-BDDs that enable us to write
 a very interesting paper "Flexible job shop scheduling using zero-suppressed
-binary decision diagrams". Get it from
-http://apem-journal.org/Archives/2018/APEM13-4_373-388.pdf .
+binary decision diagrams".
 Again, bddview and BDD Scout have been significantly improved.
 Started BDD Encyclopedia, check it out at
 http://svn.savannah.nongnu.org/viewvc/*checkout*/biddy/bddscout/ENCYCLOPEDIA/bddencyclopedia.html .
+
+Biddy v1.9 released in 2019 brought an improved format of source code.
+A short paper in Journal of Open Source Software was published.
 
 ### 6. PUBLICATIONS
 ---------------
 
 If you find our work useful, please, cite us.
 
-- Robert Meolic. __Biddy - a multi-platform academic BDD package.__
-  Journal of Software, 7(6), pp. 1358-1366, 2012.
-  http://ojs.academypublisher.com/index.php/jsw/article/view/jsw070613581366
-
 - Robert Meolic. __Implementation aspects of a BDD package supporting general decision diagrams.__
   Technical report, University of Maribor, 2016.
   https://dk.um.si/IzpisGradiva.php?id=68831
 
-- Robert Meolic. __The Biddy BDD package.__ University of Maribor, 2019.
-  We are preparing a paper for JOSS.
+- Robert Meolic, Zmago Brezočnik. __Flexible job shop scheduling using zero-suppressed binary decision diagrams.__
+  Advances in production engineering & management, 13(4), pp. 373-388, 2018.
+  http://apem-journal.org/Archives/2018/APEM13-4_373-388.pdf
+
+- Robert Meolic. __The Biddy BDD package.__
+  Journal of Open Source Software, 4(34), 1189, 2019.
+  https://doi.org/10.21105/joss.01189

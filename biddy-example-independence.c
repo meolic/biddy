@@ -1,14 +1,14 @@
-/* $Revision: 545 $ */
-/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
+/* $Revision: 558 $ */
+/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
 /* This file (biddy-example-independence.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
 /* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 
-/* COMPILE WITH: */
-/* gcc -DNOCONVERGE -DNOPROFILE -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-independence biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DCONVERGE -DNOPROFILE -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-independence-converge biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -static -lbiddy -lgmp */
+/* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
+/* gcc -DNOCONVERGE -DNOPROFILE -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-independence biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -lbiddy */
+/* gcc -DCONVERGE -DNOPROFILE -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-independence-converge biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -lbiddy */
 /* gcc -DNOCONVERGE -DNOPROFILE -DCUDD -DOBDDC -O2 -o cudd-example-independence biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 /* gcc -DCONVERGE -DNOPROFILE -DCUDD -DOBDDC -O2 -o cudd-example-independence-converge biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 

@@ -1,25 +1,27 @@
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 545 $]
-#  Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+#  Revision    [$Revision: 549 $]
+#  Date        [$Date: 2019-06-25 22:20:12 +0200 (tor, 25 jun 2019) $]
 #
-#  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2019 UM FERI
-#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#  Copyright   [
+#    This file is part of Biddy.
+#    Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#    Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia
 #
-#               Biddy is free software; you can redistribute it and/or modify
-#               it under the terms of the GNU General Public License as
-#               published by the Free Software Foundation; either version 2
-#               of the License, or (at your option) any later version.
+#    Biddy is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as
+#    published by the Free Software Foundation; either version 2
+#    of the License, or (at your option) any later version.
 #
-#               Biddy is distributed in the hope that it will be useful,
-#               but WITHOUT ANY WARRANTY; without even the implied warranty of
-#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#               GNU General Public License for more details.
+#    Biddy is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#    GNU General Public License for more details.
 #
-#               You should have received a copy of the GNU General Public
-#               License along with this program; if not, write to the Free
-#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#               Boston, MA 02110-1301 USA.]
+#    You should have received a copy of the GNU General Public
+#    License along with this program; if not, write to the Free
+#    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#    Boston, MA 02110-1301 USA.
+#  ]
 
 # About shared libraries on Linux:
 # http://www.debian.org/doc/debian-policy/ch-sharedlibs.html

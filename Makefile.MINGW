@@ -3,27 +3,29 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 545 $]
-#  Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+#  Revision    [$Revision: 558 $]
+#  Date        [$Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $]
 #
-#  Copyright   [This file is part of Biddy.
-#               Copyright (C) 2006, 2019 UM FERI
-#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#  Copyright   [
+#    This file is part of Biddy.
+#    Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#    Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia
 #
-#               Biddy is free software; you can redistribute it and/or modify
-#               it under the terms of the GNU General Public License as
-#               published by the Free Software Foundation; either version 2
-#               of the License, or (at your option) any later version.
+#    Biddy is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as
+#    published by the Free Software Foundation; either version 2
+#    of the License, or (at your option) any later version.
 #
-#               Biddy is distributed in the hope that it will be useful,
-#               but WITHOUT ANY WARRANTY; without even the implied warranty of
-#               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#               GNU General Public License for more details.
+#    Biddy is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#    GNU General Public License for more details.
 #
-#               You should have received a copy of the GNU General Public
-#               License along with this program; if not, write to the Free
-#               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#               Boston, MA 02110-1301 USA.]
+#    You should have received a copy of the GNU General Public
+#    License along with this program; if not, write to the Free
+#    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#    Boston, MA 02110-1301 USA.
+#  ]
 
 # To inspect DLL use Visual Studio Command Prompt + DUMPBIN /EXPORTS
 # To inspect DLL dependencies use MSYS2 + ldd *.dll
@@ -36,13 +38,15 @@ RM = rm -f
 GCC = gcc
 AR = ar
 
-# use 64-bit version of MPIR
-MPIRDLLPATH = "C:/msys64/home/Robert/mpir-mingw-2.7.2"
-
 # use 32-bit version of MPIR
-#MPIRDLLPATH = "C:/msys64/home/Robert/mpir-mingw32-2.7.2"
+#MPIRPATH = "/c/Users/Robert/source/repos/mpir32-2.7.2-static"
+#MPIRDLLPATH = "/c/Users/Robert/source/repos/mpir32-2.7.2-dynamic"
 
-LIBGMP = -L$(MPIRDLLPATH)/lib -lmpir
+# use 64-bit version of MPIR
+MPIRPATH = "/c/Users/Robert/source/repos/mpir-2.7.2-static"
+MPIRDLLPATH = "/c/Users/Robert/source/repos/mpir-2.7.2-dynamic"
+
+LIBGMP = -L$(MPIRPATH)/lib -lmpir
 
 all: dynamic
 
@@ -54,16 +58,14 @@ dynamic:
 	"LIBGMP = $(LIBGMP)" \
 	"CC = $(GCC) $(CFLAGS) -DNDEBUG -O2 -DMINGW -DBUILD_BIDDY" \
 	"LN = $(GCC) $(CFLAGS) -shared -Wl,--out-implib,biddy.lib -o"
-	@$(CP) $(MPIRDLLPATH)/bin/libmpir-16.dll $(BINDIR)
 
 static:
 	@$(MAKE) lib \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = libbiddy.a" \
-	"LIBGMP =" \
+	"LIBGMP = " \
 	"CC = $(GCC) $(CFLAGS) -DNDEBUG -O2 -DMINGW" \
 	"LN = $(AR) rcs"
-	@$(CP) $(MPIRDLLPATH)/bin/libmpir-16.dll $(BINDIR)
 
 debug:
 	@$(MAKE) lib \
@@ -72,4 +74,3 @@ debug:
 	"LIBGMP = " \
 	"CC = $(GCC) $(CFLAGS) -g3 -O0 -DMINGW" \
 	"LN = $(AR) rcs"
-	@$(CP) $(MPIRDLLPATH)/bin/libmpir-16.dll $(BINDIR)

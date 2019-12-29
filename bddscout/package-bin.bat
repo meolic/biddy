@@ -1,12 +1,12 @@
 @echo off
 
 REM  Author: Robert Meolic (robert@meolic.com)
-REM  $Revision: 545 $
-REM  $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $
+REM  $Revision: 575 $
+REM  $Date: 2019-12-28 21:49:57 +0100 (sob, 28 dec 2019) $
 REM
 REM  This file is part of Bdd Scout package.
-REM  Copyright (C) 2008, 2019 UM FERI
-REM  UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+REM  Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+REM  Copyright (C) 2019 Robert Meolic, SI-2000 Maribor, Slovenia
 REM
 REM  Bdd Scout is free software; you can redistribute it and/or modify
 REM  it under the terms of the GNU General Public License as
@@ -45,7 +45,7 @@ make static "BINDIR = ./bddscout/%NAME%-%VERSION%"
 make clean "BINDIR = ./bddscout/%NAME%-%VERSION%"
 cp biddy.h ./bddscout/%NAME%-%VERSION%
 cp CHANGES ./bddscout/%NAME%-%VERSION%/CHANGES_biddy
-cp C:/Users/Robert/Documents/mpir-dll-2.7.2/mpir.dll ./bddscout/%NAME%-%VERSION%
+REM cp C:/Users/Robert/Documents/mpir-dll-2.7.2/mpir.dll ./bddscout/%NAME%-%VERSION%
 echo *** Biddy OK.
 
 echo *** Preparing bddview ...
@@ -100,6 +100,8 @@ REM source code is not included in the package
 rm -f bddscout.h
 rm -f bddscout.c
 rm -f bddscout.map
+rm -f bddscoutTcl.h
+rm -f bddscoutTcl.c
 rm -f bddscoutMain.c
 rm -f bddscoutDecls.h
 rm -f bddscoutStubInit.c
@@ -108,11 +110,11 @@ rm -f bddscoutIFIP.c
 rm -f bddscoutBRA.c
 rm -f bddscoutBDDTRACES.c
 rm -f bddtraces-BIDDY.c
+rm -f Makefile
+rm -f Makefile.MINGW
 
 cd ..
 cp COPYING %NAME%-%VERSION%
-cp README %NAME%-%VERSION%
-cp README.MINGW %NAME%-%VERSION%
 echo *** BDD Scout OK.
 
 %MYZIP% %NAME%-%VERSION%-Win.7z %NAME%-%VERSION%\*  -x!%NAME%-%VERSION%\lib*.*

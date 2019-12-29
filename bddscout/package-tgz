@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 545 $]
-#  Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+#  Revision    [$Revision: 559 $]
+#  Date        [$Date: 2019-10-15 17:43:16 +0200 (tor, 15 okt 2019) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2019 UM FERI
-#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as

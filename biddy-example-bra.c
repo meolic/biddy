@@ -1,11 +1,11 @@
-/* $Revision: 545 $ */
-/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
+/* $Revision: 572 $ */
+/* $Date: 2019-12-28 10:08:43 +0100 (sob, 28 dec 2019) $ */
 /* This file (biddy-example-bra.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* COMPILE WITH: */
-/* gcc -DUNIX -O2 -o biddy-example-bra biddy-example-bra.c -I. -L./bin -static -lbiddy -lgmp */
+/* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
+/* gcc -DUNIX -O2 -o biddy-example-bra biddy-example-bra.c -I. -L./bin -lbiddy */
 
 /* MAXNODES IS FOR OBDD AND ZBDD, */
 /* THEY ARE ALWAYS THE LARGEST AMONG THE IMPLEMENTED BDD TYPES */
@@ -182,7 +182,8 @@ int main(int argc, char *argv[]) {
 
 void statMinMax(unsigned int N) {
   Biddy_String SUPPORT;
-  Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD,MNGOBDDCE,MNGZBDDCE,MNGTZBDDCE;
+  Biddy_Manager MNGOBDD, MNGZBDD, MNGTZBDD, MNGOBDDCE, MNGZBDDCE;
+  /* Biddy_Manager MNGTZBDDCE; */
   Biddy_Manager MNG;
   Biddy_Edge f;
   Biddy_Edge sobdd,szbdd,stzbdd,sobddce,szbddce;
@@ -191,13 +192,21 @@ void statMinMax(unsigned int N) {
 
   /* MINxBDD[n] IS A NUMBER OF FUNCTIONS, */
   /* WHICH HAVE n NODES USING THE BEST ORDERING */
-  unsigned long long int *MINOBDD,*MINZBDD,*MINTZBDD;
-  unsigned long long int *MINOBDDCE,*MINZBDDCE,*MINTZBDDCE;
+  unsigned long long int *MINOBDD;
+  unsigned long long int *MINZBDD;
+  unsigned long long int *MINTZBDD;
+  unsigned long long int *MINOBDDCE;
+  unsigned long long int *MINZBDDCE;
+  /* unsigned long long int *MINTZBDDCE; */
 
   /* MAXxBDD[n] IS A NUMBER OF FUNCTIONS, */
   /* WHICH HAVE n NODES USING THE WORST ORDERING */
-  unsigned long long int *MAXOBDD,*MAXZBDD,*MAXTZBDD;
-  unsigned long long int *MAXOBDDCE,*MAXZBDDCE,*MAXTZBDDCE;
+  unsigned long long int *MAXOBDD;
+  unsigned long long int *MAXZBDD;
+  unsigned long long int *MAXTZBDD;
+  unsigned long long int *MAXOBDDCE;
+  unsigned long long int *MAXZBDDCE;
+  /* unsigned long long int *MAXTZBDDCE; */
 
   Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
   Biddy_InitMNG(&MNGZBDD, BIDDYTYPEZBDD);
@@ -240,14 +249,14 @@ void statMinMax(unsigned int N) {
   MINTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MINOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MINZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MINTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  /* MINTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int)); */
 
   MAXOBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MAXZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MAXTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MAXOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MAXZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MAXTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  /* MAXTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int)); */
 
   for (n = 0; n<=MAXNODES; n++) {
     MINOBDD[n] = MAXOBDD[n] = 0;
@@ -255,7 +264,7 @@ void statMinMax(unsigned int N) {
     MINTZBDD[n] = MAXTZBDD[n] = 0;
     MINOBDDCE[n] = MAXOBDDCE[n] = 0;
     MINZBDDCE[n] = MAXZBDDCE[n] = 0;
-    MINTZBDDCE[n] = MAXTZBDDCE[n] = 0;
+    /* MINTZBDDCE[n] = MAXTZBDDCE[n] = 0; */
   }
 
   sobdd = Biddy_Managed_Eval2(MNGOBDD,(Biddy_String)SUPPORT);
@@ -404,14 +413,14 @@ void statMinMax(unsigned int N) {
   free(MINTZBDD);
   free(MINOBDDCE);
   free(MINZBDDCE);
-  free(MINTZBDDCE);
+  /* free(MINTZBDDCE); */
 
   free(MAXOBDD);
   free(MAXZBDD);
   free(MAXTZBDD);
   free(MAXOBDDCE);
   free(MAXZBDDCE);
-  free(MAXTZBDDCE);
+  /* free(MAXTZBDDCE); */
 
   printf("Manager %s finished with %u nodes\n",Biddy_Managed_GetManagerName(MNGOBDD),Biddy_Managed_NodeTableNum(MNGOBDD));
   printf("Manager %s finished with %u nodes\n", Biddy_Managed_GetManagerName(MNGZBDD), Biddy_Managed_NodeTableNum(MNGZBDD));
@@ -433,7 +442,7 @@ void statMinMax(unsigned int N) {
 
 void statAll(unsigned int N) {
   Biddy_String SUPPORT;
-  Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD,MNGOBDDCE,MNGZBDDCE,MNGTZBDDCE;
+  Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD,MNGOBDDCE,MNGZBDDCE;
   Biddy_Edge s,f;
   unsigned long long int n,nf,nc;
   unsigned int fidx;
@@ -441,37 +450,37 @@ void statAll(unsigned int N) {
   /* MINxBDD[n] IS A NUMBER OF FUNCTIONS, */
   /* WHICH HAVE n NODES USING THE BEST ORDERING */
   unsigned long long int *MINOBDD,*MINZBDD,*MINTZBDD;
-  unsigned long long int *MINOBDDCE,*MINZBDDCE,*MINTZBDDCE;
+  unsigned long long int *MINOBDDCE,*MINZBDDCE;
 
   /* MAXxBDD[n] IS A NUMBER OF FUNCTIONS, */
   /* WHICH HAVE n NODES USING THE WORST ORDERING */
   unsigned long long int *MAXOBDD,*MAXZBDD,*MAXTZBDD;
-  unsigned long long int *MAXOBDDCE,*MAXZBDDCE,*MAXTZBDDCE;
+  unsigned long long int *MAXOBDDCE,*MAXZBDDCE;
 
   /* BASExBDD[n] IS A NUMBER OF FUNCTIONS, */
   /* WHICH HAVE n NODES USING THE BASIC ORDERING a,b,c,... */
   unsigned long long int *BASEOBDD,*BASEZBDD,*BASETZBDD;
-  unsigned long long int *BASEOBDDCE,*BASEZBDDCE,*BASETZBDDCE;
+  unsigned long long int *BASEOBDDCE,*BASEZBDDCE;
 
   /* ALLxBDD[n] IS A NUMBER OF FUNCTIONS, */
   /* WHICH HAVE n NODES IN ANY OF THE POSSIBLE ORDERINGS */
   unsigned long long int *ALLOBDD,*ALLZBDD,*ALLTZBDD;
-  unsigned long long int *ALLOBDDCE,*ALLZBDDCE,*ALLTZBDDCE;
+  unsigned long long int *ALLOBDDCE,*ALLZBDDCE;
 
   /* MINNODESxBDD[n] IS A NUMBER OF NODES */
   /* FOR FUNCTION n USING THE BEST ORDERING */
   unsigned int *MINNODESOBDD,*MINNODESZBDD,*MINNODESTZBDD;
-  unsigned int *MINNODESOBDDCE,*MINNODESZBDDCE,*MINNODESTZBDDCE;
+  unsigned int *MINNODESOBDDCE,*MINNODESZBDDCE;
 
   /* MAXNODESxBDD[n] IS A NUMBER OF NODES */
   /* FOR FUNCTION n USING THE WORST ORDERING */
   unsigned int *MAXNODESOBDD,*MAXNODESZBDD,*MAXNODESTZBDD;
-  unsigned int *MAXNODESOBDDCE,*MAXNODESZBDDCE,*MAXNODESTZBDDCE;
+  unsigned int *MAXNODESOBDDCE,*MAXNODESZBDDCE;
 
   /* SUMxBDD[n] IS A SUM OF ALL NODES */
   /* FOR FUNCTION n FOR ALL THE POSSIBLE ORDERINGS */
   unsigned int *SUMNODESOBDD,*SUMNODESZBDD,*SUMNODESTZBDD;
-  unsigned int *SUMNODESOBDDCE,*SUMNODESZBDDCE,*SUMNODESTZBDDCE;
+  unsigned int *SUMNODESOBDDCE,*SUMNODESZBDDCE;
 
   Biddy_InitMNG(&MNGOBDD,BIDDYTYPEOBDD);
   Biddy_InitMNG(&MNGZBDD, BIDDYTYPEZBDD);
@@ -517,28 +526,28 @@ void statAll(unsigned int N) {
   MINTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MINOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MINZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MINTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  /* MINTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int)); */
 
   MAXOBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MAXZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MAXTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MAXOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   MAXZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  MAXTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  /* MAXTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int)); */
 
   BASEOBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   BASEZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   BASETZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   BASEOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   BASEZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  BASETZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  /* BASETZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int)); */
 
   ALLOBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   ALLZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   ALLTZBDD = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   ALLOBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
   ALLZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
-  ALLTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int));
+  /* ALLTZBDDCE = (unsigned long long int *) malloc((MAXNODES+1) * sizeof(unsigned long long int)); */
 
   for (n = 0; n<=MAXNODES; n++) {
     MINOBDD[n] = MAXOBDD[n] = BASEOBDD[n] = ALLOBDD[n] = 0;
@@ -546,7 +555,7 @@ void statAll(unsigned int N) {
     MINTZBDD[n] = MAXTZBDD[n] = BASETZBDD[n] = ALLTZBDD[n] = 0;
     MINOBDDCE[n] = MAXOBDDCE[n] = BASEOBDDCE[n] = ALLOBDDCE[n] = 0;
     MINZBDDCE[n] = MAXZBDDCE[n] = BASEZBDDCE[n] = ALLZBDDCE[n] = 0;
-    MINTZBDDCE[n] = MAXTZBDDCE[n] = BASETZBDDCE[n] = ALLTZBDDCE[n] = 0;
+    /* MINTZBDDCE[n] = MAXTZBDDCE[n] = BASETZBDDCE[n] = ALLTZBDDCE[n] = 0; */
   }
 #endif
 
@@ -557,21 +566,21 @@ void statAll(unsigned int N) {
     MINNODESTZBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
     MINNODESOBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
     MINNODESZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
-    MINNODESTZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
+    /* MINNODESTZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int)); */
 
     MAXNODESOBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
     MAXNODESZBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
     MAXNODESTZBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
     MAXNODESOBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
     MAXNODESZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
-    MAXNODESTZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
+    /* MAXNODESTZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int)); */
 
     SUMNODESOBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
     SUMNODESZBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
     SUMNODESTZBDD = (unsigned int *) malloc(nf * sizeof(unsigned int));
     SUMNODESOBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
     SUMNODESZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
-    SUMNODESTZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int));
+    /* SUMNODESTZBDDCE = (unsigned int *) malloc(nf * sizeof(unsigned int)); */
 
     for (n = 0; n<nf; n++) {
       MINNODESOBDD[n] = MAXNODESOBDD[n] = SUMNODESOBDD[n] = 0;
@@ -579,7 +588,7 @@ void statAll(unsigned int N) {
       MINNODESTZBDD[n] = MAXNODESTZBDD[n] = SUMNODESTZBDD[n] = 0;
       MINNODESOBDDCE[n] = MAXNODESOBDDCE[n] = SUMNODESOBDDCE[n] = 0;
       MINNODESZBDDCE[n] = MAXNODESZBDDCE[n] = SUMNODESZBDDCE[n] = 0;
-      MINNODESTZBDDCE[n] = MAXNODESTZBDDCE[n] = SUMNODESTZBDDCE[n] = 0;
+      /* MINNODESTZBDDCE[n] = MAXNODESTZBDDCE[n] = SUMNODESTZBDDCE[n] = 0; */
     }
   }
 #endif
@@ -777,28 +786,28 @@ void statAll(unsigned int N) {
   free(MINTZBDD);
   free(MINOBDDCE);
   free(MINZBDDCE);
-  free(MINTZBDDCE);
+  /* free(MINTZBDDCE); */
 
   free(MAXOBDD);
   free(MAXZBDD);
   free(MAXTZBDD);
   free(MAXOBDDCE);
   free(MAXZBDDCE);
-  free(MAXTZBDDCE);
+  /* free(MAXTZBDDCE); */
 
   free(BASEOBDD);
   free(BASEZBDD);
   free(BASETZBDD);
   free(BASEOBDDCE);
   free(BASEZBDDCE);
-  free(BASETZBDDCE);
+  /* free(BASETZBDDCE); */
 
   free(ALLOBDD);
   free(ALLZBDD);
   free(ALLTZBDD);
   free(ALLOBDDCE);
   free(ALLZBDDCE);
-  free(ALLTZBDDCE);
+  /* free(ALLTZBDDCE); */
 #endif
 
 #if defined(COUNTNODES) || defined(COMPARENODES)
@@ -840,7 +849,7 @@ void statAll(unsigned int N) {
 
 void analyzeElseThen(unsigned int N) {
   Biddy_String SUPPORT;
-  Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD,MNGOBDDCE,MNGZBDDCE,MNGTZBDDCE;
+  Biddy_Manager MNGOBDD,MNGZBDD,MNGTZBDD,MNGOBDDCE,MNGZBDDCE;
   Biddy_Edge s,f;
   unsigned long long int n, nc;
   unsigned int m, nf;

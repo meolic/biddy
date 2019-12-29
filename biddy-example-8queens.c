@@ -1,17 +1,17 @@
-/* $Revision: 545 $ */
-/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
+/* $Revision: 558 $ */
+/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
 /* This file (biddy-example-8queens.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
 /* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 
-/* COMPILE WITH (remove -static and -lgmp if you have Biddy as a dynamic library): */
-/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DOBDD -DUNIX -O2 -o biddy-example-8queens-obdd biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DOBDDC -DUNIX -O2 -o biddy-example-8queens-obddc biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DZBDD -DUNIX -O2 -o biddy-example-8queens-zbdd biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DZBDDC -DUNIX -O2 -o biddy-example-8queens-zbddc biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DTZBDD -DUNIX -O2 -o biddy-example-8queens-tzbdd biddy-example-8queens.c -I. -L./bin -static -lbiddy -lgmp */
+/* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
+/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DOBDD -DUNIX -O2 -o biddy-example-8queens-obdd biddy-example-8queens.c -I. -L./bin -lbiddy */
+/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DOBDDC -DUNIX -O2 -o biddy-example-8queens-obddc biddy-example-8queens.c -I. -L./bin -lbiddy */
+/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DZBDD -DUNIX -O2 -o biddy-example-8queens-zbdd biddy-example-8queens.c -I. -L./bin -lbiddy */
+/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DZBDDC -DUNIX -O2 -o biddy-example-8queens-zbddc biddy-example-8queens.c -I. -L./bin -lbiddy */
+/* gcc -DNOREPORT -DNOPROFILE -DEVENTLOG_NONE -DBIDDY -DTZBDD -DUNIX -O2 -o biddy-example-8queens-tzbdd biddy-example-8queens.c -I. -L./bin -lbiddy */
 /* gcc -DNOREPORT -DEVENTLOG_NONE -DCUDD -DOBDDC -O2 -o cudd-example-8queens-obddc biddy-example-8queens.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 /* gcc -DNOREPORT -DEVENTLOG_NONE -DCUDD -DZBDDC -O2 -o cudd-example-8queens-zbddc biddy-example-8queens.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 

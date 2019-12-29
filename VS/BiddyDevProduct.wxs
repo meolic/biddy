@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <Product Id="*" Name="Biddy Development Version" Language="1033" Version="1.9.1" Manufacturer="Robert Meolic" UpgradeCode="e2468e66-c155-4dc7-ba15-8a122d5687d7">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate />
+		<Feature Id="MainApplication" Title="BiddyDevProduct" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+		</Feature>
+	</Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLFOLDER" Name="biddy-dev-191" />
+			</Directory>
+		</Directory>
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="COPYING">
+        <File Id="copying" Source="../COPYING"/>
+      </Component>
+      <Component Id="CHANGES">
+        <File Id="changes" Source="../CHANGES"/>
+      </Component>
+      <Component Id="BIDDYDLL">
+        <File Id="biddydll" Source="./x64/biddy.dll"/>
+      </Component>
+      <Component Id="BIDDYDLLLIB">
+        <File Id="biddydlllib" Source="./x64/biddydll.lib"/>
+      </Component>
+      <Component Id="BIDDYH">
+        <File Id="biddyh" Source="../biddy.h"/>
+      </Component>
+      <Component Id="BIDDYCUDDC">
+        <File Id="biddycuddc" Source="../biddy-cudd.c"/>
+      </Component>
+      <Component Id="BIDDYCUDDH">
+        <File Id="biddycuddh" Source="../biddy-cudd.h"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLE8QUEENS">
+        <File Id="biddyexample8queens" Source="../biddy-example-8queens.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEBRA">
+        <File Id="biddyexamplebra" Source="../biddy-example-bra.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEDICTIONARY">
+        <File Id="biddyexampledictionary" Source="../biddy-example-dictionary.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEDICTMAN">
+        <File Id="biddyexampledictman" Source="../biddy-example-dictman.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEDICTCOMMONH">
+        <File Id="biddyexampledictcommonh" Source="../biddy-example-dict-common.h"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEDICTCOMMONC">
+        <File Id="biddyexampledictcommonc" Source="../biddy-example-dict-common.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEHANOI">
+        <File Id="biddyexamplehanoi" Source="../biddy-example-hanoi.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEINDEPENDENCE">
+        <File Id="biddyexampleindependence" Source="../biddy-example-independence.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEINDEPENDENCETEST">
+        <File Id="biddyexampleindependencetest" Source="../biddy-example-independence-test.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEINDEPENDENCEEUROPE">
+        <File Id="biddyexampleindependenceeurope" Source="../biddy-example-independence-europe.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEINDEPENDENCEUSA">
+        <File Id="biddyexampleindependenceusa" Source="../biddy-example-independence-usa.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEPP">
+        <File Id="biddyexamplepp" Source="../biddy-example-pp.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEPPDATAC">
+        <File Id="biddyexampleppdatac" Source="../biddy-example-pp-data.c"/>
+      </Component>
+      <Component Id="BIDDYEXAMPLEPPDATACSV">
+        <File Id="biddyexampleppdatacsv" Source="../biddy-example-pp-data.csv"/>
+      </Component>
+    </ComponentGroup>
+	</Fragment>
+</Wix>

@@ -1,5 +1,5 @@
-/* $Revision: 545 $ */
-/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
+/* $Revision: 558 $ */
+/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
 /* This file (biddy-example-dictman.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
@@ -11,13 +11,13 @@
 /* IF DICTIONARY DOES NOT INCLUDE NULL SYMBOL (I.E. ALL WORDS HAVE EQUAL LENGTH) */
 /* THEN LENGTH 1 IS NOT ALLOWED. */
 
-/* ON LINUX COMPILE WITH: */
-/* gcc -DUNIX -DBIDDY -O2 -o biddy-example-dictman biddy-example-dictman.c biddy-example-dict-common.c -I. -L./bin -lbiddy -lgmp */
+/* ON LINUX COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
+/* gcc -DUNIX -DBIDDY -O2 -o biddy-example-dictman biddy-example-dictman.c biddy-example-dict-common.c -I. -L./bin -lbiddy */
 
-/* ON MINGW COMPILE WITH (you need to distribute libmpir-16.dll): */
-/* gcc -DMINGW -DBIDDY -O2 -o biddy-example-dictman biddy-example-dictman.c biddy-example-dict-common.c -I. -L./bin -L"../mpir-mingw-2.7.2/lib" -lbiddy -Wl,-Bdynamic -lmpir -lws2_32 */
+/* ON MINGW COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
+/* gcc -DMINGW -DBIDDY -O2 -o biddy-example-dictman biddy-example-dictman.c biddy-example-dict-common.c -I. -L./bin -lbiddy -Wl,-Bdynamic -lws2_32 */
 
-/* ON LINUX PROFILE WITH: */
+/* ON LINUX PROFILE WITH (YOU NEED STATIC BIDDY LIBRARY): */
 /* gcc -DUNIX -DBIDDY -O2 -ggdb -pg -o biddy-example-dictman biddy-example-dictman.c biddy-example-dict-common.c -I. -L./bin -lbiddy -lgmp -lm */
 /* gprof biddy-example-dictman gmon.out > analysis.txt */
 

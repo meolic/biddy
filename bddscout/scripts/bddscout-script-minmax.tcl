@@ -1,5 +1,5 @@
 # Example script for Bdd Scout
-# Robert Meolic, 2018
+# Robert Meolic, 2019
 #
 # BDD Scout supports 5 different BDD managers:
 # * ROBDD - Reduced Ordered Binary Decision Diagrams
@@ -117,7 +117,7 @@ proc create_tex_document_minmax {OUTPUTDIR BDDTYPE var} {
   puts $f "\\begin\{document\}"
   puts $f "\\section*\{$BDDTYPE with $var variables - the best and the worst ordering\}"
   puts $f "Generated on [clock format [clock seconds] -format {%d.%m.%Y}] with Bdd Scout v$BIDDYVERSION using bddview v$BDDVIEWVERSION.\\\\"
-  puts $f "If you find this document usable please cite the research paper ``Robert Meolic. Biddy - a multi-platform academic BDD package. Journal of Software, 7(6), pp. 1358-1366, 2012.''"
+  puts $f "If you find this document usable please cite the research paper ``Robert Meolic. The Biddy BDD package. Journal of Open Source Software, 4(34), 1189, 2019.''"
   puts $f "\\bigskip"
   puts $f ""
   for {set i 0} {$i < $n} {incr i} {

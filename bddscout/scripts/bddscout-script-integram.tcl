@@ -1,5 +1,5 @@
 # Example script for Bdd Scout
-# Robert Meolic, 2018
+# Robert Meolic, 2019
 
 # LOGIČNA UGANKA (Slovene)
 # 1. Andrej ali Borut je iz Maribora.

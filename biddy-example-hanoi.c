@@ -1,5 +1,5 @@
-/* $Revision: 545 $ */
-/* $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ */
+/* $Revision: 558 $ */
+/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
 /* This file (biddy-example-hanoi.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
@@ -15,12 +15,12 @@
 /* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
 /* This example uses biddy-cudd.h and biddy-cudd.c */
 
-/* COMPILE WITH: */
-/* gcc -DREPORT -DUNIX -DBIDDY -DOBDD -O2 -o biddy-example-hanoi-obdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DREPORT -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-hanoi-obddc biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DREPORT -DUNIX -DBIDDY -DZBDD -O2 -o biddy-example-hanoi-zbdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DREPORT -DUNIX -DBIDDY -DZBDDC -O2 -o biddy-example-hanoi-zbddc biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
-/* gcc -DREPORT -DUNIX -DBIDDY -DTZBDD -O2 -o biddy-example-hanoi-tzbdd biddy-example-hanoi.c -I. -L./bin -static -lbiddy -lgmp */
+/* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
+/* gcc -DREPORT -DUNIX -DBIDDY -DOBDD -O2 -o biddy-example-hanoi-obdd biddy-example-hanoi.c -I. -L./bin -lbiddy */
+/* gcc -DREPORT -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-hanoi-obddc biddy-example-hanoi.c -I. -L./bin -lbiddy */
+/* gcc -DREPORT -DUNIX -DBIDDY -DZBDD -O2 -o biddy-example-hanoi-zbdd biddy-example-hanoi.c -I. -L./bin -lbiddy */
+/* gcc -DREPORT -DUNIX -DBIDDY -DZBDDC -O2 -o biddy-example-hanoi-zbddc biddy-example-hanoi.c -I. -L./bin -lbiddy */
+/* gcc -DREPORT -DUNIX -DBIDDY -DTZBDD -O2 -o biddy-example-hanoi-tzbdd biddy-example-hanoi.c -I. -L./bin -lbiddy */
 /* gcc -DREPORT -DCUDD -DOBDDC -O2 -o cudd-example-hanoi-obddc biddy-example-hanoi.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 
 /* Here are the original comments */

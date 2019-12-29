@@ -111,3 +111,8 @@ Changes v1.8.1 versus v1.7.4
 
 Changes v1.8.2 versus v1.8.1
 - released on Dec 21, 2018
+
+Changes v1.9.1 versus v1.8.2
+- released on Dec 29, 2019
+- copyright changed (Robert Meolic is no longer with UM FERI)
+- upgraded to Visual Studio 2019, WIX is used for packaging

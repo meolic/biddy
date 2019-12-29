@@ -1,5 +1,5 @@
 # Example script for Bdd Scout
-# Robert Meolic, 2018
+# Robert Meolic, 2019
 #
 # This is from L. Xing, M. Tannous, V. M. Vokkarane, H. Wang and J. Guo:
 # "Reliability Modeling of Mesh Storage Area Networks for Internet of Things,"

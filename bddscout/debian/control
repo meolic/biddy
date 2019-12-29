@@ -2,13 +2,13 @@ Source: bddscout
 Section: math
 Priority: extra
 Maintainer: Robert Meolic <robert@meolic.com>
-Build-Depends: debhelper (>= 8.0.0), tcl-dev, tk-dev, libgmp-dev, libbiddy1-dev (>= 1.8)
+Build-Depends: debhelper (>= 8.0.0), tcl-dev, tk-dev, libgmp-dev, libbiddy1-dev (>= 1.9)
 Standards-Version: 4.1.4
 
 Package: bddscout
 Section: math
 Architecture: any
-Depends: tcl, tk, bwidget, libbiddy1 (>= 1.8), ${shlibs:Depends}, ${misc:Depends}
+Depends: tcl, tk, bwidget, libbiddy1 (>= 1.9), ${shlibs:Depends}, ${misc:Depends}
 Description: Visualization of Binary Decision Diagrams
  http://biddy.meolic.com/
  You can move nodes and subgraphs. The zoom-out capability allows you to

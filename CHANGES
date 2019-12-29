@@ -284,4 +284,11 @@ Changes v1.8.2 versus v1.8.1
 - added Task Allocation example
 
 Changes v1.9.1 versus v1.8.2
-- not released, yet
+- released on Dec 29, 2019
+- copyright changed (Robert Meolic is no longer with UM FERI)
+- upgraded to Visual Studio 2019, WIX is used for packaging
+- improved source code style
+- added COMPACT variant - ROBDDs only and without gmp library (limited functionality)
+- improved Biddy_ExtractMinterm
+- improved Biddy_PrintBDD, Biddy_PrintTable, Biddy_PrintMinterms, and Biddy_PrintSOP
+- optimized statistical functions by adding Biddy_SystemStat and Biddy_SystemLongStat

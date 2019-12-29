@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 545 $]
-#  Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+#  Revision    [$Revision: 577 $]
+#  Date        [$Date: 2019-12-29 16:21:40 +0100 (ned, 29 dec 2019) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2019 UM FERI
-#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -195,7 +195,7 @@ cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 # create a source distribution for cosmic
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=cosmic
+ALTDISTRO=eoan
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -240,7 +240,7 @@ pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/s
 #pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
 #popd
 
-ALTDISTRO=cosmic
+ALTDISTRO=eoan
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 #pushd `pwd`/$ALTDISTRO/source

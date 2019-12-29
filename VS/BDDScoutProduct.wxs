@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <Product Id="*" Name="BDD Scout" Language="1033" Version="1.9.1" Manufacturer="Robert Meolic" UpgradeCode="79672019-5204-4f68-8012-4b323f6c035d">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate />
+    <Feature Id="MainApplication" Title="BDDScoutProduct" Level="1">
+      <ComponentGroupRef Id="ProductShortcut" />
+      <ComponentGroupRef Id="ProductComponentsMain" />
+      <ComponentGroupRef Id="ProductComponentsCreate" />
+      <ComponentGroupRef Id="ProductComponentsScripts" />
+    </Feature>
+    <Feature Id="IFIP" Title="IFIPBenchmarks" Level="1">
+      <ComponentGroupRef Id="ProductIFIPBenchmarks" />
+      <ComponentGroupRef Id="ProductIFIPBenchmarksCATH" />
+      <ComponentGroupRef Id="ProductIFIPBenchmarksEX" />
+      <ComponentGroupRef Id="ProductIFIPBenchmarksHACHTEL" />
+      <ComponentGroupRef Id="ProductIFIPBenchmarksPLASCO" />
+    </Feature>
+    <Feature Id="BDDTRACES" Title="BDDTRACESBenchmarks" Level="1">
+      <ComponentGroupRef Id="ProductBDDTRACESBenchmarks" />
+    </Feature>
+  </Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ShortcutFolder" Name="BDD Scout" />
+      </Directory>
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="bddscout-191">
+          <Directory Id="INSTALLBDDSCOUT" Name="bddscout">
+            <Directory Id="INSTALLBDDSCOUTCREATE" Name="create" />
+            <Directory Id="INSTALLBDDSCOUTSCRIPTS" Name="scripts" />
+          </Directory>
+          <Directory Id="INSTALLIFIP" Name="IFIP">
+            <Directory Id="INSTALLIFIPCATH" Name="cath" />
+            <Directory Id="INSTALLIFIPEX" Name="ex" />
+            <Directory Id="INSTALLIFIPHACHTEL" Name="hachtel" />
+            <Directory Id="INSTALLIFIPPLASCO" Name="plasco" />
+          </Directory>
+          <Directory Id="INSTALLBDDTRACES" Name="BDDTRACES" />
+        </Directory>
+      </Directory>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductShortcut" Directory="ShortcutFolder">
+      <Component Id="SHORTCUT">
+        <Shortcut Id="bddscoutshortcut" Name="BDD Scout" Description="BDD Scout"
+                  Target="[INSTALLBDDSCOUT]bddscout.tcl" WorkingDirectory="INSTALLFOLDER"/>
+        <RegistryValue Root="HKCU" Key="Software\bddscout\BDD Scout"
+                  Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+        <RemoveFolder Id="SHORTCUTFOLDER" On="uninstall"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponentsMain" Directory="INSTALLBDDSCOUT">
+      <Component Id="COPYING">
+        <File Id="copying" Source="../bddscout/COPYING"/>
+      </Component>
+      <Component Id="BDDVIEWTCL">
+        <File Id="bddviewtcl" Source="../bddview/bddview.tcl"/>
+      </Component>
+      <Component Id="BDDSCOUTDLL">
+        <File Id="bddscoutdll" Source="./x64/bddscout.dll"/>
+      </Component>
+      <Component Id="BDDSCOUTTCL">
+        <File Id="bddscouttcl" Source="../bddscout/bddscout.tcl"/>
+      </Component>
+      <Component Id="PKGINDEXTCL">
+        <File Id="pkgindextcl" Source="../bddscout/pkgindex.tcl"/>
+      </Component>
+      <Component Id="BDDSCOUTBRADLL">
+        <File Id="bddscoutbradll" Source="./x64/bddscoutBRA.dll"/>
+      </Component>
+      <Component Id="BDDSCOUTBRATCL">
+        <File Id="bddscoutbratcl" Source="../bddscout/bddscoutBRA.tcl"/>
+      </Component>
+      <Component Id="PKGEXTENSIONBRATCL">
+        <File Id="pkgextensionbratcl" Source="../bddscout/pkgExtensionBRA.tcl"/>
+      </Component>
+      <Component Id="BDDSCOUTIFIPDLL">
+        <File Id="bddscoutifipdll" Source="./x64/bddscoutIFIP.dll"/>
+      </Component>
+      <Component Id="BDDSCOUTIFIPTCL">
+        <File Id="bddscoutifiptcl" Source="../bddscout/bddscoutIFIP.tcl"/>
+      </Component>
+      <Component Id="PKGEXTENSIONIFIPTCL">
+        <File Id="pkgextensionifiptcl" Source="../bddscout/pkgExtensionIFIP.tcl"/>
+      </Component>
+      <Component Id="BDDSCOUTBDDTRACESDLL">
+        <File Id="bddscoutbddtracesdll" Source="./x64/bddscoutBDDTRACES.dll"/>
+      </Component>
+      <Component Id="BDDSCOUTBDDTRACESTCL">
+        <File Id="bddscoutbddtracestcl" Source="../bddscout/bddscoutBDDTRACES.tcl"/>
+      </Component>
+      <Component Id="PKGEXTENSIONBDDTRACESTCL">
+        <File Id="pkgextensionbddtracestcl" Source="../bddscout/pkgExtensionBDDTRACES.tcl"/>
+      </Component>
+      <Component Id="EXAMPLEBDD">
+        <File Id="examplebdd" Source="../bddscout/example.bdd"/>
+      </Component>
+      <Component Id="EXAMPLEBF">
+        <File Id="examplebf" Source="../bddscout/example.bf"/>
+      </Component>
+      <Component Id="EXAMPLEROBDD">
+        <File Id="examplerobdd" Source="../bddview/example-robdd.bddview"/>
+      </Component>
+      <Component Id="EXAMPLEROBDDCE">
+        <File Id="examplerobddce" Source="../bddview/example-robddce.bddview"/>
+      </Component>
+      <Component Id="EXAMPLEZBDDCE">
+        <File Id="examplezbddce" Source="../bddview/example-zbddce.bddview"/>
+      </Component>
+      <Component Id="EXAMPLETZBDD">
+        <File Id="exampletzbdd" Source="../bddview/example-tzbdd.bddview"/>
+      </Component>
+    </ComponentGroup>
+    <ComponentGroup Id="ProductComponentsCreate" Directory="INSTALLBDDSCOUTCREATE">
+      <Component Id="CREATEFUN2VAR">
+        <File Id="createfun2var" Source="../bddscout/create/bddscout-create-fun2var.tcl"/>
+      </Component>
+      <Component Id="CREATEFUN3VAR">
+        <File Id="createfun3var" Source="../bddscout/create/bddscout-create-fun3var.tcl"/>
+      </Component>
+    </ComponentGroup>
+    <ComponentGroup Id="ProductComponentsScripts" Directory="INSTALLBDDSCOUTSCRIPTS">
+      <Component Id="SCRIPTEXAMPLE1">
+        <File Id="scriptexample1" Source="../bddscout/scripts/bddscout-script-example1.tcl"/>
+      </Component>
+      <Component Id="SCRIPTEXAMPLE2">
+        <File Id="scriptexample2" Source="../bddscout/scripts/bddscout-script-example2.tcl"/>
+      </Component>
+      <Component Id="SCRIPTINTEGRAM">
+        <File Id="scriptintegram" Source="../bddscout/scripts/bddscout-script-integram.tcl"/>
+      </Component>
+      <Component Id="SCRIPTEXPORTALL">
+        <File Id="scriptexportall" Source="../bddscout/scripts/bddscout-script-export-all.tcl"/>
+      </Component>
+      <Component Id="SCRIPTCOMPARE">
+        <File Id="scriptcompare" Source="../bddscout/scripts/bddscout-script-compare.tcl"/>
+      </Component>
+      <Component Id="SCRIPTMINMAX">
+        <File Id="scriptminmax" Source="../bddscout/scripts/bddscout-script-minmax.tcl"/>
+      </Component>
+      <Component Id="SCRIPTDFT">
+        <File Id="scriptdft" Source="../bddscout/scripts/bddscout-script-dft.tcl"/>
+      </Component>
+      <Component Id="SCRIPTMESH">
+        <File Id="scriptmesh" Source="../bddscout/scripts/bddscout-script-mesh.tcl"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductIFIPBenchmarks" Directory="INSTALLIFIP">
+      <Component Id="IFIPCFP">
+        <File Id="ifipcfp" Source="../bddscout/IFIP/WG10.2-1989-cfp.txt"/>
+      </Component>
+      <Component Id="IFIPREADME">
+        <File Id="ifipreadme" Source="../bddscout/IFIP/README"/>
+      </Component>
+    </ComponentGroup>
+    <ComponentGroup Id="ProductIFIPBenchmarksCATH" Directory="INSTALLIFIPCATH">
+      <Component Id="IFIPCATHADD1">
+        <File Id="ifipcathadd1" Source="../bddscout/IFIP/cath/add1.be"/>
+      </Component>
+      <Component Id="IFIPCATHADD2">
+        <File Id="ifipcathadd2" Source="../bddscout/IFIP/cath/add2.be"/>
+      </Component>
+      <Component Id="IFIPCATHADD3">
+        <File Id="ifipcathadd3" Source="../bddscout/IFIP/cath/add3.be"/>
+      </Component>
+      <Component Id="IFIPCATHADD4">
+        <File Id="ifipcathadd4" Source="../bddscout/IFIP/cath/add4.be"/>
+      </Component>
+      <Component Id="IFIPCATHADDSUB">
+        <File Id="ifipcathaddsub" Source="../bddscout/IFIP/cath/addsub.be"/>
+      </Component>
+      <Component Id="IFIPCATHALU">
+        <File Id="ifipcathalu" Source="../bddscout/IFIP/cath/alu.be"/>
+      </Component>
+    </ComponentGroup>
+    <ComponentGroup Id="ProductIFIPBenchmarksEX" Directory="INSTALLIFIPEX">
+      <Component Id="IFIPEXEX2">
+        <File Id="ifipexex2" Source="../bddscout/IFIP/ex/ex2.be"/>
+      </Component>
+      <Component Id="IFIPEXMUL03">
+        <File Id="ifipexmul03" Source="../bddscout/IFIP/ex/mul03.be"/>
+      </Component>
+      <Component Id="IFIPEXMUL04">
+        <File Id="ifipexmul04" Source="../bddscout/IFIP/ex/mul04.be"/>
+      </Component>
+      <Component Id="IFIPEXMUL05">
+        <File Id="ifipexmul05" Source="../bddscout/IFIP/ex/mul05.be"/>
+      </Component>
+      <Component Id="IFIPEXMUL06">
+        <File Id="ifipexmul06" Source="../bddscout/IFIP/ex/mul06.be"/>
+      </Component>
+      <Component Id="IFIPEXMUL07">
+        <File Id="ifipexmul07" Source="../bddscout/IFIP/ex/mul07.be"/>
+      </Component>
+      <Component Id="IFIPEXMUL08">
+        <File Id="ifipexmul08" Source="../bddscout/IFIP/ex/mul08.be"/>
+      </Component>
+      <Component Id="IFIPEXRIP02">
+        <File Id="ifipexrip02" Source="../bddscout/IFIP/ex/rip02.be"/>
+      </Component>
+      <Component Id="IFIPEXRIP04">
+        <File Id="ifipexrip04" Source="../bddscout/IFIP/ex/rip04.be"/>
+      </Component>
+      <Component Id="IFIPEXRIP06">
+        <File Id="ifipexrip06" Source="../bddscout/IFIP/ex/rip06.be"/>
+      </Component>
+      <Component Id="IFIPEXRIP08">
+        <File Id="ifipexrip08" Source="../bddscout/IFIP/ex/rip08.be"/>
+      </Component>
+      <Component Id="IFIPEXTRANSP">
+        <File Id="ifipextransp" Source="../bddscout/IFIP/ex/transp.be"/>
+      </Component>
+      <Component Id="IFIPEXZTWAALF1">
+        <File Id="ifipexztwaalf1" Source="../bddscout/IFIP/ex/ztwaalf1.be"/>
+      </Component>
+      <Component Id="IFIPEXZTWAALF2">
+        <File Id="ifipexztwaalf2" Source="../bddscout/IFIP/ex/ztwaalf2.be"/>
+      </Component>
+    </ComponentGroup>
+    <ComponentGroup Id="ProductIFIPBenchmarksHACHTEL" Directory="INSTALLIFIPHACHTEL">
+      <Component Id="IFIPHACHTELALUPLA20">
+        <File Id="ifiphachtelalupla20" Source="../bddscout/IFIP/hachtel/alupla20.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELALUPLA21">
+        <File Id="ifiphachtelalupla21" Source="../bddscout/IFIP/hachtel/alupla21.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELALUPLA22">
+        <File Id="ifiphachtelalupla22" Source="../bddscout/IFIP/hachtel/alupla22.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELALUPLA23">
+        <File Id="ifiphachtelalupla23" Source="../bddscout/IFIP/hachtel/alupla23.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELALUPLA24">
+        <File Id="ifiphachtelalupla24" Source="../bddscout/IFIP/hachtel/alupla24.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELDC2">
+        <File Id="ifiphachteldc2" Source="../bddscout/IFIP/hachtel/dc2.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELDK17">
+        <File Id="ifiphachteldk17" Source="../bddscout/IFIP/hachtel/dk17.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELDK27">
+        <File Id="ifiphachteldk27" Source="../bddscout/IFIP/hachtel/dk27.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELF51M">
+        <File Id="ifiphachtelf51m" Source="../bddscout/IFIP/hachtel/f51m.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELMISG">
+        <File Id="ifiphachtelmisg" Source="../bddscout/IFIP/hachtel/misg.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELMLP4">
+        <File Id="ifiphachtelmlp4" Source="../bddscout/IFIP/hachtel/mlp4.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELRD73">
+        <File Id="ifiphachtelrd73" Source="../bddscout/IFIP/hachtel/rd73.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELRISC">
+        <File Id="ifiphachtelrisc" Source="../bddscout/IFIP/hachtel/risc.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELROOT">
+        <File Id="ifiphachtelroot" Source="../bddscout/IFIP/hachtel/root.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELSQN">
+        <File Id="ifiphachtelsqn" Source="../bddscout/IFIP/hachtel/sqn.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELVG2">
+        <File Id="ifiphachtelvg2" Source="../bddscout/IFIP/hachtel/vg2.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELX1DN">
+        <File Id="ifiphachtelx1dn" Source="../bddscout/IFIP/hachtel/x1dn.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELX6DN">
+        <File Id="ifiphachtelx6dn" Source="../bddscout/IFIP/hachtel/x6dn.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELZ4">
+        <File Id="ifiphachtelz4" Source="../bddscout/IFIP/hachtel/z4.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELZ5XPL">
+        <File Id="ifiphachtelz5xpl" Source="../bddscout/IFIP/hachtel/z5xpl.be"/>
+      </Component>
+      <Component Id="IFIPHACHTELZ9SYM">
+        <File Id="ifiphachtelz9sym" Source="../bddscout/IFIP/hachtel/z9sym.be"/>
+      </Component>
+    </ComponentGroup>
+    <ComponentGroup Id="ProductIFIPBenchmarksPLASCO" Directory="INSTALLIFIPPLASCO">
+      <Component Id="IFIPPLASCOCOUNTER">
+        <File Id="ifipplascocounter" Source="../bddscout/IFIP/plasco/counter.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOD3">
+        <File Id="ifipplascod3" Source="../bddscout/IFIP/plasco/d3.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOHOSTINT1">
+        <File Id="ifipplascohostint1" Source="../bddscout/IFIP/plasco/hostint1.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOIN1">
+        <File Id="ifipplascoin1" Source="../bddscout/IFIP/plasco/in1.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOMP2D">
+        <File Id="ifipplascomp2d" Source="../bddscout/IFIP/plasco/mp2d.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOMUL">
+        <File Id="ifipplascomul" Source="../bddscout/IFIP/plasco/mul.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOPITCH">
+        <File Id="ifipplascopitch" Source="../bddscout/IFIP/plasco/pitch.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOROM2">
+        <File Id="ifipplascorom2" Source="../bddscout/IFIP/plasco/rom2.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOTABLE">
+        <File Id="ifipplascotable" Source="../bddscout/IFIP/plasco/table.be"/>
+      </Component>
+      <Component Id="IFIPPLASCOWERNER">
+        <File Id="ifipplascowerner" Source="../bddscout/IFIP/plasco/werner.be"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductBDDTRACESBenchmarks" Directory="INSTALLBDDTRACES">
+      <Component Id="BDDTRACESREADME">
+        <File Id="bddtracesreadme" Source="../bddscout/BDDTRACES/README"/>
+      </Component>
+      <Component Id="BDDTRACESREADMETRACE">
+        <File Id="bddtracesreadmetrace" Source="../bddscout/BDDTRACES/README.trace"/>
+      </Component>
+      <Component Id="BDDTRACESABP4">
+        <File Id="bddtracesabp4" Source="../bddscout/BDDTRACES/abp4.trace"/>
+      </Component>
+      <Component Id="BDDTRACESDME1">
+        <File Id="bddtracesdme1" Source="../bddscout/BDDTRACES/dme1.trace"/>
+      </Component>
+      <Component Id="BDDTRACESDME2">
+        <File Id="bddtracesdme2" Source="../bddscout/BDDTRACES/dme2.trace"/>
+      </Component>
+      <Component Id="BDDTRACESGIGAMAX">
+        <File Id="bddtracesgigamax" Source="../bddscout/BDDTRACES/gigamax.trace"/>
+      </Component>
+      <Component Id="BDDTRACESGUIDANCE">
+        <File Id="bddtracesguidance" Source="../bddscout/BDDTRACES/guidance.trace"/>
+      </Component>
+      <Component Id="BDDTRACESMUTEX">
+        <File Id="bddtracesmutex" Source="../bddscout/BDDTRACES/mutex.trace"/>
+      </Component>
+      <Component Id="BDDTRACESMUTEX1">
+        <File Id="bddtracesmutex1" Source="../bddscout/BDDTRACES/mutex1.trace"/>
+      </Component>
+      <Component Id="BDDTRACESSHORT">
+        <File Id="bddtracesshort" Source="../bddscout/BDDTRACES/short.trace"/>
+      </Component>
+      <Component Id="BDDTRACESSYNCARB5">
+        <File Id="bddtracessyncarb5" Source="../bddscout/BDDTRACES/syncarb5.trace"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>

@@ -1,5 +1,5 @@
 # Example script for Bdd Scout
-# Robert Meolic, 2018
+# Robert Meolic, 2019
 #
 # BDD Scout supports 5 different BDD managers:
 # * ROBDD - Reduced Ordered Binary Decision Diagrams

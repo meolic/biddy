@@ -13,14 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddy.h]
-    Revision    [$Revision: 545 $]
-    Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+    Revision    [$Revision: 569 $]
+    Date        [$Date: 2019-12-27 10:51:41 +0100 (pet, 27 dec 2019) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
-Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -92,6 +93,17 @@ See also: biddyInt.h
 #  endif
 #endif
 
+#ifndef EXTERN
+#  define EXTERN extern
+#endif
+#ifndef DATAEXTERN
+#  define DATAEXTERN extern
+#endif
+
+#ifndef BIDDYVERSION
+#define BIDDYVERSION "1.9.1"
+#endif
+
 /*----------------------------------------------------------------------------*/
 /* Constant definitions                                                       */
 /*----------------------------------------------------------------------------*/
@@ -140,6 +152,39 @@ See also: biddyInt.h
 
 #define BIDDYTYPETZFDDC 12
 #define BIDDYTYPENAMETZFDDC "TZFDD WITH COMPLEMENTED EDGES"
+
+/* Supported system statistics types */
+
+/* unsigned int Biddy_Managed_SystemStat(Biddy_Manager MNG, unsigned int stat) */
+#define BIDDYSTATVARIABLETABLENUM 1
+#define BIDDYSTATFORMULATABLENUM 2
+#define BIDDYSTATNODETABLESIZE 3
+#define BIDDYSTATNODETABLEBLOCKNUMBER 4
+#define BIDDYSTATNODETABLEGENERATED 5
+#define BIDDYSTATNODETABLEMAX 6
+#define BIDDYSTATNODETABLENUM 7
+#define BIDDYSTATNODETABLERESIZENUMBER 8
+#define BIDDYSTATNODETABLEGCNUMBER 9
+#define BIDDYSTATNODETABLEGCTIME 10
+#define BIDDYSTATNODETABLESWAPNUMBER 11
+#define BIDDYSTATNODETABLESIFTINGNUMBER 12
+#define BIDDYSTATNODETABLEDRTIME 13
+#define BIDDYSTATNODETABLEITENUMBER 14
+#define BIDDYSTATNODETABLEANDORNUMBER 15
+#define BIDDYSTATNODETABLEXORNUMBER 16
+
+/* unsigned long long int Biddy_Managed_SystemLongStat(...) */
+#define BIDDYLONGSTATNODETABLEFOANUMBER 101
+#define BIDDYLONGSTATNODETABLEFINDNUMBER 102
+#define BIDDYLONGSTATNODETABLECOMPARENUMBER 103
+#define BIDDYLONGSTATNODETABLEADDNUMBER 104
+#define BIDDYLONGSTATNODETABLEITERECURSIVENUMBER 105
+#define BIDDYLONGSTATNODETABLEANDORRECURSIVENUMBER 106
+#define BIDDYLONGSTATNODETABLEXORRECURSIVENUMBER 107
+#define BIDDYLONGSTATOPCACHESEARCH 108
+#define BIDDYLONGSTATOPCACHEFIND 109
+#define BIDDYLONGSTATOPCACHEINSERT 110
+#define BIDDYLONGSTATOPCACHEOVERWRITE 111
 
 /*----------------------------------------------------------------------------*/
 /* Macro definitions                                                          */
@@ -196,7 +241,7 @@ See also: biddyInt.h
 #define Biddy_GetTag(f) ((Biddy_Variable) ((uintptr_t) f >> 48))
 /* #define Biddy_GetTag(f) ((Biddy_Variable) (((uintptr_t) f >> 48) & 0x000000000000ffff)) */
 #else
-#define Biddy_GetTag(f) 0
+#define Biddy_GetTag(f) ((Biddy_Variable) 0)
 #endif
 
 /*! Biddy_SetTag adds tag to the given edge, since Biddy v1.7. */
@@ -205,7 +250,7 @@ See also: biddyInt.h
 #if UINTPTR_MAX == 0xffffffffffffffff
 #define Biddy_SetTag(f,t) (f = (Biddy_Edge) (((uintptr_t) f & 0x0000ffffffffffff) | ((uintptr_t) t << 48)))
 #else
-#define Biddy_SetTag(f,t) 0
+#define Biddy_SetTag(f,t) (f = (Biddy_Edge) 0)
 #endif
 
 /*! Biddy_ClearTag removes tag from the given edge, since Biddy v1.7. */
@@ -213,7 +258,7 @@ See also: biddyInt.h
 #if UINTPTR_MAX == 0xffffffffffffffff
 #define Biddy_ClearTag(f) (f = (Biddy_Edge) ((uintptr_t) f & 0x0000ffffffffffff))
 #else
-#define Biddy_ClearTag(f) 0
+#define Biddy_ClearTag(f) (f = (Biddy_Edge) 0)
 #endif
 
 /*! Biddy_Untagged returns untagged version of edge, since Biddy v1.7. */
@@ -221,7 +266,7 @@ See also: biddyInt.h
 #if UINTPTR_MAX == 0xffffffffffffffff
 #define Biddy_Untagged(f) ((Biddy_Edge) ((uintptr_t) f & 0x0000ffffffffffff))
 #else
-#define Biddy_Untagged(f) 0
+#define Biddy_Untagged(f) ((Biddy_Edge) 0)
 #endif
 
 /*----------------------------------------------------------------------------*/
@@ -306,14 +351,14 @@ extern "C" {
 
 /* 1 */
 /*! Macros Biddy_Init and Biddy_InitAnonymous will initialize anonymous manager.*/
+EXTERN void Biddy_InitMNG(Biddy_Manager *mng, int bddtype);
 #define Biddy_Init() Biddy_InitMNG(NULL,BIDDYTYPEOBDD)
 #define Biddy_InitAnonymous(bddtype) Biddy_InitMNG(NULL,bddtype)
-EXTERN void Biddy_InitMNG(Biddy_Manager *mng, int bddtype);
 
 /* 2 */
 /*! Macro Biddy_Exit will delete anonymous manager. */
-#define Biddy_Exit() Biddy_ExitMNG(NULL)
 EXTERN void Biddy_ExitMNG(Biddy_Manager *mng);
+#define Biddy_Exit() Biddy_ExitMNG(NULL)
 
 /* 3 */
 EXTERN Biddy_String Biddy_About();
@@ -577,11 +622,11 @@ EXTERN Biddy_Boolean Biddy_Managed_IsOK(Biddy_Manager MNG, Biddy_Edge f);
 /*! Macro Biddy_GC is defined for use with anonymous manager. */
 /*! Macros Biddy_Managed_AutoGC, Biddy_AutoGC, Biddy_Managed_ForceGC, and Biddy_ForceGC are useful variants. */
 #define Biddy_GC(targetLT,targetGEQ,purge,total) Biddy_Managed_GC(NULL,targetLT,targetGEQ,purge,total)
+EXTERN void Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable targetLT, Biddy_Variable targetGEQ, Biddy_Boolean purge, Biddy_Boolean total);
 #define Biddy_Managed_AutoGC(MNG) Biddy_Managed_GC(MNG,0,0,FALSE,FALSE)
 #define Biddy_AutoGC() Biddy_Managed_GC(NULL,0,0,FALSE,FALSE)
 #define Biddy_Managed_ForceGC(MNG) Biddy_Managed_GC(MNG,0,0,FALSE,TRUE)
 #define Biddy_ForceGC() Biddy_Managed_GC(NULL,0,0,FALSE,TRUE)
-EXTERN void Biddy_Managed_GC(Biddy_Manager MNG, Biddy_Variable targetLT, Biddy_Variable targetGEQ, Biddy_Boolean purge, Biddy_Boolean total);
 
 /* 53 */
 /*! Macro Biddy_Clean is defined for use with anonymous manager. */
@@ -618,11 +663,11 @@ EXTERN void Biddy_Managed_AddCache(Biddy_Manager MNG, Biddy_GCFunction gc);
 /*! are defined to simplify formulae management. */
 #define Biddy_AddFormula(x,f,c) Biddy_Managed_AddFormula(NULL,x,f,c)
 EXTERN unsigned int Biddy_Managed_AddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f, int c);
-#define Biddy_Managed_AddTmpFormula(mng,x,f) Biddy_Managed_AddFormula(mng,x,f,-1)
-#define Biddy_Managed_AddPersistentFormula(mng,x,f) Biddy_Managed_AddFormula(mng,x,f,0)
-#define Biddy_Managed_KeepFormula(mng,f) Biddy_Managed_AddFormula(mng,NULL,f,1)
-#define Biddy_Managed_KeepFormulaProlonged(mng,f,c) Biddy_Managed_AddFormula(mng,NULL,f,c)
-#define Biddy_Managed_KeepFormulaUntilPurge(mng,f) Biddy_Managed_AddFormula(mng,NULL,f,0)
+#define Biddy_Managed_AddTmpFormula(MNG,x,f) Biddy_Managed_AddFormula(MNG,x,f,-1)
+#define Biddy_Managed_AddPersistentFormula(MNG,x,f) Biddy_Managed_AddFormula(MNG,x,f,0)
+#define Biddy_Managed_KeepFormula(MNG,f) Biddy_Managed_AddFormula(MNG,NULL,f,1)
+#define Biddy_Managed_KeepFormulaProlonged(MNG,f,c) Biddy_Managed_AddFormula(MNG,NULL,f,c)
+#define Biddy_Managed_KeepFormulaUntilPurge(MNG,f) Biddy_Managed_AddFormula(MNG,NULL,f,0)
 #define Biddy_AddTmpFormula(x,f) Biddy_Managed_AddFormula(NULL,x,f,-1)
 #define Biddy_AddPersistentFormula(x,f) Biddy_Managed_AddFormula(NULL,x,f,0)
 #define Biddy_KeepFormula(f) Biddy_Managed_AddFormula(NULL,NULL,f,1)
@@ -925,13 +970,13 @@ EXTERN Biddy_Edge Biddy_Managed_CreateFunction(Biddy_Manager MNG, Biddy_Edge sup
 
 /* 109 */
 /*! Macro Biddy_RandomFunction is defined for use with anonymous manager. */
-#define Biddy_RandomFunction(support,r) Biddy_Managed_RandomFunction(NULL,support,r)
-EXTERN Biddy_Edge Biddy_Managed_RandomFunction(Biddy_Manager MNG, Biddy_Edge support, double r);
+#define Biddy_RandomFunction(support,ratio) Biddy_Managed_RandomFunction(NULL,support,ratio)
+EXTERN Biddy_Edge Biddy_Managed_RandomFunction(Biddy_Manager MNG, Biddy_Edge support, double ratio);
 
 /* 110 */
 /*! Macro Biddy_RandomSet is defined for use with anonymous manager. */
-#define Biddy_RandomSet(unit,r) Biddy_Managed_RandomSet(NULL,unit,r)
-EXTERN Biddy_Edge Biddy_Managed_RandomSet(Biddy_Manager MNG, Biddy_Edge unit, double r);
+#define Biddy_RandomSet(unit,ratio) Biddy_Managed_RandomSet(NULL,unit,ratio)
+EXTERN Biddy_Edge Biddy_Managed_RandomSet(Biddy_Manager MNG, Biddy_Edge unit, double ratio);
 
 /* 111 */
 /*! Macro Biddy_ExtractMinterm is defined for use with anonymous manager. */
@@ -970,218 +1015,147 @@ EXTERN unsigned int Biddy_MaxLevel(Biddy_Edge f);
 EXTERN float Biddy_AvgLevel(Biddy_Edge f);
 
 /* 115 */
-/*! Macro Biddy_VariableTableNum is defined for use with anonymous manager. */
-#define Biddy_VariableTableNum() Biddy_Managed_VariableTableNum(NULL)
-EXTERN Biddy_Variable Biddy_Managed_VariableTableNum(Biddy_Manager MNG);
+/*! Macro Biddy_SystemStat is defined for use with anonymous manager. */
+#define Biddy_SystemStat(stat) Biddy_Managed_SystemStat(NULL,stat)
+EXTERN unsigned int Biddy_Managed_SystemStat(Biddy_Manager MNG, unsigned int stat);
+#define Biddy_Managed_VariableTableNum(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATVARIABLETABLENUM)
+#define Biddy_Managed_FormulaTableNum(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATFORMULATABLENUM)
+#define Biddy_Managed_NodeTableSize(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLESIZE)
+#define Biddy_Managed_NodeTableBlockNumber(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEBLOCKNUMBER)
+#define Biddy_Managed_NodeTableGenerated(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEGENERATED)
+#define Biddy_Managed_NodeTableMax(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEMAX)
+#define Biddy_Managed_NodeTableNum(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLENUM)
+#define Biddy_Managed_NodeTableResizeNumber(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLERESIZENUMBER)
+#define Biddy_Managed_NodeTableGCNumber(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEGCNUMBER)
+#define Biddy_Managed_NodeTableGCTime(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEGCTIME)
+#define Biddy_Managed_NodeTableSwapNumber(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLESWAPNUMBER)
+#define Biddy_Managed_NodeTableSiftingNumber(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLESIFTINGNUMBER)
+#define Biddy_Managed_NodeTableDRTime(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEDRTIME)
+#define Biddy_Managed_NodeTableITENumber(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEITENUMBER)
+#define Biddy_Managed_NodeTableANDORNumber(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEANDORNUMBER)
+#define Biddy_Managed_NodeTableXORNumber(MNG) Biddy_Managed_SystemStat(MNG,BIDDYSTATNODETABLEXORNUMBER)
+#define Biddy_VariableTableNum() Biddy_Managed_SystemStat(NULL,BIDDYSTATVARIABLETABLENUM)
+#define Biddy_FormulaTableNum() Biddy_Managed_SystemStat(NULL,BIDDYSTATFORMULATABLENUM)
+#define Biddy_NodeTableSize() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLESIZE)
+#define Biddy_NodeTableBlockNumber() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEBLOCKNUMBER)
+#define Biddy_NodeTableGenerated() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEGENERATED)
+#define Biddy_NodeTableMax() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEMAX)
+#define Biddy_NodeTableNum() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLENUM)
+#define Biddy_NodeTableResizeNumber() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLERESIZENUMBER)
+#define Biddy_NodeTableGCNumber() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEGCNUMBER)
+#define Biddy_NodeTableGCTime() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEGCTIME)
+#define Biddy_NodeTableSwapNumber() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLESWAPNUMBER)
+#define Biddy_NodeTableSiftingNumber() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLESIFTINGNUMBER)
+#define Biddy_NodeTableDRTime() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEDRTIME)
+#define Biddy_NodeTableITENumber() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEITENUMBER)
+#define Biddy_NodeTableANDORNumber() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEANDORNUMBER)
+#define Biddy_NodeTableXORNumber() Biddy_Managed_SystemStat(NULL,BIDDYSTATNODETABLEXORNUMBER)
 
 /* 116 */
-/*! Macro Biddy_NodeTableSize is defined for use with anonymous manager. */
-#define Biddy_NodeTableSize() Biddy_Managed_NodeTableSize(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableSize(Biddy_Manager MNG);
+/*! Macro Biddy_SystemLongStat is defined for use with anonymous manager. */
+#define Biddy_SystemLongStat(longstat) Biddy_Managed_SystemLongStat(NULL,longstat)
+EXTERN unsigned long long int Biddy_Managed_SystemLongStat(Biddy_Manager MNG, unsigned int longstat);
+#define Biddy_Managed_NodeTableFoaNumber(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATNODETABLEFOANUMBER)
+#define Biddy_Managed_NodeTableFindNumber(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATNODETABLEFINDNUMBER)
+#define Biddy_Managed_NodeTableCompareNumber(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATNODETABLECOMPARENUMBER)
+#define Biddy_Managed_NodeTableAddNumber(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATNODETABLEADDNUMBER)
+#define Biddy_Managed_NodeTableITERecursiveNumber(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATNODETABLEITERECURSIVENUMBER)
+#define Biddy_Managed_NodeTableANDORRecursiveNumber(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATNODETABLEANDORRECURSIVENUMBER)
+#define Biddy_Managed_NodeTableXORRecursiveNumber(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATNODETABLEXORRECURSIVENUMBER)
+#define Biddy_Managed_OPCacheSearch(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATOPCACHESEARCH)
+#define Biddy_Managed_OPCacheFind(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATOPCACHEFIND)
+#define Biddy_Managed_OPCacheInsert(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATOPCACHEINSERT)
+#define Biddy_Managed_OPCacheOverwrite(MNG) Biddy_Managed_SystemLongStat(MNG,BIDDYLONGSTATOPCACHEOVERWRITE)
+#define Biddy_NodeTableFoaNumber() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATNODETABLEFOANUMBER)
+#define Biddy_NodeTableFindNumber() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATNODETABLEFINDNUMBER)
+#define Biddy_NodeTableCompareNumber() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATNODETABLECOMPARENUMBER)
+#define Biddy_NodeTableAddNumber() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATNODETABLEADDNUMBER)
+#define Biddy_NodeTableITERecursiveNumber() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATNODETABLEITERECURSIVENUMBER)
+#define Biddy_NodeTableANDORRecursiveNumber() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATNODETABLEANDORRECURSIVENUMBER)
+#define Biddy_NodeTableXORRecursiveNumber() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATNODETABLEXORRECURSIVENUMBER)
+#define Biddy_OPCacheSearch() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATOPCACHESEARCH)
+#define Biddy_OPCacheFind() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATOPCACHEFIND)
+#define Biddy_OPCacheInsert() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATOPCACHEINSERT)
+#define Biddy_OPCacheOverwrite() Biddy_Managed_SystemLongStat(NULL,BIDDYLONGSTATOPCACHEOVERWRITE)
 
 /* 117 */
-/*! Macro Biddy_NodeTableBlockNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableBlockNumber() Biddy_Managed_NodeTableBlockNumber(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableBlockNumber(Biddy_Manager MNG);
-
-/* 118 */
-/*! Macro Biddy_NodeTableGenerated is defined for use with anonymous manager. */
-#define Biddy_NodeTableGenerated() Biddy_Managed_NodeTableGenerated(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableGenerated(Biddy_Manager MNG);
-
-/* 119 */
-/*! Macro Biddy_NodeTableMax is defined for use with anonymous manager. */
-#define Biddy_NodeTableMax() Biddy_Managed_NodeTableMax(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableMax(Biddy_Manager MNG);
-
-/* 120 */
-/*! Macro Biddy_NodeTableNum is defined for use with anonymous manager. */
-#define Biddy_NodeTableNum() Biddy_Managed_NodeTableNum(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableNum(Biddy_Manager MNG);
-
-/* 121 */
 /*! Macro Biddy_NodeTableNumVar is defined for use with anonymous manager. */
 #define Biddy_NodeTableNumVar(v) Biddy_Managed_NodeTableNumVar(NULL,v)
 EXTERN unsigned int Biddy_Managed_NodeTableNumVar(Biddy_Manager MNG, Biddy_Variable v);
 
-/* 122 */
-/*! Macro Biddy_NodeTableResizeNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableResizeNumber() Biddy_Managed_NodeTableResizeNumber(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableResizeNumber(Biddy_Manager MNG);
-
-/* 123 */
-/*! Macro Biddy_NodeTableFoaNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableFoaNumber() Biddy_Managed_NodeTableFoaNumber(NULL)
-EXTERN unsigned long long int Biddy_Managed_NodeTableFoaNumber(Biddy_Manager MNG);
-
-/* 124 */
-/*! Macro Biddy_NodeTableFindNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableFindNumber() Biddy_Managed_NodeTableFindNumber(NULL)
-EXTERN unsigned long long int Biddy_Managed_NodeTableFindNumber(Biddy_Manager MNG);
-
-/* 125 */
-/*! Macro Biddy_NodeTableCompareNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableCompareNumber() Biddy_Managed_NodeTableCompareNumber(NULL)
-EXTERN unsigned long long int Biddy_Managed_NodeTableCompareNumber(Biddy_Manager MNG);
-
-/* 126 */
-/*! Macro Biddy_NodeTableAddNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableAddNumber() Biddy_Managed_NodeTableAddNumber(NULL)
-EXTERN unsigned long long int Biddy_Managed_NodeTableAddNumber(Biddy_Manager MNG);
-
-/* 127 */
-/*! Macro Biddy_NodeTableGCNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableGCNumber() Biddy_Managed_NodeTableGCNumber(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableGCNumber(Biddy_Manager MNG);
-
-/* 128 */
-/*! Macro Biddy_NodeTableGCTime is defined for use with anonymous manager. */
-#define Biddy_NodeTableGCTime() Biddy_Managed_NodeTableGCTime(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableGCTime(Biddy_Manager MNG);
-
-/* 129 */
+/* 118 */
 /*! Macro Biddy_NodeTableGCObsoleteNumber is defined for use with anonymous manager. */
 #define Biddy_NodeTableGCObsoleteNumber() Biddy_Managed_NodeTableGCObsoleteNumber(NULL)
 EXTERN unsigned long long int Biddy_Managed_NodeTableGCObsoleteNumber(Biddy_Manager MNG);
 
-/* 130 */
-/*! Macro Biddy_NodeTableSwapNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableSwapNumber() Biddy_Managed_NodeTableSwapNumber(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableSwapNumber(Biddy_Manager MNG);
-
-/* 131 */
-/*! Macro Biddy_NodeTableSiftingNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableSiftingNumber() Biddy_Managed_NodeTableSiftingNumber(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableSiftingNumber(Biddy_Manager MNG);
-
-/* 132 */
-/*! Macro Biddy_NodeTableDRTime is defined for use with anonymous manager. */
-#define Biddy_NodeTableDRTime() Biddy_Managed_NodeTableDRTime(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableDRTime(Biddy_Manager MNG);
-
-/* 133 */
-/*! Macro Biddy_NodeTableITENumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableITENumber() Biddy_Managed_NodeTableITENumber(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableITENumber(Biddy_Manager MNG);
-
-/* 134 */
-/*! Macro Biddy_NodeTableITERecursiveNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableITERecursiveNumber() Biddy_Managed_NodeTableITERecursiveNumber(NULL)
-EXTERN unsigned long long int Biddy_Managed_NodeTableITERecursiveNumber(Biddy_Manager MNG);
-
-/* 135 */
-/*! Macro Biddy_NodeTableANDORNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableANDORNumber() Biddy_Managed_NodeTableANDORNumber(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableANDORNumber(Biddy_Manager MNG);
-
-/* 136 */
-/*! Macro Biddy_NodeTableANDORRecursiveNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableANDORRecursiveNumber() Biddy_Managed_NodeTableANDORRecursiveNumber(NULL)
-EXTERN unsigned long long int Biddy_Managed_NodeTableANDORRecursiveNumber(Biddy_Manager MNG);
-
-/* 137 */
-/*! Macro Biddy_NodeTableXORNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableXORNumber() Biddy_Managed_NodeTableXORNumber(NULL)
-EXTERN unsigned int Biddy_Managed_NodeTableXORNumber(Biddy_Manager MNG);
-
-/* 138 */
-/*! Macro Biddy_NodeTableXORRecursiveNumber is defined for use with anonymous manager. */
-#define Biddy_NodeTableXORRecursiveNumber() Biddy_Managed_NodeTableXORRecursiveNumber(NULL)
-EXTERN unsigned long long int Biddy_Managed_NodeTableXORRecursiveNumber(Biddy_Manager MNG);
-
-/* 139 */
-/*! Macro Biddy_FormulaTableNum is defined for use with anonymous manager. */
-#define Biddy_FormulaTableNum() Biddy_Managed_FormulaTableNum(NULL)
-EXTERN unsigned int Biddy_Managed_FormulaTableNum(Biddy_Manager MNG);
-
-/* 140 */
+/* 119 */
 /*! Macro Biddy_ListUsed is defined for use with anonymous manager. */
 #define Biddy_ListUsed() Biddy_Managed_ListUsed(NULL)
 EXTERN unsigned int Biddy_Managed_ListUsed(Biddy_Manager MNG);
 
-/* 141 */
+/* 120 */
 /*! Macro Biddy_ListMaxLength is defined for use with anonymous manager. */
 #define Biddy_ListMaxLength() Biddy_Managed_ListMaxLength(NULL)
 EXTERN unsigned int Biddy_Managed_ListMaxLength(Biddy_Manager MNG);
 
-/* 142 */
+/* 121 */
 /*! Macro Biddy_ListAvgLength is defined for use with anonymous manager. */
 #define Biddy_ListAvgLength() Biddy_Managed_ListAvgLength(NULL)
 EXTERN float Biddy_Managed_ListAvgLength(Biddy_Manager MNG);
 
-/* 143 */
-/*! Macro Biddy_OPCacheSearch is defined for use with anonymous manager. */
-#define Biddy_OPCacheSearch() Biddy_Managed_OPCacheSearch(NULL)
-EXTERN unsigned long long int Biddy_Managed_OPCacheSearch(Biddy_Manager MNG);
-
-/* 144 */
-/*! Macro Biddy_OPCacheFind is defined for use with anonymous manager. */
-#define Biddy_OPCacheFind() Biddy_Managed_OPCacheFind(NULL)
-EXTERN unsigned long long int Biddy_Managed_OPCacheFind(Biddy_Manager MNG);
-
-/* 145 */
-/*! Macro Biddy_OPCacheInsert is defined for use with anonymous manager. */
-#define Biddy_OPCacheInsert() Biddy_Managed_OPCacheInsert(NULL)
-EXTERN unsigned long long int Biddy_Managed_OPCacheInsert(Biddy_Manager MNG);
-
-/* 146 */
-/*! Macro Biddy_OPCacheOverwrite is defined for use with anonymous manager. */
-#define Biddy_OPCacheOverwrite() Biddy_Managed_OPCacheOverwrite(NULL)
-EXTERN unsigned long long int Biddy_Managed_OPCacheOverwrite(Biddy_Manager MNG);
-
-/* 147 */
+/* 122 */
 /*! Macro Biddy_CountNodesPlain is defined for use with anonymous manager. */
 #define Biddy_CountNodesPlain(f) Biddy_Managed_CountNodesPlain(NULL,f)
 EXTERN unsigned int Biddy_Managed_CountNodesPlain(Biddy_Manager MNG, Biddy_Edge f);
 
-/* 148 */
+/* 123 */
 /*! Macro Biddy_DependentVariableNumber is defined for use with anonymous manager. */
 #define Biddy_DependentVariableNumber(f,select) Biddy_Managed_DependentVariableNumber(NULL,f,select)
 EXTERN unsigned int Biddy_Managed_DependentVariableNumber(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean select);
 
-/* 149 */
+/* 124 */
 /*! Macro Biddy_CountComplementedEdges is defined for use with anonymous manager. */
 #define Biddy_CountComplementedEdges(f) Biddy_Managed_CountComplementedEdges(NULL,f)
 EXTERN unsigned int Biddy_Managed_CountComplementedEdges(Biddy_Manager MNG, Biddy_Edge f);
 
-/* 150 */
+/* 125 */
 /*! Macro Biddy_CountPaths is defined for use with anonymous manager. */
 #define Biddy_CountPaths(f) Biddy_Managed_CountPaths(NULL,f)
 EXTERN unsigned long long int Biddy_Managed_CountPaths(Biddy_Manager MNG, Biddy_Edge f);
 
-/* 151 */
+/* 126 */
 /*! Macro Biddy_CountMinterms is defined for use with anonymous manager. */
 #define Biddy_CountMinterms(f,nvars) Biddy_Managed_CountMinterms(NULL,f,nvars)
 EXTERN double Biddy_Managed_CountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
 #define Biddy_Managed_CountCombinations(MNG,f,nvars) Biddy_Managed_CountMinterms(MNG,f,nvars)
 #define Biddy_CountCombinations(f) Biddy_Managed_CountMinterms(NULL,f,nvars)
 
-/* 152 */
+/* 127 */
 /*! Macro Biddy_DensityOfFunction is defined for use with anonymous manager. */
 #define Biddy_DensityOfFunction(f,nvars) Biddy_Managed_DensityOfFunction(NULL,f,nvars)
 EXTERN double Biddy_Managed_DensityOfFunction(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
 
-/* 153 */
+/* 128 */
 /*! Macro Biddy_DensityOfBDD is defined for use with anonymous manager. */
 #define Biddy_DensityOfBDD(f,nvars) Biddy_Managed_DensityOfBDD(NULL,f,nvars)
 EXTERN double Biddy_Managed_DensityOfBDD(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
 
-/* 154 */
+/* 129 */
 /*! Macro Biddy_MinNodes(f) is defined for use with anonymous manager. */
 #define Biddy_MinNodes(f) Biddy_Managed_MinNodes(NULL,f)
 EXTERN unsigned int Biddy_Managed_MinNodes(Biddy_Manager MNG, Biddy_Edge f);
 
-/* 155 */
+/* 130 */
 /*! Macro Biddy_MaxNodes(f) is defined for use with anonymous manager. */
 #define Biddy_MaxNodes(f) Biddy_Managed_MaxNodes(NULL,f)
 EXTERN unsigned int Biddy_Managed_MaxNodes(Biddy_Manager MNG, Biddy_Edge f);
 
-/* 156 */
+/* 131 */
 /*! Macro Biddy_ReadMemoryInUse is defined for use with anonymous manager. */
 #define Biddy_ReadMemoryInUse() Biddy_Managed_ReadMemoryInUse(NULL)
 EXTERN unsigned long long int Biddy_Managed_ReadMemoryInUse(Biddy_Manager MNG);
 
-/* 157 */
+/* 132 */
 /*! Macro Biddy_PrintInfo is defined for use with anonymous manager. */
 #define Biddy_PrintInfo(f) Biddy_Managed_PrintInfo(NULL,f)
 EXTERN void Biddy_Managed_PrintInfo(Biddy_Manager MNG, FILE *f);
@@ -1198,74 +1172,83 @@ EXTERN void Biddy_Managed_PrintInfo(Biddy_Manager MNG, FILE *f);
 extern "C" {
 #endif
 
-/* 158 */
+/* 133 */
 /*! Macro Biddy_Eval0 is defined for use with anonymous manager. */
 #define Biddy_Eval0(s) Biddy_Managed_Eval0(NULL,s)
 EXTERN Biddy_String Biddy_Managed_Eval0(Biddy_Manager MNG, Biddy_String s);
 
-/* 159 */
+/* 134 */
 /*! Macro Biddy_Eval1x is defined for use with anonymous manager. */
 #define Biddy_Eval1x(s,lf) Biddy_Managed_Eval1x(NULL,s,lf)
 EXTERN Biddy_Edge Biddy_Managed_Eval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf);
 #define Biddy_Managed_Eval1(MNG,s) Biddy_Managed_Eval1x(MNG,s,NULL)
 #define Biddy_Eval1(s) Biddy_Managed_Eval1x(NULL,s,NULL)
 
-/* 160 */
+/* 135 */
 /*! Macro Biddy_Eval2 is defined for use with anonymous manager. */
 #define Biddy_Eval2(boolFunc) Biddy_Managed_Eval2(NULL,boolFunc)
 EXTERN Biddy_Edge Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc);
 
-/* 161 */
+/* 136 */
 /*! Macro Biddy_ReadBddview is defined for use with anonymous manager. */
 #define Biddy_ReadBddview(filename,name) Biddy_Managed_ReadBddview(NULL,filename,name)
 EXTERN Biddy_String Biddy_Managed_ReadBddview(Biddy_Manager MNG, const char filename[], Biddy_String name);
 
-/* 162 */
+/* 137 */
 /*! Macro Biddy_ReadVerilogFile is defined for use with anonymous manager. */
 #define Biddy_ReadVerilogFile(filename,prefix) Biddy_Managed_ReadVerilogFile(NULL,filename,prefix)
 EXTERN void Biddy_Managed_ReadVerilogFile(Biddy_Manager MNG, const char filename[], Biddy_String prefix);
 
-/* 163 */
-/*! Macro Biddy_PrintfBDD is defined for use with anonymous manager. */
-#define Biddy_PrintfBDD(f) Biddy_Managed_PrintfBDD(NULL,f)
-EXTERN void Biddy_Managed_PrintfBDD(Biddy_Manager MNG, Biddy_Edge f);
+/* 138 */
+/*! Macro Biddy_PrintBDD is defined for use with anonymous manager. */
+#define Biddy_PrintBDD(var,filename,f,label) Biddy_Managed_PrintBDD(NULL,var,filename,f,label)
+EXTERN void Biddy_Managed_PrintBDD(Biddy_Manager MNG, Biddy_String *var, const char filename[], Biddy_Edge f, Biddy_String label);
+#define Biddy_Managed_PrintfBDD(MNG,f) Biddy_Managed_PrintBDD(MNG,NULL,"stdout",f,NULL)
+#define Biddy_Managed_SprintfBDD(MNG,var,f) Biddy_Managed_PrintBDD(MNG,var,"",f,NULL)
+#define Biddy_Managed_WriteBDD(MNG,filename,f,label) Biddy_Managed_PrintBDD(MNG,NULL,filename,f,label)
+#define Biddy_PrintfBDD(f) Biddy_Managed_PrintBDD(NULL,NULL,"stdout",f,NULL)
+#define Biddy_SprintfBDD(var,f) Biddy_Managed_PrintBDD(NULL,var,"",f,NULL)
+#define Biddy_WriteBDD(filename,f,label) Biddy_Managed_PrintBDD(NULL,NULL,filename,f,label)
 
-/* 164 */
-/*! Macro Biddy_WriteBDD is defined for use with anonymous manager. */
-#define Biddy_WriteBDD(filename,f,label) Biddy_Managed_WriteBDD(NULL,filename,f,label)
-EXTERN void Biddy_Managed_WriteBDD(Biddy_Manager MNG, const char filename[], Biddy_Edge f, Biddy_String label);
+/* 139 */
+/*! Macro Biddy_PrintTable is defined for use with anonymous manager. */
+#define Biddy_PrintTable(var,filename,f) Biddy_Managed_PrintTable(NULL,var,filename,f)
+EXTERN void Biddy_Managed_PrintTable(Biddy_Manager MNG, Biddy_String *var, const char filename[], Biddy_Edge f);
+#define Biddy_Managed_PrintfTable(MNG,f) Biddy_Managed_PrintTable(MNG,NULL,"stdout",f)
+#define Biddy_Managed_SprintfTable(MNG,var,f) Biddy_Managed_PrintTable(MNG,var,"",f)
+#define Biddy_Managed_WriteTable(MNG,filename,f) Biddy_Managed_PrintTable(MNG,NULL,filename,f)
+#define Biddy_PrintfTable(f) Biddy_Managed_PrintTable(NULL,NULL,"stdout",f)
+#define Biddy_SprintfTable(var,f) Biddy_Managed_PrintTable(NULL,var,"",f)
+#define Biddy_WriteTable(filename,f) Biddy_Managed_PrintTable(NULL,NULL,filename,f)
 
-/* 165 */
-/*! Macro Biddy_PrintfTable is defined for use with anonymous manager. */
-#define Biddy_PrintfTable(f) Biddy_Managed_PrintfTable(NULL,f)
-EXTERN void Biddy_Managed_PrintfTable(Biddy_Manager MNG, Biddy_Edge f);
+/* 140 */
+/*! Macro Biddy_PrintSOP is defined for use with anonymous manager. */
+#define Biddy_PrintSOP(var,filename,f) Biddy_Managed_PrintSOP(NULL,var,filename,f)
+EXTERN void Biddy_Managed_PrintSOP(Biddy_Manager MNG, Biddy_String *var, const char filename[], Biddy_Edge f);
+#define Biddy_Managed_PrintfSOP(MNG,f) Biddy_Managed_PrintSOP(MNG,NULL,"stdout",f)
+#define Biddy_Managed_SprintfSOP(MNG,var,f) Biddy_Managed_PrintSOP(MNG,var,"",f)
+#define Biddy_Managed_WriteSOP(MNG,filename,f) Biddy_Managed_PrintSOP(MNG,NULL,filename,f)
+#define Biddy_PrintfSOP(f) Biddy_Managed_PrintSOP(NULL,NULL,"stdout",f)
+#define Biddy_SprintfSOP(var,f) Biddy_Managed_PrintSOP(NULL,var,"",f)
+#define Biddy_WriteSOP(filename,f) Biddy_Managed_PrintSOP(NULL,NULL,filename,f)
 
-/* 166 */
-/*! Macro Biddy_WriteTable is defined for use with anonymous manager. */
-#define Biddy_WriteTable(filename,f) Biddy_Managed_WriteTable(NULL,filename,f)
-EXTERN void Biddy_Managed_WriteTable(Biddy_Manager MNG, const char filename[], Biddy_Edge f);
+/* 141 */
+/*! Macro Biddy_PrintMinterms is defined for use with anonymous manager. */
+#define Biddy_PrintMinterms(var,filename,f,negative) Biddy_Managed_PrintMinterms(NULL,var,filename,f,negative)
+EXTERN void Biddy_Managed_PrintMinterms(Biddy_Manager MNG, Biddy_String *var, const char filename[], Biddy_Edge f, Biddy_Boolean negative);
+#define Biddy_Managed_PrintfMinterms(MNG,f,negative) Biddy_Managed_PrintMinterms(MNG,NULL,"stdout",f,negative)
+#define Biddy_Managed_SprintfMinterms(MNG,var,f,negative) Biddy_Managed_PrintMinterms(MNG,var,"",f,negative)
+#define Biddy_Managed_WriteMinterms(MNG,filename,f,negative) Biddy_Managed_PrintMinterms(MNG,NULL,filename,f,negative)
+#define Biddy_PrintfMinterms(f,negative) Biddy_Managed_PrintMinterms(NULL,NULL,"stdout",f,negative)
+#define Biddy_SprintfMinterms(var,f,negative) Biddy_Managed_PrintMinterms(NULL,var,"",f,negative)
+#define Biddy_WriteMinterms(filename,f,negative) Biddy_Managed_PrintMinterms(NULL,NULL,filename,f,negative)
 
-/* 167 */
-/*! Macro Biddy_PrintfSOP is defined for use with anonymous manager. */
-#define Biddy_PrintfSOP(f) Biddy_Managed_PrintfSOP(NULL,f)
-EXTERN void Biddy_Managed_PrintfSOP(Biddy_Manager MNG, Biddy_Edge f);
-
-/* 168 */
-/*! Macro Biddy_WriteSOP is defined for use with anonymous manager. */
-#define Biddy_WriteSOP(filename,f) Biddy_Managed_WriteSOP(NULL,filename,f)
-EXTERN void Biddy_Managed_WriteSOP(Biddy_Manager MNG, const char filename[], Biddy_Edge f);
-
-/* 169 */
-/*! Macro Biddy_PrintfMinterms is defined for use with anonymous manager. */
-#define Biddy_PrintfMinterms(f,negative) Biddy_Managed_PrintfMinterms(NULL,f,negative)
-EXTERN void Biddy_Managed_PrintfMinterms(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean negative);
-
-/* 170 */
+/* 142 */
 /*! Macro Biddy_WriteDot is defined for use with anonymous manager. */
 #define Biddy_WriteDot(filename,f,label,id,cudd) Biddy_Managed_WriteDot(NULL,filename,f,label,id,cudd)
 EXTERN unsigned int Biddy_Managed_WriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f, const char label[], int id, Biddy_Boolean cudd);
 
-/* 171 */
+/* 143 */
 /*! Macro Biddy_WriteBddview is defined for use with anonymous manager. */
 #define Biddy_WriteBddview(filename,f,label,table) Biddy_Managed_WriteBddview(NULL,filename,f,label,table)
 EXTERN unsigned int Biddy_Managed_WriteBddview(Biddy_Manager MNG, const char filename[], Biddy_Edge f, const char label[], void *xytable);

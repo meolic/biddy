@@ -13,14 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 545 $]
-    Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+    Revision    [$Revision: 569 $]
+    Date        [$Date: 2019-12-27 10:51:41 +0100 (pet, 27 dec 2019) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
-Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -43,11 +44,31 @@ See also: biddy.h
 #ifndef _BIDDYINT
 #define _BIDDYINT
 
+/* define COMPACT for variant with ROBDD, only, also without gmp library */
+#define NOCOMPACT
+
 #include "biddy.h"
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
+
+#ifdef COMPACT
+#define mpz_t unsigned long long int *
+#define mpz_init(x) x = malloc(sizeof(unsigned long long int)); *(x) = 0
+#define mpz_clear(x) free(x)
+#define mpz_set(x,y) *(x) = *(y)
+#define mpz_set_ui(x,y) *(x) = y
+#define mpz_get_d(x) GetD(*(x))
+#define mpz_mul_ui(x,a,b) *(x) = *(a) * b
+#define mpz_divexact_ui(x,a,b) *(x) = *(a) / b
+#define mpz_add(x,a,b) *(x) = *(a) + *(b)
+#define mpz_add_ui(x,a,b) *(x) = *(a) + b
+#define mpz_sub(x,a,b) *(x) = *(a) - *(b)
+#define mpz_sub_ui(x,a,b) *(x) = *(a) - b
+#define mpz_ui_pow_ui(x,a,b) *(x) = PowUI(a,b)
+#else
 #include <gmp.h>
+#endif
 
 /* sleep() is not included in modern version of MINGW */
 /* #define sleep(sec) (Sleep ((sec) * 1000), 0) */
@@ -99,11 +120,15 @@ See also: biddy.h
 /* for TZBDDs and TZFDDs, the limit is 65536 variables on 64-bit architecture */
 /* if there are more than 32768 variables then some macros in biddy.h must be changed */
 /* BIDDY IS NOT EFFICIENT WITH MANY VARIABLES! */
+#ifdef COMPACT
+#define BIDDYVARMAX 1024
+#else
 /* #define BIDDYVARMAX 1024 */
 /* #define BIDDYVARMAX 2048 */
 #define BIDDYVARMAX 4096
 /* #define BIDDYVARMAX 6144 */
 /* #define BIDDYVARMAX 8192 */
+#endif
 
 /* the following constants are used in Biddy_ReadVerilogFile */
 #define LINESIZE 999 /* maximum length of each input line read */
@@ -116,7 +141,27 @@ See also: biddy.h
 #define WIRENUM 99999 /* maximum number of wires */
 
 /*----------------------------------------------------------------------------*/
-/* Macro definitions                                                          */
+/* Definitions of external macros                                             */
+/*----------------------------------------------------------------------------*/
+
+#define BiddyIsNull(f) Biddy_IsNull(f)
+#define BiddyIsTerminal(f) Biddy_IsTerminal(f)
+#define BiddyIsEqvPointer(f,g) Biddy_IsEqvPointer(f,g)
+#define BiddyGetMark(f) Biddy_GetMark(f)
+#define BiddySetMark(f) Biddy_SetMark(f)
+#define BiddyClearMark(f) Biddy_ClearMark(f)
+#define BiddyInvertMark(f) Biddy_InvertMark(f)
+#define BiddyInv(f) Biddy_Inv(f)
+#define BiddyInvCond(f,c) Biddy_InvCond(f,c)
+#define BiddyRegular(f) Biddy_Regular(f)
+#define BiddyComplement(f) Biddy_Complement(f)
+#define BiddyGetTag(f) Biddy_GetTag(f)
+#define BiddySetTag(f,t) Biddy_SetTag(f,t)
+#define BiddyClearTag(f) Biddy_ClearTag(f)
+#define BiddyUntagged(f) Biddy_Untagged(f)
+
+/*----------------------------------------------------------------------------*/
+/* Definitions of internal macros                                             */
 /*----------------------------------------------------------------------------*/
 
 /* Null edge, this is hardcoded since Biddy v1.4 */
@@ -523,7 +568,7 @@ typedef struct {
 /* User can create its own manager and use it instead of anonymous manager */
 /* All managers are of type void** but internally they have the structure */
 /* given here (see function Biddy_Init for details). */
-/* NOTE: names of elements given here are not used in the program! */
+/* NOTE: element names given here are placeholders not used in the program! */
 typedef struct {
   void *name; /* this is typecasted to Biddy_String */
   void *type; /* this is typecasted to (short int*) */
@@ -674,8 +719,83 @@ extern BiddyLocalInfo *biddyLocalInfo; /* reference to Local Info */
 /* Prototypes for internal functions defined in biddyMain.c                   */
 /*----------------------------------------------------------------------------*/
 
-#define BiddyManagedFoaNode(MNG,v,pf,pt,garbageAllowed) BiddyManagedTaggedFoaNode(MNG,v,pf,pt,v,garbageAllowed)
+extern void BiddyInitMNG(Biddy_Manager *mng, int bddtype);
+extern void BiddyExitMNG(Biddy_Manager *mng);
+extern Biddy_String BiddyAbout();
+#define BiddyManagedGetEmptySet(MNG) biddyZero
+#define BiddyManagedGetUniversalSet(MNG) biddyOne
+extern Biddy_Boolean BiddyManagedIsOK(Biddy_Manager MNG, Biddy_Edge f); /* TO DO: replace with macro */
+extern int BiddyManagedGetManagerType(Biddy_Manager MNG);
+extern Biddy_String BiddyManagedGetManagerName(Biddy_Manager MNG);
+extern void BiddyManagedSetManagerParameters(Biddy_Manager MNG, float gcr, float gcrF, float gcrX, float rr, float rrF, float rrX, float st, float cst);
+extern Biddy_Edge BiddyManagedGetBaseSet(Biddy_Manager MNG);
+extern Biddy_Edge BiddyManagedTransferMark(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean mark,Biddy_Boolean leftright);
+extern Biddy_Boolean BiddyManagedIsEqv(Biddy_Manager MNG1, Biddy_Edge f1, Biddy_Manager MNG2, Biddy_Edge f2);
+extern void BiddyManagedSelectNode(Biddy_Manager MNG, Biddy_Edge f);
+extern void BiddyManagedDeselectNode(Biddy_Manager MNG, Biddy_Edge f);
+extern Biddy_Boolean BiddyManagedIsSelected(Biddy_Manager MNG, Biddy_Edge f);
+extern void BiddyManagedSelectFunction(Biddy_Manager MNG, Biddy_Edge f);
+extern void BiddyManagedDeselectAll(Biddy_Manager MNG);
+extern Biddy_Variable BiddyManagedGetVariable(Biddy_Manager MNG, Biddy_String x);
+extern Biddy_Variable BiddyManagedGetLowestVariable(Biddy_Manager MNG);
+extern Biddy_Variable BiddyManagedGetIthVariable(Biddy_Manager MNG, Biddy_Variable i);
+extern Biddy_Variable BiddyManagedGetPrevVariable(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Variable BiddyManagedGetNextVariable(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Edge BiddyManagedGetVariableEdge(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Edge BiddyManagedGetElementEdge(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_String BiddyManagedGetVariableName(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Edge BiddyManagedGetTopVariableEdge(Biddy_Manager MNG, Biddy_Edge f);
+extern Biddy_String BiddyManagedGetTopVariableName(Biddy_Manager MNG, Biddy_Edge f);
+extern char BiddyManagedGetTopVariableChar(Biddy_Manager MNG, Biddy_Edge f);
+extern void BiddyManagedResetVariablesValue(Biddy_Manager MNG);
+extern void BiddyManagedSetVariableValue(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge f);
+extern Biddy_Edge BiddyManagedGetVariableValue(Biddy_Manager MNG, Biddy_Variable v);
+extern void BiddyManagedClearVariablesData(Biddy_Manager MNG);
+extern void BiddyManagedSetVariableData(Biddy_Manager MNG, Biddy_Variable v, void *x);
+extern void *BiddyManagedGetVariableData(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Boolean BiddyManagedEval(Biddy_Manager MNG, Biddy_Edge f);
+extern double BiddyManagedEvalProbability(Biddy_Manager MNG, Biddy_Edge f);
+extern Biddy_Variable BiddyManagedFoaVariable(Biddy_Manager MNG, Biddy_String x, Biddy_Boolean varelem);
+extern void BiddyManagedChangeVariableName(Biddy_Manager MNG, Biddy_Variable v, Biddy_String x);
+extern Biddy_Variable BiddyManagedAddVariableByName(Biddy_Manager MNG, Biddy_String x);
+#define BiddyManagedAddVariable(MNG) BiddyManagedAddVariableByName(MNG,NULL)
+#define BiddyManagedAddVariableEdge(MNG) BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,NULL))
+extern Biddy_Variable BiddyManagedAddElementByName(Biddy_Manager MNG, Biddy_String x);
+#define BiddyManagedAddElement(MNG) BiddyManagedAddElementByName(MNG,NULL)
+extern Biddy_Edge BiddyManagedAddVariableBelow(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Edge BiddyManagedAddVariableAbove(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Edge BiddyManagedIncTag(Biddy_Manager MNG, Biddy_Edge f);
 extern Biddy_Edge BiddyManagedTaggedFoaNode(Biddy_Manager MNG, Biddy_Variable v, Biddy_Edge pf, Biddy_Edge pt, Biddy_Variable ptag, Biddy_Boolean garbageAllowed);
+#define BiddyManagedFoaNode(MNG,v,pf,pt,garbageAllowed) BiddyManagedTaggedFoaNode(MNG,v,pf,pt,v,garbageAllowed)
+extern void BiddyManagedGC(Biddy_Manager MNG, Biddy_Variable targetLT, Biddy_Variable targetGEQ, Biddy_Boolean purge, Biddy_Boolean total);
+#define BiddyManagedAutoGC(MNG) BiddyManagedGC(MNG,0,0,FALSE,FALSE)
+#define BiddyManagedForceGC(MNG) BiddyManagedGC(MNG,0,0,FALSE,TRUE)
+extern void BiddyManagedClean(Biddy_Manager MNG);
+extern void BiddyManagedPurge(Biddy_Manager MNG);
+extern void BiddyManagedPurgeAndReorder(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge);
+extern void BiddyManagedAddCache(Biddy_Manager MNG, Biddy_GCFunction gc);
+extern unsigned int BiddyManagedAddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f, int c);
+#define BiddyManagedAddTmpFormula(MNG,x,f) BiddyManagedAddFormula(MNG,x,f,-1)
+#define BiddyManagedAddPersistentFormula(MNG,x,f) BiddyManagedAddFormula(MNG,x,f,0)
+#define BiddyManagedKeepFormula(MNG,f) BiddyManagedAddFormula(MNG,NULL,f,1)
+#define BiddyManagedKeepFormulaProlonged(MNG,f,c) BiddyManagedAddFormula(MNG,NULL,f,c)
+#define BiddyManagedKeepFormulaUntilPurge(MNG,f) BiddyManagedAddFormula(MNG,NULL,f,0)
+extern Biddy_Boolean BiddyManagedFindFormula(Biddy_Manager MNG, Biddy_String x, unsigned int *idx, Biddy_Edge *f);
+extern Biddy_Boolean BiddyManagedDeleteFormula(Biddy_Manager MNG, Biddy_String x);
+extern Biddy_Boolean BiddyManagedDeleteIthFormula(Biddy_Manager MNG, unsigned int i);
+extern Biddy_Edge BiddyManagedGetIthFormula(Biddy_Manager MNG, unsigned int i);
+extern Biddy_String BiddyManagedGetIthFormulaName(Biddy_Manager MNG, unsigned int i);
+extern Biddy_String BiddyManagedGetOrdering(Biddy_Manager MNG);
+extern void BiddyManagedSetOrdering(Biddy_Manager MNG, Biddy_String ordering);
+extern void BiddyManagedSetAlphabeticOrdering(Biddy_Manager MNG);
+extern Biddy_Variable BiddyManagedSwapWithHigher(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Variable BiddyManagedSwapWithLower(Biddy_Manager MNG, Biddy_Variable v);
+extern Biddy_Boolean BiddyManagedSifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge);
+extern void BiddyManagedMinimizeBDD(Biddy_Manager MNG, Biddy_String name);
+extern void BiddyManagedMaximizeBDD(Biddy_Manager MNG, Biddy_String name);
+extern Biddy_Edge BiddyManagedCopy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
+extern void BiddyManagedCopyFormula(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_String x);
+extern Biddy_Edge BiddyManagedConstructBDD(Biddy_Manager MNG, int numV, Biddy_String varlist, int numN, Biddy_String nodelist);
 
 extern void BiddyIncSystemAge(Biddy_Manager MNG);
 extern void BiddyDecSystemAge(Biddy_Manager MNG);
@@ -746,13 +866,16 @@ extern void BiddyDebugEdge(Biddy_Manager MNG, Biddy_Edge edge);
 extern Biddy_Edge BiddyManagedNot(const Biddy_Manager MNG, const Biddy_Edge f);
 extern Biddy_Edge BiddyManagedITE(const Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h);
 extern Biddy_Edge BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
+#define BiddyManagedIntersect(MNG,f,g) BiddyManagedAnd(MNG,f,g)
 extern Biddy_Edge BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
+#define BiddyManagedUnion(MNG,f,g) BiddyManagedOr(MNG,f,g)
 extern Biddy_Edge BiddyManagedNand(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
 extern Biddy_Edge BiddyManagedNor(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
 extern Biddy_Edge BiddyManagedXor(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
 extern Biddy_Edge BiddyManagedXnor(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
 extern Biddy_Edge BiddyManagedLeq(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
 extern Biddy_Edge BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
+#define BiddyManagedDiff(MNG,f,g) BiddyManagedGt(MNG,g,f)
 
 extern Biddy_Edge BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
 extern Biddy_Edge BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Variable v);
@@ -764,9 +887,14 @@ extern Biddy_Edge BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy
 extern Biddy_Edge BiddyManagedConstrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c);
 extern Biddy_Edge BiddyManagedSimplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c);
 extern Biddy_Edge BiddyManagedSupport(Biddy_Manager MNG, Biddy_Edge f);
-extern Biddy_Edge BiddyManagedReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv, const unsigned int key);
+extern Biddy_Edge BiddyManagedReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_String keyword);
+#define BiddyManagedReplace(MNG,f) BiddyManagedReplaceByKeyword(MNG,f,NULL)
 extern Biddy_Edge BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
+#define BiddyManagedSubset0(MNG,f,v) BiddyManagedVarSubset(MNG,f,v,FALSE)
+#define BiddyManagedSubset1(MNG,f,v) BiddyManagedVarSubset(MNG,f,v,TRUE)
+#define BiddyManagedQuotient(MNG,f,v) BiddyManagedChange(MNG,Biddy_Managed_VarSubset(MNG,f,v,TRUE),v)
+#define BiddyManagedRemainder(MNG,f,v) BiddyManagedVarSubset(MNG,f,v,FALSE)
 extern Biddy_Edge BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
 extern Biddy_Edge BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge cube);
@@ -774,15 +902,66 @@ extern Biddy_Edge BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge
 extern Biddy_Edge BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
 extern Biddy_Edge BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest, unsigned int n);
 extern Biddy_Edge BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge f);
-extern Biddy_Edge BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f, Biddy_Edge m);
 
-#define BiddyManagedUnion(MNG,f,g) BiddyManagedOr(MNG,f,g)
-#define BiddyManagedIntersect(MNG,f,g) BiddyManagedAnd(MNG,f,g)
-#define BiddyManagedDiff(MNG,f,g) BiddyManagedGt(MNG,g,f)
+extern Biddy_Edge BiddyManagedCreateMinterm(Biddy_Manager MNG, Biddy_Edge support, long long unsigned int x);
+extern Biddy_Edge BiddyManagedCreateFunction(Biddy_Manager MNG, Biddy_Edge support, long long unsigned int x);
+extern Biddy_Edge BiddyManagedRandomFunction(Biddy_Manager MNG, Biddy_Edge support, double ratio);
+extern Biddy_Edge BiddyManagedRandomSet(Biddy_Manager MNG, Biddy_Edge unit, double ratio);
+extern Biddy_Edge BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f);
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes for internal functions defined in biddyStat.c                   */
 /*----------------------------------------------------------------------------*/
+
+extern unsigned int BiddyManagedCountNodes(Biddy_Manager MNG, Biddy_Edge f);
+extern unsigned int BiddyMaxLevel(Biddy_Edge f);
+extern float BiddyAvgLevel(Biddy_Edge f);
+extern unsigned int BiddyManagedSystemStat(Biddy_Manager MNG, unsigned int stat);
+#define BiddyManagedVariableTableNum(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATVARIABLETABLENUM)
+#define BiddyManagedFormulaTableNum(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATFORMULATABLENUM)
+#define BiddyManagedNodeTableSize(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLESIZE)
+#define BiddyManagedNodeTableBlockNumber(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEBLOCKNUMBER)
+#define BiddyManagedNodeTableGenerated(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEGENERATED)
+#define BiddyManagedNodeTableMax(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEMAX)
+#define BiddyManagedNodeTableNum(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLENUM)
+#define BiddyManagedNodeTableResizeNumber(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLERESIZENUMBER)
+#define BiddyManagedNodeTableGCNumber(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEGCNUMBER)
+#define BiddyManagedNodeTableGCTime(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEGCTIME)
+#define BiddyManagedNodeTableSwapNumber(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLESWAPNUMBER)
+#define BiddyManagedNodeTableSiftingNumber(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLESIFTINGNUMBER)
+#define BiddyManagedNodeTableDRTime(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEDRTIME)
+#define BiddyManagedNodeTableITENumber(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEITENUMBER)
+#define BiddyManagedNodeTableANDORNumber(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEANDORNUMBER)
+#define BiddyManagedNodeTableXORNumber(MNG) BiddyManagedSystemStat(MNG,BIDDYSTATNODETABLEXORNUMBER)
+extern unsigned long long int BiddyManagedSystemLongStat(Biddy_Manager MNG, unsigned int longstat);
+#define BiddyManagedNodeTableFoaNumber(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATNODETABLEFOANUMBER)
+#define BiddyManagedNodeTableFindNumber(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATNODETABLEFINDNUMBER)
+#define BiddyManagedNodeTableCompareNumber(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATNODETABLECOMPARENUMBER)
+#define BiddyManagedNodeTableAddNumber(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATNODETABLEADDNUMBER)
+#define BiddyManagedNodeTableITERecursiveNumber(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATNODETABLEITERECURSIVENUMBER)
+#define BiddyManagedNodeTableANDORRecursiveNumber(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATNODETABLEANDORRECURSIVENUMBER)
+#define BiddyManagedNodeTableXORRecursiveNumber(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATNODETABLEXORRECURSIVENUMBER)
+#define BiddyManagedOPCacheSearch(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATOPCACHESEARCH)
+#define BiddyManagedOPCacheFind(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATOPCACHEFIND)
+#define BiddyManagedOPCacheInsert(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATOPCACHEINSERT)
+#define BiddyManagedOPCacheOverwrite(MNG) BiddyManagedSystemLongStat(MNG,BIDDYLONGSTATOPCACHEOVERWRITE)
+extern unsigned int BiddyManagedNodeTableNumVar(Biddy_Manager MNG, Biddy_Variable v);
+extern unsigned long long int BiddyManagedNodeTableGCObsoleteNumber(Biddy_Manager MNG);
+extern unsigned int BiddyManagedListUsed(Biddy_Manager MNG);
+extern unsigned int BiddyManagedListMaxLength(Biddy_Manager MNG);
+extern float BiddyManagedListAvgLength(Biddy_Manager MNG);
+extern unsigned int BiddyManagedCountNodesPlain(Biddy_Manager MNG, Biddy_Edge f);
+extern unsigned int BiddyManagedDependentVariableNumber(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean select);
+extern unsigned int BiddyManagedCountComplementedEdges(Biddy_Manager MNG, Biddy_Edge f);
+extern unsigned long long int BiddyManagedCountPaths(Biddy_Manager MNG, Biddy_Edge f);
+extern double BiddyManagedCountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
+#define BiddyManagedCountCombinations(MNG,f,nvars) BiddyManagedCountMinterms(MNG,f,nvars)
+extern double BiddyManagedDensityOfFunction(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
+extern double BiddyManagedDensityOfBDD(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
+extern unsigned int BiddyManagedMinNodes(Biddy_Manager MNG, Biddy_Edge f);
+extern unsigned int BiddyManagedMaxNodes(Biddy_Manager MNG, Biddy_Edge f);
+extern unsigned long long int BiddyManagedReadMemoryInUse(Biddy_Manager MNG);
+extern void BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f);
 
 extern void BiddyNodeNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n);
 extern void BiddyComplementedEdgeNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n);
@@ -791,5 +970,30 @@ extern void BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
 /*----------------------------------------------------------------------------*/
 /* Prototypes for internal functions defined in biddyInOut.c                  */
 /*----------------------------------------------------------------------------*/
+
+Biddy_String BiddyManagedEval0(Biddy_Manager MNG, Biddy_String s);
+Biddy_Edge BiddyManagedEval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf);
+#define BiddyManagedEval1(MNG,s) BiddyManagedEval1x(MNG,s,NULL)
+Biddy_Edge BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc);
+Biddy_String BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],Biddy_String name);
+void BiddyManagedReadVerilogFile(Biddy_Manager MNG, const char filename[],Biddy_String prefix);
+void BiddyManagedPrintBDD(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f, Biddy_String label);
+#define BiddyManagedPrintfBDD(MNG,f) BiddyManagedPrintBDD(MNG,NULL,"stdout",f,NULL)
+#define BiddyManagedSprintfBDD(MNG,var,f) BiddyManagedPrintBDD(MNG,var,"",f,NULL)
+#define BiddyManagedWriteBDD(MNG,filename,f,label) BiddyManagedPrintBDD(MNG,NULL,filename,f,label)
+void BiddyManagedPrintTable(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f);
+#define BiddyManagedPrintfTable(MNG,f) BiddyManagedPrintTable(MNG,NULL,"stdout",f)
+#define BiddyManagedSprintfTable(MNG,var,f) BiddyManagedPrintTable(MNG,var,"",f)
+#define BiddyManagedWriteTable(MNG,filename,f) BiddyManagedPrintTable(MNG,NULL,filename,f)
+void BiddyManagedPrintSOP(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f);
+#define BiddyManagedPrintfSOP(MNG,f) BiddyManagedPrintSOP(MNG,NULL,"stdout",f)
+#define BiddyManagedSprintfSOP(MNG,var,f) BiddyManagedPrintSOP(MNG,var,"",f)
+#define BiddyManagedWriteSOP(MNG,filename,f) BiddyManagedPrintSOP(MNG,NULL,filename,f)
+void BiddyManagedPrintMinterms(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f, Biddy_Boolean negative);
+#define BiddyManagedPrintfMinterms(MNG,f,negative) BiddyManagedPrintMinterms(MNG,NULL,"stdout",f,negative)
+#define BiddyManagedSprintfMinterms(MNG,var,f,negative) BiddyManagedPrintMinterms(MNG,var,"",f,negative)
+#define BiddyManagedWriteMinterms(MNG,filename,f,negative) BiddyManagedPrintMinterms(MNG,NULL,filename,f,negative)
+unsigned int BiddyManagedWriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,const char label[], int id, Biddy_Boolean cudd);
+unsigned int BiddyManagedWriteBddview(Biddy_Manager MNG, const char filename[],Biddy_Edge f, const char label[], void *xytable);
 
 #endif  /* _BIDDYINT */

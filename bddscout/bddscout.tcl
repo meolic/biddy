@@ -8,12 +8,12 @@ exec wish "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 545 $]
-#  Date        [$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $]
+#  Revision    [$Revision: 568 $]
+#  Date        [$Date: 2019-12-27 00:15:45 +0100 (pet, 27 dec 2019) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
-#               Copyright (C) 2008, 2019 UM FERI
-#               UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -242,7 +242,7 @@ lappend auto_path /usr/lib/bddscout
 # Biddy
 # ####################################################################
 
-set BIDDYVERSION "1.8.1"
+set BIDDYVERSION "1.9.1"
 set CMDLIST [list \
   "bddview_save" \
   "bddview_export_tex" \
@@ -265,9 +265,9 @@ set CMDLIST [list \
   "biddy_density_of_bdd" \
   "biddy_min_nodes" \
   "biddy_max_nodes" \
-  "biddy_printf_table" \
-  "biddy_printf_sop" \
-  "biddy_printf_minterms" \
+  "biddy_print_table" \
+  "biddy_print_sop" \
+  "biddy_print_minterms" \
   "bddscout_count_nodes" \
   "bddscout_reset_all_values" \
   "bddscout_set_values" \
@@ -362,8 +362,8 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 
 } elseif {$OS == "windows"} {
 
-  set GHOSTSCRIPT_EXE [lindex [glob "C:/Program Files/gs/*/bin/gswin64c.exe"] 0]
-  set DOT_EXE [lindex [glob "C:/Program Files (x86)/*/bin/dot.exe"] 0]
+  set GHOSTSCRIPT_EXE [lindex [glob -nocomplain "C:/Program Files/gs/*/bin/gswin64c.exe"] 0]
+  set DOT_EXE [lindex [glob -nocomplain "C:/Program Files (x86)/*/bin/dot.exe"] 0]
 
   if {[file executable $DOT_EXE] != 1} {
     set DOT_EXE ""
@@ -381,7 +381,10 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 # Default folders
 # ####################################################################
 
-set BDDSCOUT_PATH_BIN [pwd]
+set BDDSCOUT_PATH_BIN "[file dirname [info nameofexecutable]]/../lib/bddscout"
+if {[file executable $BDDSCOUT_PATH_BIN] != 1} {
+  set BDDSCOUT_PATH_BIN [pwd]
+}
 #puts $BDDSCOUT_PATH_BIN
 set BDDSCOUT_PATH_CREATE "$BDDSCOUT_PATH_BIN/create"
 #puts $BDDSCOUT_PATH_CREATE
@@ -996,7 +999,7 @@ menu $menubar.create.menu -bg $COLORFRAME -relief groove -tearoff false \
 proc createCreateMenu {} {
   global menubar
   global BDDSCOUT_PATH_CREATE
-  foreach script [glob -directory "$BDDSCOUT_PATH_CREATE" *.tcl] {
+  foreach script [glob -nocomplain -directory "$BDDSCOUT_PATH_CREATE" *.tcl] {
     set sf [open "$script"]
     if {[gets $sf line] >= 0} {
       if {$line == "# BDD SCOUT EXTENSION"} {
@@ -1544,7 +1547,7 @@ proc menu_help_about {} {
   text .helpAbout.w -bg $COLORMENU -height 20 -width 100
   .helpAbout.w insert 1.0 "\
   BDD Scout v$BIDDYVERSION\n\
-  \$Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $ \n\n\
+  \$Date: 2019-12-27 00:15:45 +0100 (pet, 27 dec 2019) $ \n\n\
   Author: Robert Meolic (robert@meolic.com)\n\n\
   Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\n\
   Biddy is free software; you can redistribute it and/or modify it under the terms\n\
