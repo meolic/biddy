@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddy.h]
-    Revision    [$Revision: 569 $]
-    Date        [$Date: 2019-12-27 10:51:41 +0100 (pet, 27 dec 2019) $]
+    Revision    [$Revision: 621 $]
+    Date        [$Date: 2020-03-29 10:25:11 +0200 (ned, 29 mar 2020) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -101,7 +101,7 @@ See also: biddyInt.h
 #endif
 
 #ifndef BIDDYVERSION
-#define BIDDYVERSION "1.9.1"
+#define BIDDYVERSION "2.0.1"
 #endif
 
 /*----------------------------------------------------------------------------*/
@@ -740,15 +740,16 @@ EXTERN void Biddy_Managed_MinimizeBDD(Biddy_Manager MNG, Biddy_String name);
 EXTERN void Biddy_Managed_MaximizeBDD(Biddy_Manager MNG, Biddy_String name);
 
 /* 72 */
-/*! Macro Biddy_Copy is defined for use with anonymous manager. */
+/*! Macros Biddy_Copy and Biddy_CopyFrom are defined for use with anonymous manager. */
 #define Biddy_Copy(MNG2,f) Biddy_Managed_Copy(NULL,MNG2,f)
+#define Biddy_CopyFrom(MNG1,f) Biddy_Managed_Copy(MNG1,NULL,f)
 EXTERN Biddy_Edge Biddy_Managed_Copy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
 
 /* 73 */
-/*! Macros Biddy_CopyFormulaFrom and Biddy_CopyFormulaTo are defined for use */
+/*! Macros Biddy_CopyFormulaTo and Biddy_CopyFormulaFrom are defined for use */
 /*! with anonymous manager. */
-#define Biddy_CopyFormulaFrom(MNG1,x) Biddy_Managed_CopyFormula(MNG1,NULL,x)
 #define Biddy_CopyFormulaTo(MNG2,x) Biddy_Managed_CopyFormula(NULL,MNG2,x)
+#define Biddy_CopyFormulaFrom(MNG1,x) Biddy_Managed_CopyFormula(MNG1,NULL,x)
 EXTERN void Biddy_Managed_CopyFormula(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_String x);
 
 /* 74 */
@@ -906,9 +907,6 @@ EXTERN Biddy_Edge Biddy_Managed_Change(Biddy_Manager MNG, Biddy_Edge f, Biddy_Va
 /* 99 */
 /* This is used to calculate f*v and f*(-v) */
 /* Using the provided macros, Biddy_Managed_Quotient and Biddy_Quotient are not implemented optimally */
-/* Using the provided macros, Biddy_Managed_ElementAbstract and Biddy_ElementAbstract are not implemented optimally */
-/* #define Biddy_Managed_ElementAbstract(MNG,f,v) Biddy_Managed_Union(MNG,Biddy_Managed_Quotient(MNG,f,v),Biddy_Managed_Remainder(MNG,f,v)) */
-/* #define Biddy_ElementAbstract(f,v) Biddy_Union(Biddy_Quotient(f,v),Biddy_Remainder(f,v)) */
 /*! Macro Biddy_VarSubset is defined for use with anonymous manager. */
 #define Biddy_VarSubset(f,v,value) Biddy_Managed_VarSubset(NULL,f,v,value)
 EXTERN Biddy_Edge Biddy_Managed_VarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
@@ -980,8 +978,8 @@ EXTERN Biddy_Edge Biddy_Managed_RandomSet(Biddy_Manager MNG, Biddy_Edge unit, do
 
 /* 111 */
 /*! Macro Biddy_ExtractMinterm is defined for use with anonymous manager. */
-#define Biddy_ExtractMinterm(support,f) Biddy_Managed_ExtractMinterm(NULL,support,f)
-EXTERN Biddy_Edge Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f);
+#define Biddy_ExtractMinterm(f) Biddy_Managed_ExtractMinterm(NULL,f)
+EXTERN Biddy_Edge Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge f);
 
 #ifdef __cplusplus
 }
@@ -1126,9 +1124,9 @@ EXTERN unsigned long long int Biddy_Managed_CountPaths(Biddy_Manager MNG, Biddy_
 /* 126 */
 /*! Macro Biddy_CountMinterms is defined for use with anonymous manager. */
 #define Biddy_CountMinterms(f,nvars) Biddy_Managed_CountMinterms(NULL,f,nvars)
-EXTERN double Biddy_Managed_CountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
-#define Biddy_Managed_CountCombinations(MNG,f,nvars) Biddy_Managed_CountMinterms(MNG,f,nvars)
-#define Biddy_CountCombinations(f) Biddy_Managed_CountMinterms(NULL,f,nvars)
+EXTERN double Biddy_Managed_CountMinterms(Biddy_Manager MNG, Biddy_Edge f, int nvars);
+#define Biddy_Managed_CountCombinations(MNG,f) Biddy_Managed_CountMinterms(MNG,f,-1)
+#define Biddy_CountCombinations(f) Biddy_Managed_CountMinterms(NULL,f,-1)
 
 /* 127 */
 /*! Macro Biddy_DensityOfFunction is defined for use with anonymous manager. */

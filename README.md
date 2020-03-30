@@ -4,13 +4,13 @@ USER MANUAL
 ### TL;DR
 --------------
 
-**Biddy** is a multi-platform academic Binary Decision Diagrams package.
+**Biddy** is a multi-platform Binary Decision Diagrams package.
 It supports plain ROBDDs, ROBDDs with complemented edges,
 0-sup-BDDs, 0-sup-BDDs with complemented edges, and
 tagged 0-sup-BDDs.
 
-Biddy is capable of all the typical operations regarding
-Boolean functions, combination sets, and BDDs.
+Biddy is a mathematical library capable of all the typical
+operations regarding Boolean functions and combination sets.
 
 Biddy is a library to be included in your C and C++ projects:
 
@@ -67,7 +67,7 @@ Biddy is **free software** maintained by Robert Meolic (robert@meolic.com).
 
 - You can fork this project on https://github.com/meolic/biddy.
 - Fell free to report requests, bugs, and other issues on GitHub.
-- **Contributions** (patches and ideas) can be send also via author's email.
+- Contributions (patches and ideas) can be send also via author's email.
 
 **Homepage**: http://biddy.meolic.com/
 
@@ -197,8 +197,8 @@ You should define UNIX, MACOSX, or MINGW.
 You should define USE_BIDDY if you are using Biddy via dynamic library.
 
 ~~~c
-/* Linux + gcc: compile with gcc -DUNIX -o program.exe source.c -I. -L. -lbiddy -lgmp */
-/* WINDOWS + MINGW: compile with gcc -DMINGW -o program.exe source.c -I. -L. -lbiddy -lgmp */
+/* Linux + gcc: gcc -DUNIX -o biddyexample1 biddyexample1.c -I. -L./bin -lbiddy -lgmp */
+/* WINDOWS + MINGW: gcc -DMINGW -o biddyexample1.exe biddyexample1.c -I. -L./bin -lbiddy -lgmp */
 /* in this example, x1, x2, and x3 are Boolean variables */
 #include "biddy.h"
 int main() {
@@ -215,12 +215,12 @@ int main() {
   printf("Here is a truth table for Boolean function f\n");
   Biddy_PrintfTable(f);
   Biddy_WriteDot("biddyexample1.dot",f,"f",-1,FALSE);
-  printf("USE 'dot -y -Tpng -O biddyexample1' to visualize BDD for Boolean function f.\n");
+  printf("USE 'dot -y -Tpng -O biddyexample1.dot' to visualize BDD for Boolean function f.\n");
   Biddy_Exit();
 }
 ~~~
 
-If you do not want to use the default BDD type you simply change the
+If you do not want to use the default BDD type then simply change the
 initialization call. Supported BDD types are BIDDYTYPEOBDD,
 BIDDYTYPEOBDDC, BIDDYTYPEZBDD, BIDDYTYPEZBDDC, and BIDDYTYPETZBDD.
 
@@ -231,8 +231,8 @@ Biddy_InitAnonymous(BIDDYTYPEZBDD);
 Here is another example. Please note the explicite usage of a manager which enables working with different types of BDDs simultaneously.
 
 ~~~c
-/* Linux + gcc: compile with gcc -DUNIX -o program.exe source.c -I. -L. -lbiddy -lgmp */
-/* WINDOWS + MINGW: compile with gcc -DMINGW -o program.exe source.c -I. -L. -lbiddy -lgmp */
+/* Linux + gcc: gcc -DUNIX -o biddyexample2 biddyexample2.c -I. -L./bin -lbiddy -lgmp */
+/* WINDOWS + MINGW: gcc -DMINGW -o biddyexample2.exe biddyexample2.c -I. -L./bin -lbiddy -lgmp */
 /* in this example, letters D, E, H, L, O, R, and W are Boolean variables */
 #include "biddy.h"
 #define Str2Var(mng,x) (Biddy_Managed_GetVariable(mng,(Biddy_String)x))
@@ -247,7 +247,7 @@ int main() {
   /* BASIC OPERATION */
   r1 = Biddy_Managed_Nor(mngobdd,f,g);
   /* SOP OUTPUT */
-  printf("Here is Boolean function r1\n");
+  printf("Here is Boolean function:\n");
   Biddy_Managed_PrintfSOP(mngobdd,r1);
   /* REPLACE SOME VARIABLES: H-->L, R-->L */
   Biddy_Managed_ResetVariablesValue(mngobdd);
@@ -255,23 +255,20 @@ int main() {
   Biddy_Managed_SetVariableValue(mngobdd,Str2Var(mngobdd,"R"),Biddy_Managed_GetVariableEdge(mngobdd,Str2Var(mngobdd,"L")));
   r1 = Biddy_Managed_Replace(mngobdd,r1);
   /* SOP OUTPUT AFTER REPLACING VARIABLES */
-  printf("Here is Boolean function r1 after replacing H-->L and R-->L\n");
+  printf("Here is this Boolean function after replacing H-->L and R-->L:\n");
   Biddy_Managed_PrintfSOP(mngobdd,r1);
   /* SIMPLE RESTRICTION */
   r1 = Biddy_Managed_Restrict(mngobdd,r1,Str2Var(mngobdd,"E"),FALSE);
   /* SOP OUTPUT AFTER REPLACING VARIABLES */
-  printf("Here is Boolean function r1 after restricting E\n");
+  printf("Here is the Boolean function after additional operation 'restrict E':\n");
   Biddy_Managed_PrintfSOP(mngobdd,r1);
   /* CONVERT OBDD TO OBDDC */
   r2 = Biddy_Managed_Copy(mngobdd,mngobddc,r1);
-  /* SOME STATS */
-  printf("OBDD for Boolean function r1 has %u nodes.\n",Biddy_Managed_CountNodes(mngobdd,r1));
-  printf("OBDDC for the same Boolean function has %u nodes.\n",Biddy_Managed_CountNodes(mngobddc,r2));
   /* GRAPHVIZ/DOT OUTPUT */
   Biddy_Managed_WriteDot(mngobdd,"biddyexample2obdd.dot",r1,"r1",-1,FALSE);
-  printf("USE 'dot -y -Tpng -O biddyexample2obdd.dot' to visualize OBDD for function r1.\n");
+  printf("USE 'dot -y -Tpng -O biddyexample2obdd.dot' to visualize OBDD for the final Boolean function.\n");
   Biddy_Managed_WriteDot(mngobddc,"biddyexample2obddc.dot",r2,"r2",-1,FALSE);
-  printf("USE 'dot -y -Tpng -O biddyexample2obddc.dot' to visualize OBDDC for function r2.\n");
+  printf("USE 'dot -y -Tpng -O biddyexample2obddc.dot' to visualize OBDDC for the final Boolean function.\n");
   Biddy_ExitMNG(&mngobdd);
   Biddy_ExitMNG(&mngobddc);
 }
@@ -311,14 +308,15 @@ to immediately remove all obsolete nodes.
 ### Biddy_Purge()
 
 Immediately removes all nodes which were not preserved or which are not
-preserved anymore. Moreover, all formulae without a name are deleted!
-All nodes from all deleted formulae are removed if they are not needed by
-other formulae. Call to Biddy_Purge does not count as cleaning and thus all
-preserved formulae remains preserved for the same number of cleanings. 
+preserved anymore. Moreover, all obsolete formulae and all formulae without
+a name are deleted. Nodes from all deleted formulae are removed if they are
+not needed by other formulae. Call to Biddy_Purge does not count as a cleaning
+and thus all preserved formulae remains preserved for the same number of
+cleanings.
 
 ### Biddy_PurgeAndReorder(bdd)
 
-The same as Biddy_Purge but also trigger reordering on function
+The same as Biddy_Purge but also triggers reordering on function
 (if BDD is given) or global reordering (if NULL is given).
 
 ### Biddy_Refresh(bdd)
@@ -346,12 +344,23 @@ Biddy_KeepFormulaUntilPurge(result); /* result is preserved until Biddy_Purge() 
 Biddy_Clean(); /* only nodes from result remain preserved */
 ~~~
 
-If additional garbage collection is needed also after the calculation of g1,
-you can use the following code after the calculation of g1:
+If garbage collection is needed after the calculation of g1,
+you must add some code after the calculation of g1:
 
 ~~~c
+f1 = op(...);
+f2 = op(...);
+g1 = op(f1,f2,...);
 Biddy_KeepFormulaProlonged(g1,2); /* g1 is preserved for next two cleanings */
 Biddy_Clean(); /* g1 remains preserved for next cleaning */
+f1 = op(...);
+f2 = op(...);
+g2 = op(f1,f2,...);
+Biddy_KeepFormula(g2); /* g2 is preserved for next cleaning */
+Biddy_Clean(); /* g1 and g2 are still usable, f1 and f2 are obsolete */
+result = op(g1,g2,...);
+Biddy_KeepFormulaUntilPurge(result); /* result is preserved until Biddy_Purge() */
+Biddy_Clean(); /* only nodes from result remain preserved */
 ~~~
 
 In this approach, f1 and f2 become obsolete after Biddy_Clean, but their
@@ -359,7 +368,8 @@ nodes are not immediately removed (automatic garbage collection is only
 started when there are no free nodes in the system).
 
 Alternatively, you can use the following code which is simpler but somehow
-less efficient because Biddy_Purge() always starts garbage collection:
+less efficient because Biddy_Purge() immediately starts garbage collection
+(even if there are enough of free nodes and GC is not needed):
 
 ~~~c
 f1 = op(...);
@@ -393,7 +403,7 @@ Biddy_KeepFormulaUntilPurge(result); /* result is preserved until Biddy_Purge() 
 Biddy_Clean(); /* tmp results are not needed, anymore */
 ~~~
 
-If garbage collection is needed also after the calculation of g, you must
+If garbage collection is needed after the calculation of g, you must
 use the following code:
 
 ~~~c
@@ -448,10 +458,7 @@ Biddy_Purge(); /* remove all nodes not belonging to result */
 ~~~
 
 The fifth example is again a model checking algorithm, but
-here we are trying to benefit from regularly reordering
-(in contrast to Biddy_Purge(), Biddy_PurgeAndReorder() will
-delete all unnamed formulae, all obsolete formulae, and
-also all named non-obsolete tmp formulae):
+here we are trying to benefit from regularly reordering:
 
 ~~~c
 sup = Prepare(...);
@@ -471,8 +478,8 @@ Biddy_DeleteFormula("Z"); /* Z is marked as deleted */
 Biddy_Purge(); /* remove nodes not belonging to result */
 ~~~
 
-The sixth example is an outline of an implementation of parallel composition
-where we are trying to benefit from intensive GC:
+The sixth example is an outline of a complex implementation of operation parallel
+composition in process algebra where we are trying to benefit from intensive GC:
 
 ~~~c
 sacc = snew = AND(init_1,init_2,...,init_N);
@@ -600,7 +607,6 @@ MSYS shell> pacman -S mingw-w64-x86_64-gcc
 MSYS shell> pacman -S make
 MSYS shell> pacman -S bison
 MSYS shell> pacman -S gdb
-MSYS shell> pacman -S nano
 MSYS shell> pacman -S tar
 MSYS shell> pacman -S subversion
 ~~~
@@ -706,7 +712,8 @@ a  second place  at  IEEE Region  Student  Paper Contest  (Paris-Evry,
 Representation of  Boolean functions with ROBDDs.   IEEE Student paper
 contest :  regional contest  winners 1990-1997 :  prize-winning papers
 demonstrating student excellence  worldwide, Piscataway, 2000" and can
-be obtained from http://www.meolic.com/research/papers/robdd-casar-meolic.pdf .
+be obtained from
+http://www.meolic.com/research/papers/robdd-casar-meolic.pdf .
 
 In 1995, this BDD package was  rewritten in C. Later, this BDD package
 become an  integral part of EST  package, a prototype  tool for formal
@@ -782,8 +789,13 @@ Again, bddview and BDD Scout have been significantly improved.
 Started BDD Encyclopedia, check it out at
 http://svn.savannah.nongnu.org/viewvc/*checkout*/biddy/bddscout/ENCYCLOPEDIA/bddencyclopedia.html .
 
-Biddy v1.9 released in 2019 brought an improved format of source code.
-A short paper in Journal of Open Source Software was published.
+In 2019, a short paper in Journal of Open Source Software was published.
+Biddy v1.9 was released which brought an improved format of source code.
+Copyright changed because Robert Meolic is no longer with University of Maribor.
+
+In 2020, Biddy v2.0. was released that was focused on unate cube set algebra.
+Many internal improvements for Biddy and BDD Scout, especially the more complete
+implementation of features for unate cube set algebra.
 
 ### 6. PUBLICATIONS
 ---------------
@@ -793,6 +805,12 @@ If you find our work useful, please, cite us.
 - Robert Meolic. __Implementation aspects of a BDD package supporting general decision diagrams.__
   Technical report, University of Maribor, 2016.
   https://dk.um.si/IzpisGradiva.php?id=68831
+
+- Tom van Dijk, Robert Wille, Robert Meolic.
+  __Tagged BDDs: combining reduction rules from different decision diagram types.__
+  In Proc. FMCAD 2017, pp. 108-115, 2017.
+  https://ieeexplore.ieee.org/abstract/document/8102248
+  (also https://dl.acm.org/doi/abs/10.5555/3168451.3168478)
 
 - Robert Meolic, Zmago Brezočnik. __Flexible job shop scheduling using zero-suppressed binary decision diagrams.__
   Advances in production engineering & management, 13(4), pp. 373-388, 2018.

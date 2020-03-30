@@ -116,3 +116,8 @@ Changes v1.9.1 versus v1.8.2
 - released on Dec 29, 2019
 - copyright changed (Robert Meolic is no longer with UM FERI)
 - upgraded to Visual Studio 2019, WIX is used for packaging
+
+Changes v2.0.1 versus v1.9.1
+- released on Mar 29, 2020
+- improved the input line, if one word is given then variable is added but not formula
+- improved the input line, added the Unate cube set algebra mode

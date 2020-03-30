@@ -1,10 +1,10 @@
-/* $Revision: 558 $ */
-/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
+/* $Revision: 600 $ */
+/* $Date: 2020-03-02 22:47:10 +0100 (pon, 02 mar 2020) $ */
 /* This file (biddy-example-dictman.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.8 */
+/* This example is compatible with Biddy v2.0 */
 
 /* IF DICTIONARY INCLUDES NULL SYMBOL (I.E. WORDS HAVE DIFFERENT LENGTH) */
 /* THEN DICTIONARY MUST INCLUDE EMPTY WORD. */

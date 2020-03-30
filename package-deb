@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 570 $]
-#  Date        [$Date: 2019-12-27 12:02:22 +0100 (pet, 27 dec 2019) $]
+#  Revision    [$Revision: 620 $]
+#  Date        [$Date: 2020-03-28 16:40:27 +0100 (sob, 28 mar 2020) $]
 #
 #  Copyright   [
 #    This file is part of Biddy.
 #    Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#    Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia
+#    Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #    Biddy is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as
@@ -42,8 +42,11 @@
 # sudo pbuilder update
 
 # 1B. If using pbuilder-dist then initialize pbuilder as follows:
-# pbuilder-dist bionic create
-# pbuilder-dist bionic update
+# pbuilder-dist eoan create
+# pbuilder-dist eoan update
+
+# 1C. Update before every building
+# pbuilder-dist eoan update
 
 # We are using biddy in other projects thus we upload the resulting deb files
 # cd ~/est/biddy/distribution/version-1.X/release-Y/
@@ -66,9 +69,10 @@
 #    (result will be in ../):
 #      dpkg-buildpackage -rfakeroot -b
 
+LIBVERSION=1
 VERSION=`sed "" VERSION`
 MAJORVERSION=`cut -c1 VERSION`
-NAME="libbiddy$MAJORVERSION"
+NAME="libbiddy$LIBVERSION"
 OS=`uname | sed "s/_.*//;s/[0-9]//g"`
 DISTRO=$(lsb_release --short --codename)
 
@@ -160,7 +164,7 @@ mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for cosmic
+# create a source distribution for eoan
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
 ALTDISTRO=eoan

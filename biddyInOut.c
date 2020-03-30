@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 569 $]
-    Date        [$Date: 2019-12-27 10:51:41 +0100 (pet, 27 dec 2019) $]
+    Revision    [$Revision: 621 $]
+    Date        [$Date: 2020-03-29 10:25:11 +0200 (ned, 29 mar 2020) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net),
                  Volodymyr Mihav (mihaw.wolodymyr@gmail.com),
@@ -23,7 +23,7 @@
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -120,16 +120,11 @@ static void concat(char **s1, const char *s2);
 
 static void WriteBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, unsigned int *line);
 
-/* The following functions are used in Biddy_PrintSOP() */
+/* The following functions are used in Biddy_PrintSOP() and Biddy_PrintMinterms() */
 
 static Biddy_Boolean WriteProduct(Biddy_Manager MNG, Biddy_String *var, FILE *s, BiddyVarList *l, Biddy_Boolean combinationset, Biddy_Boolean first);
 /* static void WriteProductAlphabetic(Biddy_Manager MNG, BiddyVarList *l, Biddy_Boolean combinationset, Biddy_Boolean first); */ /* currently, not used */
-static void WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, BiddyVarList *l, unsigned int *maxsize, Biddy_Boolean combinationset);
-
-/* The following function is used in Biddy_PrintMinterms() */
-
-static void PrintMintermsOBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s,
-                              Biddy_Edge f, Biddy_Boolean negative);
+static Biddy_Boolean WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, Biddy_Variable top, Biddy_Boolean mark, BiddyVarList *l, unsigned int *maxsize, Biddy_Boolean combinationset);
 
 /* The following functions are used in Biddy_WriteDot() */
 
@@ -588,16 +583,11 @@ Biddy_Managed_PrintSOP(Biddy_Manager MNG, Biddy_String *var, const char filename
 
 ### Description
     This function can write to a variable, to an output channel via
-    printf calls, and into the file via fprintf calls. If negative == true
-    then writes complete minterms (useful for Boolean functions), otherwise
-    writes only positive literals (useful for combination sets).
+    printf calls, and into the file via fprintf calls.
+    If (negative == true) then writes complete minterms (for Boolean functions),
+    otherwise writes only positive literals (for combination sets).
 ### Side effects
-    For OBDDs, the used algorithm is imitating writing a truth table,
-    this is not an efficient approach (suitable only for a few variables)!
-    For ZBDDs and TZBDDs, the used algorithm is imitating writing SOP,
-    this is very efficient.
-    This function is intended for writing to an output channel via
-    macro which overrides the meaning of standard printf calls.
+    The used algorithm is imitating writing SOP.
 ### More info
     Macro Biddy_PrintMinterms(f) is defined for use with anonymous manager.
     Macros Biddy_Managed_PrintfMinterms, Biddy_PrintfMinterms,
@@ -902,7 +892,7 @@ printPrefixFromBTree(BiddyBTreeContainer *tree, int i)
 Biddy_Edge
 BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc)
 {
-  /* NOT (~!), AND (&*), OR (|+), XOR (^%) , XNOR(-), IMPLIES (><), NAND (@), NOR (#), BUTNOT (\), AND NOTBUT (/) ARE IMPLEMENTED */
+  /* NOT (~!), AND (&*), OR (|+), XOR (^%) , XNOR(-), IMPLIES (><), NAND (@), NOR (#), BUTNOT (\), AND NOTBUT (/) */
   char boolOperators[] = { '~', '&', '\\', ' ', '/', ' ', '^', '|', '#', '-', ' ', '<', ' ', '>', '@', ' ' };
   long tempPos,currStringPos,currTreePos,oldTreePos; /* tmp variables */
   long offset; /* this is used for implementation of parenthesis and operator's priority */
@@ -1427,20 +1417,20 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
       if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD))
       {
         for (i=0; i<numV; i++) {
-          BiddyManagedAddVariableByName(MNG,tableV[i].name);
+          BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE);
         }
       }
 #ifndef COMPACT
       else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD))
       {
         for (i=numV-1; i>=0; i--) {
-          BiddyManagedAddVariableByName(MNG,tableV[i].name);
+          BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE);
         }
       }
       else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
       {
         for (i=numV-1; i>=0; i--) {
-          BiddyManagedAddVariableByName(MNG,tableV[i].name);
+          BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE);
         }
       }
       else {
@@ -1621,6 +1611,7 @@ BiddyManagedPrintBDD(Biddy_Manager MNG, Biddy_String *var, const char filename[]
   if (var) {
   }
   if (!strcmp(filename,"stdout")) {
+    s = stdout;
   } else if (strcmp(filename,"")) {
     s = fopen(filename,"w");
     if (!s) return;
@@ -1695,6 +1686,7 @@ BiddyManagedPrintTable(Biddy_Manager MNG, Biddy_String *var, const char filename
   if (var) {
   }
   if (!strcmp(filename,"stdout")) {
+    s = NULL; /* s is not needed */
   } else if (strcmp(filename,"")) {
     s = fopen(filename,"w");
     if (!s) return;
@@ -1889,6 +1881,7 @@ BiddyManagedPrintSOP(Biddy_Manager MNG, Biddy_String *var, const char filename[]
   if (var) {
   }
   if (!strcmp(filename,"stdout")) {
+    s = stdout;
   } else if (strcmp(filename,"")) {
     s = fopen(filename,"w");
     if (!s) return;
@@ -1990,17 +1983,25 @@ BiddyManagedPrintMinterms(Biddy_Manager MNG, Biddy_String *var, const char filen
 {
   FILE *s;
 
-#ifndef COMPACT
-  unsigned int maxsize = 0; /* needed for WriteSOP but not used */
-#endif
+  Biddy_Variable v;
+  unsigned int maxsize;
+  Biddy_Boolean OK;
 
   assert( MNG );
+  
+  /* DEBUGGING */
+  /*
+  printf("BiddyManagedPrintMinterms STARTED\n");
+  */
+
+  if (negative) maxsize = 16; else maxsize = 32;
 
   s = NULL;
 
   if (var) {
   }
   if (!strcmp(filename,"stdout")) {
+    s = stdout;
   } else if (strcmp(filename,"")) {
     s = fopen(filename,"w");
     if (!s) return;
@@ -2036,37 +2037,47 @@ BiddyManagedPrintMinterms(Biddy_Manager MNG, Biddy_String *var, const char filen
     return;
   }
 
+  /* DEBUGGING */
+  /*
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    Biddy_Managed_WriteBddview(MNG,"minterms.bddview",f,"F",NULL);
+  }
+  */
+
+  v = 0;
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-    PrintMintermsOBDD(MNG,var,s,f,negative);
+    v = BiddyV(f);
   }
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
-    WriteSOP(MNG,var,s,f,BiddyV(f),BiddyGetMark(f),NULL,&maxsize,TRUE);
-
-    if (var) {
-      concat(var,"\n");
-    }
-    if (!strcmp(filename,"stdout")) {
-      printf("\n");
-    } else if (strcmp(filename,"")) {
-      fprintf(s,"\n");
-    }
-
+    v = BiddyV(f);
   }
   else if (biddyManagerType == BIDDYTYPETZBDD) {
-    WriteSOP(MNG,var,s,f,BiddyManagedGetLowestVariable(MNG),BiddyGetMark(f),NULL,&maxsize,TRUE);
-
-    if (var) {
-      concat(var,"\n");
-    }
-    if (!strcmp(filename,"stdout")) {
-      printf("\n");
-    } else if (strcmp(filename,"")) {
-      fprintf(s,"\n");
-    }
-
+    v = BiddyManagedGetLowestVariable(MNG);
   }
 #endif
+
+  OK = WriteSOP(MNG,var,s,f,v,BiddyGetMark(f),NULL,&maxsize,!negative);
+
+  if (!OK) { /* output to large */
+    if (var) {
+      concat(var,"... (to large)");
+    }
+    if (!strcmp(filename,"stdout")) {
+      printf("... (to large)");
+    } else if (strcmp(filename,"")) {
+      fprintf(s,"... (to large)");
+    }
+  }
+
+  if (var) {
+    concat(var,"\n");
+  }
+  if (!strcmp(filename,"stdout")) {
+    printf("\n");
+  } else if (strcmp(filename,"")) {
+    fprintf(s,"\n");
+  }
 
   if (var) {
   }
@@ -2100,6 +2111,8 @@ BiddyManagedWriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
   Biddy_String name;
 
   assert( MNG );
+  
+  s = NULL;
 
   /* if (id != -1) use it instead of <...> */
 
@@ -2311,6 +2324,8 @@ BiddyManagedWriteBddview(Biddy_Manager MNG, const char filename[],
 #endif
 
   assert( MNG );
+  
+  s = NULL;
 
   if (BiddyIsNull(f)) {
     /* printf("ERROR BiddyManagedWriteBddview: Function is null!\n"); */
@@ -2747,12 +2762,12 @@ evaluate1(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch,
   if (charOK(*ch[0])) {
     if (!lf) {
       if (!BiddyManagedFindFormula(MNG,*ch,&idx,&f)) {
-        f = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,*ch));
+        f = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,*ch,TRUE));
       }
     } else {
       if ((!(lf(*ch,&f))) &&
           (!BiddyManagedFindFormula(MNG,*ch,&idx,&f))) {
-        f = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,*ch));
+        f = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,*ch,TRUE));
       }
     }
     nextCh(s,i,ch);
@@ -2833,7 +2848,7 @@ createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree)
       if (tree->tnode[i].op == 255) {
         if (tree->tnode[i].name) {
           if (!(BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp))) {
-            BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name));
+            BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
           }
         }
       }
@@ -2848,7 +2863,7 @@ createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree)
       if (tree->tnode[i].op == 255) {
         if (tree->tnode[i].name) {
           if (!(BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp))) {
-            BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name));
+            BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
           }
         }
       }
@@ -2870,7 +2885,7 @@ createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i)
       else if (!strcmp(tree->tnode[i].name,"1")) fbdd = biddyOne;
       else {
         if (!(BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&fbdd))) {
-          fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name));
+          fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
         }
       }
     } else {
@@ -3446,10 +3461,10 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, BiddyVerilogCircuit *c, Biddy_Str
   /* create all BDD variables - important for ZBDD and TZBDD */
   for (i = 0; i < c->nodecount; i++) {
     if (!strcmp(c->nodes[i]->type,"input")) {
-      BiddyManagedFoaVariable(MNG,c->nodes[i]->name,TRUE);  /* TO DO: add prefix */
+      BiddyManagedFoaVariable(MNG,c->nodes[i]->name,TRUE,TRUE);  /* TO DO: add prefix */
     }
     if (!strcmp(c->nodes[i]->type,"extern")) {
-      BiddyManagedFoaVariable(MNG,c->nodes[i]->name,TRUE);  /* TO DO: add prefix */
+      BiddyManagedFoaVariable(MNG,c->nodes[i]->name,TRUE,TRUE);  /* TO DO: add prefix */
     }
   }
 
@@ -4178,17 +4193,19 @@ WriteProductAlphabetic(Biddy_Manager MNG, BiddyVarList *l, Biddy_Boolean combina
 }
 */
 
-static void
+static Biddy_Boolean
 WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
          Biddy_Variable top, Biddy_Boolean mark, BiddyVarList *l,
          unsigned int *maxsize, Biddy_Boolean combinationset)
 {
   BiddyVarList tmp;
   Biddy_Variable v;
+  Biddy_Boolean OK = TRUE;
 
-  /* parameter combinationset is meaningful for ZBDDs and TZBDDs, only */
-
-  if ((!combinationset) && (*maxsize == 0)) return; /* SOP to large */
+  /* if ((!combinationset) && (*maxsize == 0)) return; */ /* output to large, Boolean functions only */
+  if (*maxsize == 0) { /* output to large */
+    return FALSE; 
+  }
 
   v = BiddyV(f);
 
@@ -4196,35 +4213,52 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
   /*
   printf("WriteSOP: top = %u (%s), v = %u (%s)\n",top,BiddyManagedGetVariableName(MNG,top),v,BiddyManagedGetVariableName(MNG,v));
   */
+  
+  /* DEBUGGING */
+  /*
+  printf("WriteSOP DEBUG:");
+  WriteProduct(MNG,var,s,l,combinationset,TRUE);
+  printf("\n");
+  */
 
   assert( !(BiddyIsSmaller(BiddyV(f),top)) );
 
-  if ((top != v) && (f != biddyZero)) {
+  if ((top != v) && ((f != biddyZero) || (biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEZBDDC)))
+  {
 
-    if (biddyManagerType == BIDDYTYPEOBDD) {
-      /* NO ACTION IS NEEDED */
-    } else if (biddyManagerType == BIDDYTYPEOBDDC) {
-      /* NO ACTION IS NEEDED */
+    if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+      if (combinationset) {
+        /* for Boolean functions, don't care variables are not reported */
+        tmp.next = l;
+        tmp.v = top;
+        tmp.negative = FALSE; /* positive  literal */
+        OK = OK && WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
+        tmp.negative = TRUE; /* negative literal */
+        OK = OK && WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
+      }
     }
 #ifndef COMPACT
-    else if (biddyManagerType == BIDDYTYPEZBDD) {
+    else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
       tmp.next = l;
       tmp.v = top;
       tmp.negative = TRUE; /* negative literal */
-      WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
-    } else if (biddyManagerType == BIDDYTYPEZBDDC) {
-      tmp.next = l;
-      tmp.v = top;
-      tmp.negative = TRUE; /* negative literal */
-      WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
+      OK = OK && WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
     } else if (biddyManagerType == BIDDYTYPETZBDD) {
-      tmp.next = l;
-      tmp.v = top;
-      tmp.negative = TRUE; /* negative literal */
-      WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
-      if (combinationset && BiddyIsSmaller(top,BiddyGetTag(f))) {
-        tmp.negative = FALSE; /* positive literal */
-        WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
+      if (BiddyIsSmaller(top,BiddyGetTag(f))) {
+        if (combinationset) {
+        /* for Boolean functions, don't care variables are not reported */
+          tmp.next = l;
+          tmp.v = top;
+          tmp.negative = FALSE; /* positive  literal */
+          OK = OK && WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
+          tmp.negative = TRUE; /* negative literal */
+          OK = OK && WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
+        }
+      } else {
+        tmp.next = l;
+        tmp.v = top;
+        tmp.negative = TRUE; /* negative literal */
+        OK = OK && WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
       }
     }
 #endif
@@ -4232,7 +4266,9 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
   } else if (v == 0) {
 
     if (combinationset) {
+      /* write one combination */
       if (!mark) {
+
         if (l) {
           /* printf("{"); */
           /* WriteProductAlphabetic(MNG,l,combinationset,TRUE); */
@@ -4277,6 +4313,7 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
         }
       }
     } else {
+      /* write one minterm */
       if (!mark) {
 
         if (var) {
@@ -4335,56 +4372,68 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
     tmp.v = v;
 
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-      tmp.negative = TRUE; /* left successor */
-      WriteSOP(MNG,var,s,BiddyE(f),BiddyV(BiddyE(f)),(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
+      if (combinationset) {
+        tmp.negative = FALSE; /* for combination sets, right successor go first for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyT(f),biddyVariableTable.table[v].next,(mark ^ BiddyGetMark(BiddyT(f))),&tmp,maxsize,combinationset);
+      } else {
+        tmp.negative = TRUE; /* for Boolean function, left successor go first for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyE(f),BiddyV(BiddyE(f)),(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
+      }
     }
 #ifndef COMPACT
     else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
       if (combinationset) {
-        tmp.negative = FALSE; /* right successor for combination sets */
-        WriteSOP(MNG,var,s,BiddyT(f),biddyVariableTable.table[v].next,BiddyGetMark(BiddyT(f)),&tmp,maxsize,combinationset);
+        tmp.negative = FALSE; /* for combination sets, right successor go first for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyT(f),biddyVariableTable.table[v].next,BiddyGetMark(BiddyT(f)),&tmp,maxsize,combinationset);
       } else {
-        tmp.negative = TRUE; /* left successor for Boolean function */
-        WriteSOP(MNG,var,s,BiddyE(f),biddyVariableTable.table[v].next,(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
+        tmp.negative = TRUE; /* for Boolean function, left successor go first for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyE(f),biddyVariableTable.table[v].next,(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
       }
     }
     else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
       if (combinationset) {
-        tmp.negative = FALSE; /* right successor for combination sets */
-        WriteSOP(MNG,var,s,BiddyT(f),biddyVariableTable.table[v].next,BiddyGetMark(BiddyT(f)),&tmp,maxsize,combinationset);
+        tmp.negative = FALSE; /* for combination sets, right successor go first for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyT(f),biddyVariableTable.table[v].next,BiddyGetMark(BiddyT(f)),&tmp,maxsize,combinationset);
       } else {
-        tmp.negative = TRUE; /* left successor for Boolean function */
-        WriteSOP(MNG,var,s,BiddyE(f),BiddyGetTag(BiddyE(f)),(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
+        tmp.negative = TRUE; /* for Boolean function, left successor go first for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyE(f),BiddyGetTag(BiddyE(f)),(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
       }
     }
 #endif
 
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-      tmp.negative = FALSE; /* right successor */
-      WriteSOP(MNG,var,s,BiddyT(f),BiddyV(BiddyT(f)),(mark ^ BiddyGetMark(BiddyT(f))),&tmp,maxsize,combinationset);
+      if (combinationset) {
+        tmp.negative = TRUE; /* for combination sets, left successor is second for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyE(f),biddyVariableTable.table[v].next,(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
+      } else {
+        tmp.negative = FALSE; /* for Boolean function, right successor is second for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyT(f),BiddyV(BiddyT(f)),(mark ^ BiddyGetMark(BiddyT(f))),&tmp,maxsize,combinationset);
+      }
     }
 #ifndef COMPACT
     else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
       if (combinationset) {
-        tmp.negative = TRUE; /* left successor for combination sets */
-        WriteSOP(MNG,var,s,BiddyE(f),biddyVariableTable.table[v].next,(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
+        tmp.negative = TRUE; /* for combination sets, left successor is second for better ordering  */
+        OK = OK && WriteSOP(MNG,var,s,BiddyE(f),biddyVariableTable.table[v].next,(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
       } else {
-        tmp.negative = FALSE; /* right successor for Boolean function */
-        WriteSOP(MNG,var,s,BiddyT(f),biddyVariableTable.table[v].next,BiddyGetMark(BiddyT(f)),&tmp,maxsize,combinationset);
+        tmp.negative = FALSE; /* for Boolean function, right successor is second for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyT(f),biddyVariableTable.table[v].next,BiddyGetMark(BiddyT(f)),&tmp,maxsize,combinationset);
       }
     }
-    else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD)) {
+    else if (biddyManagerType == BIDDYTYPETZBDD) {
       if (combinationset) {
-        tmp.negative = TRUE; /* left successor for combination sets */
-        WriteSOP(MNG,var,s,BiddyE(f),biddyVariableTable.table[v].next,(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
+        tmp.negative = TRUE; /* for combination sets, left successor is second for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyE(f),biddyVariableTable.table[v].next,(mark ^ BiddyGetMark(BiddyE(f))),&tmp,maxsize,combinationset);
       } else {
-        tmp.negative = FALSE; /* right successor for Boolean function */
-        WriteSOP(MNG,var,s,BiddyT(f),BiddyGetTag(BiddyT(f)),BiddyGetMark(BiddyT(f)),&tmp,maxsize,combinationset);
+        tmp.negative = FALSE; /* for Boolean function, right successor is second for better ordering */
+        OK = OK && WriteSOP(MNG,var,s,BiddyT(f),BiddyGetTag(BiddyT(f)),BiddyGetMark(BiddyT(f)),&tmp,maxsize,combinationset);
       }
     }
 #endif
 
   }
+  
+  return OK;
 }
 
 static unsigned int
@@ -4430,150 +4479,6 @@ enumerateNodes(Biddy_Manager MNG, Biddy_Edge f, unsigned int n)
     }
   }
   return n;
-}
-
-static void
-PrintMintermsOBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, Biddy_Boolean negative)
-{
-  unsigned int variableNumber;
-  Biddy_Variable* variableTable;
-  unsigned int i;
-  int j;
-  Biddy_Variable k,v;
-  unsigned int numcomb;
-  Biddy_Boolean first;
-
-  /* all variables are included into minterms! */
-  variableNumber = biddyVariableTable.num - 1;
-
-  /* DEBUGGING */
-  /*
-  printf("variableNumber = %u\n",variableNumber);
-  */
-
-  if (variableNumber > 16) {
-
-    if (var) {
-      concat(var,"TO MANY VARIABLES\n");
-    }
-    if (s == stdout) {
-      printf("PrintMintermsOBDD: to many variables, variableNumber = %d, max = 16\n",variableNumber);
-    } else if (s) {
-      fprintf(s,"PrintMintermsOBDD: to many variables, variableNumber = %d, max = 16\n",variableNumber);
-    }
-
-    return;
-  }
-
-  /* variableTable is a table of all variables - the active ordering is considered */
-  if (!(variableTable = (Biddy_Variable *) malloc((variableNumber) * sizeof(Biddy_Variable)))) return;
-  i = 0;
-  v = BiddyManagedGetLowestVariable(MNG); /* lowest = topmost */
-  for (k = 1; k < biddyVariableTable.num; k++) {
-    variableTable[i] = v;
-    i++;
-    v = biddyVariableTable.table[v].next;
-  }
-
-  numcomb = 1;
-  for (i = 0; i < variableNumber; i++) numcomb = 2 * numcomb;
-  /* for (i = numcomb - 1; i >= 0; i--) */
-  for (i = 0; i < numcomb; i++)
-  {
-    for (j = variableNumber - 1; j >= 0; j--) {
-      biddyVariableTable.table[variableTable[variableNumber-j-1]].value = (i&(1 << j))?biddyOne:biddyZero;
-    }
-    if (BiddyManagedEval(MNG,f)) {
-
-      if (var) {
-        concat(var,"{");
-      }
-      if (s == stdout) {
-        printf("{");
-      } else if (s) {
-        fprintf(s,"{");
-      }
-
-      first = TRUE;
-      for (j = variableNumber - 1; j >= 0; j--) {
-        if (i&(1 << j)) {
-          if (first) {
-            first = FALSE;
-          } else {
-
-            if (var) {
-              concat(var,",");
-            }
-            if (s == stdout) {
-              printf(",");
-            } else if (s) {
-              fprintf(s,",");
-            }
-
-          }
-
-          if (var) {
-            concat(var,BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
-          }
-          if (s == stdout) {
-            printf("%s",BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
-          } else if (s) {
-            fprintf(s,"%s",BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
-          }
-
-        } else {
-          if (negative) {
-            if (first) {
-              first = FALSE;
-            } else {
-
-              if (var) {
-                concat(var,",");
-              }
-              if (s == stdout) {
-                printf(",");
-              } else if (s) {
-                fprintf(s,",");
-              }
-
-            }
-
-            if (var) {
-              concat(var,"*");
-              concat(var,BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
-            }
-            if (s == stdout) {
-              printf("*%s",BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
-            } else if (s) {
-              fprintf(s,"*%s",BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
-            }
-
-          }
-        }
-      }
-
-      if (var) {
-        concat(var,"}");
-      }
-      if (s == stdout) {
-        printf("}");
-      } else if (s) {
-        fprintf(s,"}");
-      }
-
-    }
-  }
-
-  if (var) {
-    concat(var,"\n");
-  }
-  if (s == stdout) {
-    printf("\n");
-  } else if (s) {
-    fprintf(s,"\n");
-  }
-
-  free(variableTable);
 }
 
 static void
@@ -5162,3 +5067,152 @@ reportOrdering()
   printf("\n");
 }
 */
+
+/*----------------------------------------------------------------------------*/
+/* Unused static functions                                                    */
+/*----------------------------------------------------------------------------*/
+
+static void
+PrintMintermsOBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, Biddy_Boolean negative)
+{
+  unsigned int variableNumber;
+  Biddy_Variable* variableTable;
+  unsigned int i;
+  int j;
+  Biddy_Variable k,v;
+  unsigned int numcomb;
+  Biddy_Boolean first;
+
+  /* all variables are included into minterms! */
+  variableNumber = biddyVariableTable.num - 1;
+
+  /* DEBUGGING */
+  /*
+  printf("variableNumber = %u\n",variableNumber);
+  */
+
+  /* variableNumber must be small because a loop over 2^variableNumber is used in the algorithm */
+  if (variableNumber > 16) {
+
+    if (var) {
+      concat(var,"TO MANY VARIABLES\n");
+    }
+    if (s == stdout) {
+      printf("PrintMintermsOBDD: to many variables, variableNumber = %d, max = 16\n",variableNumber);
+    } else if (s) {
+      fprintf(s,"PrintMintermsOBDD: to many variables, variableNumber = %d, max = 16\n",variableNumber);
+    }
+
+    return;
+  }
+
+  /* variableTable is a table of all variables - the active ordering is considered */
+  if (!(variableTable = (Biddy_Variable *) malloc((variableNumber) * sizeof(Biddy_Variable)))) return;
+  i = 0;
+  v = BiddyManagedGetLowestVariable(MNG); /* lowest = topmost */
+  for (k = 1; k < biddyVariableTable.num; k++) {
+    variableTable[i] = v;
+    i++;
+    v = biddyVariableTable.table[v].next;
+  }
+
+  numcomb = 1;
+  for (i = 0; i < variableNumber; i++) numcomb = 2 * numcomb;
+  /* for (i = numcomb - 1; i >= 0; i--) */
+  for (i = 0; i < numcomb; i++)
+  {
+    for (j = variableNumber - 1; j >= 0; j--) {
+      biddyVariableTable.table[variableTable[variableNumber-j-1]].value = (i&(1 << j))?biddyOne:biddyZero;
+    }
+    if (BiddyManagedEval(MNG,f)) {
+
+      if (var) {
+        concat(var,"{");
+      }
+      if (s == stdout) {
+        printf("{");
+      } else if (s) {
+        fprintf(s,"{");
+      }
+
+      first = TRUE;
+      for (j = variableNumber - 1; j >= 0; j--) {
+        if (i&(1 << j)) {
+          if (first) {
+            first = FALSE;
+          } else {
+
+            if (var) {
+              concat(var,",");
+            }
+            if (s == stdout) {
+              printf(",");
+            } else if (s) {
+              fprintf(s,",");
+            }
+
+          }
+
+          if (var) {
+            concat(var,BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
+          }
+          if (s == stdout) {
+            printf("%s",BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
+          } else if (s) {
+            fprintf(s,"%s",BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
+          }
+
+        } else {
+          if (negative) {
+            if (first) {
+              first = FALSE;
+            } else {
+
+              if (var) {
+                concat(var,",");
+              }
+              if (s == stdout) {
+                printf(",");
+              } else if (s) {
+                fprintf(s,",");
+              }
+
+            }
+
+            if (var) {
+              concat(var,"*");
+              concat(var,BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
+            }
+            if (s == stdout) {
+              printf("*%s",BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
+            } else if (s) {
+              fprintf(s,"*%s",BiddyManagedGetVariableName(MNG,variableTable[variableNumber-j-1]));
+            }
+
+          }
+        }
+      }
+
+      if (var) {
+        concat(var,"}");
+      }
+      if (s == stdout) {
+        printf("}");
+      } else if (s) {
+        fprintf(s,"}");
+      }
+
+    }
+  }
+
+  if (var) {
+    concat(var,"\n");
+  }
+  if (s == stdout) {
+    printf("\n");
+  } else if (s) {
+    fprintf(s,"\n");
+  }
+
+  free(variableTable);
+}

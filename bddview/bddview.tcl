@@ -9,8 +9,8 @@ package require BWidget
 package provide bddview 1.0
 
 # ####################################################################
-# $Revision: 545 $
-# $Date: 2019-02-11 14:07:50 +0100 (pon, 11 feb 2019) $
+# $Revision: 623 $
+# $Date: 2020-03-29 19:47:43 +0200 (ned, 29 mar 2020) $
 #
 # This file (bddview.tcl) is a Tcl/Tk script
 # Author: Robert Meolic (robert@meolic.com)
@@ -562,7 +562,7 @@ set TERMDEPTH 0
 set COLORFRAME "#E8E8E8"
 set COLORMENU "#FAF8F4"
 set COLORBUTTON "#49B2C2"
-set COLORBG "#FFFACA"
+set COLORBG "#FFFCCC"
 set COLORFG "#000737"
 
 set COLORGRID "#90A8CF"
@@ -738,12 +738,12 @@ if {$bddview__reqY < 0} {set bddview__reqY 0}
 wm geometry . [expr $XWIN]x[expr $YWIN]+$bddview__reqX+$bddview__reqY
 bind . <F11> {fullscreen}
 
-if {($OS == "unix")} {
-  wm attributes . -zoomed yes
-}
-if {($OS == "windows") || ($OS == "Darwin")} {
-  wm state . zoomed
-}
+#if {($OS == "unix")} {
+#  wm attributes . -zoomed yes
+#}
+#if {($OS == "windows") || ($OS == "Darwin")} {
+#  wm state . zoomed
+#}
 
 # SHOW $mainframe
 

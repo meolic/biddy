@@ -1,5 +1,5 @@
-/* $Revision: 558 $ */
-/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
+/* $Revision: 618 $ */
+/* $Date: 2020-03-28 12:38:59 +0100 (sob, 28 mar 2020) $ */
 /* This file (biddy-example-independence.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
@@ -11,6 +11,28 @@
 /* gcc -DCONVERGE -DNOPROFILE -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-independence-converge biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -lbiddy */
 /* gcc -DNOCONVERGE -DNOPROFILE -DCUDD -DOBDDC -O2 -o cudd-example-independence biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
 /* gcc -DCONVERGE -DNOPROFILE -DCUDD -DOBDDC -O2 -o cudd-example-independence-converge biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I ../cudd/include/ -L ../cudd/lib/ -lcudd -lm */
+
+/* HERE ARE SOME RESULTS FROM THE PROGRAM */
+/* Resulting function r1/r2 depends on 49/46 variables. */
+/* Resulting function r1/r2 has 211954906/546220896 minterms. */
+
+/* SYSTEM BEST */
+/* System has 5164 nodes / 0 live nodes. */
+/* ROBDD for resulting function r1/r2 has 1878/1984 nodes (1878/1984 plain nodes). */
+/* Order for USA: KS,OH,NE,SD,IA,WI,IL,WY,ND,MN,KY,MI,LA,IN,MO,MT,ID,UT,OR,WA,AZ,OK,AL,NM,CO,MS,TN,TX,GA,FL,SC,NC,WV,DE,AR,NH,ME,CA,NY,NV,CT,PA,NJ,VT,DC,VA,MD,RI,MA */
+/* Order for Europe: FI,NO,LV,SE,DE,EE,LU,IE,FR,HU,GB,ES,IT,LI,DK,SM,PT,VA,AT,PL,AD,ME,BA,KZ,SI,SK,CZ,CH,RU,LT,BY,AL,MC,HR,AZ,NL,MK,BE,RO,MD,UA,BG,TR,GR,RS,GE */
+
+/* EUROPE BEST */
+/* System has 92419 nodes / 0 live nodes. */
+/* ROBDD for resulting function r1/r2 has 90887/229 nodes (90887/229 plain nodes). */
+/* Order for USA: WI,MN,LA,IN,KY,AL,OR,WY,ND,NY,IA,CT,FL,ID,MO,NH,AZ,MT,TN,WA,UT,GA,TX,OK,VT,ME,MI,DE,NE,IL,NC,OH,KS,SD,CO,NJ,PA,DC,AR,NM,NV,MD,RI,WV,SC,VA,MS,CA,MA */
+/* Order for Europe: IE,GB,ES,FR,AD,PT,LU,NL,DE,BE,CH,DK,IT,MC,AT,LI,SI,VA,SM,CZ,SK,PL,UA,HR,HU,BY,LV,EE,LT,NO,FI,SE,BA,MD,RO,BG,AL,ME,MK,GR,RS,RU,TR,KZ,AZ,GE */
+
+/* USA BEST */
+/* System has 36344 nodes / 0 live nodes. */
+/* ROBDD for resulting function r1/r2 has 341/34692 nodes (341/34692 plain nodes). */
+/* Order for USA: ID,NV,OR,WA,AZ,CA,UT,NM,WY,CO,MT,SD,MN,ND,IA,WI,MO,KS,NE,TX,AR,OK,LA,TN,KY,MI,IN,IL,AL,MS,FL,NC,SC,GA,OH,WV,MD,DC,VA,PA,NJ,DE,MA,VT,ME,NH,CT,RI,NY */
+/* Order for Europe: DK,MK,PT,VA,AT,AZ,SM,ME,BA,LI,SE,IE,LU,DE,IT,FI,LV,SK,AL,PL,GB,SI,FR,HU,ES,EE,AD,KZ,CH,LT,RU,CZ,NO,GR,BG,TR,RO,MD,BY,GE,UA,HR,MC,BE,RS,NL */
 
 /* define CALCULATE_KERNELS 0 OR 1 */
 /* define USA_NO or USA_YES */

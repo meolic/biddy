@@ -70,7 +70,7 @@ echo "Sources OK. Let's go building!"
 %defattr(-, root, root, 0755)
 %doc VERSION CHANGES
 %{_libdir}/libbiddy.so.%{version}
-%{_libdir}/libbiddy.so.1
+%{_libdir}/libbiddy.so.THISMAJORVERSION
 %{_sharedir}/biddy/README.md
 
 %files devel

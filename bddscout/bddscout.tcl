@@ -8,12 +8,12 @@ exec wish "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 568 $]
-#  Date        [$Date: 2019-12-27 00:15:45 +0100 (pet, 27 dec 2019) $]
+#  Revision    [$Revision: 624 $]
+#  Date        [$Date: 2020-03-29 20:01:24 +0200 (ned, 29 mar 2020) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#               Copyright (C) 2019 Robert Meolic, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -218,7 +218,7 @@ exec wish "$0" "$@"
 #   to the one being given in the file (e.g. different node number).
 #
 # - If "Export to PNG" and "Export to PDF" create image with wrong
-#   dimensions you have to change global variable DPI
+#   dimensions you should try to change global variable DPI
 
 # ####################################################################
 # Tcl/Tk
@@ -242,35 +242,61 @@ lappend auto_path /usr/lib/bddscout
 # Biddy
 # ####################################################################
 
-set BIDDYVERSION "1.9.1"
+set BIDDYVERSION "2.0.1"
+
+set BFCMDLIST [list \
+  "bddview_save" \
+  "bddview_export_tex" \
+  "biddy_print_table" \
+  "biddy_print_sop" \
+  "biddy_print_minterms" \
+  "biddy_dependent_variable_number" \
+  "biddy_count_minterms" \
+  "biddy_density_of_function" \
+  "bddscout_reset_all_values" \
+  "bddscout_set_values" \
+  "biddy_eval" \
+  "biddy_support" \
+]
+
+set CACMDLIST [list \
+  "bddview_save" \
+  "bddview_export_tex" \
+  "biddy_change" \
+  "biddy_varsubset" \
+  "biddy_subset0" \
+  "biddy_subset1" \
+  "biddy_quotient" \
+  "biddy_remainder" \
+  "biddy_element_abstract" \
+  "biddy_product" \
+  "biddy_selective_product" \
+  "biddy_supset" \
+  "biddy_subset" \
+  "biddy_permitsym" \
+  "biddy_stretch" \
+]
+
+set BDDLCMDLIST [list \
+  "bddview_save" \
+  "bddview_export_tex" \
+]
+
 set CMDLIST [list \
   "bddview_save" \
   "bddview_export_tex" \
   "biddy_get_then" \
   "biddy_get_else" \
-  "biddy_permitsym" \
-  "biddy_eval" \
-  "biddy_eval_probability" \
-  "biddy_set_alphabetic_ordering" \
-  "biddy_support" \
   "biddy_count_nodes" \
-  "biddy_max_level" \
-  "biddy_avg_level" \
   "biddy_count_nodes_plain" \
-  "biddy_dependent_variable_number" \
   "biddy_count_complemented_edges" \
   "biddy_count_paths" \
-  "biddy_count_minterms" \
-  "biddy_density_of_function" \
+  "biddy_max_level" \
+  "biddy_avg_level" \
   "biddy_density_of_bdd" \
   "biddy_min_nodes" \
   "biddy_max_nodes" \
-  "biddy_print_table" \
-  "biddy_print_sop" \
-  "biddy_print_minterms" \
   "bddscout_count_nodes" \
-  "bddscout_reset_all_values" \
-  "bddscout_set_values" \
   "bddscout_reset_all_probabilities" \
   "bddscout_set_probabilities" \
   "bddscout_eval_probability" \
@@ -293,33 +319,63 @@ set CMDLIST [list \
 # proc bddscout_swap_with_higher {varname}
 # proc bddscout_swap_with_lower {varname}
 
-
 # ####################################################################
 # Show splash screen
 # ####################################################################
 
-wm withdraw .
-toplevel .splash
-frame .splash.f -width 600 -height 400 -bg WHITE
-pack propagate .splash.f 0
-wm geometry .splash +[expr {([winfo screenwidth .]-600)/2}]+[expr {([winfo screenheight .]-400)/2}]
-wm attributes .splash -topmost yes
-wm overrideredirect .splash 1
-update idletasks
+wm minsize . 1280 800
+wm geometry . [winfo screenwidth .]x[winfo screenheight .]+[expr {([winfo screenwidth .]-1280)/2}]+[expr {([winfo screenheight .]-800)/2}]
+set SPLASHBG "#FAF8F4"
+
+puts "$tcl_platform(platform) / $tcl_platform(os)"
+puts "Press CTRL if BDD Scout is freezed during loading!"
+
+if {($tcl_platform(platform) == "unix")} {
+  wm attributes . -zoomed yes
+}
+if {($tcl_platform(platform) == "windows") || ($tcl_platform(os) == "Darwin")} {
+  wm state . zoomed
+}
+
+# we have noticed strange wm deadlocks on Ubuntu - simply press CTRL if BDD Scout is freezed during loading
+# moreover, you can disable splash to prevent these strange wm deadlock
+if { $tcl_platform(platform) == "windows" } {
+  set USESPLASH 1
+} else {
+  set USESPLASH 1
+}
 
 set SPLASHTEXT ""
-label .splash.f.l -text "BDD Scout v$BIDDYVERSION" -font [list TkHeadingFont 36] -fg WHITE -bg BLACK
-pack .splash.f.l -expand 1
-label .splash.f.m1 -text "Copyright (C) 2008, 2019 UM FERI" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
-pack .splash.f.m1 -fill x -expand 0
-label .splash.f.m2 -text "Robert Meolic (robert@meolic.com)" -font [list TkFixedFont 12] -fg BLACK -bg WHITE
-pack .splash.f.m2 -fill x -expand 0
-label .splash.f.m3 -text "This is free software!" -font [list TkFixedFont 12 bold] -fg BLACK -bg WHITE
-pack .splash.f.m3 -fill x -expand 0
-label .splash.f.t -textvariable SPLASHTEXT -font [list TkCaptionFont 12] -fg BLACK -bg WHITE
-pack .splash.f.t -fill x -expand 1
-pack .splash.f -expand 1
-update idletasks
+set BDDVIEWTEXT ""
+
+if { $USESPLASH == 1 } {
+
+  toplevel .splash
+  frame .splash.f -width 800 -height 400 -bg $SPLASHBG
+  pack propagate .splash.f 0
+  wm geometry .splash +[expr {([winfo screenwidth .]-800)/2}]+[expr {([winfo screenheight .]-400)/2}]
+  wm attributes .splash -topmost yes
+  wm overrideredirect .splash 1
+  update idletasks
+
+  label .splash.f.l -text "BDD Scout v$BIDDYVERSION" -font [list TkHeadingFont 36] -fg $SPLASHBG -bg BLACK
+  pack .splash.f.l -expand 1
+  label .splash.f.m1 -text "Copyright (C) 2008, 2019 UM FERI, Maribor, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
+  pack .splash.f.m1 -fill x -expand 0
+  label .splash.f.m2 -text "Copyright (C) 2019, 2020 Robert Meolic, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
+  pack .splash.f.m2 -fill x -expand 0
+  label .splash.f.m3 -text "Robert Meolic (robert@meolic.com)" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
+  pack .splash.f.m3 -fill x -expand 0
+  label .splash.f.m4 -text "This is free software!" -font [list TkFixedFont 12 bold] -fg BLACK -bg $SPLASHBG
+  pack .splash.f.m4 -fill x -expand 0
+  label .splash.f.t -textvariable SPLASHTEXT -font [list TkCaptionFont 12] -fg BLACK -bg $SPLASHBG
+  pack .splash.f.t -fill x -expand 1
+  label .splash.f.m5 -textvariable BDDVIEWTEXT -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
+  pack .splash.f.m5 -fill x -expand 0
+  pack .splash.f -expand 1
+  update idletasks
+
+}
 
 # ####################################################################
 # Start Bdd View script
@@ -328,7 +384,7 @@ update idletasks
 set bddscout__argc $argc
 package require bddview
 set argc $bddscout__argc
-wm iconify .
+set BDDVIEWTEXT "Using bddview v$BDDVIEWVERSION"
 wm title . "BDD Scout v$BIDDYVERSION"
 wm iconname . "bddscout"
 update idletasks
@@ -345,9 +401,12 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
   set GHOSTSCRIPT_EXE "/usr/bin/gs"
   set DOT_EXE "/usr/bin/dot"
 
+  if {[file executable $GHOSTSCRIPT_EXE] != 1} {
+    set GHOSTSCRIPT_EXE ""
+  }
+
   if {[file executable $DOT_EXE] != 1} {
     set DOT_EXE ""
-    bddview_message "ERROR" "Cannot run dot from Graphviz ($DOT_EXE)"
   }
 
 } elseif {($OS == "unix") && ($OS1 == "Darwin")} {
@@ -355,9 +414,12 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
   set GHOSTSCRIPT_EXE ""
   set DOT_EXE "/usr/local/bin/dot"
 
+  if {[file executable $GHOSTSCRIPT_EXE] != 1} {
+    set GHOSTSCRIPT_EXE ""
+  }
+
   if {[file executable $DOT_EXE] != 1} {
     set DOT_EXE ""
-    bddview_message "ERROR" "Cannot run dot from Graphviz ($DOT_EXE)"
   }
 
 } elseif {$OS == "windows"} {
@@ -365,9 +427,12 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
   set GHOSTSCRIPT_EXE [lindex [glob -nocomplain "C:/Program Files/gs/*/bin/gswin64c.exe"] 0]
   set DOT_EXE [lindex [glob -nocomplain "C:/Program Files (x86)/*/bin/dot.exe"] 0]
 
+  if {[file executable $GHOSTSCRIPT_EXE] != 1} {
+    set GHOSTSCRIPT_EXE ""
+  }
+
   if {[file executable $DOT_EXE] != 1} {
     set DOT_EXE ""
-    bddview_message "ERROR" "Cannot run dot from Graphviz ($DOT_EXE)"
   }
 
 } else {
@@ -400,89 +465,200 @@ set BDDSCOUT_PATH_EXAMPLES "$BDDSCOUT_PATH_BIN"
 set INPUT ""
 set INPUTTYPE 0
 set inputwin [frame $verticalwindow.inputline -relief flat -highlightthickness 1 -highlightcolor $COLORFRAME -bg $COLORBG]
-$verticalwindow add $inputwin -after $horizontalwindow -height 32 -stretch never
-entry $inputwin.entry -font [list $FONTFAMILYLABEL 10] -relief solid -bd 1 -bg $COLORBG -exportselection yes -textvariable INPUT
+$verticalwindow add $inputwin -after $horizontalwindow -height 40 -stretch never
+entry $inputwin.entry -font [list $FONTFAMILYLABEL 12] -relief solid -bd 1 -bg $COLORBG -exportselection yes -textvariable INPUT
 
 if {($OS == "unix")} {
   frame $inputwin.label -width 300 -height 32 -bg $COLORBG
 }
 if {($OS == "windows")} {
-  frame $inputwin.label -width 300 -height 32 -bg $COLORBG
+  frame $inputwin.label -width 436 -height 40 -bg $COLORBG
 }
 if {($OS == "Darwin")} {
   frame $inputwin.label -width 300 -height 32 -bg $COLORBG
 }
 
 # INPUTTYPE 0: Boolean expression
-# INPUTTYPE 1: Knuth's BDDL command
-# INPUTTYPE 2-6: not used, yet
+# INPUTTYPE 1: Unate cube set algebra
+# INPUTTYPE 2-5: not used, yet
+# INPUTTYPE 6: Knuth's BDDL command
 # INPUTTYPE 7: Tcl command
+# change also in parseinput{}
 pack propagate $inputwin.label 0
+# variable bddscout__selectedInputType is not used
 set inputtype [tk_optionMenu $inputwin.label.menu bddscout__selectedInputType \
      "Boolean expression (infix *+!>^- format):" \
+     "Unate cube set algebra (+cube, -cube):" \
      "Knuth's BDDL command:" \
      "Tcl command:" \
 ]
-$inputtype entryconfigure 0 -command {set INPUTTYPE 0}
-$inputtype entryconfigure 1 -command {set INPUTTYPE 1}
-$inputtype entryconfigure 2 -command {set INPUTTYPE 7}
 
-menu $inputwin.label.menu.tclcmd
-proc ONECMD { inputtype i } {
+frame $inputwin.cmd 
+set inputcmd [menubutton $inputwin.cmd.menu -text "f()"]
+
+menu $inputcmd.tclcmd -tearoff 0
+menu $inputcmd.bftclcmd -tearoff 0
+menu $inputcmd.catclcmd -tearoff 0
+menu $inputcmd.bddltclcmd -tearoff 0
+
+$inputtype entryconfigure 0 -command {set INPUTTYPE 0; $bddtype invoke 0; $inputcmd configure -menu $inputcmd.bftclcmd}
+$inputtype entryconfigure 1 -command {set INPUTTYPE 1; $bddtype invoke 2; $inputcmd configure -menu $inputcmd.catclcmd}
+$inputtype entryconfigure 2 -command {set INPUTTYPE 6; $bddtype invoke 0; $inputcmd configure -menu $inputcmd.bddltclcmd}
+$inputtype entryconfigure 3 -command {set INPUTTYPE 7; $inputcmd configure -menu $inputcmd.tclcmd}
+
+set bddscout__wheel 0
+# necessary for GNU/Linux, not needed on MS Windows
+bind $inputcmd.tclcmd <4> {set bddscout__wheel 1}
+bind $inputcmd.tclcmd <5> {set bddscout__wheel 1}
+bind $inputcmd.bftclcmd <4> {set bddscout__wheel 1}
+bind $inputcmd.bftclcmd <5> {set bddscout__wheel 1}
+bind $inputcmd.catclcmd <4> {set bddscout__wheel 1}
+bind $inputcmd.catclcmd <5> {set bddscout__wheel 1}
+bind $inputcmd.bddltclcmd <4> {set bddscout__wheel 1}
+bind $inputcmd.bddltclcmd <5> {set bddscout__wheel 1}
+# necessary for MS Windows, not needed on GNU/Linux
+bind $inputcmd.tclcmd <MouseWheel> {set bddscout__wheel 1}
+bind $inputcmd.bftclcmd <MouseWheel> {set bddscout__wheel 1}
+bind $inputcmd.catclcmd <MouseWheel> {set bddscout__wheel 1}
+bind $inputcmd.bddltclcmd <MouseWheel> {set bddscout__wheel 1}
+
+# this is executed when a command is selected
+proc BFONECMD { i } {
+  global BFCMDLIST
+  global INPUT
+  global bddscout__wheel
+  if {$bddscout__wheel == 1} {
+    set bddscout__wheel 0
+    return
+  }
+  set INPUT [lindex $BFCMDLIST $i]
+  parseinput 0
+}
+set i 0
+foreach bddscout__cmd $BFCMDLIST {
+  $inputcmd.bftclcmd add command \
+    -label "Invoke command $bddscout__cmd" \
+    -command [list BFONECMD $i]
+  incr i
+}
+
+# this is executed when a command is selected
+proc CAONECMD { i } {
+  global CACMDLIST
+  global INPUT
+  global bddscout__wheel
+  if {$bddscout__wheel == 1} {
+    set bddscout__wheel 0
+    return
+  }
+  set INPUT [lindex $CACMDLIST $i]
+  parseinput 0
+}
+set i 0
+foreach bddscout__cmd $CACMDLIST {
+  $inputcmd.catclcmd add command \
+    -label "Invoke command $bddscout__cmd" \
+    -command [list CAONECMD $i]
+  incr i
+}
+
+# this is executed when a command is selected
+proc BDDLONECMD { i } {
+  global BDDLCMDLIST
+  global INPUT
+  global bddscout__wheel
+  if {$bddscout__wheel == 1} {
+    set bddscout__wheel 0
+    return
+  }
+  set INPUT [lindex $BDDLCMDLIST $i]
+  parseinput 0
+}
+set i 0
+foreach bddscout__cmd $BDDLCMDLIST {
+  $inputcmd.bddltclcmd add command \
+    -label "Invoke command $bddscout__cmd" \
+    -command [list BDDLONECMD $i]
+  incr i
+}
+
+# this is executed when a command is selected
+proc ONECMD { i } {
   global CMDLIST
   global INPUT
-  global INPUTTYPE
-  set t $INPUTTYPE
-  set INPUT [lindex $CMDLIST $i]
-  $inputtype invoke 2
-  set INPUTTYPE 0
-  parseinput
-  if {$t == 0} {
-    $inputtype invoke 0
-  } elseif {$t == 1} {
-    $inputtype invoke 1
-  } elseif {$t == 7} {
-    $inputtype invoke 2
+  global bddscout__wheel
+  if {$bddscout__wheel == 1} {
+    set bddscout__wheel 0
+    return
   }
+  set INPUT [lindex $CMDLIST $i]
+  parseinput 0
 }
 set i 0
 foreach bddscout__cmd $CMDLIST {
-  $inputwin.label.menu.tclcmd add command \
+  $inputcmd.tclcmd add command \
     -label "Invoke command $bddscout__cmd" \
-    -command [list ONECMD $inputtype $i]
+    -command [list ONECMD $i]
   incr i
 }
-$inputtype add cascade -label "Invoke..." -menu $inputwin.label.menu.tclcmd
 
 if {($OS == "unix")} {
-  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
-      -highlightthickness 0 -indicatoron 0 -anchor e -font [list $FONTFAMILYINFO 10] -activebackground $COLORBG
-  $inputwin.label.menu.tclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
-      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
   $inputtype configure -relief flat -bd 0 -font [list $FONTFAMILYINFO 12] \
       -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID
+  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -highlightthickness 0 -anchor e -font [list $FONTFAMILYINFO 10] -activebackground $COLORBG -direction above -indicatoron 0
+  $inputcmd configure -relief groove -bd 1 -font [list $FONTFAMILYINFO 10 italic] \
+      -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID -direction above -indicatoron 0
+  $inputcmd.bftclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
+  $inputcmd.catclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
+  $inputcmd.bddltclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
+  $inputcmd.tclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
 }
 if {($OS == "windows")} {
-  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
-      -highlightthickness 0 -indicatoron 0 -anchor e -font [list $FONTFAMILYINFO 8] -activebackground $COLORBG
-  $inputwin.label.menu.tclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
-      -font [list $FONTFAMILYINFO 8] -activebackground $COLORGRID
-  $inputtype configure -relief flat -bd 0 -font [list $FONTFAMILYINFO 10] \
-      -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID
-}
-if {($OS == "Darwin")} {
-  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
-      -highlightthickness 0 -indicatoron 0 -anchor e -font [list $FONTFAMILYINFO 10] -activebackground $COLORBG
-  $inputwin.label.menu.tclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
-      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
   $inputtype configure -relief flat -bd 0 -font [list $FONTFAMILYINFO 12] \
       -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID
+  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -highlightthickness 0 -anchor e -font [list $FONTFAMILYINFO 12] -activebackground $COLORBG -direction above -indicatoron 0
+  $inputcmd configure -relief groove -bd 1 -font [list $FONTFAMILYINFO 12 italic] \
+      -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID -direction above -indicatoron 0
+  $inputcmd.bftclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 12] -activebackground $COLORGRID
+  $inputcmd.catclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 12] -activebackground $COLORGRID
+  $inputcmd.bddltclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 12] -activebackground $COLORGRID
+  $inputcmd.tclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 12] -activebackground $COLORGRID
 }
+if {($OS == "Darwin")} {
+  $inputtype configure -relief flat -bd 0 -font [list $FONTFAMILYINFO 12] \
+      -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID
+  $inputwin.label.menu configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -highlightthickness 0 -anchor e -font [list $FONTFAMILYINFO 10] -activebackground $COLORBG -direction above -indicatoron 0
+  $inputcmd configure -relief groove -bd 1 -font [list $FONTFAMILYINFO 12 italic] \
+      -fg black -bg $COLORBG -activeforeground black -activebackground $COLORGRID -direction above -indicatoron 0
+  $inputcmd.bftclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
+  $inputcmd.catclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
+  $inputcmd.bddltclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
+  $inputcmd.tclcmd configure -relief flat -bd 0 -fg black -bg $COLORBG \
+      -font [list $FONTFAMILYINFO 10] -activebackground $COLORGRID
+}
+
+$inputcmd configure -menu $inputwin.cmd.menu.bftclcmd
 
 pack $inputwin.label.menu -fill both -expand yes
 pack $inputwin.label -side left -fill y -expand no
+pack $inputwin.cmd.menu -fill both -expand yes
+pack $inputwin.cmd -side left -expand no
 pack $inputwin.entry -side right -fill x -expand yes -padx 2
-bind $inputwin.entry <Return> {parseinput}
+bind $inputwin.entry <Return> {parseinput 1}
 update idletasks
 
 # ####################################################################
@@ -512,16 +688,23 @@ $varwin.browser bindImage <ButtonPress-3> {bddscout_swap_with_lower}
 # Load functions written in C
 # ####################################################################
 
-after 800
-set SPLASHTEXT "Importing BDD Scout library... "
-update idletasks
-after 400
-.splash.f configure -bg $COLORBG
-.splash.f.m1 configure -fg BLACK -bg $COLORBG
-.splash.f.m2 configure -fg BLACK -bg $COLORBG
-.splash.f.m3 configure -fg BLACK -bg $COLORBG
-.splash.f.t configure -fg BLACK -bg $COLORBG
-update idletasks
+if { $USESPLASH == 1 } {
+
+  after 800
+  set SPLASHTEXT "Importing BDD Scout library... "
+  update idletasks
+  after 400
+  .splash.f configure -bg $COLORBG
+  .splash.f.l configure -fg $COLORBG
+  .splash.f.m1 configure -fg BLACK -bg $COLORBG
+  .splash.f.m2 configure -fg BLACK -bg $COLORBG
+  .splash.f.m3 configure -fg BLACK -bg $COLORBG
+  .splash.f.m4 configure -fg BLACK -bg $COLORBG
+  .splash.f.m5 configure -fg $COLORBG -bg BLACK
+  .splash.f.t configure -fg BLACK -bg $COLORBG
+  update idletasks
+
+}
 
 puts -nonewline "Importing BDD Scout library... "
 package require bddscout-lib
@@ -1401,6 +1584,7 @@ proc menu_options {  } {
 
 set bddscout__helpTutorial 0
 set bddscout__helpBF 0
+set bddscout__helpCA 0
 set bddscout__helpBDDL 0
 set bddscout__helpAbout 0
 
@@ -1494,6 +1678,67 @@ proc menu_help_bf {} {
   set bddscout__helpBF 0
 }
 
+proc menu_help_ca {} {
+  global COLORFRAME
+  global COLORMENU
+  global bddscout__helpCA
+
+  if {$bddscout__helpCA == 1} {
+    return
+  }
+  set bddscout__helpCA 1
+
+  toplevel .helpCA -bg $COLORFRAME
+  wm title .helpCA "Help on Unate Cube Set Algebra"
+  wm iconname .helpCA "Help on Unate Cube Set Algebra"
+
+  text .helpCA.txt -bg $COLORMENU -height 20 -width 100 -xscroll {.helpCA.h set} -yscroll {.helpCA.v set}
+  scrollbar .helpCA.h -orient horizontal -command {.helpCA.txt xview}
+  scrollbar .helpCA.v -orient vertical -command {.helpCA.txt yview}
+
+  .helpCA.txt insert 1.0 "\
+  Help on operations in Unate Cube Set Algebra\n\n\
+  1. Cube is one word including only symbols 0 and 1\n\
+  2. Word \"0\" is used for empty set if not preceeded by + or -\n\
+  3. Word \"0\" is a cube without elements (an empty cube) if preceeded by + or -\n\
+  4. Word \"1\" is used for universal set over existing variables if not preceeded by + or -\n\
+  5. Word \"1\" is a cube with one element if preceeded by + or -\n\
+  6. Create new set:\n\
+       0 (create new empty set, NEWSET = {})\n\
+       0 + 0 (create new set with one element, an empty cube, NEWSET = {{}})\n\
+       1 (create new universal set, NEWSET = {...all elements...})\n\
+       0 + 1 (create new set with one element that is a cube with one element, NEWSET = {{x1}}\n\
+       cube (create new set, NEWSET = {cube})\n\
+       SET1 + cube (create new set, add cube, NEWSET = SET1 + {cube})\n\
+       SET1 - cube (create new set, remove cube, NEWSET = SET1 - {cube})\n\
+  7. Create or change the set:\n\
+       SET1 = 0 (create or change the set, SET1 = {})\n\
+       SET1 = 0 + 0 (create or change the set, SET1 = {{}})\n\
+       SET1 = 1 (create or change the set, SET1 = {...all elements...})\n\
+       SET1 = 0 + 1 (create or change the set, SET1 = {{x1}})\n\
+       SET1 = cube (create or change the set, SET1 = {cube})\n\
+       SET2 = SET1 + cube (create or change the set, add cube, SET2 = SET1 + {cube})\n\
+       SET2 = SET1 - cube (create or change the set, remove cube, SET2 = SET1 - {cube})\n\
+  8. Add/Remove a cube to/from the current set:\n\
+       +cube\n\
+       -cube\n\
+  9. Add/Remove a cube to/from the existing set:\n\
+       SET2 += cube (add cube, change the existing set)\n\
+       SET2 -= cube (remove cube, change the existing set)\n\
+  "
+  .helpCA.txt configure -state disabled
+
+  button .helpCA.close -borderwidth 2 -command {destroy .helpCA} -relief raised -text "CLOSE" -width 6
+
+  grid .helpCA.txt .helpCA.v -sticky nsew
+  grid .helpCA.h -sticky nsew
+  grid .helpCA.close
+  grid rowconfigure .helpCA .helpCA.txt -weight 1
+  grid columnconfigure .helpCA .helpCA.txt -weight 1
+  tkwait window .helpCA
+  set bddscout__helpCA 0
+}
+
 proc menu_help_bddl {} {
   global COLORFRAME
   global COLORMENU
@@ -1547,9 +1792,10 @@ proc menu_help_about {} {
   text .helpAbout.w -bg $COLORMENU -height 20 -width 100
   .helpAbout.w insert 1.0 "\
   BDD Scout v$BIDDYVERSION\n\
-  \$Date: 2019-12-27 00:15:45 +0100 (pet, 27 dec 2019) $ \n\n\
+  \$Date: 2020-03-29 20:01:24 +0200 (ned, 29 mar 2020) $ \n\n\
   Author: Robert Meolic (robert@meolic.com)\n\n\
-  Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\n\
+  Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\
+  Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia\n\n\
   Biddy is free software; you can redistribute it and/or modify it under the terms\n\
   of the GNU General Public License as published by the Free Software Foundation;\n\
   either version 2 of the License, or (at your option) any later version.\n\n\
@@ -1579,6 +1825,7 @@ menu $menubar.help.menu -bg $COLORFRAME -relief groove -tearoff false \
 
 $menubar.help.menu add command -command menu_help_tutorial -label "Tutorial"
 $menubar.help.menu add command -command menu_help_bf -label "Help on Boolean formulae"
+$menubar.help.menu add command -command menu_help_ca -label "Help on Unate Cube Set Algebra"
 $menubar.help.menu add command -command menu_help_bddl -label "Help on Knuth's BDDL"
 $menubar.help.menu add command -command menu_help_about -label "About"
 
@@ -1664,10 +1911,11 @@ proc createTree {f list} {
 # draw graph for the given Boolean formula (BDD) using the current bdd type
 proc drawbdd {fname} {
   global DOT_EXE
+  global STATUSBAR
 
   if {[file executable $DOT_EXE] != 1} {
-    bddview_message "ERROR" "Cannot run dot from Graphviz ($DOT_EXE)"
-    return
+    set STATUSBAR "Cannot run dot from Graphviz (DOT_EXE = \"$DOT_EXE\")"
+    return 0
   }
 
   #puts "DEBUG: drawbdd: <$fname>"
@@ -1688,6 +1936,8 @@ proc drawbdd {fname} {
     bddview_open $tmpfile
     file delete $tmpfile
   }
+
+  return 1
 }
 
 # create Boolean formula (BDD) from the current graph
@@ -1869,8 +2119,9 @@ proc changeform { tree fname } {
 
   if {($fname != "") && ($fname != $BDDNAME) && ([bddscoutCheckFormula $ACTIVEBDDTYPE $fname] == 1)} {
     set BDDNAME $fname
-    drawbdd $fname
-    update_info
+    if {[drawbdd $fname] == 1 } {
+      update_info
+    }
   }
 }
 
@@ -1938,59 +2189,244 @@ proc converttype { type fchange} {
   #puts "DEBUG converttype OUT: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 }
 
-proc parseinput { } {
+proc parseinput { force } {
   global selectwin
   global INPUT
   global INPUTTYPE
   global BDDNAME
+  global BFCMDLIST
+  global CACMDLIST
+  global BDDLCMDLIST
   global CMDLIST
 
   set INPUT [string trimleft $INPUT]
+  set INPUT [string trimright $INPUT]
   if {$INPUT != ""} {
 
-    set TRYCMD 0
     set CMD $INPUT
 
     # INPUTTYPE 0: Boolean expression
-    # INPUTTYPE 1: Knuth's BDDL command
-    # INPUTTYPE 2-6: not used, yet
+    # INPUTTYPE 1: Unate cube set algebra
+    # INPUTTYPE 2-5: not used, yet
+    # INPUTTYPE 6: Knuth's BDDL command
     # INPUTTYPE 7: Tcl command
 
-    # check if the user enter a tcl command instead of Boolean function / BDDL command
-    if {($INPUTTYPE == 0) || ($INPUTTYPE == 1)} {
+    if {$INPUTTYPE == 7} {
+      set TRYCMD 2
+    } else {
+      set TRYCMD 0
+    }
+
+    # check if the user enter a tcl command instead of Boolean function / Unate cube set algebra / Knuth's BDDL command
+    if {($INPUTTYPE == 0) || ($INPUTTYPE == 1) || ($INPUTTYPE == 6)} {
       #get first word
       set CMD [string range $INPUT 0 [expr [string wordend $INPUT 0] - 1]]
-      if {[lsearch $CMDLIST $CMD] != -1} {
+      set ARGS [string range $INPUT [string wordend $INPUT 0] end]
+      if {[lsearch [concat $BFCMDLIST $CACMDLIST $BDDLCMDLIST $CMDLIST] $CMD] != -1} {
         if {$CMD == "biddy_nop"} {
           #NOTHING HERE
+          set TRYCMD 1
+        #
+        # GENERAL COMMANDS
+        # bddview_save, bddview_export_tex
         } elseif {$CMD == "bddview_save"} {
-          set INPUT [string cat $CMD " " $BDDNAME ".bddview"]
-          bddview_message "NOTE" "Saved as $BDDNAME.bddview"
+          if {$ARGS == ""} {
+            set INPUT [string cat $CMD " " $BDDNAME ".bddview"]
+            bddview_message "NOTE" "Saved as $BDDNAME.bddview"
+          } else {
+            bddview_message "NOTE" "Saved as $ARGS"
+          }
+          set TRYCMD 1
         } elseif {$CMD == "bddview_export_tex"} {
-          set INPUT [string cat $CMD " " $BDDNAME ".tex"]
-          bddview_message "NOTE" "Exported as $BDDNAME.tex"
+          if {$ARGS == ""} {
+            set INPUT [string cat $CMD " " $BDDNAME ".tex"]
+            bddview_message "NOTE" "Exported as $BDDNAME.tex"
+          } else {
+            bddview_message "NOTE" "Exported as $ARGS"
+          }          
+          set TRYCMD 1
+        #
+        # BFCMDLIST
+        # biddy_print_table, biddy_print_sop, biddy_print_minterms, biddy_dependent_variable_number, biddy_count_minterms,
+        # biddy_density_of_function, bddscout_reset_all_values, bddscout_set_values, biddy_eval, biddy_support
         } elseif {$CMD == "biddy_set_alphabetic_ordering"} {
-          #input is already OK
-        } elseif {$CMD == "biddy_get_then"} {
-          set INPUT [string cat $CMD " " $BDDNAME "_T " $BDDNAME]
-        } elseif {$CMD == "biddy_get_else"} {
-          set INPUT [string cat $CMD " " $BDDNAME "_E " $BDDNAME]
-        } elseif {$CMD == "biddy_permitsym"} {
-          set INPUT [string cat $CMD " " $BDDNAME "_1 " $BDDNAME " 1"]
-        } elseif {$CMD == "biddy_support"} {
-          set INPUT [string cat $CMD " " $BDDNAME "_SUPPORT " $BDDNAME]
+          if {$ARGS == ""} {
+            #input is already OK
+          } else {
+            set INPUT $CMD
+          }
+          set TRYCMD 1
         } elseif {$CMD == "bddscout_reset_all_values"} {
-          #input is already OK
+          if {$ARGS == ""} {
+            #input is already OK
+          } else {
+            #extra arguments are ignored
+            set INPUT $CMD
+          }
+          set TRYCMD 1
         } elseif {$CMD == "bddscout_set_values"} {
-          #input is already OK
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_support"} {
+          if {$ARGS == ""} {
+            set INPUT [string cat $CMD " " $BDDNAME "_SUPPORT " $BDDNAME]
+          } else {
+            #input should be OK
+          }
+          set TRYCMD 1
+        #
+        # CACMDLIST
+        # biddy_change, biddy_varsubset, biddy_subset0, biddy_subset1, biddy_quotient,
+        # biddy_remainder, biddy_element_abstract, biddy_product, biddy_selective_product, biddy_supset,
+        # biddy_subset, biddy_permitsym, biddy_stretch
+        } elseif {$CMD == "biddy_change"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_varsubset"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_subset0"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_subset1"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "quotient"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_remainder"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_element_abstract"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_product"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_selective_product"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_supset"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_subset"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_permitsym"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        } elseif {$CMD == "biddy_stretch"} {
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            #input should be OK
+            set TRYCMD 1
+          }
+        #
+        # BDDLCMDLIST
+        # not implemented, yet
+        #
+        # CMDLIST
+        # biddy_get_then, biddy_get_else, biddy_count_nodes, biddy_count_nodes_plain, biddy_count_complemented_edges,
+        # biddy_count_paths, biddy_max_level, biddy_avg_level, biddy_density_of_bdd, biddy_min_nodes,
+        # biddy_max_nodes, bddscout_count_nodes, bddscout_reset_all_probabilities, bddscout_set_probabilities, bddscout_eval_probability
+        } elseif {$CMD == "biddy_get_then"} {
+          if {$ARGS == ""} {
+            set INPUT [string cat $CMD " " $BDDNAME "_T " $BDDNAME]
+          }
+          set TRYCMD 1
+        } elseif {$CMD == "biddy_get_else"} {
+          if {$ARGS == ""} {
+            set INPUT [string cat $CMD " " $BDDNAME "_E " $BDDNAME]
+          }
+          set TRYCMD 1
         } elseif {$CMD == "bddscout_reset_all_probabilities"} {
-          #input is already OK
+          if {$ARGS == ""} {
+            #input is already OK
+          } else {
+            #extra arguments are ignored
+            set INPUT $CMD
+          }
+          set TRYCMD 1
         } elseif {$CMD == "bddscout_set_probabilities"} {
-          #input is already OK
+          if {$ARGS == ""} {
+            #missing arguments
+            set TRYCMD 2
+          } else {
+            set TRYCMD 1
+          }
         } else {
-          set INPUT "$INPUT $BDDNAME"
+          if {$ARGS == ""} {
+            set INPUT "$INPUT $BDDNAME"
+          }
+          set TRYCMD 1
         }
-        set TRYCMD 1
       } elseif {$CMD == "bddscout_message"} {
         set OKINPUT [string map {"[" "\\[" "]" "\\]"} $INPUT]
         set TRYCMD 2
@@ -2002,31 +2438,52 @@ proc parseinput { } {
       }
     }
 
-    # if the input was not recognized as a tcl command then it should be a Boolean function
-    if {($INPUTTYPE == 0) && ($TRYCMD == 0)} {
+    # if (INPUTTYPE == 0) and the input was not recognized as a tcl command then go with a Boolean function
+    if {($INPUTTYPE == 0) && ($TRYCMD == 0) && ($force != 0)} {
 
+      set force 0
       set INPUT [string map {"\"" ""} $INPUT]
       set name [bddscout_parse_input_infix $INPUT]
 
       #puts "DEBUG parseinput: <$name>"
 
       if {$name != ""} {
-        set BDDNAME ""
-        update_info
-        $selectwin.browser selection set $name
+        if {$name == "_NONAME_FORMULA"} {
+          set bddname "$BDDNAME"
+          set BDDNAME ""
+          update_info
+          $selectwin.browser selection set $bddname
+        } else {
+          set BDDNAME ""
+          update_info
+          $selectwin.browser selection set $name
+        }
       } else {
         set TRYCMD 2
       }
 
     }
 
-    # if the input was not recognized as a tcl command then it should be a BDDL command
-    if {($INPUTTYPE == 1) && ($TRYCMD == 0)} {
+    # if (INPUTTYPE == 1) and the input was not recognized as a tcl command then go with a Unate cube set algebra
+    if {($INPUTTYPE == 1) && ($TRYCMD == 0) && ($force != 0)} {
+      set force 0
+      set INPUT [string map {"\"" ""} $INPUT]
+      set name [bddscout_parse_cube $BDDNAME $INPUT]
+      if {$name != ""} {
+        set BDDNAME ""
+        update_info
+        $selectwin.browser selection set $name
+      }
+    }
+
+    # if (INPUTTYPE == 6) and the input was not recognized as a tcl command then go with a Knuth's BDDL command
+    if {($INPUTTYPE == 6) && ($TRYCMD == 0) && ($force != 0)} {
+      set force 0
       #not implemented, yet
     }
 
-    # if the inputtype is tcl command or it was recognized as a tcl command
-    if {($INPUTTYPE == 7) || ($TRYCMD == 1)} {
+    # if the command was recognized as a full tcl command or the execution is forced
+    if {($TRYCMD == 1) || ($force != 0)} {
 
       set OKINPUT [string map {"[" "\\[" "]" "\\]"} $INPUT]
       if {[string range $OKINPUT 0 15] == "bddscout_message"} {
@@ -2049,9 +2506,19 @@ proc parseinput { } {
       }
     }
 
-    # this clears the input line - it seems that users prefer keeping the command
-    #set INPUT ""
-    set INPUT $CMD
+    #puts "TRYCMD: $TRYCMD"
+    #puts "force: $force"
+    #puts "INPUT: $INPUT"
+
+    # this clears the input line, partial command must remain if constructed from the menu
+    if {$TRYCMD != 2} {
+      set INPUT ""
+    }
+
+    # use this if you prefer keeping tcl commands without arguments when in Tcl command mode
+    if {($INPUTTYPE == 7) && ($force != 0)} {
+      set INPUT $CMD
+    }
   }
 }
 
@@ -3014,6 +3481,8 @@ if {[catch {package require bddscoutBDDTRACES} errid]} {
 # Final initialization
 # ####################################################################
 
+update
+
 # this should be compatible with initialization in bddscout.c */
 set ACTIVEBDDTYPE "BIDDYTYPEOBDD"
 
@@ -3021,19 +3490,25 @@ set BDDNAME ""
 update_info
 
 after 100
-puts "Ready!"
-set SPLASHTEXT "READY!"
-
-wm deiconify .
-update
+if { $DOT_EXE == "" } {
+  puts "ERROR: Cannot run dot from Graphviz (DOT_EXE = \"$DOT_EXE\")"
+  set SPLASHTEXT "ERROR: Cannot run dot from Graphviz (DOT_EXE = \"$DOT_EXE\")"
+} else {
+  puts "Ready!"
+  set SPLASHTEXT "READY!"
+}
 
 $selectwin.browser selection set "0"
 
-after 100
-for {set i 1.} {$i>0.} {set i [expr $i-0.01]} {
- wm attributes .splash -alpha $i; update idletasks; after 10
+if { $USESPLASH == 1 } {
+
+  after 100
+  for {set i 1.} {$i>0.} {set i [expr $i-0.01]} {
+    wm attributes .splash -alpha $i; update idletasks; after 10
+  }
+  destroy .splash
+
 }
-destroy .splash
 
 # if argument is given it is considered to be the name of a tcl script
 if { $argc == 0 } {

@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutTcl.c]
-  Revision    [$Revision: 555 $]
-  Date        [$Date: 2019-10-04 17:21:27 +0200 (pet, 04 okt 2019) $]
+  Revision    [$Revision: 608 $]
+  Date        [$Date: 2020-03-10 23:03:33 +0100 (tor, 10 mar 2020) $]
   Authors     [Robert Meolic (robert@meolic.com)]
   Description [File bddscoutTcl.c contains definitions of Tcl commands,
                which can be used for manipulating with BDDs from
@@ -13,7 +13,7 @@
 
   Copyright   [This file is part of Bdd Scout package.
                Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-               Copyright (C) 2019 Robert Meolic, SI-2000 Maribor, Slovenia
+               Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as
@@ -65,6 +65,10 @@ static float MyMintermNumber(Biddy_Edge f);
 
 static void concat(char **s1, const char *s2);
 
+static Biddy_Edge parseCubeSetAlgebraExpr(Biddy_String form);
+
+static Biddy_Edge parseCube(Biddy_String cube);
+
 /*-----------------------------------------------------------------------*/
 /* Prototypes of static functions defining TCL commands                  */
 /*-----------------------------------------------------------------------*/
@@ -106,6 +110,8 @@ static int BddscoutReadBFCmd(ClientData clientData, Tcl_Interp *interp, int argc
 /* ********************************************** */
 
 static int BddscoutParseInputInfixCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+
+static int BddscoutParseCubeCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* ************************************* */
 /* commands used to manipulate variables */
@@ -270,21 +276,25 @@ static int BiddyChangeCmd(ClientData clientData, Tcl_Interp *interp, int argc, c
 
 /* 99 Biddy_Managed_VarSubset */
 static int BiddyVarSubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+static int BiddySubset0Cmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+static int BiddySubset1Cmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+static int BiddyQuotientCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
+static int BiddyRemainderCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* 100 Biddy_Managed_ElementAbstract */
-/* static int BiddyElementAbstractCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+static int BiddyElementAbstractCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* 101 Biddy_Managed_Product */
-/* static int BiddyProductCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+static int BiddyProductCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* 102 Biddy_Managed_SelectiveProduct */
-/* static int BiddySelectiveProductCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+static int BiddySelectiveProductCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* 103 Biddy_Managed_Supset */
-/* static int BiddySupsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+static int BiddySupsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* 104 Biddy_Managed_Subset */
-/* static int BiddySubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv); */
+static int BiddySubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
 
 /* 105 Biddy_Managed_Permitsym */
 static int BiddyPermitsymCmd(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv);
@@ -559,6 +569,9 @@ Bddscout_Init(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "bddscout_parse_input_infix", BddscoutParseInputInfixCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
+  Tcl_CreateCommand(interp, "bddscout_parse_cube", BddscoutParseCubeCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
 /* ************************************* */
 /* commands used to manipulate variables */
 /* ************************************* */
@@ -743,7 +756,37 @@ Bddscout_Init(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "biddy_varsubset", BiddyVarSubsetCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
+  Tcl_CreateCommand(interp, "biddy_subset0", BiddySubset0Cmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_subset1", BiddySubset1Cmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_quotient", BiddyQuotientCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_remainder", BiddyRemainderCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_element_abstract", BiddyElementAbstractCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_product", BiddyProductCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_selective_product", BiddySelectiveProductCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_supset", BiddySupsetCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_subset", BiddySubsetCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
   Tcl_CreateCommand(interp, "biddy_permitsym", BiddyPermitsymCmd,
+                     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+  Tcl_CreateCommand(interp, "biddy_stretch", BiddyStretchCmd,
                      (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
   Tcl_CreateCommand(interp, "biddy_create_minterm", BiddyCreateMintermCmd,
@@ -1346,6 +1389,9 @@ static int BddscoutParseInputInfixCmd(ClientData clientData, Tcl_Interp *interp,
   form = NULL;
   if (strcmp(expr,"")) {
 
+    /* trim white space on the end */
+    while (expr[0] && expr[strlen(expr)-1]==' ') expr[strlen(expr)-1] = 0;
+
     n1 = (unsigned int) strspn(expr," ");
     n2 = (unsigned int) strcspn(&expr[n1]," =");
     n3 = (unsigned int) strspn(&expr[n1+n2]," ");
@@ -1353,19 +1399,39 @@ static int BddscoutParseInputInfixCmd(ClientData clientData, Tcl_Interp *interp,
     if (expr[n1] != '=') {
       if ( (n1+n2+n3) < strlen(expr) ) {
         if (expr[n1+n2+n3] == '=') {
+          /* expr includes one word followed by symbol = */
+          /* trim all spaces after the symbol = and use the rest */
           expr[n1+n2] = 0;
           name = strdup(&expr[n1]);
+          if (!strcmp(name,"0") || !strcmp(name,"1")) {
+            free(name);
+            if (!strcmp(name,"0")) name = strdup("X0");
+            if (!strcmp(name,"1")) name = strdup("X1");
+            switch(Biddy_Managed_GetManagerType(MNG)) {
+              case BIDDYTYPEOBDD: name[0] = 'F'; break;
+              case BIDDYTYPEOBDDC: name[0] = 'F'; break;
+              case BIDDYTYPEZBDD: name[0] = 'G'; break;
+              case BIDDYTYPEZBDDC: name[0] = 'G'; break;
+              case BIDDYTYPETZBDD: name[0] = 'H'; break;
+            }
+          }
           n4 = (unsigned int) strspn(&expr[n1+n2+n3+1]," ");
           form = strdup(&expr[n1+n2+n3+1+n4]);
         } else {
+          /* expr includes more than one word and the first word is not followed by symbol = */
+          /* trim all spaces on the left and use the rest */
           /* name = strdup("NONAME"); */
           form = strdup(&expr[n1]);
         }
       } else {
+        /* expr includes one word only that is not followed by symbol = */
+        /* trim all spaces on the left and use the rest */
         /* name = strdup("NONAME"); */
         form = strdup(&expr[n1]);
       }
     } else {
+      /* expr starts with symbol = as the first non-space character */
+      /* skip all spaces after symbol = and use the rest */
       /* name = strdup("NONAME"); */
       n4 = (unsigned int) strspn(&expr[n1+1]," ");
       form = strdup(&expr[n1+1+n4]);
@@ -1375,13 +1441,27 @@ static int BddscoutParseInputInfixCmd(ClientData clientData, Tcl_Interp *interp,
     bdd = NULL;
 
     if (!name) {
-      n = Biddy_Managed_FormulaTableNum(MNG);
-      name = strdup("F12345678"); /* max is 8-digit number */
-      sprintf(name,"F%u",n);
+      /* NOT (~!), AND (&*), OR (|+), XOR (^%) , XNOR(-), IMPLIES (><), NAND (@), NOR (#), BUTNOT (\), AND NOTBUT (/) */
+      /* char boolOperators[] = { '~', '&', '\\', ' ', '/', ' ', '^', '|', '#', '-', ' ', '<', ' ', '>', '@', ' ' }; */
+      if (strcmp(form,"0") && strcmp(form,"1") && strcspn(form," ~&*\\/^%|+#-<>@") == strlen(form)) {
+        /* printf("Variable <%s> should be added\n",form); */ /* debugging, only */
+        name = strdup(form);
+      } else {
+        n = Biddy_Managed_FormulaTableNum(MNG);
+        name = strdup("012345678"); /* max is 8-digit number */
+        switch(Biddy_Managed_GetManagerType(MNG)) {
+          case BIDDYTYPEOBDD: name[0] = 'F'; break;
+          case BIDDYTYPEOBDDC: name[0] = 'F'; break;
+          case BIDDYTYPEZBDD: name[0] = 'G'; break;
+          case BIDDYTYPEZBDDC: name[0] = 'G'; break;
+          case BIDDYTYPETZBDD: name[0] = 'H'; break;
+        }
+        sprintf(&name[1],"%u",n);
+      }
     }
     else if (Biddy_Managed_FindFormula(MNG,name,&idx,&tmp)) {
       if (!idx) {
-        /* THERE EXISTS A VARIABLE WITH THE SAME NAME! */
+        /* THERE EXISTS A VARIABLE WITH THE SAME NAME BEFORE ADDING NEW FUNCTION! */
         free(name);
         name = NULL;
       }
@@ -1394,17 +1474,28 @@ static int BddscoutParseInputInfixCmd(ClientData clientData, Tcl_Interp *interp,
     */
 
     if (name) {
-      bdd = Biddy_Managed_Eval2(MNG,form);
+      bdd = Biddy_Managed_Eval2(MNG,form); /* Eval2 is an infix parser */
       if (Biddy_IsNull(bdd)) {
         free(name);
         name = NULL;
       } else if (bdd != tmp) {
-        Biddy_Managed_AddPersistentFormula(MNG,name,bdd);
-        /* ADAPT FORMULA WITH THE SAME NAME IN OTHER MANAGERS */
-        BddscoutSyncFormula(name);
+        if (Biddy_Managed_FindFormula(MNG,name,&idx,&tmp)) {
+          if (!idx) {
+            /* THERE EXISTS A VARIABLE WITH THE SAME NAME AFTER ADDING NEW FUNCTION! */
+            /* printf("THERE EXISTS A VARIABLE WITH THE SAME NAME AFTER ADDING NEW FUNCTION!\n"); */ /* debugging, only */
+            free(name);
+            name = strdup("_NONAME_FORMULA");
+          }
+        }
+        if (strcmp(name,"_NONAME_FORMULA")) {
+          Biddy_Managed_AddPersistentFormula(MNG,name,bdd);
+          /* ADAPT FORMULA WITH THE SAME NAME IN OTHER MANAGERS */
+          BddscoutSyncFormula(name);
+        }
       }
     } else {
-      /* this is used to setup variable ordering */
+      /* NOT SURE, WHY WE NEED THIS - must be something with variable ordering */
+      /**/printf("BddscoutParseInputInfixCmd: form=%s\n",form);/**/ /* debugging, only */
       bdd = Biddy_Managed_Eval2(MNG,form);
     }
 
@@ -1423,6 +1514,164 @@ static int BddscoutParseInputInfixCmd(ClientData clientData, Tcl_Interp *interp,
 
   }
 
+  free(expr);
+
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [command used to parse strings from input line]
+  SideEffects []
+  SeeAlso     []
+  ************************************************************************/
+
+static int BddscoutParseCubeCmd(ClientData clientData, Tcl_Interp *interp,
+                    int argc, const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String name,resultname,expr,form;
+  unsigned int n1,n2,n3,n4;
+  Biddy_Edge tmp,bdd;
+  unsigned int idx;
+
+  if (argc != 3) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  name = strdup(argv[1]);
+  expr = strdup(argv[2]);
+
+  /* printf("CUBESET PARSE: <%s><%s>\n",name,expr); */ /* debugging */
+
+  MNG = Bddscout_GetActiveManager();
+
+  resultname = NULL;
+  form = NULL;
+  if (strcmp(expr,"")) {
+    
+    /* trim white space on the end */
+    while (expr[0] && expr[strlen(expr)-1]==' ') expr[strlen(expr)-1] = 0;
+
+    n1 = (unsigned int) strspn(expr," ");
+    n2 = (unsigned int) strcspn(&expr[n1]," +-=");
+    n3 = (unsigned int) strspn(&expr[n1+n2]," ");
+
+    if ((expr[n1] != '+') && (expr[n1] != '-')) {
+      if ( (n1+n2+n3) < strlen(expr) ) {
+        if (expr[n1+n2+n3] == '=') {
+          n4 = (unsigned int) strspn(&expr[n1+n2+n3+1]," ");
+          form = strdup(&expr[n1+n2+n3+1+n4]);
+          tmp = parseCubeSetAlgebraExpr(form);
+          if (expr[n1+n2+n3-1] == '+') {
+            /* expr includes one word followed by += */
+            /* trim all spaces after the symbol += and use the rest */
+            /* printf("BddscoutParseCubeCmd: operator +=\n"); */ /* debugging */
+            expr[n1+n2-1] = 0;
+            resultname = strdup(&expr[n1]);
+            if (!Biddy_Managed_FindFormula(MNG,resultname,&idx,&bdd)) {
+              printf("BddscoutParseCubeCmd: internal error!n");
+            }
+            bdd = Biddy_Managed_Union(MNG,bdd,tmp);
+          } else if (expr[n1+n2+n3-1] == '-') {
+            /* expr includes one word followed by -= */
+            /* trim all spaces after the symbol -= and use the rest */
+            /* printf("BddscoutParseCubeCmd: operator -=\n"); */ /* debugging */
+            expr[n1+n2-1] = 0;
+            resultname = strdup(&expr[n1]);
+            if (!Biddy_Managed_FindFormula(MNG,resultname,&idx,&bdd)) {
+              printf("BddscoutParseCubeCmd: internal error!n");
+            }
+            bdd = Biddy_Managed_Diff(MNG,bdd,tmp);
+          } else {
+            /* expr includes one word followed by = */
+            /* trim all spaces after the symbol = and use the rest */
+            /* printf("BddscoutParseCubeCmd: operator =\n"); */ /* debugging */
+            expr[n1+n2] = 0;
+            resultname = strdup(&expr[n1]);
+            bdd = tmp;
+          }
+        } else {
+          /* expr includes more than one word and the first word is not started with + or - and not followed by symbol = */
+          /* trim all spaces on the left and use the rest */
+          /* printf("BddscoutParseCubeCmd: expression not started with + or -\n"); */ /* debugging */
+          resultname = strdup("SET1"); /* TO DO: CHOOSE AN UNIQUE NON-EXISTING NAME */
+          form = strdup(&expr[n1]);
+          tmp = parseCubeSetAlgebraExpr(form);
+          bdd = tmp;
+        }
+      } else {
+        /* expr includes one word only that is not started with + or - and not followed by symbol = */
+        /* trim all spaces on the left and use the rest */
+        printf("BddscoutParseCubeCmd: one word not started with + or -\n");
+        resultname = strdup("SET1"); /* TO DO: CHOOSE AN UNIQUE NON-EXISTING NAME */
+        form = strdup(&expr[n1]);
+        tmp = parseCubeSetAlgebraExpr(form);
+        bdd = tmp;
+      }
+    } else {
+      /* expr starts with symbol + or - as the first non-space character */
+      /* skip all spaces after symbol + and use the rest */
+      /* printf("BddscoutParseCubeCmd: operator + or -\n"); */ /* debugging */
+      resultname = strdup(name);
+      /* n4 = (unsigned int) strspn(&expr[n1+1]," "); */
+      form = strdup(name);
+      concat(&form," ");
+      /* concat(&form,&expr[n1+1+n4]); */
+      concat(&form,&expr[n1]);
+      tmp = parseCubeSetAlgebraExpr(form);
+      bdd = tmp;
+    }
+
+    if (form && bdd) {
+
+      if (!strcmp(resultname,"0")) {
+        free(resultname);
+        resultname = strdup("SET1");
+      }
+      if (!strcmp(resultname,"1")) {
+        free(resultname);
+        resultname = strdup("SET1");
+      }
+
+      if (Biddy_Managed_FindFormula(MNG,resultname,&idx,&tmp)) {
+        if (!idx) {
+          /* THERE EXISTS A VARIABLE WITH THE SAME NAME */
+          free(resultname);
+          resultname = strdup("THECUBESET"); /* TO DO: CHOOSE AN UNIQUE NON-EXISTING NAME */
+          printf("BddscoutParseCubeCmd: NAME CHANGED\n");
+        }
+      }
+
+      /* printf("BddscoutParseCubeCmd: resultname is <%s>\n",resultname); */ /* debugging */
+
+      Biddy_Managed_AddPersistentFormula(MNG,resultname,bdd);
+      /* ADAPT FORMULA WITH THE SAME NAME IN OTHER MANAGERS */
+      BddscoutSyncFormula(resultname);
+
+      if (resultname) {
+        Tcl_SetResult(interp, resultname, TCL_VOLATILE);
+      } else {
+        Tcl_SetResult(interp, "", TCL_VOLATILE);
+      }
+
+      if (resultname) free(resultname);
+      free(form);
+      
+    } else  {
+
+      Tcl_SetResult(interp, "", TCL_VOLATILE);
+
+    }
+
+  } else {
+
+    Tcl_SetResult(interp, "", TCL_VOLATILE);
+
+  }
+
+  free(name);
   free(expr);
 
   return TCL_OK;
@@ -3753,6 +4002,413 @@ BiddyVarSubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 
 /**Function****************************************************************
   Synopsis    []
+  Description [biddy_subset0(r,f,v) calculates r = Subset0(f,v)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddySubset0Cmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f;
+  unsigned int idx;
+  Biddy_Variable v;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  v = Biddy_Managed_GetVariable(MNG,s3);
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      (v != 0))
+  {
+    r = Biddy_Managed_Subset0(MNG,f,v);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_subset1(r,f,v) calculates r = Subset1(f,v)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddySubset1Cmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f;
+  unsigned int idx;
+  Biddy_Variable v;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  v = Biddy_Managed_GetVariable(MNG,s3);
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      (v != 0))
+  {
+    r = Biddy_Managed_Subset1(MNG,f,v);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_quotient(r,f,v) calculates r = Quotient(f,v)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddyQuotientCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f;
+  unsigned int idx;
+  Biddy_Variable v;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  v = Biddy_Managed_GetVariable(MNG,s3);
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      (v != 0))
+  {
+    r = Biddy_Managed_Quotient(MNG,f,v);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_remainder(r,f,v) calculates r = Remainder(f,v)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddyRemainderCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f;
+  unsigned int idx;
+  Biddy_Variable v;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  v = Biddy_Managed_GetVariable(MNG,s3);
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      (v != 0))
+  {
+    r = Biddy_Managed_Remainder(MNG,f,v);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_element_abstract(r,f,v) calculates
+               r = ElementAbstract(f,v)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddyElementAbstractCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f;
+  unsigned int idx;
+  Biddy_Variable v;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  v = Biddy_Managed_GetVariable(MNG,s3);
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      (v != 0))
+  {
+    r = Biddy_Managed_ElementAbstract(MNG,f,v);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_product(r,f,g) calculates r = Product(f,g)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddyProductCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f,g;
+  unsigned int idx;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      Biddy_Managed_FindFormula(MNG,s3,&idx,&g))
+  {
+    r = Biddy_Managed_Product(MNG,f,g);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_selective_product(r,f,g,cube) calculates
+               r = SelectiveProduct(f,g,cube)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddySelectiveProductCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3,s4;
+  Biddy_Edge r,f,g,cube;
+  unsigned int idx;
+
+  if (argc != 5) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+  s4 = strdup(argv[4]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      Biddy_Managed_FindFormula(MNG,s3,&idx,&g) &&
+      Biddy_Managed_FindFormula(MNG,s4,&idx,&cube))
+  {
+    r = Biddy_Managed_SelectiveProduct(MNG,f,g,cube);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+  free(s4);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_supset(r,f,g) calculates r = Supset(f,g)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddySupsetCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f,g;
+  unsigned int idx;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      Biddy_Managed_FindFormula(MNG,s3,&idx,&g))
+  {
+    r = Biddy_Managed_Supset(MNG,f,g);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_subset(r,f,g) calculates r = Subset(f,g)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddySubsetCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2,s3;
+  Biddy_Edge r,f,g;
+  unsigned int idx;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+  s3 = strdup(argv[3]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f) &&
+      Biddy_Managed_FindFormula(MNG,s3,&idx,&g))
+  {
+    r = Biddy_Managed_Subset(MNG,f,g);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
+  free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
   Description [biddy_permitsym(r,f,n) calculates r = Permitsym(f,n)]
   SideEffects [This is a command used to perform Biddy function exported
                from biddyOp.c]
@@ -3791,6 +4447,46 @@ BiddyPermitsymCmd(ClientData clientData, Tcl_Interp *interp, int argc,
   free(s1);
   free(s2);
   free(s3);
+
+  Tcl_SetResult(interp, (char *) "", TCL_STATIC);
+  return TCL_OK;
+}
+
+/**Function****************************************************************
+  Synopsis    []
+  Description [biddy_stretch(r,f) calculates r = Stretch(f)]
+  SideEffects [This is a command used to perform Biddy function exported
+               from biddyOp.c]
+  SeeAlso     []
+  ************************************************************************/
+
+static int
+BiddyStretchCmd(ClientData clientData, Tcl_Interp *interp, int argc,
+           const char **argv)
+{
+  Biddy_Manager MNG;
+  Biddy_String s1,s2;
+  Biddy_Edge r,f;
+  unsigned int idx;
+
+  if (argc != 4) {
+    Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
+    return TCL_ERROR;
+  }
+
+  s1 = strdup(argv[1]);
+  s2 = strdup(argv[2]);
+
+  MNG = Bddscout_GetActiveManager();
+
+  if (Biddy_Managed_FindFormula(MNG,s2,&idx,&f))
+  {
+    r = Biddy_Managed_Stretch(MNG,f);
+    Biddy_Managed_AddPersistentFormula(MNG,s1,r);
+  }
+
+  free(s1);
+  free(s2);
 
   Tcl_SetResult(interp, (char *) "", TCL_STATIC);
   return TCL_OK;
@@ -6124,7 +6820,134 @@ concat(char **s1, const char *s2)
 {
    if (s2) {
      *s1 = (char*) realloc(*s1,strlen(*s1)+strlen(s2)+1+1);
-     strcat(*s1," ");
      strcat(*s1,s2);
    }
+}
+
+static Biddy_Edge
+parseCubeSetAlgebraExpr(Biddy_String form)
+{
+  Biddy_Manager MNG;
+  char ch;
+  int n,n1,n2,n3;
+  Biddy_String word;
+  unsigned int idx;
+  Biddy_Edge bdd,tmp;
+
+  /* printf("parseCubeSetAlgebraExpr: form = <%s>\n",form); */ /* debugging */
+
+  MNG = Bddscout_GetActiveManager();
+
+  n1 = (unsigned int) strspn(form," ");
+  n2 = (unsigned int) strcspn(&form[n1]," +-");
+  n3 = (unsigned int) strcspn(&form[n1+n2],"+-");
+
+  ch = form[n1+n2];
+  form[n1+n2] = 0;
+  word = strdup(&form[n1]);
+  form[n1+n2] = ch;
+  n = n1+n2+n3;
+
+  /* printf("parseCubeSetAlgebraExpr: first word = <%s>\n",word); */ /* debugging */
+  /* printf("parseCubeSetAlgebraExpr: other words = "); */ /* debugging */
+
+  bdd = NULL;
+  if (!Biddy_Managed_FindFormula(MNG,word,&idx,&bdd)) {
+    bdd = parseCube(word);
+  }
+  if (!bdd) return NULL;
+
+  while ((form[n]=='+') || (form[n]=='-')) {
+
+    n++;
+    n1 = (unsigned int) strspn(&form[n]," ");
+    n2 = (unsigned int) strcspn(&form[n+n1]," +-");
+    n3 = (unsigned int) strcspn(&form[n+n1+n2],"+-");
+    ch = form[n+n1+n2];
+    form[n+n1+n2] = 0;
+    word = strdup(&form[n+n1]);
+    form[n+n1+n2] = ch;
+
+    if (!strcmp(word,"0") || !strcmp(word,"1")) {
+      /* "0" and "1" are treated as cube, here */
+      tmp = parseCube(word);
+    } else {
+      tmp = NULL;
+      if (!Biddy_Managed_FindFormula(MNG,word,&idx,&tmp)) {
+        tmp = parseCube(word);
+      }
+    }
+    if (!tmp) return NULL;
+
+    /* debugging */
+    /*
+    if (form[n-1]=='+') printf("+");
+    if (form[n-1]=='-') printf("-");
+    printf("<%s>",word);
+    */
+
+    if (form[n-1]=='+') bdd = Biddy_Managed_Union(MNG,bdd,tmp);
+    if (form[n-1]=='-') bdd = Biddy_Managed_Diff(MNG,bdd,tmp);
+
+    n = n+n1+n2+n3;
+  }
+  /* printf("\n"); */ /* debugging */
+
+  return bdd;
+}
+
+static Biddy_Edge
+parseCube(Biddy_String cube)
+{
+  Biddy_Manager MNG;
+  int i; /* must be signed */
+  unsigned int num,seq;
+  Biddy_Variable v;
+  Biddy_String name;
+  Biddy_Edge bdd;
+
+  /* printf("parseCube: cube = <%s>\n",cube); */
+
+  if (!strcmp(cube,"")) return NULL;
+
+  MNG = Bddscout_GetActiveManager();
+
+  i = 0;
+  while ((i>=0) && (i<strlen(cube))) {
+    if ((cube[i] != '0') && (cube[i] != '1')) i = -2;
+    i++;
+  }
+  if (i == -1) return NULL;
+
+  i = 0;
+  while (i < strlen(cube)) {
+    /* printf("<%c>",cube[i]); */
+    if (!Biddy_Managed_GetIthVariable(MNG,i+1)) {
+      num = Biddy_Managed_VariableTableNum(MNG); /* number of user variables + 1 */
+      seq = num;
+      name = (Biddy_String) malloc(15);
+      while (num == Biddy_Managed_VariableTableNum(MNG)) {
+        sprintf(name,"x%u",seq++);
+        /* printf("<add %s>",name); */
+        Biddy_Managed_AddElementByName(MNG,name);
+      }
+      free(name);
+    }
+    i++;
+  }
+  /* printf("\n"); */
+
+  v = 0;
+  i = strlen(cube)-1;
+  bdd = Biddy_Managed_GetBaseSet(MNG);
+  while (i >= 0) {
+    v = Biddy_Managed_GetPrevVariable(MNG,v);
+    if (cube[i] == '1') {
+      /* printf("%d<%s>\n",i,Biddy_Managed_GetVariableName(MNG,v)); */
+      bdd = Biddy_Managed_Change(MNG,bdd,v);
+    }
+    i--;
+  }
+
+  return bdd;
 }

@@ -1,10 +1,10 @@
-/* $Revision: 558 $ */
-/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
+/* $Revision: 619 $ */
+/* $Date: 2020-03-28 15:19:50 +0100 (sob, 28 mar 2020) $ */
 /* This file (biddy-example-random.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.8 */
+/* This example is compatible with Biddy v2.0 */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
 /* gcc -DUNIX -O2 -o biddy-example-random biddy-example-random.c -I. -L./bin -lbiddy */
@@ -22,7 +22,7 @@
 /* (POPULATION > 0): create many random function and get statistics */
 #define POPULATION -1
 
-#define SIZE 4
+#define SIZE 8
 #define RATIO 0.5
 
 /* create Boolean function (BOOLEANFUNCTION) or combination set (COMBINATIONSET) */
@@ -31,11 +31,18 @@
 /* choose primary BDD type */
 #define BDDTYPE BIDDYTYPEOBDD
 
+#define PRINTCOMBINATIONS(MNG,X) \
+{\
+printf("%s has %u nodes (including terminals) and %.0f cubes\n",Biddy_Managed_GetManagerName(MNG),Biddy_Managed_CountNodes(MNG,X),Biddy_Managed_CountCombinations(MNG,X));\
+Biddy_Managed_PrintfMinterms(MNG,X,FALSE);\
+}
+
 int main() {
   Biddy_Manager MNGOBDD,MNGOBDDC,MNGZBDD,MNGZBDDC,MNGTZBDD;
-  Biddy_Edge tmp,support,cube,result,result0,result1,result2;
+  Biddy_Edge tmp,support,result,coresult,result0,result1,result2;
+  Biddy_Edge cube,cuberobdd,cuberobddc,cubezbdd,cubezbddc,cubetzbdd;
   Biddy_Edge robdd,robddc,rzbdd,rzbddc,rtzbdd;
-  Biddy_Variable v,first,last,extra;
+  Biddy_Variable v,first,second,last,extra;
   unsigned int i;
   unsigned int s1,s2,s3;
 
@@ -66,6 +73,8 @@ int main() {
 
     printf("Using %s...\n",Biddy_GetManagerName());
 
+    second = 0;
+
     /* for OBDDs, support is the most easiest calculated using AddVariable and AND */
     if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC)) {
       tmp = Biddy_AddVariableEdge();
@@ -74,6 +83,7 @@ int main() {
       for (v=1; v<SIZE; v++) {
         tmp = Biddy_AddVariableEdge();
         support = Biddy_And(support,tmp);
+        if (v == 1) second = Biddy_GetTopVariable(tmp);
       }
       last = Biddy_GetTopVariable(tmp);
     }
@@ -86,6 +96,7 @@ int main() {
       for (v=1; v<SIZE; v++) {
         tmp = Biddy_GetElementEdge(Biddy_AddElement());
         support = Biddy_Change(support,Biddy_GetTopVariable(tmp));
+        if (v == 1) second = Biddy_GetTopVariable(tmp);
       }
       last = Biddy_GetTopVariable(tmp);
     }
@@ -98,9 +109,39 @@ int main() {
       for (v=1; v<SIZE; v++) {
         tmp = Biddy_AddVariableEdge();
         support = Biddy_And(support,tmp);
+        if (v == 1) second = Biddy_GetTopVariable(tmp);
       }
       last = Biddy_GetTopVariable(tmp);
     }
+
+    /* set name for some variables - to suppport debuging */
+
+    Biddy_ChangeVariableName(first,"first");
+    Biddy_ChangeVariableName(second,"second");
+    Biddy_ChangeVariableName(last,"last");
+
+    /* initialize all BDD managers */
+    Biddy_Copy(MNGOBDD,Biddy_GetConstantZero());
+    Biddy_Copy(MNGOBDDC,Biddy_GetConstantZero());
+    Biddy_Copy(MNGZBDD,Biddy_GetConstantZero());
+    Biddy_Copy(MNGZBDDC,Biddy_GetConstantZero());
+    Biddy_Copy(MNGTZBDD,Biddy_GetConstantZero());
+
+    /* DEBUGGING */
+    /**/
+    printf("Variable first = %s (%u)\n",Biddy_GetVariableName(first),first);
+    printf("Variable second = %s (%u) \n",Biddy_GetVariableName(second),second);
+    printf("Variable last = %s (%u)\n",Biddy_GetVariableName(last),last);
+    printf("Variable first (OBDD) = %s (%u)\n",Biddy_Managed_GetVariableName(MNGOBDD,first),first);
+    printf("Variable second (OBDD) = %s (%u) \n",Biddy_Managed_GetVariableName(MNGOBDD,second),second);
+    printf("Variable last (OBDD) = %s (%u)\n",Biddy_Managed_GetVariableName(MNGOBDD,last),last);
+    printf("Variable first (ZBDD) = %s (%u)\n",Biddy_Managed_GetVariableName(MNGZBDD,first),first);
+    printf("Variable second (ZBDD) = %s (%u) \n",Biddy_Managed_GetVariableName(MNGZBDD,second),second);
+    printf("Variable last (ZBDD) = %s (%u)\n",Biddy_Managed_GetVariableName(MNGZBDD,last),last);
+    printf("Variable first (TZBDD) = %s (%u)\n",Biddy_Managed_GetVariableName(MNGTZBDD,first),first);
+    printf("Variable second (TZBDD) = %s (%u) \n",Biddy_Managed_GetVariableName(MNGTZBDD,second),second);
+    printf("Variable last (TZBDD) = %s (%u)\n",Biddy_Managed_GetVariableName(MNGTZBDD,last),last);
+    /**/
 
     /* GRAPHVIZ/DOT OUTPUT OF support - DEBUGGING, ONLY */
     /*
@@ -110,7 +151,7 @@ int main() {
     }
     */
 
-    /* GENERATE RANDOM FUNCTION / COMBINATION SET */
+    /* GENERATE RANDOM FUNCTION OR COMBINATION SET */
 
     result = NULL;
 
@@ -133,7 +174,7 @@ int main() {
     /*
     if (SIZE < 10) {
       Biddy_WriteDot("result.dot", result, "result", -1, FALSE);
-      printf("USE 'dot -y -Tpng -O result.dot' to visualize function support.\n");
+      printf("USE 'dot -y -Tpng -O result.dot' to visualize function result.\n");
     }
     */
 
@@ -334,7 +375,52 @@ int main() {
     }
     */
 
-    /* OPERATION SUBSET */
+    /* BOOLEAN OPERATIONS AND OPERATION ITE */
+
+    result1 = Biddy_ITE(Biddy_E(result,first),Biddy_E(result,last),Biddy_A(result,last));
+    result2 = Biddy_ITE(Biddy_A(result,first),Biddy_E(result,last),Biddy_A(result,last));
+
+    printf("After the first ITE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
+    printf("After the second ITE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result2,SIZE));
+
+    if (result1 != Biddy_Xor(
+      Biddy_And(Biddy_E(result, first), Biddy_E(result, last)),
+      Biddy_And(Biddy_Not(Biddy_E(result, first)), Biddy_A(result, last))))
+    {
+      printf("ERROR: result1 for Boolean operations ITE-AND-XOR-NOT is wrong!\n");
+    }
+    if (result1 != Biddy_Or(
+      Biddy_And(Biddy_E(result, first), Biddy_E(result, last)),
+      Biddy_Gt(Biddy_A(result, last), Biddy_E(result, first))))
+    {
+      printf("ERROR: result1 for Boolean operations ITE-AND-OR-GT is wrong!\n");
+    }
+
+    if (result2 != Biddy_Xor(
+      Biddy_And(Biddy_A(result, first), Biddy_E(result, last)),
+      Biddy_And(Biddy_Not(Biddy_A(result, first)), Biddy_A(result, last))))
+    {
+      printf("ERROR: result2 for Boolean operations ITE-AND-XOR-NOT is wrong!\n");
+    }
+    if (result2 != Biddy_Or(
+      Biddy_And(Biddy_A(result, first), Biddy_E(result, last)),
+      Biddy_Gt(Biddy_A(result, last), Biddy_A(result, first))))
+    {
+      printf("ERROR: result2 for Boolean operations ITE-AND-OR-GT is wrong!\n");
+    }
+
+    /* GRAPHVIZ/DOT OUTPUT OF RESULT1 AND RESULT2 - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      Biddy_WriteDot("result1.dot",result1,"result1",-1,FALSE);
+      printf("USE 'dot -y -Tpng -O result1.dot' to visualize function result1.\n");
+      Biddy_WriteDot("result2.dot",result2,"result2",-1,FALSE);
+      printf("USE 'dot -y -Tpng -O result2.dot' to visualize function result2.\n");
+      exit(1);
+    }
+    */
+
+    /* OPERATIONS SUBSET0 AND SUBSET1 */
 
     result0 = Biddy_Subset0(result,first);
     result1 = Biddy_Subset1(result,first);
@@ -490,48 +576,933 @@ int main() {
     }
     */
 
-    /* BOOLEAN OPERATIONS AND OPERATION ITE */
+    /* EXTRACT MINTERM */
+    
+    result0 = Biddy_ExtractMinterm(result);
 
-    result1 = Biddy_ITE(Biddy_E(result,first),Biddy_E(result,last),Biddy_A(result,last));
-    result2 = Biddy_ITE(Biddy_A(result,first),Biddy_E(result,last),Biddy_A(result,last));
-
-    printf("After the first ITE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result1,SIZE));
-    printf("After the second ITE, function result has %.0f minterms/combinations\n",Biddy_CountMinterms(result2,SIZE));
-
-    if (result1 != Biddy_Xor(
-      Biddy_And(Biddy_E(result, first), Biddy_E(result, last)),
-      Biddy_And(Biddy_Not(Biddy_E(result, first)), Biddy_A(result, last))))
-    {
-      printf("ERROR: result1 for Boolean operations ITE-AND-XOR-NOT is wrong!\n");
-    }
-    if (result1 != Biddy_Or(
-      Biddy_And(Biddy_E(result, first), Biddy_E(result, last)),
-      Biddy_Gt(Biddy_A(result, last), Biddy_E(result, first))))
-    {
-      printf("ERROR: result1 for Boolean operations ITE-AND-OR-GT is wrong!\n");
+    if ((Biddy_CountMinterms(result,SIZE) > 0) && (Biddy_CountMinterms(result0,SIZE) != 1)) {
+      printf("ERROR: Operation ExtractMinterm is wrong!\n");
+    } else {
+      printf("Operation ExtractMinterm is OK!\n");
     }
 
-    if (result2 != Biddy_Xor(
-      Biddy_And(Biddy_A(result, first), Biddy_E(result, last)),
-      Biddy_And(Biddy_Not(Biddy_A(result, first)), Biddy_A(result, last))))
-    {
-      printf("ERROR: result2 for Boolean operations ITE-AND-XOR-NOT is wrong!\n");
-    }
-    if (result2 != Biddy_Or(
-      Biddy_And(Biddy_A(result, first), Biddy_E(result, last)),
-      Biddy_Gt(Biddy_A(result, last), Biddy_A(result, first))))
-    {
-      printf("ERROR: result2 for Boolean operations ITE-AND-OR-GT is wrong!\n");
+    s1 = (unsigned int)Biddy_CountMinterms(result,SIZE);
+
+    s2 = 0;
+    result1 = result;
+    while (result1 != Biddy_GetConstantZero()) {
+      result2 = Biddy_ExtractMinterm(result1);
+      result1 = Biddy_ITE(result2,Biddy_GetConstantZero(),result1);
+      s2++;
     }
 
-    /* GRAPHVIZ/DOT OUTPUT OF RESULT1 AND RESULT2 - DEBUGGING, ONLY */
+    if (s1 != s2) {
+      printf("ERROR: Operation ExtractMinterm is wrong!\n");
+    }
+
+    /* ************************************************************* */
+    /* OUTPUT FUNCTIONS  */
+    /* ************************************************************* */
+
+    printf("********* OUTPUT FUNCTIONS *********\n");
+
+    /* IT IS OK FOR OBDDs TO HAVE LESS REPORTED MINTERMS, BECAUSE DON'T CARE VARIABLES ARE OMITTED */
+    /* NUMBER OF COMBINATIONS MUST BE THE SAME FOR ALL BDD TYPES */
+
+    i = 0; /* use 0 to disable output */
+
+    robdd = Biddy_Copy(MNGOBDD,result);
+    robddc = Biddy_Copy(MNGOBDDC,result);
+    rzbdd = Biddy_Copy(MNGZBDD,result);
+    rzbddc = Biddy_Copy(MNGZBDDC,result);
+    rtzbdd = Biddy_Copy(MNGTZBDD,result);
+
+    /*
+    PRINTCOMBINATIONS(MNGOBDD,robdd);
+    PRINTCOMBINATIONS(MNGOBDDC,robddc);
+    PRINTCOMBINATIONS(MNGZBDD,rzbdd);
+    PRINTCOMBINATIONS(MNGZBDDC,rzbddc);
+    PRINTCOMBINATIONS(MNGTZBDD,rtzbdd);
+    */
+
+    printf("MINTERMS for OBDD (%.0f):\n",Biddy_Managed_CountMinterms(MNGOBDD,robdd,-1));
+    if (Biddy_Managed_CountMinterms(MNGOBDD,robdd,0) <= i) { /* 0 is used to consider all the dependent variables */
+      Biddy_Managed_PrintfMinterms(MNGOBDD,robdd,TRUE); /* TRUE is used for Boolean functions */
+    }
+
+    printf("MINTERMS for OBDDC (%.0f):\n",Biddy_Managed_CountMinterms(MNGOBDDC,robddc,-1));
+    if (Biddy_Managed_CountMinterms(MNGOBDDC,robddc,0) <= i) { /* 0 is used to consider all the dependent variables */
+      Biddy_Managed_PrintfMinterms(MNGOBDDC,robddc,TRUE); /* TRUE is used for Boolean functions */
+    }
+
+    printf("MINTERMS for ZBDD (%.0f):\n",Biddy_Managed_CountMinterms(MNGZBDD,rzbdd,-1));
+    if (Biddy_Managed_CountMinterms(MNGZBDD,rzbdd,0) <= i) { /* 0 is used to consider all the dependent variables */
+      Biddy_Managed_PrintfMinterms(MNGZBDD,rzbdd,TRUE); /* TRUE is used for Boolean functions */
+    }
+
+    printf("MINTERMS for ZBDDC (%.0f):\n",Biddy_Managed_CountMinterms(MNGZBDDC,rzbddc,-1));
+    if (Biddy_Managed_CountMinterms(MNGZBDDC,rzbddc,0) <= i) { /* 0 is used to consider all the dependent variables */
+      Biddy_Managed_PrintfMinterms(MNGZBDDC,rzbddc,TRUE); /* TRUE is used for Boolean functions */
+    }
+
+    printf("MINTERMS for TZBDD (%.0f):\n",Biddy_Managed_CountMinterms(MNGTZBDD,rtzbdd,-1));
+    if (Biddy_Managed_CountMinterms(MNGTZBDD,rtzbdd,0) <= i) { /* 0 is used to consider all the dependent variables */
+      Biddy_Managed_PrintfMinterms(MNGTZBDD,rtzbdd,TRUE); /* TRUE is used for Boolean functions */
+    }
+
+    printf("COMBINATIONS for OBDD (%.0f):\n",Biddy_Managed_CountCombinations(MNGOBDD,robdd));
+    if (Biddy_Managed_CountCombinations(MNGOBDD,robdd) <= i) {
+      Biddy_Managed_PrintfMinterms(MNGOBDD,robdd,FALSE); /* FALSE is used for combinations */
+    }
+
+    printf("COMBINATIONS for OBDDC (%.0f):\n",Biddy_Managed_CountCombinations(MNGOBDDC,robddc));
+    if (Biddy_Managed_CountCombinations(MNGOBDDC,robddc) <= i) {
+      Biddy_Managed_PrintfMinterms(MNGOBDDC,robddc,FALSE); /* FALSE is used for combinations */
+    }
+
+    printf("COMBINATIONS for ZBDD (%.0f):\n",Biddy_Managed_CountCombinations(MNGZBDD,rzbdd));
+    if (Biddy_Managed_CountCombinations(MNGZBDD,rzbdd) <= i) {
+      Biddy_Managed_PrintfMinterms(MNGZBDD,rzbdd,FALSE); /* FALSE is used for combinations */
+    }
+
+    printf("COMBINATIONS for ZBDDC (%.0f):\n",Biddy_Managed_CountCombinations(MNGZBDDC,rzbddc));
+    if (Biddy_Managed_CountCombinations(MNGZBDDC,rzbddc) <= i) {
+      Biddy_Managed_PrintfMinterms(MNGZBDDC,rzbddc,FALSE); /* FALSE is used for combinations */
+    }
+
+    printf("COMBINATIONS for TZBDD (%.0f):\n",Biddy_Managed_CountCombinations(MNGTZBDD,rtzbdd));
+    if (Biddy_Managed_CountCombinations(MNGTZBDD,rtzbdd) <= i) {
+      Biddy_Managed_PrintfMinterms(MNGTZBDD,rtzbdd,FALSE); /* FALSE is used for combinations */
+    }
+
+    /* ************************************************************* */
+    /* CONSISTENCY OVER DIFFERENT BDD TYPES  */
+    /* ************************************************************* */
+
+    printf("********* CONSISTENCY OVER DIFFERENT BDD TYPES *********\n");
+
+    /* GENERATE ADDITIONAL RANDOM FUNCTION OR COMBINATION SET */
+
+    coresult = NULL;
+
+#if (RANDOMTYPE == BOOLEANFUNCTION)
+    printf("Generating random Boolean function...\n");
+    coresult = Biddy_RandomFunction(support,RATIO);
+#endif
+
+#if (RANDOMTYPE == COMBINATIONSET)
+    printf("Generating random combination set...\n");
+    coresult = Biddy_RandomSet(support,RATIO);
+#endif
+
+    if (coresult == NULL) {
+      printf("ERROR: Function coresult is NULL!\n");
+      exit(1);
+    }
+
+    /* GRAPHVIZ/DOT OUTPUT OF coresult - DEBUGGING, ONLY */
     /*
     if (SIZE < 10) {
-      Biddy_WriteDot("result1.dot",result1,"result1",-1,FALSE);
-      printf("USE 'dot -y -Tpng -O result1.dot' to visualize function result1.\n");
-      Biddy_WriteDot("result2.dot",result2,"result2",-1,FALSE);
-      printf("USE 'dot -y -Tpng -O result2.dot' to visualize function result2.\n");
-      exit(1);
+      Biddy_WriteDot("result.dot", coresult, "coresult", -1, FALSE);
+      printf("USE 'dot -y -Tpng -O coresult.dot' to visualize function coresult.\n");
+    }
+    */
+
+    /* TRUTH TABLE FOR result AND coresult  - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result:\n");
+      Biddy_PrintfTable(result);
+      printf("HERE IS A TRUTH TABLE FOR coresult:\n");
+      Biddy_PrintfTable(coresult);
+    }
+    */
+
+    printf("Function coresult has %.0f minterms/combinations.\n",Biddy_CountMinterms(coresult,SIZE));
+    printf("Function coresult has density = %.2e.\n",Biddy_DensityOfFunction(coresult,SIZE));
+
+    /*
+    printf("Function represented by %s depends on %u variables.\n",Biddy_GetManagerName(),Biddy_DependentVariableNumber(coresult,FALSE));
+    printf("%s for function result has %u nodes (including terminals).\n",Biddy_GetManagerName(),Biddy_CountNodes(coresult));
+    printf("%s for function result has %u plain nodes (including terminals).\n",Biddy_GetManagerName(),Biddy_CountNodesPlain(coresult));
+    printf("%s for function result has %llu one-paths.\n",Biddy_GetManagerName(),Biddy_CountPaths(coresult));
+    */
+
+    /* OPERATION SUBSET */
+
+    result0 = Biddy_Managed_Subset(MNGOBDD,Biddy_Copy(MNGOBDD,result),Biddy_Copy(MNGOBDD,coresult));
+    printf("(SUBSET) Function result0 (MNGOBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE));
+
+    /* TRUTH TABLE FOR OBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,result0);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,result0);
+    result2 = Biddy_Managed_Subset(MNGOBDDC,Biddy_Copy(MNGOBDDC,result),Biddy_Copy(MNGOBDDC,coresult));
+    printf("(SUBSET) Function result2 (MNGOBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Subset is wrong for MNGOBDD / MNGOBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR OBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,result0);
+    result2 = Biddy_Managed_Subset(MNGZBDD,Biddy_Copy(MNGZBDD,result),Biddy_Copy(MNGZBDD,coresult));
+    printf("(SUBSET) Function result2 (MNGZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Subset is wrong for MNGOBDD / MNGZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDDC,result0);
+    result2 = Biddy_Managed_Subset(MNGZBDDC,Biddy_Copy(MNGZBDDC,result),Biddy_Copy(MNGZBDDC,coresult));
+    printf("(SUBSET) Function result2 (MNGZBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Subset is wrong for MNGOBDD / MNGZBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,result0);
+    result2 = Biddy_Managed_Subset(MNGTZBDD,Biddy_Copy(MNGTZBDD,result),Biddy_Copy(MNGTZBDD,coresult));
+    printf("(SUBSET) Function result2 (MNGTZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGTZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Subset is wrong for MNGOBDD / MNGTZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR TZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result2);
+    }
+    */
+
+    /* OPERATIONS SUPSET */
+
+    result0 = Biddy_Managed_Supset(MNGOBDD,Biddy_Copy(MNGOBDD,result),Biddy_Copy(MNGOBDD,coresult));
+    printf("(SUPSET) Function result0 (MNGOBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE));
+
+    /* TRUTH TABLE FOR OBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,result0);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,result0);
+    result2 = Biddy_Managed_Supset(MNGOBDDC,Biddy_Copy(MNGOBDDC,result),Biddy_Copy(MNGOBDDC,coresult));
+    printf("(SUPSET) Function result2 (MNGOBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Supset is wrong for MNGOBDD / MNGOBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR OBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,result0);
+    result2 = Biddy_Managed_Supset(MNGZBDD,Biddy_Copy(MNGZBDD,result),Biddy_Copy(MNGZBDD,coresult));
+    printf("(SUPSET) Function result2 (MNGZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Supset is wrong for MNGOBDD / MNGZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDDC,result0);
+    result2 = Biddy_Managed_Supset(MNGZBDDC,Biddy_Copy(MNGZBDDC,result),Biddy_Copy(MNGZBDDC,coresult));
+    printf("(SUPSET) Function result2 (MNGZBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Supset is wrong for MNGOBDD / MNGZBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,result0);
+    result2 = Biddy_Managed_Supset(MNGTZBDD,Biddy_Copy(MNGTZBDD,result),Biddy_Copy(MNGTZBDD,coresult));
+    printf("(SUPSET) Function result2 (MNGTZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGTZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Supset is wrong for MNGOBDD / MNGTZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR TZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result2);
+    }
+    */
+
+    /* OPERATION E (EXISTENTIAL ABSTRACTION) */
+
+    result0 = Biddy_Managed_E(MNGOBDD,Biddy_Copy(MNGOBDD,result),second);
+    printf("(E) Function result0 (MNGOBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE));
+
+    /* TRUTH TABLE FOR OBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,result0);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,result0);
+    result2 = Biddy_Managed_E(MNGOBDDC,Biddy_Copy(MNGOBDDC,result),second);
+    printf("(E) Function result2 (MNGOBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation E is wrong for MNGOBDD / MNGOBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR OBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,result0);
+    result2 = Biddy_Managed_E(MNGZBDD,Biddy_Copy(MNGZBDD,result),second);
+    printf("(E) Function result2 (MNGZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation E is wrong for MNGOBDD / MNGZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      Biddy_Managed_WriteBddview(MNGZBDD,"result.bddview",Biddy_Copy(MNGZBDD,result),"result",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result1);
+      Biddy_Managed_WriteBddview(MNGZBDD,"result1.bddview",result1,"result1",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result2);
+      Biddy_Managed_WriteBddview(MNGZBDD,"result2.bddview",result2,"result2",NULL);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDDC,result0);
+    result2 = Biddy_Managed_E(MNGZBDDC,Biddy_Copy(MNGZBDDC,result),second);
+    printf("(E) Function result2 (MNGZBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation E is wrong for MNGOBDD / MNGZBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,result0);
+    result2 = Biddy_Managed_E(MNGTZBDD,Biddy_Copy(MNGTZBDD,result),second);
+    printf("(E) Function result2 (MNGTZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGTZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation E is wrong for MNGOBDD / MNGTZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR TZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result2);
+    }
+    */
+
+    /* OPERATION ELEMENT ABSTRACT */
+
+    result0 = Biddy_Managed_ElementAbstract(MNGOBDD,Biddy_Copy(MNGOBDD,result),second);
+    printf("(ELEMENT ABSTRACT) Function result0 (MNGOBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE));
+
+    /* TRUTH TABLE FOR OBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,Biddy_Copy(MNGOBDD,result));
+      Biddy_Managed_WriteBddview(MNGOBDD,"result.bddview",Biddy_Copy(MNGOBDD,result),"result",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result0 FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,result0);
+      Biddy_Managed_WriteBddview(MNGOBDD,"result0.bddview",result0,"result0",NULL);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,result0);
+    result2 = Biddy_Managed_ElementAbstract(MNGOBDDC,Biddy_Copy(MNGOBDDC,result),second);
+    printf("(ELEMENT ABSTRACT) Function result2 (MNGOBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation ElementAbstract is wrong for MNGOBDD / MNGOBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR OBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,result0);
+    result2 = Biddy_Managed_ElementAbstract(MNGZBDD,Biddy_Copy(MNGZBDD,result),second);
+    printf("(ELEMENT ABSTRACT) Function result2 (MNGZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation ElementAbstract is wrong for MNGOBDD / MNGZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result1);
+      Biddy_Managed_WriteBddview(MNGZBDD,"result1.bddview",result1,"result1",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result2);
+      Biddy_Managed_WriteBddview(MNGZBDD,"result2.bddview",result2,"result2",NULL);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDDC,result0);
+    result2 = Biddy_Managed_ElementAbstract(MNGZBDDC,Biddy_Copy(MNGZBDDC,result),second);
+    printf("(ELEMENT ABSTRACT) Function result2 (MNGZBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation ElementAbstract is wrong for MNGOBDD / MNGZBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,result0);
+    result2 = Biddy_Managed_ElementAbstract(MNGTZBDD,Biddy_Copy(MNGTZBDD,result),second);
+    printf("(ELEMENT ABSTRACT) Function result2 (MNGTZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGTZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation ElementAbstract is wrong for MNGOBDD / MNGTZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR TZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      Biddy_Managed_WriteBddview(MNGTZBDD,"result.bddview",Biddy_Copy(MNGTZBDD,result),"result",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result1);
+      Biddy_Managed_WriteBddview(MNGTZBDD,"result1.bddview",result1,"result1",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result2);
+      Biddy_Managed_WriteBddview(MNGTZBDD,"result2.bddview",result2,"result2",NULL);
+    }
+    */
+
+    /* OPERATION STRETCH */
+
+    result0 = Biddy_Managed_Stretch(MNGOBDD,Biddy_Copy(MNGOBDD,result));
+    printf("(STRETCH) Function result0 (MNGOBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE));
+
+    if (Biddy_Managed_Diff(MNGOBDD,result0,Biddy_Copy(MNGOBDD,result)) != Biddy_Managed_GetEmptySet(MNGOBDD)) {
+      printf("ERROR: Operation Stretch has wrong result for MNGOBDD\n");
+    }
+
+    /* TRUTH TABLE FOR OBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,Biddy_Copy(MNGOBDD,result));
+      Biddy_Managed_WriteBddview(MNGOBDD,"result.bddview",Biddy_Copy(MNGOBDD,result),"result",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result0 FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,result0);
+      Biddy_Managed_WriteBddview(MNGOBDD,"result0.bddview",result0,"result0",NULL);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,result0);
+    result2 = Biddy_Managed_Stretch(MNGOBDDC,Biddy_Copy(MNGOBDDC,result));
+    printf("(STRETCH) Function result2 (MNGOBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDDC,result2,SIZE));
+
+    if (Biddy_Managed_Diff(MNGOBDDC,result2,Biddy_Copy(MNGOBDDC,result)) != Biddy_Managed_GetEmptySet(MNGOBDDC)) {
+      printf("ERROR: Operation Stretch has wrong result for MNGOBDDC\n");
+    }
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Stretch is wrong for MNGOBDD / MNGOBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR OBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,result0);
+    result2 = Biddy_Managed_Stretch(MNGZBDD,Biddy_Copy(MNGZBDD,result));
+    printf("(STRETCH) Function result2 (MNGZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDD,result2,SIZE));
+
+    if (Biddy_Managed_Diff(MNGZBDD,result2,Biddy_Copy(MNGZBDD,result)) != Biddy_Managed_GetEmptySet(MNGZBDD)) {
+      printf("ERROR: Operation Stretch has wrong result for MNGZBDD\n");
+    }
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Stretch is wrong for MNGOBDD / MNGZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result1);
+      Biddy_Managed_WriteBddview(MNGZBDD,"result1.bddview",result1,"result1",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result2);
+      Biddy_Managed_WriteBddview(MNGZBDD,"result2.bddview",result2,"result2",NULL);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDDC,result0);
+    result2 = Biddy_Managed_Stretch(MNGZBDDC,Biddy_Copy(MNGZBDDC,result));
+    printf("(STRETCH) Function result2 (MNGZBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDDC,result2,SIZE));
+
+    if (Biddy_Managed_Diff(MNGZBDDC,result2,Biddy_Copy(MNGZBDDC,result)) != Biddy_Managed_GetEmptySet(MNGZBDDC)) {
+      printf("ERROR: Operation Stretch has wrong result for MNGZBDDC\n");
+    }
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Stretch is wrong for MNGOBDD / MNGZBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,result0);
+    result2 = Biddy_Managed_Stretch(MNGTZBDD,Biddy_Copy(MNGTZBDD,result));
+    printf("(STRETCH) Function result2 (MNGTZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGTZBDD,result2,SIZE));
+
+    if (Biddy_Managed_Diff(MNGTZBDD,result2,Biddy_Copy(MNGTZBDD,result)) != Biddy_Managed_GetEmptySet(MNGTZBDD)) {
+      printf("ERROR: Operation Stretch has wrong result for MNGTZBDD\n");
+    }
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Stretch is wrong for MNGOBDD / MNGTZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR TZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result1);
+      Biddy_Managed_WriteBddview(MNGTZBDD,"result1.bddview",result1,"result1",NULL);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result2);
+      Biddy_Managed_WriteBddview(MNGTZBDD,"result2.bddview",result2,"result2",NULL);
+    }
+    */
+
+    /* OPERATION PERMITSYM */
+
+    for (i = 0; i<=SIZE; i++) {
+
+      result0 = Biddy_Managed_Permitsym(MNGOBDD,Biddy_Copy(MNGOBDD,result),i);
+      printf("(PERMITSYM) Function result0 has %.0f minterms/combinations with up to %u elements.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE),i);
+      /* printf("(PERMITSYM) Function result0 (MNGOBDD) has %.0f minterms/combinations with up to %u elements.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE),i); */
+
+      /* TRUTH TABLE FOR OBDD - DEBUGGING, ONLY */
+      /*
+      if (SIZE < 10) {
+        printf("HERE IS A TRUTH TABLE FOR result FOR OBDD:\n");
+        Biddy_Managed_PrintfTable(MNGOBDD,Biddy_Copy(MNGOBDD,result));
+        Biddy_Managed_WriteBddview(MNGOBDD,"result.bddview",Biddy_Copy(MNGOBDD,result),"result",NULL);
+        printf("HERE IS A TRUTH TABLE FOR result0 FOR OBDD:\n");
+        Biddy_Managed_PrintfTable(MNGOBDD,result0);
+        Biddy_Managed_WriteBddview(MNGOBDD,"result0.bddview",result0,"result0",NULL);
+      }
+      */
+
+      result1 = Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,result0);
+      result2 = Biddy_Managed_Permitsym(MNGOBDDC,Biddy_Copy(MNGOBDDC,result),i);
+      /* printf("(PERMITSYM) Function result2 (MNGOBDDC) has %.0f minterms/combinations with up to %u elements.\n",Biddy_Managed_CountMinterms(MNGOBDDC,result2,SIZE),i); */
+
+      if (result2 != result1) {
+        printf("ERROR: Operation Permitsym is wrong for MNGOBDD / MNGOBDDC and n = %u\n",i);
+      }
+
+      /* TRUTH TABLE FOR OBDDC - DEBUGGING, ONLY */
+      /*
+      if (SIZE < 10) {
+        printf("HERE IS A TRUTH TABLE FOR result1 FOR OBDDC:\n");
+        Biddy_Managed_PrintfTable(MNGOBDDC,result1);
+        printf("HERE IS A TRUTH TABLE FOR result2 FOR OBDDC:\n");
+        Biddy_Managed_PrintfTable(MNGOBDDC,result2);
+      }
+      */
+
+      result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,result0);
+      result2 = Biddy_Managed_Permitsym(MNGZBDD,Biddy_Copy(MNGZBDD,result),i);
+      /* printf("(PERMITSYM) Function result2 (MNGZBDD) has %.0f minterms/combinations with up to %u elements.\n",Biddy_Managed_CountMinterms(MNGZBDD,result2,SIZE),i); */
+
+      if (result2 != result1) {
+        printf("ERROR: Operation Permitsym is wrong for MNGOBDD / MNGZBDD and n = %u\n",i);
+      }
+
+      /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
+      /*
+      if (SIZE < 10) {
+        printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
+        Biddy_Managed_PrintfTable(MNGZBDD,result1);
+        printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
+        Biddy_Managed_PrintfTable(MNGZBDD,result2);
+      }
+      */
+
+      result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDDC,result0);
+      result2 = Biddy_Managed_Permitsym(MNGZBDDC,Biddy_Copy(MNGZBDDC,result),i);
+      /* printf("(PERMITSYM) Function result2 (MNGZBDDC) has %.0f minterms/combinations with up to %u elements.\n",Biddy_Managed_CountMinterms(MNGZBDDC,result2,SIZE),i); */
+
+      if (result2 != result1) {
+        printf("ERROR: Operation Permitsym is wrong for MNGOBDD / MNGZBDDC and n = %u\n",i);
+      }
+
+      /* TRUTH TABLE FOR ZBDDC - DEBUGGING, ONLY */
+      /*
+      if (SIZE < 10) {
+        printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDDC:\n");
+        Biddy_Managed_PrintfTable(MNGZBDDC,result1);
+        printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
+        Biddy_Managed_PrintfTable(MNGZBDDC,result2);
+      }
+      */
+
+      result1 = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,result0);
+      result2 = Biddy_Managed_Permitsym(MNGTZBDD,Biddy_Copy(MNGTZBDD,result),i);
+      /* printf("(PERMITSYM) Function result2 (MNGTZBDD) has %.0f minterms/combinations with up to %u elements.\n",Biddy_Managed_CountMinterms(MNGTZBDD,result2,SIZE),i); */
+
+      if (result2 != result1) {
+        printf("ERROR: Operation Permitsym is wrong for MNGOBDD / MNGTZBDD and n = %u\n",i);
+      }
+
+      /* TRUTH TABLE FOR TZBDD - DEBUGGING, ONLY */
+      /*
+      if (SIZE < 10) {
+        printf("HERE IS A TRUTH TABLE FOR result1 FOR TZBDD:\n");
+        Biddy_Managed_PrintfTable(MNGTZBDD,result1);
+        Biddy_Managed_WriteBddview(MNGTZBDD,"result1.bddview",result1,"result1",NULL);
+        printf("HERE IS A TRUTH TABLE FOR result2 FOR TZBDD:\n");
+        Biddy_Managed_PrintfTable(MNGTZBDD,result2);
+        Biddy_Managed_WriteBddview(MNGTZBDD,"result2.bddview",result2,"result2",NULL);
+        if (result2 != result1) exit(1);
+      }
+      */
+
+    }
+
+    /* OPERATION PRODUCT */
+
+    result0 = Biddy_Managed_Product(MNGOBDD,Biddy_Copy(MNGOBDD,result),Biddy_Copy(MNGOBDD,coresult));
+    printf("(PRODUCT) Function result0 (MNGOBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE));
+
+    /* TRUTH TABLE FOR OBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,result0);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,result0);
+    result2 = Biddy_Managed_Product(MNGOBDDC,Biddy_Copy(MNGOBDDC,result),Biddy_Copy(MNGOBDDC,coresult));
+    printf("(PRODUCT) Function result2 (MNGOBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Product is wrong for MNGOBDD / MNGOBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR OBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,result0);
+    result2 = Biddy_Managed_Product(MNGZBDD,Biddy_Copy(MNGZBDD,result),Biddy_Copy(MNGZBDD,coresult));
+    printf("(PRODUCT) Function result2 (MNGZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Product is wrong for MNGOBDD / MNGZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDDC,result0);
+    result2 = Biddy_Managed_Product(MNGZBDDC,Biddy_Copy(MNGZBDDC,result),Biddy_Copy(MNGZBDDC,coresult));
+    printf("(PRODUCT) Function result2 (MNGZBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Product is wrong for MNGOBDD / MNGZBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,result0);
+    result2 = Biddy_Managed_Product(MNGTZBDD,Biddy_Copy(MNGTZBDD,result),Biddy_Copy(MNGTZBDD,coresult));
+    printf("(PRODUCT) Function result2 (MNGTZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGTZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation Product is wrong for MNGOBDD / MNGTZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR TZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result2);
+    }
+    */
+
+    /* OPERATION SELECTIVE PRODUCT */
+
+    /* DEBUGGING */
+    /*
+    for (i = 1; i <= SIZE; i++) {
+      printf("(SELECTIVE PRODUCT - ROBDD): variable %s (%u)\n",Biddy_Managed_GetVariableName(MNGOBDD,i),i);
+      printf("(SELECTIVE PRODUCT - ROBDDC): variable %s (%u)\n",Biddy_Managed_GetVariableName(MNGOBDDC,i),i);
+      printf("(SELECTIVE PRODUCT - ZBDD): variable %s (%u)\n",Biddy_Managed_GetVariableName(MNGZBDD,i),i);
+      printf("(SELECTIVE PRODUCT - ZBDDC): variable %s (%u)\n",Biddy_Managed_GetVariableName(MNGZBDDC,i),i);
+    }
+    */
+
+    /* EMPTY POSITIVE SET AND NEGATIVE SET */
+    cuberobdd = Biddy_Managed_GetConstantOne(MNGOBDD);
+    cuberobddc = Biddy_Managed_GetConstantOne(MNGOBDDC);
+    cubezbdd = Biddy_Managed_GetBaseSet(MNGZBDD);
+    cubezbddc = Biddy_Managed_GetBaseSet(MNGZBDDC);
+
+    /* ALL IN POSITIVE SET */
+    /*
+    for (i = 1; i <= SIZE; i++) {
+      cuberobdd = Biddy_Managed_And(MNGOBDD,cuberobdd,Biddy_Managed_GetVariableEdge(MNGOBDD,i));
+      cuberobddc = Biddy_Managed_And(MNGOBDDC,cuberobddc,Biddy_Managed_GetVariableEdge(MNGOBDDC,i));
+      cubezbdd = Biddy_Managed_Product(MNGZBDD,cubezbdd,Biddy_Managed_GetElementEdge(MNGZBDD,i));
+      cubezbddc = Biddy_Managed_Product(MNGZBDDC,cubezbddc,Biddy_Managed_GetElementEdge(MNGZBDDC,i));
+    }
+    */
+
+    /* ALL IN NEGATIVE SET */
+    /*
+    for (i = 1; i <= SIZE; i++) {
+      cuberobdd = Biddy_Managed_Gt(MNGOBDD,cuberobdd,Biddy_Managed_GetVariableEdge(MNGOBDD,i));
+      cuberobddc = Biddy_Managed_Gt(MNGOBDDC,cuberobddc,Biddy_Managed_GetVariableEdge(MNGOBDDC,i));
+      cubezbdd = Biddy_Managed_E(MNGZBDD,cubezbdd,i);
+      cubezbddc = Biddy_Managed_E(MNGZBDDC,cubezbddc,i);
+    }
+    */
+
+    /* RANDOM POSITIVE SET AND NEGATIVE SET */
+    for (i = 1; i <= SIZE; i++) {
+      switch (rand()%3) {
+        case 0: /* printf("(SELECTIVE PRODUCT): variable %s (%u) NEUTRAL\n",Biddy_Managed_GetVariableName(MNGOBDD,i),i); */
+        break;
+        case 1: /* printf("(SELECTIVE PRODUCT): variable %s (%u) POSITIVE\n",Biddy_Managed_GetVariableName(MNGOBDD,i),i); */
+                cuberobdd = Biddy_Managed_And(MNGOBDD,cuberobdd,Biddy_Managed_GetVariableEdge(MNGOBDD,i));
+                cuberobddc = Biddy_Managed_And(MNGOBDDC,cuberobddc,Biddy_Managed_GetVariableEdge(MNGOBDDC,i));
+                cubezbdd = Biddy_Managed_Product(MNGZBDD,cubezbdd,Biddy_Managed_GetElementEdge(MNGZBDD,i));
+                cubezbddc = Biddy_Managed_Product(MNGZBDDC,cubezbddc,Biddy_Managed_GetElementEdge(MNGZBDDC,i));
+        break;
+        case 2: /* printf("(SELECTIVE PRODUCT): variable %s (%u) NEGATIVE\n",Biddy_Managed_GetVariableName(MNGOBDD,i),i); */
+                cuberobdd = Biddy_Managed_Gt(MNGOBDD,cuberobdd,Biddy_Managed_GetVariableEdge(MNGOBDD,i));
+                cuberobddc = Biddy_Managed_Gt(MNGOBDDC,cuberobddc,Biddy_Managed_GetVariableEdge(MNGOBDDC,i));
+                cubezbdd = Biddy_Managed_E(MNGZBDD,cubezbdd,i);
+                cubezbddc = Biddy_Managed_E(MNGZBDDC,cubezbddc,i);
+        break;
+      }
+    }
+
+    /* DEBUGGING */
+    /*
+    Biddy_Managed_WriteBddview(MNGOBDD,"cuberobdd.bddview",cuberobdd,"cuberobdd",NULL);
+    Biddy_Managed_WriteBddview(MNGOBDDC,"cuberobddc.bddview",cuberobddc,"cuberobddc",NULL);
+    Biddy_Managed_WriteBddview(MNGZBDD,"cubezbdd.bddview",cubezbdd,"cubezbdd",NULL);
+    Biddy_Managed_WriteBddview(MNGZBDDC,"cubezbddc.bddview",cubezbddc,"cubezbddc",NULL);
+    */
+
+    result0 = Biddy_Managed_SelectiveProduct(MNGOBDD,Biddy_Copy(MNGOBDD,result),Biddy_Copy(MNGOBDD,coresult),cuberobdd);
+    printf("(SELECTIVE PRODUCT) Function result0 (MNGOBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDD,result0,SIZE));
+
+    /* TRUTH TABLE FOR OBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,result0);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,result0);
+    result2 = Biddy_Managed_SelectiveProduct(MNGOBDDC,Biddy_Copy(MNGOBDDC,result),Biddy_Copy(MNGOBDDC,coresult),cuberobddc);
+    printf("(SELECTIVE PRODUCT) Function result2 (MNGOBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGOBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation SelectiveProduct is wrong for MNGOBDD / MNGOBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR OBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDD,result0);
+    result2 = Biddy_Managed_SelectiveProduct(MNGZBDD,Biddy_Copy(MNGZBDD,result),Biddy_Copy(MNGZBDD,coresult),cubezbdd);
+    printf("(SELECTIVE PRODUCT) Function result2 (MNGZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDD,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation SelectiveProduct is wrong for MNGOBDD / MNGZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGZBDDC,result0);
+    result2 = Biddy_Managed_SelectiveProduct(MNGZBDDC,Biddy_Copy(MNGZBDDC,result),Biddy_Copy(MNGZBDDC,coresult),cubezbddc);
+    printf("(SELECTIVE PRODUCT) Function result2 (MNGZBDDC) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGZBDDC,result2,SIZE));
+
+    if (result2 != result1) {
+      printf("ERROR: Operation SelectiveProduct is wrong for MNGOBDD / MNGZBDDC\n");
+    }
+
+    /* TRUTH TABLE FOR ZBDDC - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,result2);
     }
     */
 
@@ -541,7 +1512,7 @@ int main() {
 
     printf("********* CONVERSION TESTS *********\n");
 
-    /* CONVERT THE RESULT INTO OBDD */
+    /* CONVERT result INTO OBDD */
     robdd = Biddy_Copy(MNGOBDD, result);
     printf("OBDD for function result has %u nodes (including both terminals).\n", Biddy_Managed_CountNodes(MNGOBDD, robdd));
     printf("OBDD for function result has %u plain nodes (including both terminals).\n", Biddy_Managed_CountNodesPlain(MNGOBDD, robdd));
@@ -556,7 +1527,7 @@ int main() {
     }
     */
 
-    /* CONVERT THE RESULT INTO OBDDC */
+    /* CONVERT result INTO OBDDC */
     robddc = Biddy_Copy(MNGOBDDC,result);
     printf("OBDDC for function result has %u nodes (including terminal).\n",Biddy_Managed_CountNodes(MNGOBDDC,robddc));
     printf("OBDDC for function result has %u plain nodes (including both terminals).\n",Biddy_Managed_CountNodesPlain(MNGOBDDC,robddc));
@@ -571,7 +1542,7 @@ int main() {
     }
     */
 
-    /* CONVERT THE RESULT INTO ZBDDC */
+    /* CONVERT result INTO ZBDD */
     rzbdd = Biddy_Copy(MNGZBDD,result);
     printf("ZBDD for function result has %u nodes (including both terminals).\n",Biddy_Managed_CountNodes(MNGZBDD,rzbdd));
     printf("ZBDD for function result has %u plain nodes (including both terminals).\n",Biddy_Managed_CountNodesPlain(MNGZBDD,rzbdd));
@@ -586,7 +1557,7 @@ int main() {
     }
     */
 
-    /* CONVERT THE RESULT INTO ZBDDC */
+    /* CONVERT result INTO ZBDDC */
     rzbddc = Biddy_Copy(MNGZBDDC, result);
     printf("ZBDDC for function result has %u nodes (including terminal).\n", Biddy_Managed_CountNodes(MNGZBDDC, rzbddc));
     printf("ZBDDC for function result has %u plain nodes (including both terminals).\n", Biddy_Managed_CountNodesPlain(MNGZBDDC, rzbddc));
@@ -601,7 +1572,7 @@ int main() {
     }
     */
 
-    /* CONVERT THE RESULT INTO TZBDDs */
+    /* CONVERT result INTO TZBDDs */
     rtzbdd = Biddy_Copy(MNGTZBDD,result);
     printf("TZBDD for function result has %u nodes (including both terminals).\n",Biddy_Managed_CountNodes(MNGTZBDD,rtzbdd));
     printf("TZBDD for function result has %llu one-paths.\n",Biddy_Managed_CountPaths(MNGTZBDD,rtzbdd));
@@ -693,30 +1664,30 @@ int main() {
 
     if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC)) {
       cube = Biddy_GetConstantOne();
-      cube = Biddy_And(cube, Biddy_GetVariableEdge(first));
+      cube = Biddy_And(cube, Biddy_GetVariableEdge(second));
       cube = Biddy_And(cube, Biddy_GetVariableEdge(last));
       cube = Biddy_And(cube, Biddy_GetVariableEdge(extra));
     }
 
     if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
       cube = Biddy_GetBaseSet();
-      cube = Biddy_Change(cube, first);
+      cube = Biddy_Change(cube,second);
       if (last != first) cube = Biddy_Change(cube, last);
       cube = Biddy_Change(cube, extra);
     }
 
     if ((Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC)) {
       cube = Biddy_GetConstantOne();
-      cube = Biddy_And(cube, Biddy_GetVariableEdge(first));
+      cube = Biddy_And(cube, Biddy_GetVariableEdge(second));
       cube = Biddy_And(cube, Biddy_GetVariableEdge(last));
       cube = Biddy_And(cube, Biddy_GetVariableEdge(extra));
     }
 
-    result1 = Biddy_E(result, first);
-    result1 = Biddy_E(result1, last);
-    result2 = Biddy_ExistAbstract(result, cube);
+    result1 = Biddy_E(result,second);
+    result1 = Biddy_E(result1,last);
+    result2 = Biddy_ExistAbstract(result,cube);
 
-    printf("After the existential abstraction of first and last variable, function result has %.0f minterms/combinations\n", Biddy_CountMinterms(result2, SIZE));
+    printf("After the existential abstraction of second and last variable, function result has %.0f minterms/combinations\n", Biddy_CountMinterms(result2, SIZE));
 
     if (result1 != result2) {
       printf("ERROR: Operation Abstraction (1) is wrong!\n");
@@ -739,11 +1710,11 @@ int main() {
     }
     */
 
-    result1 = Biddy_A(result, first);
-    result1 = Biddy_A(result1, last);
-    result2 = Biddy_UnivAbstract(result, cube);
+    result1 = Biddy_A(result,second);
+    result1 = Biddy_A(result1,last);
+    result2 = Biddy_UnivAbstract(result,cube);
 
-    printf("After the universal abstraction of first and last variable, function result has %.0f minterms/combinations\n", Biddy_CountMinterms(result2, SIZE));
+    printf("After the universal abstraction of second and last variable, function result has %.0f minterms/combinations\n", Biddy_CountMinterms(result2, SIZE));
 
     if (result1 != result2) {
       printf("ERROR: Operation Abstraction (2) is wrong!\n");
@@ -758,11 +1729,11 @@ int main() {
     }
     */
 
-    result0 = Biddy_E(result, first);
-    result1 = Biddy_E(Biddy_Not(result), last);
-    result2 = Biddy_And(result0, result1);
-    result2 = Biddy_ExistAbstract(result2, cube);
-    result1 = Biddy_AndAbstract(result0, result1, cube);
+    result0 = Biddy_E(result,second);
+    result1 = Biddy_E(Biddy_Not(result),last);
+    result2 = Biddy_And(result0,result1);
+    result2 = Biddy_ExistAbstract(result2,cube);
+    result1 = Biddy_AndAbstract(result0,result1,cube);
 
     printf("After the first user-defined abstraction, function result has %.0f minterms/combinations\n", Biddy_CountMinterms(result1, SIZE));
 
@@ -770,9 +1741,9 @@ int main() {
       printf("ERROR: Operation Abstraction (3) is wrong!\n");
     }
 
-    result0 = Biddy_A(result, first);
-    result1 = Biddy_A(Biddy_Not(result), last);
-    result1 = Biddy_AndAbstract(result0, result1, cube);
+    result0 = Biddy_A(result,second);
+    result1 = Biddy_A(Biddy_Not(result),last);
+    result1 = Biddy_AndAbstract(result0,result1,cube);
 
     printf("After the second user-defined abstraction, function result has %.0f minterms/combinations\n", Biddy_CountMinterms(result1, SIZE));
 

@@ -288,7 +288,22 @@ Changes v1.9.1 versus v1.8.2
 - copyright changed (Robert Meolic is no longer with UM FERI)
 - upgraded to Visual Studio 2019, WIX is used for packaging
 - improved source code style
-- added COMPACT variant - ROBDDs only and without gmp library (limited functionality)
+- added compact variant - ROBDDs only and without the gmp library (limited functionality)
 - improved Biddy_ExtractMinterm
 - improved Biddy_PrintBDD, Biddy_PrintTable, Biddy_PrintMinterms, and Biddy_PrintSOP
 - optimized statistical functions by adding Biddy_SystemStat and Biddy_SystemLongStat
+
+Changes v2.0.1 versus v1.9.1
+- released on Mar 29, 2020
+- improved Biddy_FoaVariable
+- improved Biddy_CountMinterms
+- improved Biddy_Supset and Biddy_Subset
+- improved Biddy_ElementAbstract and Biddy_ExtractMinterm
+- improved Biddy_Permitsym and Biddy_Stretch
+- improved Biddy_SelectiveProduct
+- improved Biddy_PrintfMinterms (for Boolean functions and combinations)
+- improved sifting on function
+- fixed Biddy_Purge
+- fixed VarSubset for TZBDD (cache was not used)
+- memory management changed for operations (reused nodes are immediately refreshed)
+- Production Planning example now supports OBDDs

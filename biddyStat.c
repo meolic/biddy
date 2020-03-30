@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyStat.c]
-    Revision    [$Revision: 571 $]
-    Date        [$Date: 2019-12-28 08:02:44 +0100 (sob, 28 dec 2019) $]
+    Revision    [$Revision: 617 $]
+    Date        [$Date: 2020-03-27 23:43:46 +0100 (pet, 27 mar 2020) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -718,21 +718,22 @@ Biddy_Managed_CountPaths(Biddy_Manager MNG, Biddy_Edge f)
     For combination sets, this function coincides with combinations counting.
     Parameter nvars is a user-defined number of dependent variables.
     If (nvars == 0) then all noticeable variables are considered.
+    If (nvars == -1) then all created variables are considered.
 ### Side effects
     We are using GNU Multiple Precision Arithmetic Library (GMP).
     For ZBDDs, this function coincides with the 1-path count.
-    For ZBDDs, result does not depend on the number of dependent variables.
+    For ZBDDs, result does not depend on the number of considered variables.
     For OBDD, noticeable variables are all variables existing in the graph.
-    For TZBDD, noticeable variables are all variables equal or below a top
-    variable (considering the tag).
+    For TZBDD, noticeable variables are all variables equal or below a tag
+    of the top node.
     For OBDDs and TZBDDs, if (nvars == 0) the result may not be consistent
-    with Biddy_PrintfMinterms because this function considers noticeable
+    with Biddy_PrintfMinterms because this call considers noticeable
     variables, while Biddy_PrintfMinterms considers all created variables.
 ### More info
     Macro Biddy_CountMinterms(f,nvars) is defined for use with anonymous
     manager.
-    Macros Biddy_Managed_CountCombination(MNG,f,nvars) and
-    Biddy_CountCombinations(f,nvars) are identical functions defined for
+    Macros Biddy_Managed_CountCombinations(MNG,f) and
+    Biddy_CountCombinations(f) are similar functions defined for
     use with combination sets.
 *******************************************************************************/
 
@@ -741,7 +742,7 @@ extern "C" {
 #endif
 
 double
-Biddy_Managed_CountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars)
+Biddy_Managed_CountMinterms(Biddy_Manager MNG, Biddy_Edge f, int nvars)
 {
   if (!MNG) MNG = biddyAnonymousManager;
 
@@ -1756,9 +1757,9 @@ BiddyManagedCountPaths(Biddy_Manager MNG, Biddy_Edge f)
 *******************************************************************************/
 
 double
-BiddyManagedCountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars)
+BiddyManagedCountMinterms(Biddy_Manager MNG, Biddy_Edge f, int nvars)
 {
-  unsigned int var,depvar;
+  int var,depvar;
   mpz_t max;
   mpz_t result;
   double resultd;
@@ -1786,8 +1787,16 @@ BiddyManagedCountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars)
   }
 #endif
 
+  /* DEBUGGING */
+  /*
+  printf("BiddyManagedCountMinterms: nvars = %d\n",nvars);
+  printf("BiddyManagedCountMinterms: var = %d\n",var);
+  printf("BiddyManagedCountMinterms: depvar = %d\n",depvar);
+  */
+
   /* nvars is the requested number of variables */
   if (nvars == 0) nvars = var;
+  if (nvars == -1) nvars = biddyVariableTable.num-1; /* number of variables except variable 1 */
   if (nvars < depvar) {
     nvars = depvar;
     fprintf(stderr,"WARNING (BiddyManagedCountMinterms): nvars < depvar\n");
@@ -2006,7 +2015,7 @@ BiddyManagedMinNodes(Biddy_Manager MNG, Biddy_Edge f)
     for (k = 1; k < biddyVariableTable.num; k++) {
       if (biddyVariableTable.table[v].selected == TRUE) {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname);
+        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
       v = biddyVariableTable.table[v].next;
@@ -2023,7 +2032,7 @@ BiddyManagedMinNodes(Biddy_Manager MNG, Biddy_Edge f)
       if (BiddyIsSmaller(v,BiddyV(f)) || (biddyVariableTable.table[v].selected == TRUE))
       {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname);
+        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
     }
@@ -2037,7 +2046,7 @@ BiddyManagedMinNodes(Biddy_Manager MNG, Biddy_Edge f)
       v = biddyVariableTable.table[v].prev;
       if (biddyVariableTable.table[v].selected == TRUE) {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname);
+        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
     }
@@ -2140,7 +2149,7 @@ BiddyManagedMaxNodes(Biddy_Manager MNG, Biddy_Edge f)
     for (k = 1; k < biddyVariableTable.num; k++) {
       if (biddyVariableTable.table[v].selected == TRUE) {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname);
+        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
       v = biddyVariableTable.table[v].next;
@@ -2157,7 +2166,7 @@ BiddyManagedMaxNodes(Biddy_Manager MNG, Biddy_Edge f)
       if (BiddyIsSmaller(v,BiddyV(f)) || (biddyVariableTable.table[v].selected == TRUE))
       {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname);
+        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
     }
@@ -2171,7 +2180,7 @@ BiddyManagedMaxNodes(Biddy_Manager MNG, Biddy_Edge f)
       v = biddyVariableTable.table[v].prev;
       if (biddyVariableTable.table[v].selected == TRUE) {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname);
+        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
     }
@@ -2360,6 +2369,15 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
   fprintf(f,"Number of nodes in the last memory block: %u\n",biddyNodeTable.blocksize);
   fprintf(f,"Number of variables: %u\n",biddyVariableTable.num);
   fprintf(f,"Number of formulae: %u\n",biddyFormulaTable.size);
+  /* DEBUGGING */
+  /*
+  {
+  unsigned int i;
+  for (i = 2; i < biddyFormulaTable.size; i++) {
+    fprintf(stderr,"Formula %s (deleted = %u)\n",biddyFormulaTable.table[i].name, biddyFormulaTable.table[i].deleted);
+  }
+  }
+  */
   fprintf(f,"Peak number of BDD nodes: %u\n",biddyNodeTable.generated);
   fprintf(f,"Peak number of live BDD nodes: %u\n",biddyNodeTable.max);
   fprintf(f,"Number of live BDD nodes: %u\n",biddyNodeTable.num);
@@ -2408,12 +2426,12 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
   fprintf(f,"**** OP cache stats ****\n");
   fprintf(f,"Size of OP cache: %u\n",biddyOPCache.size);
 #ifdef MINGW
+#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f, "Number of OP cache look-ups: %I64u\n",*(biddyOPCache.search));
   fprintf(f, "Number of OP cache hits: %I64u (%.2f%% of all calls)\n",
                                    *(biddyOPCache.find),
                                    *(biddyOPCache.search) ?
                                    (100.0*(*(biddyOPCache.find))/(*(biddyOPCache.search))):0);
-#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f,"Number of OP cache insertions: %I64u (%.2f%% of all calls)\n",
                                    *(biddyOPCache.insert),
                                    *(biddyOPCache.search) ?
@@ -2426,12 +2444,12 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
                                    (100.0*(*(biddyOPCache.overwrite))/(*(biddyOPCache.search))):0);
 #endif
 #else
+#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f, "Number of OP cache look-ups: %llu\n",*(biddyOPCache.search));
   fprintf(f, "Number of OP cache hits: %llu (%.2f%% of all calls)\n",
                                    *(biddyOPCache.find),
                                    *(biddyOPCache.search) ?
                                    (100.0*(*(biddyOPCache.find))/(*(biddyOPCache.search))):0);
-#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f,"Number of OP cache insertions: %llu (%.2f%% of all calls)\n",
                                    *(biddyOPCache.insert),
                                    *(biddyOPCache.search) ?
@@ -2447,12 +2465,12 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
   fprintf(f,"**** EA cache stats ****\n");
   fprintf(f,"Size of EA cache: %u\n",biddyEACache.size);
 #ifdef MINGW
+#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f, "Number of EA cache look-ups: %I64u\n",*(biddyEACache.search));
   fprintf(f, "Number of EA cache hits: %I64u (%.2f%% of all calls)\n",
                                    *(biddyEACache.find),
                                    (*(biddyEACache.search)) ?
                                    (100.0*(*(biddyEACache.find))/(*(biddyEACache.search))):0);
-#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f,"Number of EA cache insertions: %I64u (%.2f%% of all calls)\n",
                                    *(biddyEACache.insert),
                                    (*(biddyEACache.search)) ?
@@ -2465,12 +2483,12 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
                                    (100.0*(*(biddyEACache.overwrite))/(*(biddyEACache.search))):0);
 #endif
 #else
+#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f, "Number of EA cache look-ups: %llu\n",*(biddyEACache.search));
   fprintf(f, "Number of EA cache hits: %llu (%.2f%% of all calls)\n",
                                    *(biddyEACache.find),
                                    (*(biddyEACache.search)) ?
                                    (100.0*(*(biddyEACache.find))/(*(biddyEACache.search))):0);
-#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f,"Number of EA cache insertions: %llu (%.2f%% of all calls)\n",
                                    *(biddyEACache.insert),
                                    (*(biddyEACache.search)) ?
@@ -2486,12 +2504,12 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
   fprintf(f,"**** RC cache stats ****\n");
   fprintf(f,"Size of RC cache: %u\n",biddyRCCache.size);
 #ifdef MINGW
+#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f, "Number of RC cache look-ups: %I64u\n",*(biddyRCCache.search));
   fprintf(f, "Number of RC cache hits: %I64u (%.2f%% of all calls)\n",
                                    *(biddyRCCache.find),
                                    (*(biddyRCCache.search)) ?
                                    (100.0*(*(biddyRCCache.find))/(*(biddyRCCache.search))):0);
-#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f,"Number of RC cache insertions: %I64u (%.2f%% of all calls)\n",
                                    *(biddyRCCache.insert),
                                    (*(biddyRCCache.search)) ?
@@ -2504,12 +2522,12 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
                                    (100.0*(*(biddyRCCache.overwrite))/(*(biddyRCCache.search))):0);
 #endif
 #else
+#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f, "Number of RC cache look-ups: %llu\n",*(biddyRCCache.search));
   fprintf(f, "Number of RC cache hits: %llu (%.2f%% of all calls)\n",
                                    *(biddyRCCache.find),
                                    (*(biddyRCCache.search)) ?
                                    (100.0*(*(biddyRCCache.find))/(*(biddyRCCache.search))):0);
-#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f,"Number of RC cache insertions: %llu (%.2f%% of all calls)\n",
                                    *(biddyRCCache.insert),
                                    (*(biddyRCCache.search)) ?
@@ -2525,12 +2543,12 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
   fprintf(f,"**** Replace cache stats ****\n");
   fprintf(f,"Size of Replace cache: %u\n",biddyReplaceCache.size);
 #ifdef MINGW
+#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f, "Number of Replace cache look-ups: %I64u\n",*(biddyReplaceCache.search));
   fprintf(f, "Number of Replace cache hits: %I64u (%.2f%% of all calls)\n",
                                    *(biddyReplaceCache.find),
                                    (*(biddyReplaceCache.search)) ?
                                    (100.0*(*(biddyReplaceCache.find))/(*(biddyReplaceCache.search))):0);
-#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f,"Number of Replace cache insertions: %I64u (%.2f%% of all calls)\n",
                                    *(biddyReplaceCache.insert),
                                    (*(biddyReplaceCache.search)) ?
@@ -2543,12 +2561,12 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
                                    (100.0*(*(biddyReplaceCache.overwrite))/(*(biddyReplaceCache.search))):0);
 #endif
 #else
+#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f, "Number of Replace cache look-ups: %llu\n",*(biddyReplaceCache.search));
   fprintf(f, "Number of Replace cache hits: %llu (%.2f%% of all calls)\n",
                                    *(biddyReplaceCache.find),
                                    (*(biddyReplaceCache.search)) ?
                                    (100.0*(*(biddyReplaceCache.find))/(*(biddyReplaceCache.search))):0);
-#ifdef BIDDYEXTENDEDSTATS_YES
   fprintf(f,"Number of Replace cache insertions: %llu (%.2f%% of all calls)\n",
                                    *(biddyReplaceCache.insert),
                                    (*(biddyReplaceCache.search)) ?

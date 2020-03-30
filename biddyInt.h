@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 569 $]
-    Date        [$Date: 2019-12-27 10:51:41 +0100 (pet, 27 dec 2019) $]
+    Revision    [$Revision: 618 $]
+    Date        [$Date: 2020-03-28 12:38:59 +0100 (sob, 28 mar 2020) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -44,15 +44,213 @@ See also: biddy.h
 #ifndef _BIDDYINT
 #define _BIDDYINT
 
-/* define COMPACT for variant with ROBDD, only, also without gmp library */
+/*----------------------------------------------------------------------------*/
+/* START OF USER SETTINGS                                                     */
+/*----------------------------------------------------------------------------*/
+
+/* define COMPACT for variant with only ROBDDs */
 #define NOCOMPACT
+
+/* define GMPFREE for variant without gmp library - it has limited functionality */
+#define NOGMPFREE
+
+/* define LOWMEMORY to use settings which try to lower memory requirements */
+#define NOLOWMEMORY
+
+/* define ESTPROJECT to use optimal settings for EST */
+#define NOESTPROJECT
+
+/* define COMPREHENSIVE to use settings for larger problems, e.g. dictionary example, pp example */
+#define NOCOMPREHENSIVE
+
+/* EST project */
+#ifdef ESTPROJECT
+#ifdef GMPFREE
+#undef GMPFREE
+#endif
+#ifdef LOWMEMORY
+#undef LOWMEMORY
+#endif
+#ifdef COMPREHENSIVE
+#undef COMPREHENSIVE
+#endif
+#endif
+
+/* extended stats (YES or NO) */
+/* if YES then you have to use -lm for linking */
+#define BIDDYEXTENDEDSTATS_NO
+
+/* event log (YES or NO) */
+#define BIDDYEVENTLOG_NO
+
+/* define LEGACY_DOT to use CUDD style for edges: */
+/* solid line: regular THEN arcs */
+/* bold line: complemented THEN arcs */
+/* dashed line: regular ELSE arcs */
+/* dotted line: complemented ELSE arcs */
+/* without LEGACY_DOT, an experimental style for edges is used */
+/* this setting is NOT USED for CUDD-like generation of dot files */
+#define LEGACY_DOT
+
+/* refreshing variant during operatins on BDDs (to test the efficiency) */
+/* MACRO USING IS NOT IMPLEMENTED YET */
+/* VARIANT B WAS USED FROM 1.6 UNTIL 1.9, VARIANT A IS USED IN 2.0 */
+/* variant A: created and reused nodes are immediately refreshed */
+/* variant B: created nodes are immediately refreshed, */
+/*   reused nodes are not refreshed, top node is refreshed when op finishes */
+/*   this could be problematic if BDD operations are paralelized on multiple cores */
+/* TO DO: check if sifting and BDD copying is correctly implemented */
+#define REFRESH_VARIANT_A
+
+/*----------------------------------------------------------------------------*/
+/* END OF USER SETTINGS                                                       */
+/*----------------------------------------------------------------------------*/
 
 #include "biddy.h"
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
 
-#ifdef COMPACT
+/*----------------------------------------------------------------------------*/
+/* Constant declarations                                                      */
+/*----------------------------------------------------------------------------*/
+
+/* max number of variables - this is hardcoded for better performance */
+/* for optimal space reservation use VARMAX =  32*N */
+/* variable "1" is one of these variables */
+/* for TZBDDs and TZFDDs, the limit is 65536 variables on 64-bit architecture */
+/* if there are more than 32768 variables then some macros in biddy.h must be changed */
+/* BIDDY IS NOT EFFICIENT WITH MANY VARIABLES! */
+#ifdef LOWMEMORY
+#define BIDDYVARMAX 1024
+#else
+/* #define BIDDYVARMAX 1024 */
+/* #define BIDDYVARMAX 2048 */
+#define BIDDYVARMAX 4096
+/* #define BIDDYVARMAX 6144 */
+/* #define BIDDYVARMAX 8192 */
+#endif
+
+/* THE FOLLOWING SIZES ARE unsigned int                            */
+/* Size of node and cache tables must be 2^N-1                     */
+/* e.g. 2^16-1 = 65535, 2^20-1 = 1048575, 2^24-1 = 16777215        */
+
+/* If BDD node is 24B (e.g. 32-bit GNU/Linux systems)              */
+/* 256 nodes is 6 kB                                               */
+/* 65536 nodes is 1.5 MB                                           */
+/* 262144 nodes is 6 MB                                            */
+/* 524288 nodes is 12 MB                                           */
+/* 1048576 nodes is 24.0 MB                                        */
+/* 2097152 nodes is 48.0 MB                                        */
+/* 4194304 nodes is 96.0 MB                                        */
+/* 8388608 nodes is 192.0 MB                                       */
+/* 16777216 nodes is 384.0 MB                                      */
+
+/* If BDD node is 48B (e.g. 64-bit GNU/Linux systems), then:       */
+/* 256 nodes is 12 kB                                              */
+/* 65536 nodes is 3.0 MB                                           */
+/* 262144 nodes is 12 MB                                           */
+/* 524288 nodes is 24 MB                                           */
+/* 1048576 nodes is 48.0 MB                                        */
+/* 2097152 nodes is 96.0 MB                                        */
+/* 4194304 nodes is 192.0 MB                                       */
+/* 8388608 nodes is 384.0 MB                                       */
+/* 16777216 nodes is 768.0 MB                                      */
+
+#define TINY_SIZE        1023
+#define SMALL_SIZE      65535
+#define MEDIUM_SIZE    262143
+#define LARGE_SIZE    1048575
+#define XLARGE_SIZE   2097151
+#define XXLARGE_SIZE  4194303
+#define XXXLARGE_SIZE 8388607
+#define HUGE_SIZE    16777215
+
+#if defined(LOWMEMORY)
+/* THESE ARE SIZES FOR LOW MEMORY SETTINGS, , E.G. FOR MOBILE APPS */
+#define BIDDYVARIABLETABLESIZE BIDDYVARMAX
+#define BIDDYNODETABLEINITBLOCKSIZE SMALL_SIZE
+#define BIDDYNODETABLELIMITBLOCKSIZE SMALL_SIZE
+#define BIDDYNODETABLEINITSIZE SMALL_SIZE
+#define BIDDYNODETABLELIMITSIZE MEDIUM_SIZE
+#define BIDDYOPCACHESIZE SMALL_SIZE
+#define BIDDYEACACHESIZE SMALL_SIZE
+#define BIDDYRCCACHESIZE SMALL_SIZE
+#define BIDDYREPLACECACHESIZE SMALL_SIZE
+#elif defined(COMPREHENSIVE)
+/* THESE ARE SIZES FOR LARGER PROBLEMS, E.G. DICTIONARY EXAMPLE, PP EXAMPLE */
+#define BIDDYVARIABLETABLESIZE BIDDYVARMAX
+#define BIDDYNODETABLEINITBLOCKSIZE LARGE_SIZE
+#define BIDDYNODETABLELIMITBLOCKSIZE LARGE_SIZE
+#define BIDDYNODETABLEINITSIZE LARGE_SIZE
+#define BIDDYNODETABLELIMITSIZE HUGE_SIZE
+#define BIDDYOPCACHESIZE XLARGE_SIZE
+#define BIDDYEACACHESIZE XLARGE_SIZE
+#define BIDDYRCCACHESIZE XLARGE_SIZE
+#define BIDDYREPLACECACHESIZE SMALL_SIZE
+#elif defined(ESTPROJECT)
+/* THESE ARE SIZES IN EST PROJECT */
+#define BIDDYVARIABLETABLESIZE BIDDYVARMAX
+#define BIDDYNODETABLEINITBLOCKSIZE LARGE_SIZE
+#define BIDDYNODETABLELIMITBLOCKSIZE XLARGE_SIZE
+#define BIDDYNODETABLEINITSIZE LARGE_SIZE
+#define BIDDYNODETABLELIMITSIZE HUGE_SIZE
+#define BIDDYOPCACHESIZE LARGE_SIZE
+#define BIDDYEACACHESIZE SMALL_SIZE
+#define BIDDYRCCACHESIZE SMALL_SIZE
+#define BIDDYREPLACECACHESIZE SMALL_SIZE
+#else
+/* THESE ARE DEFAULT SIZES */
+#define BIDDYVARIABLETABLESIZE BIDDYVARMAX
+#define BIDDYNODETABLEINITBLOCKSIZE MEDIUM_SIZE
+#define BIDDYNODETABLELIMITBLOCKSIZE XLARGE_SIZE
+#define BIDDYNODETABLEINITSIZE SMALL_SIZE
+#define BIDDYNODETABLELIMITSIZE HUGE_SIZE
+#define BIDDYOPCACHESIZE MEDIUM_SIZE
+#define BIDDYEACACHESIZE SMALL_SIZE
+#define BIDDYRCCACHESIZE SMALL_SIZE
+#define BIDDYREPLACECACHESIZE SMALL_SIZE
+#endif
+
+/* THE FOLLOWING TRESHOLDS ARE float */
+/* all values are experimentally determined */
+/* gcr=1.67, gcrF=1.20, gcrX=0.91, rr=0.01, rrF=1.45, rrX=0.98 */ /* used in v1.7.1 */
+/* gcr=1.32, gcrF=0.99, gcrX=1.10, rr=0.01, rrF=0.89, rrX=0.91 */ /* used in v1.7.2, v1.7.3, v1.7.4, v1.8.1, v1.8.2, v1.9.1 */
+/* gcr=1.32, gcrF=0.99, gcrX=1.10, rr=0.01, rrF=0.89, rrX=0.91 */ /* used in v2.0.1 */
+
+#define BIDDYNODETABLEGCRATIO 1.32
+#define BIDDYNODETABLEGCRATIOF 0.99
+#define BIDDYNODETABLEGCRATIOX 1.10
+#define BIDDYNODETABLERESIZERATIO 0.01
+#define BIDDYNODETABLERESIZERATIOF 0.89
+#define BIDDYNODETABLERESIZERATIOX 0.91
+
+/* THE FOLLOWING TRESHOLDS ARE float */
+/* all values are experimentally determined */
+
+#define BIDDYNODETABLESIFTINGTRESHOLD 0.95
+#define BIDDYNODETABLECONVERGESIFTINGTRESHOLD 1.01
+#define BIDDYNODETABLESIFTINGFACTOR 3.14
+
+/* UINTPTR and UINTPTRSIZE are used for BiddyOrdering */
+#define UINTPTR uintptr_t
+#define UINTPTRSIZE (8*sizeof(UINTPTR))
+
+/* the following constants are used in Biddy_ReadVerilogFile */
+#define LINESIZE 999 /* maximum length of each input line read */
+#define BUFSIZE 99999 /* maximum length of a buffer */
+#define INOUTNUM 999 /* maximum number of inputs and outputs */
+#define REGNUM 9999 /* maximum number of registers */
+#define TOKENNUM 9999 /* maximum number of tokens */
+#define GATENUM 9999 /* maximum number of gates */
+#define LINENUM 99999 /* maximum number of lines */
+#define WIRENUM 99999 /* maximum number of wires */
+
+/*----------------------------------------------------------------------------*/
+/* Definitions of platform or variant dependent macros                        */
+/*----------------------------------------------------------------------------*/
+
+#ifdef GMPFREE
 #define mpz_t unsigned long long int *
 #define mpz_init(x) x = malloc(sizeof(unsigned long long int)); *(x) = 0
 #define mpz_clear(x) free(x)
@@ -70,6 +268,12 @@ See also: biddy.h
 #include <gmp.h>
 #endif
 
+#ifdef BIDDYEVENTLOG_YES
+#define ZF_LOGI(x) {static unsigned int biddystat = 0;printf(x);printf("#%u,%.2f\n",++biddystat,clock()/(1.0*CLOCKS_PER_SEC));}
+#else
+#define ZF_LOGI(x)
+#endif
+
 /* sleep() is not included in modern version of MINGW */
 /* #define sleep(sec) (Sleep ((sec) * 1000), 0) */
 
@@ -85,63 +289,8 @@ See also: biddy.h
 #define strcasecmp _stricmp
 #endif
 
-/* extended stats (YES or NO) */
-/* if YES then you have to use -lm for linking */
-#define BIDDYEXTENDEDSTATS_NO
-
-/* event log (YES or NO) */
-#define BIDDYEVENTLOG_NO
-#ifdef BIDDYEVENTLOG_YES
-#define ZF_LOGI(x) {static unsigned int biddystat = 0;printf(x);printf("#%u,%.2f\n",++biddystat,clock()/(1.0*CLOCKS_PER_SEC));}
-#else
-#define ZF_LOGI(x)
-#endif
-
-/* use this to use CUDD style for edges: */
-/* solid line: regular THEN arcs */
-/* bold line: complemented THEN arcs */
-/* dashed line: regular ELSE arcs */
-/* dotted line: complemented ELSE arcs */
-/* without LEGACY_DOT, an experimental style for edges is used */
-/* this setting is NOT USED for CUDD-like generation of dot files */
-#define LEGACY_DOT
-
 /*----------------------------------------------------------------------------*/
-/* Constant declarations                                                      */
-/*----------------------------------------------------------------------------*/
-
-/* UINTPTR and UINTPTRSIZE are used for BiddyOrdering */
-#define UINTPTR uintptr_t
-#define UINTPTRSIZE (8*sizeof(UINTPTR))
-
-/* max number of variables - this is hardcoded for better performance */
-/* for optimal space reservation use VARMAX =  32*N */
-/* variable "1" is one of these variables */
-/* for TZBDDs and TZFDDs, the limit is 65536 variables on 64-bit architecture */
-/* if there are more than 32768 variables then some macros in biddy.h must be changed */
-/* BIDDY IS NOT EFFICIENT WITH MANY VARIABLES! */
-#ifdef COMPACT
-#define BIDDYVARMAX 1024
-#else
-/* #define BIDDYVARMAX 1024 */
-/* #define BIDDYVARMAX 2048 */
-#define BIDDYVARMAX 4096
-/* #define BIDDYVARMAX 6144 */
-/* #define BIDDYVARMAX 8192 */
-#endif
-
-/* the following constants are used in Biddy_ReadVerilogFile */
-#define LINESIZE 999 /* maximum length of each input line read */
-#define BUFSIZE 99999 /* maximum length of a buffer */
-#define INOUTNUM 999 /* maximum number of inputs and outputs */
-#define REGNUM 9999 /* maximum number of registers */
-#define TOKENNUM 9999 /* maximum number of tokens */
-#define GATENUM 9999 /* maximum number of gates */
-#define LINENUM 99999 /* maximum number of lines */
-#define WIRENUM 99999 /* maximum number of wires */
-
-/*----------------------------------------------------------------------------*/
-/* Definitions of external macros                                             */
+/* Shortcuts to external macros                                               */
 /*----------------------------------------------------------------------------*/
 
 #define BiddyIsNull(f) Biddy_IsNull(f)
@@ -319,7 +468,8 @@ See also: biddy.h
 /* BiddyProlongOne prolonges top node of the given function, since Biddy v1.6 */
 #define BiddyProlongOne(f,c) if((!(c))||(BiddyN(f)->expiry&&(BiddyN(f)->expiry<(c))))BiddyN(f)->expiry=(c)
 
-/* BiddyRefresh prolonges top node of the given function, manager MNG is assumed, since Biddy v1.7 */
+/* BiddyRefresh make top node of the given function equal to biddySystemAge if it was smaller, manager MNG is assumed, since Biddy v1.7 */
+/* BiddyDefresh make top node of the given function equal to biddySystemAge if it was greater, manager MNG is assumed, since Biddy v1.7 */
 #define BiddyRefresh(f) if(BiddyN(f)->expiry&&(BiddyN(f)->expiry<(biddySystemAge)))BiddyN(f)->expiry=(biddySystemAge)
 #define BiddyDefresh(f) if(BiddyN(f)->expiry&&(BiddyN(f)->expiry>(biddySystemAge)))BiddyN(f)->expiry=(biddySystemAge)
 
@@ -334,7 +484,7 @@ See also: biddy.h
 
 /* BiddyIsOK is intended for debugging, only, manager MNG is assumed, since Biddy v1.7 */
 #define BiddyIsOK(f) (!(BiddyN(f)->expiry) || ((BiddyN(f)->expiry) >= biddySystemAge))
-/* #define BiddyIsOK(f) ((!(BiddyN(f)->expiry) || ((BiddyN(f)->expiry) >= biddySystemAge)) && checkFunctionOrdering(MNG,f)) */
+#define BiddyIsOKK(f) ((!(BiddyN(f)->expiry) || ((BiddyN(f)->expiry) >= biddySystemAge)) && checkFunctionOrdering(MNG,f))
 
 /*----------------------------------------------------------------------------*/
 /* Type declarations                                                          */
@@ -388,6 +538,7 @@ typedef struct {
   float resizeratioX; /* resize Node table if there are to many nodes */
   float siftingtreshold; /* stop sifting if the size of the system grows to much */
   float convergesiftingtreshold;  /* stop one step of converging sifting if the size of the system grows to much */
+  float siftingfactor; /* sifting heuristics */
 
 #ifdef BIDDYEXTENDEDSTATS_YES
   unsigned long long int foa; /* number of calls to Biddy_FoaNode */
@@ -411,8 +562,8 @@ typedef struct {
 typedef struct {
   Biddy_String name; /* name of variable */
   unsigned int num; /* number of nodes with this variable */
-  unsigned int numone; /* used to count number of nodes with this variable in one function */
-  unsigned int numobsolete; /* used to count number of obsolete nodes with this variable */
+  unsigned int numone; /* used to count nodes with this variable in a particular function */
+  unsigned int numobsolete; /* used to count obsolete nodes with this variable */
   BiddyNode *firstNode;
   BiddyNode *lastNode;
   Biddy_Variable prev; /* previous variable in the global ordering (lower, topmore) */
@@ -755,13 +906,13 @@ extern void BiddyManagedSetVariableData(Biddy_Manager MNG, Biddy_Variable v, voi
 extern void *BiddyManagedGetVariableData(Biddy_Manager MNG, Biddy_Variable v);
 extern Biddy_Boolean BiddyManagedEval(Biddy_Manager MNG, Biddy_Edge f);
 extern double BiddyManagedEvalProbability(Biddy_Manager MNG, Biddy_Edge f);
-extern Biddy_Variable BiddyManagedFoaVariable(Biddy_Manager MNG, Biddy_String x, Biddy_Boolean varelem);
+extern Biddy_Variable BiddyManagedFoaVariable(Biddy_Manager MNG, Biddy_String x, Biddy_Boolean varelem, Biddy_Boolean complete);
 extern void BiddyManagedChangeVariableName(Biddy_Manager MNG, Biddy_Variable v, Biddy_String x);
-extern Biddy_Variable BiddyManagedAddVariableByName(Biddy_Manager MNG, Biddy_String x);
-#define BiddyManagedAddVariable(MNG) BiddyManagedAddVariableByName(MNG,NULL)
-#define BiddyManagedAddVariableEdge(MNG) BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,NULL))
-extern Biddy_Variable BiddyManagedAddElementByName(Biddy_Manager MNG, Biddy_String x);
-#define BiddyManagedAddElement(MNG) BiddyManagedAddElementByName(MNG,NULL)
+extern Biddy_Variable BiddyManagedAddVariableByName(Biddy_Manager MNG, Biddy_String x, Biddy_Boolean complete);
+#define BiddyManagedAddVariable(MNG) BiddyManagedAddVariableByName(MNG,NULL,TRUE)
+#define BiddyManagedAddVariableEdge(MNG) BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,NULL,TRUE))
+extern Biddy_Variable BiddyManagedAddElementByName(Biddy_Manager MNG, Biddy_String x, Biddy_Boolean complete);
+#define BiddyManagedAddElement(MNG) BiddyManagedAddElementByName(MNG,NULL,TRUE)
 extern Biddy_Edge BiddyManagedAddVariableBelow(Biddy_Manager MNG, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedAddVariableAbove(Biddy_Manager MNG, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedIncTag(Biddy_Manager MNG, Biddy_Edge f);
@@ -793,7 +944,7 @@ extern Biddy_Variable BiddyManagedSwapWithLower(Biddy_Manager MNG, Biddy_Variabl
 extern Biddy_Boolean BiddyManagedSifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge);
 extern void BiddyManagedMinimizeBDD(Biddy_Manager MNG, Biddy_String name);
 extern void BiddyManagedMaximizeBDD(Biddy_Manager MNG, Biddy_String name);
-extern Biddy_Edge BiddyManagedCopy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
+extern Biddy_Edge BiddyManagedCopy(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f, Biddy_Boolean complete);
 extern void BiddyManagedCopyFormula(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_String x);
 extern Biddy_Edge BiddyManagedConstructBDD(Biddy_Manager MNG, int numV, Biddy_String varlist, int numN, Biddy_String nodelist);
 
@@ -875,7 +1026,7 @@ extern Biddy_Edge BiddyManagedXor(const Biddy_Manager MNG, const Biddy_Edge f, c
 extern Biddy_Edge BiddyManagedXnor(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
 extern Biddy_Edge BiddyManagedLeq(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
 extern Biddy_Edge BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g);
-#define BiddyManagedDiff(MNG,f,g) BiddyManagedGt(MNG,g,f)
+#define BiddyManagedDiff(MNG,f,g) BiddyManagedGt(MNG,f,g)
 
 extern Biddy_Edge BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
 extern Biddy_Edge BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Variable v);
@@ -901,7 +1052,7 @@ extern Biddy_Edge BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, 
 extern Biddy_Edge BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
 extern Biddy_Edge BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
 extern Biddy_Edge BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest, unsigned int n);
-extern Biddy_Edge BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge f);
+extern Biddy_Edge BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f);
 
 extern Biddy_Edge BiddyManagedCreateMinterm(Biddy_Manager MNG, Biddy_Edge support, long long unsigned int x);
 extern Biddy_Edge BiddyManagedCreateFunction(Biddy_Manager MNG, Biddy_Edge support, long long unsigned int x);
@@ -954,7 +1105,7 @@ extern unsigned int BiddyManagedCountNodesPlain(Biddy_Manager MNG, Biddy_Edge f)
 extern unsigned int BiddyManagedDependentVariableNumber(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean select);
 extern unsigned int BiddyManagedCountComplementedEdges(Biddy_Manager MNG, Biddy_Edge f);
 extern unsigned long long int BiddyManagedCountPaths(Biddy_Manager MNG, Biddy_Edge f);
-extern double BiddyManagedCountMinterms(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
+extern double BiddyManagedCountMinterms(Biddy_Manager MNG, Biddy_Edge f, int nvars);
 #define BiddyManagedCountCombinations(MNG,f,nvars) BiddyManagedCountMinterms(MNG,f,nvars)
 extern double BiddyManagedDensityOfFunction(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);
 extern double BiddyManagedDensityOfBDD(Biddy_Manager MNG, Biddy_Edge f, unsigned int nvars);

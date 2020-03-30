@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
-  <Product Id="*" Name="BDD Scout" Language="1033" Version="1.9.1" Manufacturer="Robert Meolic" UpgradeCode="79672019-5204-4f68-8012-4b323f6c035d">
+  <Product Id="*" Name="BDD Scout" Language="1033" Version="2.0.1" Manufacturer="Robert Meolic" UpgradeCode="79672019-5204-4f68-8012-4b323f6c035d">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 		<MediaTemplate />
@@ -29,7 +29,7 @@
         <Directory Id="ShortcutFolder" Name="BDD Scout" />
       </Directory>
       <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLFOLDER" Name="bddscout-191">
+        <Directory Id="INSTALLFOLDER" Name="bddscout-201">
           <Directory Id="INSTALLBDDSCOUT" Name="bddscout">
             <Directory Id="INSTALLBDDSCOUTCREATE" Name="create" />
             <Directory Id="INSTALLBDDSCOUTSCRIPTS" Name="scripts" />

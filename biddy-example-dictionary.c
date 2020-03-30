@@ -1,10 +1,10 @@
-/* $Revision: 558 $ */
-/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
+/* $Revision: 600 $ */
+/* $Date: 2020-03-02 22:47:10 +0100 (pon, 02 mar 2020) $ */
 /* This file (biddy-example-dictionary.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v2.0 and CUDD v3.0.0 */
 /* This example uses biddy-cudd.h and biddy-cudd.c */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
@@ -25,7 +25,7 @@
 /* FILENAME - dictionary, default benchmarks are in folder ./bddscout/DICTIONARY */
 /* OUTPUTNAME - where to save BDD for dictionary, default folder is ./bddscout/DICTIONARY */
 
-/* BENCHMARK USEN IN THE PAPER */
+/* BENCHMARK USED IN THE PAPER */
 /* THIS IS A SMALL EXAMPLE USING JUST 4 WORDS AND ALPHABET WITH 4 LETTERS */
 /* MAXIMAL WORD LENGTH: 3 */
 /* NUMBER OF LETTERS (INCLUDING NULL SYMBOL): 5 */

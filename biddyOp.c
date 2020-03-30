@@ -14,14 +14,14 @@ Binary Decision Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyOp.c]
-    Revision    [$Revision: 569 $]
-    Date        [$Date: 2019-12-27 10:51:41 +0100 (pet, 27 dec 2019) $]
+    Revision    [$Revision: 616 $]
+    Date        [$Date: 2020-03-25 00:57:29 +0100 (sre, 25 mar 2020) $]
     Authors     [Robert Meolic (robert@meolic.com)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -109,6 +109,10 @@ Biddy_Managed_Not(Biddy_Manager MNG, Biddy_Edge f)
   if (!MNG) MNG = biddyAnonymousManager;
   ZF_LOGI("Biddy_Not");
 
+  if (!BiddyIsOK(f)) {
+    printf("BiddyNot: biddySystemAge=%u, top=%u\n",biddySystemAge,BiddyN(f)->expiry);
+  }
+
   assert( BiddyIsOK(f) == TRUE );
 
   r = biddyNull;
@@ -116,7 +120,7 @@ Biddy_Managed_Not(Biddy_Manager MNG, Biddy_Edge f)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedNot(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyInv(f);
@@ -126,15 +130,15 @@ Biddy_Managed_Not(Biddy_Manager MNG, Biddy_Edge f)
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedNot(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedNot(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedNot(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Not: this BDD type is not supported, yet!\n");
@@ -199,25 +203,25 @@ Biddy_Managed_ITE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedITE(MNG,f,g,h);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedITE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedITE */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedITE(MNG,f,g,h);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedITE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedITE */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedITE(MNG,f,g,h);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedITE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedITE */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedITE(MNG,f,g,h);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedITE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedITE */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedITE(MNG,f,g,h);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedITE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedITE */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_ITE: this BDD type is not supported, yet!\n");
@@ -283,25 +287,25 @@ Biddy_Managed_And(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedAnd(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAnd */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedAnd(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAnd */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedAnd(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAnd */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedAnd(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAnd */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedAnd(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAnd */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_And: this BDD type is not supported, yet!\n");
@@ -374,7 +378,7 @@ Biddy_Managed_Or(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     */
     /* IMPLEMENTED */
     r = BiddyManagedOr(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedOr */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedOr */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* PROCEED BY CALCULATING NOT-AND */
     /*
@@ -386,7 +390,7 @@ Biddy_Managed_Or(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     */
     /* IMPLEMENTED */
     r = BiddyManagedOr(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedOr */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedOr */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
@@ -400,7 +404,7 @@ Biddy_Managed_Or(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     */
     /* IMPLEMENTED */
     r = BiddyManagedOr(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedOr */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedOr */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* PROCEED BY CALCULATING NOT-AND */
     /*
@@ -412,7 +416,7 @@ Biddy_Managed_Or(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     */
     /* IMPLEMENTED */
     r = BiddyManagedOr(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedOr */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedOr */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* PROCEED BY CALCULATING NOT-AND */
     /*
@@ -424,7 +428,7 @@ Biddy_Managed_Or(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     */
     /* IMPLEMENTED */
     r = BiddyManagedOr(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedOr */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedOr */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Or: this BDD type is not supported, yet!\n");
@@ -485,25 +489,25 @@ Biddy_Managed_Nand(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedAnd(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedNand(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNand */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNand */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedAnd(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedAnd(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedAnd(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Nand: this BDD type is not supported, yet!\n");
@@ -564,25 +568,25 @@ Biddy_Managed_Nor(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedOr(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedNor(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNor */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNor */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedOr(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedOr(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedOr(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedNot */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Nor: this BDD type is not supported, yet!\n");
@@ -644,25 +648,25 @@ Biddy_Managed_Xor(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedXor(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedXor */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedXor(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedXor */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedXor(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedXor */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedXor(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedXor */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedXor(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedXor */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Xor: this BDD type is not supported, yet!\n");
@@ -722,25 +726,25 @@ Biddy_Managed_Xnor(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedXor(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedXnor(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedXnor */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXnor */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedXor(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedXor(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedXor(MNG,f,g));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Xnor: this BDD type is not supported, yet!\n");
@@ -801,25 +805,25 @@ Biddy_Managed_Leq(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedLeq(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedLeq */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedLeq */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedLeq(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedLeq */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedLeq */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedLeq(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedLeq */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedLeq */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedLeq(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedLeq */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedLeq */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedLeq(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedLeq */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedLeq */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Leq: this BDD type is not supported, yet!\n");
@@ -882,25 +886,25 @@ Biddy_Managed_Gt(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedGt(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedGt */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedGt */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedGt(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedGt */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedGt */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedGt(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedGt */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedGt */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedGt(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedGt */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedGt */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedGt(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedGt */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedGt */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Gt: this BDD type is not supported, yet!\n");
@@ -1035,25 +1039,25 @@ Biddy_Managed_Restrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedRestrict(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedRestrict */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedRestrict */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedRestrict(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedRestrict */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedRestrict */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedRestrict(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedRestrict */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedRestrict */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedRestrict(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedRestrict */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedRestrict */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedRestrict(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedRestrict */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedRestrict */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Restrict: this BDD type is not supported, yet!\n");
@@ -1116,25 +1120,25 @@ Biddy_Managed_Compose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedCompose(MNG,f,g,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedCompose */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedCompose */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedCompose(MNG,f,g,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedCompose */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedCompose */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedCompose(MNG,f,g,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedCompose */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedCompose */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedCompose(MNG,f,g,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedCompose */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedCompose */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedCompose(MNG,f,g,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedCompose */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedCompose */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Compose: this BDD type is not supported, yet!\n");
@@ -1195,25 +1199,25 @@ Biddy_Managed_E(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedE(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedE */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedE(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedE */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedE(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedE */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedE(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedE */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedE(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedE */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedE */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_E: this BDD type is not supported, yet!\n");
@@ -1275,25 +1279,25 @@ Biddy_Managed_A(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedE(MNG,BiddyManagedNot(MNG,f),v));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedA(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedA */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedA */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedE(MNG,BiddyManagedNot(MNG,f),v));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedE(MNG,BiddyManagedNot(MNG,f),v));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedE(MNG,BiddyManagedNot(MNG,f),v));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_A: this BDD type is not supported, yet!\n");
@@ -1357,7 +1361,7 @@ Biddy_Managed_IsVariableDependent(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variabl
     r = (xa == biddyZero);
   }
 #ifndef COMPACT
-  else if ((biddyManagerType == BIDDYTYPEZBDD) || 
+  else if ((biddyManagerType == BIDDYTYPEZBDD) ||
              (biddyManagerType == BIDDYTYPEZBDDC) ||
              (biddyManagerType == BIDDYTYPETZBDD))
   {
@@ -1421,25 +1425,25 @@ Biddy_Managed_ExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedExistAbstract(MNG,f,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedExistAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAbstract */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedExistAbstract(MNG,f,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedExistAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAbstract */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedExistAbstract(MNG,f,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedExistAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAbstract */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedExistAbstract(MNG,f,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedExistAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAbstract */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedExistAbstract(MNG,f,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedExistAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAbstract */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_ExistAbstract: this BDD type is not supported, yet!\n");
@@ -1499,25 +1503,25 @@ Biddy_Managed_UnivAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedExistAbstract(MNG,BiddyManagedNot(MNG,f),cube));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedUnivAbstract(MNG,f,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedUnivAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedUnivAbstract */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedExistAbstract(MNG,BiddyManagedNot(MNG,f),cube));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedExistAbstract(MNG,BiddyManagedNot(MNG,f),cube));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* PROTOTYPED */
     r = BiddyManagedNot(MNG,BiddyManagedExistAbstract(MNG,BiddyManagedNot(MNG,f),cube));
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedNot */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_UnivAbstract: this BDD type is not supported, yet!\n");
@@ -1579,25 +1583,25 @@ Biddy_Managed_AndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAndAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAndAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAndAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAndAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedAndAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_AndAbstract: this BDD type is not supported, yet!\n");
@@ -1673,11 +1677,11 @@ Biddy_Managed_Constrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedConstrain(MNG,f,c);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedConstrain */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedConstrain */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedConstrain(MNG,f,c);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedConstrain */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedConstrain */
   }
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDD) ||
@@ -1765,11 +1769,11 @@ Biddy_Managed_Simplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedSimplify(MNG,f,c);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSimplify */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSimplify */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedSimplify(MNG,f,c);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSimplify */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSimplify */
   }
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDD) ||
@@ -1836,11 +1840,11 @@ Biddy_Managed_Support(Biddy_Manager MNG, Biddy_Edge f)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedSupport(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupport */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupport */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedSupport(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupport */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupport */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
@@ -1856,7 +1860,7 @@ Biddy_Managed_Support(Biddy_Manager MNG, Biddy_Edge f)
     */
     /* IMPLEMENTED */
     r = BiddyManagedSupport(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupport */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupport */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* PROTOTYPED USING Restrict */
     /*
@@ -1870,7 +1874,7 @@ Biddy_Managed_Support(Biddy_Manager MNG, Biddy_Edge f)
     */
     /* IMPLEMENTED */
     r = BiddyManagedSupport(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupport */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupport */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* PROTOTYPED USING Restrict */
     /*
@@ -1884,7 +1888,7 @@ Biddy_Managed_Support(Biddy_Manager MNG, Biddy_Edge f)
     */
     /* IMPLEMENTED */
     r = BiddyManagedSupport(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupport */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupport */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Support: this BDD type is not supported, yet!\n");
@@ -1959,11 +1963,11 @@ Biddy_Managed_ReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f,
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedReplaceByKeyword(MNG,f,keyword);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedReplaceByKeyword */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedReplaceByKeyword */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedReplaceByKeyword(MNG,f,keyword);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedReplaceByKeyword */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedReplaceByKeyword */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
@@ -1982,7 +1986,7 @@ Biddy_Managed_ReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f,
         r = BiddyManagedXor(MNG,
               BiddyManagedAnd(MNG,tmp,t),
               BiddyManagedAnd(MNG,BiddyManagedNot(MNG,tmp),e));
-        BiddyRefresh(r); /* not always refreshed by BiddyManagedXor */
+        /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
       }
     }
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
@@ -2001,13 +2005,13 @@ Biddy_Managed_ReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f,
         r = BiddyManagedXor(MNG,
               BiddyManagedAnd(MNG,tmp,t),
               BiddyManagedAnd(MNG,BiddyManagedNot(MNG,tmp),e));
-        BiddyRefresh(r); /* not always refreshed by BiddyManagedXor */
+        /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedXor */
       }
     }
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedReplaceByKeyword(MNG,f,keyword);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedReplaceByKeyword */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedReplaceByKeyword */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_ReplaceByKeyword: this BDD type is not supported, yet!\n");
@@ -2067,25 +2071,25 @@ Biddy_Managed_Change(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedChange(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedChange */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedChange */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedChange(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedChange */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedChange */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedChange(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedChange */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedChange */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedChange(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedChange */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedChange */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedChange(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedChange */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedChange */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Change: this BDD type is not supported, yet!\n");
@@ -2161,25 +2165,25 @@ Biddy_Managed_VarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedVarSubset(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedVarSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedVarSubset */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedVarSubset(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedVarSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedVarSubset */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedVarSubset(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedVarSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedVarSubset */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedVarSubset(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedVarSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedVarSubset */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedVarSubset(MNG,f,v,value);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedVarSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedVarSubset */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_VarSubset: this BDD type is not supported, yet!\n");
@@ -2209,6 +2213,8 @@ Biddy_Managed_VarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
 
 ### Description
 ### Side effects
+    Biddy_Managed_ElementAbstract is similar as Biddy_Managed_E but
+    the abstracted element is added as negative literal.
     Original BDD is not changed.
     Implemented for OBDD, OBDDC, ZBDD, ZBDDC, and TZBDD.
 ### More info
@@ -2227,7 +2233,7 @@ Biddy_Managed_ElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   assert( f != NULL );
 
   if (!MNG) MNG = biddyAnonymousManager;
-  ZF_LOGI("Biddy_E");
+  ZF_LOGI("Biddy_ElementAbstract");
 
   if (!v) return biddyNull;
 
@@ -2236,36 +2242,27 @@ Biddy_Managed_ElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   r = biddyNull;
 
   if (biddyManagerType == BIDDYTYPEOBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_ElementAbstract: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
     r = BiddyManagedElementAbstract(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedElementAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedElementAbstract */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_ElementAbstract: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
     r = BiddyManagedElementAbstract(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedElementAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedElementAbstract */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedElementAbstract(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedElementAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedElementAbstract */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedElementAbstract(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedElementAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedElementAbstract */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_ElementAbstract: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
     r = BiddyManagedElementAbstract(MNG,f,v);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedElementAbstract */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedElementAbstract */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_ElementAbstract: this BDD type is not supported, yet!\n");
@@ -2326,25 +2323,25 @@ Biddy_Managed_Product(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedProduct(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedProduct */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedProduct(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedProduct */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedProduct(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedProduct */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedProduct(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedProduct */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedProduct(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedProduct */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Product: this BDD type is not supported, yet!\n");
@@ -2376,15 +2373,26 @@ Biddy_Managed_Product(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     Selective product is also called Selective multiplication.
     Combinations are composed only if they agree on variables from cube.
     This is a non-commutatitve operation.
-    Variables in Boolean function cube, which are presented in g, must exist
-    in f while, viceversa, this is not required. Moreover, variables which
-    are missing in Boolean function cube and are presented in g must not
-    exist in f (they will be included in the result!) while, viceversa, this
-    is not required. Combinations from f, which are not composed with any
-    combination from g are not included in the result.
+    For OBDD, variables that are included as positive literal in
+    Boolean function cube are from positive set, while variables that
+    are included as negative literal are from negative set.
+    For ZBDD, variables that are included as positive literal in
+    Boolean function cube are from positive set, while variables that
+    are don't care variables are from negative set.
+    Variables that are from positive set and are presented in g, must
+    exist in f, while, viceversa, this is not required.
+    Variables that are from negative set and are presented in g, must
+    not exist in f, while, viceversa, this is not required.
 ### Side effects
     Original BDD is not changed.
     Implemented for OBDD, OBDDC, ZBDD, ZBDDC, and TZBDD.
+    As a consequence of given rules, variables that are don't care
+    variables in Boolean function cube, and are presented in g, may
+    exist in the result in those combinations where they do not exist
+    in f but exists in g.
+    As a consequence of given rules, combinations from f, which are not
+    composed with any combination from g (because they do not agree on
+    any variable with any combination from g) are not included in the result.
     RC Cache is used with parameters (f,g,cube).
     Because the usage of RC Cache coincide with functions Biddy_Restrict and
     Biddy_Compose they should not be used together with Biddy_SelectiveProduct
@@ -2417,36 +2425,40 @@ Biddy_Managed_SelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
   r = biddyNull;
 
   if (biddyManagerType == BIDDYTYPEOBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_SelectiveProduct: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
     r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSelectiveProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_SelectiveProduct: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
     r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSelectiveProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
+    /* TO DO: CHECK THIS OPTIMIZATION
+    if (cube == biddyTerminal) {
+      r = BiddyManagedProduct(MNG,f,g);
+    }
+    */
     r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSelectiveProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
+    /* TO DO: CHECK THIS OPTIMIZATION
+    if (cube == biddyTerminal) {
+      r = BiddyManagedProduct(MNG,f,g);
+    }
+    */
     r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSelectiveProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* NOT IMPLEMENTED, YET */
     fprintf(stderr,"Biddy_SelectiveProduct: this BDD type is not supported, yet!\n");
     return biddyNull;
     /* IMPLEMENTED */
     r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSelectiveProduct */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_SelectiveProduct: this BDD type is not supported, yet!\n");
@@ -2512,28 +2524,25 @@ Biddy_Managed_Supset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedSupset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupset */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedSupset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupset */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedSupset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupset */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedSupset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupset */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_Supset: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
     r = BiddyManagedSupset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSupset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSupset */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Supset: this BDD type is not supported, yet!\n");
@@ -2609,28 +2618,25 @@ Biddy_Managed_Subset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedSubset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSubset */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedSubset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSubset */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedSubset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSubset */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedSubset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSubset */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_Subset: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
     r = BiddyManagedSubset(MNG,f,g);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedSubset */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSubset */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Subset: this BDD type is not supported, yet!\n");
@@ -2700,28 +2706,25 @@ Biddy_Managed_Permitsym(Biddy_Manager MNG, Biddy_Edge f, unsigned int n)
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedPermitsym(MNG,f,BiddyManagedGetLowestVariable(MNG),n);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedPermitsym */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedPermitsym */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedPermitsym(MNG,f,BiddyManagedGetLowestVariable(MNG),n);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedPermitsym */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedPermitsym */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedPermitsym(MNG,f,0,n);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedPermitsym */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedPermitsym */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     r = BiddyManagedPermitsym(MNG,f,0,n);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedPermitsym */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedPermitsym */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_Permitsym: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
-    r = BiddyManagedPermitsym(MNG,f,0,n);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedPermitsym */
+    r = BiddyManagedPermitsym(MNG,f,BiddyManagedGetLowestVariable(MNG),n);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedPermitsym */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Permitsym: this BDD type is not supported, yet!\n");
@@ -2746,15 +2749,20 @@ Biddy_Managed_Permitsym(Biddy_Manager MNG, Biddy_Edge f, unsigned int n)
 #endif
 
 /***************************************************************************//*!
-\brief Function Biddy_Managed_Stretch calculates minimal combination set
-       such that all elements in the original set has at least one
-       superset in the new set.
+\brief Function Biddy_Managed_Stretch calculates minimal subset of the
+       given set such that all elements in the original set has at least
+       one element in the new set that is a superset of it.
 
 ### Description
+    Each combination is a superset of itself. All non-empty combinations
+    are a superset of an empty combination. If one combination is
+    a superset of another one then the smaller combination is removed.
 ### Side effects
     Original BDD is not changed.
     Implemented for OBDD, OBDDC, ZBDD, ZBDDC, and TZBDD.
     RC Cache is used with parameters (f,biddyNull,biddyNull).
+    This function should be called Shrink but because of my bad
+    English I made mistake and mixed up these words.
 ### More info
     Macro Biddy_Stretch(f,g) is defined for use with anonymous manager.
 *******************************************************************************/
@@ -2768,7 +2776,8 @@ extern "C" {
 Biddy_Edge
 Biddy_Managed_Stretch(Biddy_Manager MNG, Biddy_Edge f)
 {
-  Biddy_Edge r;
+  Biddy_Edge support,r;
+  Biddy_Variable v;
 
   assert( f != NULL );
 
@@ -2778,38 +2787,46 @@ Biddy_Managed_Stretch(Biddy_Manager MNG, Biddy_Edge f)
   assert( BiddyIsOK(f) == TRUE );
 
   r = biddyNull;
+  support = biddyNull;
+
+  if ((biddyManagerType == BIDDYTYPEOBDD) || (biddyManagerType == BIDDYTYPEOBDDC) ||
+      (biddyManagerType == BIDDYTYPETZBDD))
+  {
+    support = biddyOne;
+    if (BiddyManagedGetLowestVariable(MNG) != 0) {
+      v = BiddyManagedGetPrevVariable(MNG,0); /* highest (bottommost) variable */
+      while (v != BiddyManagedGetLowestVariable(MNG)) {
+        support = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,support,v,TRUE);
+        BiddyRefresh(support); /* FoaNode returns an obsolete node! */
+        v = BiddyManagedGetPrevVariable(MNG,v);
+      }
+      support = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,support,v,TRUE);
+      BiddyRefresh(support); /* FoaNode returns an obsolete node! */
+    }
+  }
 
   if (biddyManagerType == BIDDYTYPEOBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_Stretch: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
-    r = BiddyManagedStretch(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedStretch */
+    r = BiddyManagedStretch(MNG,support,f);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedStretch */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_Stretch: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
-    r = BiddyManagedStretch(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedStretch*/
+    r = BiddyManagedStretch(MNG,support,f);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedStretch*/
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
-    r = BiddyManagedStretch(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedStretch */
+    r = BiddyManagedStretch(MNG,support,f);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedStretch */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
-    r = BiddyManagedStretch(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedStretch */
+    r = BiddyManagedStretch(MNG,support,f);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedStretch */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_Stretch: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
-    r = BiddyManagedStretch(MNG,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedStretch */
+    r = BiddyManagedStretch(MNG,support,f);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedStretch */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_Stretch: this BDD type is not supported, yet!\n");
@@ -3158,7 +3175,7 @@ Biddy_Managed_RandomSet(Biddy_Manager MNG, Biddy_Edge unit, double ratio)
     Implemented for OBDD, OBDDC, ZBDD, ZBDDC, and TZBDD.
     Cache table is not used.
 ### More info
-    Macro Biddy_ExtractMinterm(f,g) is defined for use with anonymous manager.
+    Macro Biddy_ExtractMinterm(f) is defined for use with anonymous manager.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -3166,9 +3183,10 @@ extern "C" {
 #endif
 
 Biddy_Edge
-Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
+Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge f)
 {
-  Biddy_Edge r;
+  Biddy_Edge support,r;
+  Biddy_Variable v;
 
   assert( f != NULL );
 
@@ -3178,23 +3196,39 @@ Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f
   assert( BiddyIsOK(f) == TRUE );
 
   r = biddyNull;
+  support = biddyNull;
+
+  /* create support - not needed for ZBDD and ZBDDC */
+  if ((biddyManagerType == BIDDYTYPEOBDD) || (biddyManagerType == BIDDYTYPEOBDDC) ||
+      (biddyManagerType == BIDDYTYPETZBDD))
+  {
+    support = biddyOne;
+    if (BiddyManagedGetLowestVariable(MNG) != 0) {
+      v = BiddyManagedGetPrevVariable(MNG,0); /* highest (bottommost) variable */
+      while (v != BiddyManagedGetLowestVariable(MNG)) {
+        support = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,support,v,TRUE);
+        BiddyRefresh(support); /* FoaNode returns an obsolete node! */
+        v = BiddyManagedGetPrevVariable(MNG,v);
+      }
+      support = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,support,v,TRUE);
+      BiddyRefresh(support); /* FoaNode returns an obsolete node! */
+    }
+  }
 
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
     /* IMPLEMENTED */
     r = BiddyManagedExtractMinterm(MNG,support,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedExtractMinterm */
-  } else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
-    /* IMPLEMENTED */
-    r = BiddyManagedExtractMinterm(MNG,NULL,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedExtractMinterm */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExtractMinterm */
   }
 #ifndef COMPACT
-  else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_ExtractMinterm: this BDD type is not supported, yet!\n");
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    /* IMPLEMENTED */
+    r = BiddyManagedExtractMinterm(MNG,NULL,f);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExtractMinterm */
+  } else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* IMPLEMENTED */
     r = BiddyManagedExtractMinterm(MNG,support,f);
-    BiddyRefresh(r); /* not always refreshed by BiddyManagedExtractMinterm */
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExtractMinterm */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
     fprintf(stderr,"Biddy_ExtractMinterm: this BDD type is not supported, yet!\n");
@@ -3282,6 +3316,7 @@ BiddyManagedNot(const Biddy_Manager MNG, const Biddy_Edge f)
 
     /* FOR OBDDC, CACHE TABLE IS NOT NEEDED */
 
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     r = BiddyInv(f);
 
   }
@@ -3509,14 +3544,17 @@ BiddyManagedITE(const Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge 
   /* (i.e. because the result depends on domain) */
 
   if (f == biddyOne) {
+    BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
     return g;
   } else if (f == biddyZero) {
+    BiddyRefresh(h); /* return non-obsolete node even if the parameter is an obsolete node */
     return h;
   } else if (g == biddyOne) {
     if (h == biddyOne) {
       /* FOR ZBDD AND ZBDDC THIS LINE IS NOT REACHABLE IN RECURSIVE CALLS */
       return biddyOne;
     } else if (h == biddyZero) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
       return f;
     } else {
       return BiddyManagedOr(MNG,f,h);
@@ -3539,6 +3577,7 @@ BiddyManagedITE(const Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge 
   } else if (h == biddyZero) {
     return BiddyManagedAnd(MNG,f,g);
   } else if (g == h) {
+    BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
     return g;
   } else if (f == g) {
     return BiddyManagedOr(MNG,f,h);
@@ -3860,10 +3899,13 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
   } else if (g == biddyZero) {
     return biddyZero;
   } else if (f == biddyOne) {
+    BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
     return g;
   } else if (g == biddyOne) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     return f;
   } else if (f == g) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     return f;
   }
 
@@ -3877,8 +3919,10 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
   else if (biddyManagerType == BIDDYTYPETZBDD) {
     if (BiddyR(f) == BiddyR(g)) {
       if (BiddyIsSmaller(BiddyGetTag(f),BiddyGetTag(g))) {
+        BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
         return f;
       } else {
+        BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
         return g;
       }
     }
@@ -4229,8 +4273,10 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
   /* (i.e. because the result depends on domain) */
 
   if (f == biddyZero) {
+    BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
     return g;
   } else if (g == biddyZero) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     return f;
   } else if (f == biddyOne) {
     /* FOR ZBDD AND ZBDDC THIS LINE IS NOT REACHABLE IN RECURSIVE CALLS */
@@ -4239,6 +4285,7 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
     /* FOR ZBDD AND ZBDDC THIS LINE IS NOT REACHABLE IN RECURSIVE CALLS */
     return biddyOne;
   } else if (f == g) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     return f;
   }
 
@@ -4252,8 +4299,10 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
   if (biddyManagerType == BIDDYTYPETZBDD) {
     if (BiddyR(f) == BiddyR(g)) {
       if (BiddyIsSmaller(BiddyGetTag(f),BiddyGetTag(g))) {
+        BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
         return g;
       } else {
+        BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
         return f;
       }
     }
@@ -4663,8 +4712,10 @@ BiddyManagedXor(const Biddy_Manager MNG, const Biddy_Edge f,
   /* (i.e. because the result depends on domain) */
 
   if (f == biddyZero) {
+    BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
     return g;
   } else if (g == biddyZero) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     return f;
   } else if (f == biddyOne) {
     /* FOR ZBDD AND ZBDDC THIS LINE IS NOT REACHABLE IN RECURSIVE CALLS */
@@ -5096,6 +5147,7 @@ BiddyManagedLeq(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
   } else if (g == biddyZero) {
     return BiddyManagedNot(MNG,f);
   } else if (f == biddyOne) {
+    BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
     return g;
   } else if (g == biddyOne) {
     return biddyOne;
@@ -5336,6 +5388,7 @@ BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
   if (f == biddyZero) {
     return biddyZero;
   } else if (g == biddyZero) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     return f;
   } else if (f == biddyOne) {
     /* FOR ZBDD AND ZBDDC THIS LINE IS NOT REACHABLE IN RECURSIVE CALLS */
@@ -5599,12 +5652,15 @@ BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
       if ((fv=BiddyV(f)) == v) {
         if (value) {
           r = BiddyInvCond(BiddyT(f),BiddyGetMark(f));
+          BiddyRefresh(r); /* subnode may be marked as an obsolete node! */
         } else {
           r = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
+          BiddyRefresh(r); /* subnode may be marked as an obsolete node! */
         }
       }
       else if (BiddyIsSmaller(v,fv)) {
         r = f;
+        BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       }
       else {
         e = BiddyManagedRestrict(MNG,BiddyE(f),v,value);
@@ -5649,14 +5705,17 @@ BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
       tag = BiddyGetTag(f);
       if (BiddyIsSmaller(v,tag)) {
         r = f;
+        BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       } else {
         fv = BiddyV(f);
         if (v == fv) {
           if (v == tag) {
             if (value) {
               r = BiddyT(f);
+              BiddyRefresh(r); /* subnode may be marked as an obsolete node! */
             } else {
               r = BiddyE(f);
+              BiddyRefresh(r); /* subnode may be marked as an obsolete node! */
             }
           } else {
             if (value) {
@@ -5677,6 +5736,7 @@ BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
               r = BiddyManagedIncTag(MNG,f);
             } else {
               r = f;
+              /* BiddyRefresh(r); */ /* f may be an obsolete node but this is not a problem here */
               BiddySetTag(r,v);
               r = BiddyManagedIncTag(MNG,r);
               r = BiddyManagedTaggedFoaNode(MNG,v,r,r,tag,TRUE);
@@ -5742,7 +5802,7 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
 
   r = biddyNull;
 
-  if (f == biddyZero) return f;
+  if (f == biddyZero) return biddyZero;
 
   FF = f;
   GG = g;
@@ -5760,6 +5820,7 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       }
       else if (BiddyIsSmaller(v,fv)) {
         r = f;
+        BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       }
       else {
         e = BiddyManagedCompose(MNG,BiddyE(f),g,v);
@@ -5811,6 +5872,7 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       tag = BiddyGetTag(f);
       if (BiddyIsSmaller(v,tag)) {
         r = f;
+        BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       } else {
         if ((fv=BiddyV(f)) == v) {
           /* VARIANT 1 */
@@ -5909,15 +5971,25 @@ BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
     (biddyManagerType == BIDDYTYPETZBDD)
   );
 
+  fv = 0;
   r = biddyNull;
 
+#ifndef COMPACT
+  tag = 0;
+#endif
+
   /* LOOKING FOR SIMPLE CASE */
-  if (f == biddyZero) return f;
+  if (f == biddyZero) return biddyZero;
 
   h = biddyNull;
 
   /* h MUST BE COMPATIBLE WITH CUBE */
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    fv = BiddyV(f);
+    if (BiddyIsSmaller(v,fv)) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
     h = biddyVariableTable.table[v].variable;
   }
 #ifndef COMPACT
@@ -5925,6 +5997,11 @@ BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
     h = biddyVariableTable.table[v].element;
   }
   else if (biddyManagerType == BIDDYTYPETZBDD) {
+    tag = BiddyGetTag(f);
+    if (BiddyIsSmaller(v,tag)) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
     h = biddyVariableTable.table[v].variable;
   }
 #endif
@@ -5937,13 +6014,10 @@ BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   {
 
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-      if ((fv=BiddyV(f)) == v) {
+      if (fv == v) {
         r = BiddyManagedOr(MNG,
                            BiddyInvCond(BiddyE(f),BiddyGetMark(f)),
                            BiddyInvCond(BiddyT(f),BiddyGetMark(f)));
-      }
-      else if (BiddyIsSmaller(v,fv)) {
-        r = f;
       }
       else {
         e = BiddyManagedE(MNG,BiddyInvCond(BiddyE(f),BiddyGetMark(f)),v);
@@ -5975,33 +6049,28 @@ BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
     }
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
-      tag = BiddyGetTag(f);
-      if (BiddyIsSmaller(v,tag)) {
-        r = f;
-      } else {
-        fv = BiddyV(f);
-        if (v == fv) {
-          r = BiddyManagedOr(MNG,BiddyE(f),BiddyT(f));
-          if (v != tag) {
-            r = BiddyManagedTaggedFoaNode(MNG,v,r,r,tag,TRUE);
-            BiddyRefresh(r); /* FoaNode returns an obsolete node! */
-          }
-        } else if (BiddyIsSmaller(v,fv)) {
-          if (v == tag) {
-            r = BiddyManagedIncTag(MNG,f);
-          } else {
-            r = f;
-            BiddySetTag(r,v);
-            r = BiddyManagedIncTag(MNG,r);
-            r = BiddyManagedTaggedFoaNode(MNG,v,r,r,tag,TRUE);
-            BiddyRefresh(r); /* FoaNode returns an obsolete node! */
-          }
-        } else {
-          e = BiddyManagedE(MNG,BiddyE(f),v);
-          t = BiddyManagedE(MNG,BiddyT(f),v);
-          r = BiddyManagedTaggedFoaNode(MNG,fv,e,t,tag,TRUE);
+      if ((fv=BiddyV(f)) == v) {
+        r = BiddyManagedOr(MNG,BiddyE(f),BiddyT(f));
+        if (v != tag) {
+          r = BiddyManagedTaggedFoaNode(MNG,v,r,r,tag,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         }
+      } else if (BiddyIsSmaller(v,fv)) {
+        if (v == tag) {
+          r = BiddyManagedIncTag(MNG,f);
+        } else {
+          r = f;
+          /* BiddyRefresh(r); */ /* f may be an obsolete node but this is not a problem here */
+          BiddySetTag(r,v);
+          r = BiddyManagedIncTag(MNG,r);
+          r = BiddyManagedTaggedFoaNode(MNG,v,r,r,tag,TRUE);
+          BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+        }
+      } else {
+        e = BiddyManagedE(MNG,BiddyE(f),v);
+        t = BiddyManagedE(MNG,BiddyT(f),v);
+        r = BiddyManagedTaggedFoaNode(MNG,fv,e,t,tag,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       }
     }
 #endif
@@ -6089,7 +6158,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
   r = biddyNull;
 
   /* LOOKING FOR SIMPLE CASE */
-  if (f == biddyZero) return f;
+  if (f == biddyZero) return biddyZero;
 
   /* IF RESULT IS NOT IN THE CACHE TABLE... */
   cindex = 0;
@@ -6106,6 +6175,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
         cv = BiddyV(cube);
       }
       if (BiddyIsTerminal(cube)) {
+        BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
         return f;
       }
       if (cv == fv) {
@@ -6127,6 +6197,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
 #ifndef COMPACT
     else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
       if (BiddyIsTerminal(cube)) {
+        BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
         return f;
       }
       cv = BiddyV(cube);
@@ -6160,6 +6231,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
         cv = BiddyV(cube);
       }
       if (BiddyIsTerminal(cube)) {
+        BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
         return f;
       }
       fv = BiddyV(f);
@@ -6177,6 +6249,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
         }
       } else if (BiddyIsSmaller(cv,fv)) {
         r = f;
+        / * BiddyRefresh(r); * / / * return non-obsolete node even if the parameter is an obsolete node * /
         BiddySetTag(r,cv);
         r = BiddyManagedIncTag(MNG,r);
         r = BiddyManagedExistAbstract(MNG,r,BiddyT(cube));
@@ -6212,6 +6285,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
           r = BiddyManagedExistAbstract(MNG,r,BiddyT(cube));
         } else {
           r = f;
+          /* BiddyRefresh(r); */ /* f may be an obsolete node but this is not a problem here */
           BiddySetTag(r,cv);
           r = BiddyManagedIncTag(MNG,r);
           r = BiddyManagedExistAbstract(MNG,r,BiddyT(cube));
@@ -6391,8 +6465,8 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         e = BiddyManagedAndAbstract(MNG,f0,g0,BiddyT(cube));
         if (e == biddyOne) return biddyOne;
         if ((e == f1) || (e == g1)) {
-          return e;
-          /* r = e */ /* I AM NOT SURE IF THIS SHOULD BE CACHED */
+          r = e;
+          /**/ return r; /**/ /* I AM NOT SURE IF THIS SHOULD BE CACHED */
         } else {
           if (e == BiddyInv(f1)) f1 = biddyOne; /* this is useful only for OBDDC, but not wrong for OBDD */
           if (e == BiddyInv(g1)) g1 = biddyOne; /* this is useful only for OBDDC, but not wrong for OBDD */
@@ -6415,19 +6489,19 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       if (fv != gv) {
         if (fv == minv) {
           if (BiddyGetMark(f)) {
-            /* return BiddyManagedAndAbstract(MNG,BiddyInv(BiddyE(f)),g,cube); */
             r = BiddyManagedAndAbstract(MNG,BiddyInv(BiddyE(f)),g,cube);
+            /* return r; */ /* WE ARE CASHING THIS */
           } else {
-            /* return BiddyManagedAndAbstract(MNG,BiddyE(f),g,cube); */
             r = BiddyManagedAndAbstract(MNG,BiddyE(f),g,cube);
+            /* return r; */ /* WE ARE CASHING THIS */
           }
         } else {
           if (BiddyGetMark(g)) {
-            /* return BiddyManagedAndAbstract(MNG,f,BiddyInv(BiddyE(g)),cube); */
             r = BiddyManagedAndAbstract(MNG,f,BiddyInv(BiddyE(g)),cube);
+            /* return r; */ /* WE ARE CASHING THIS */
           } else {
-            /* return BiddyManagedAndAbstract(MNG,f,BiddyE(g),cube); */
             r = BiddyManagedAndAbstract(MNG,f,BiddyE(g),cube);
+            /* return r; */ /* WE ARE CASHING THIS */
           }
         }
       } else {
@@ -6521,6 +6595,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         }
       } else if (BiddyIsSmaller(cv,minv)) {
         r = BiddyManagedTaggedFoaNode(MNG,minv,e,t,cv,TRUE);
+        BiddyRefresh(r); / * FoaNode returns an obsolete node! * /
         r = BiddyManagedIncTag(MNG,r);
         r = BiddyManagedTaggedFoaNode(MNG,cv,r,r,mintag,TRUE);
         BiddyRefresh(r); / * FoaNode returns an obsolete node! * /
@@ -6670,6 +6745,7 @@ BiddyManagedConstrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   if (c == biddyZero) {
     return biddyZero;
   } else if (c == biddyOne) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     return f;
   } else if (BiddyIsTerminal(f)) {
     return f;
@@ -6739,6 +6815,7 @@ BiddyManagedSimplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   /* LOOKING FOR SIMPLE CASE */
   if (c == biddyZero) return biddyNull;
   if (c == biddyOne) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
     return f;
   } else if (BiddyIsTerminal(f)) {
     return f;
@@ -6914,8 +6991,8 @@ BiddyManagedReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f,
     (biddyManagerType == BIDDYTYPETZBDD)
   );
 
-  if (f == biddyZero) return f;
-  if (f == biddyOne) return f;
+  if (f == biddyZero) return biddyZero;
+  if (f == biddyOne) return biddyOne;
 
   r = biddyNull;
 
@@ -7071,6 +7148,7 @@ BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       } else if (BiddyIsSmaller(v,fv)) {
         r = f;
+        BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       } else {
         e = BiddyManagedChange(MNG,BiddyInvCond(BiddyE(f),BiddyGetMark(f)),v);
         t = BiddyManagedChange(MNG,BiddyInvCond(BiddyT(f),BiddyGetMark(f)),v);
@@ -7104,6 +7182,7 @@ BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
       tag = BiddyGetTag(f);
       if (BiddyIsSmaller(v,tag)) {
         r = f;
+        BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       } else {
         fv = BiddyV(f);
         if (v == fv) {
@@ -7113,6 +7192,7 @@ BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         } else if (BiddyIsSmaller(v,fv)) {
           r = f;
+          /* BiddyRefresh(r); */ /* f may be an obsolete node but this is not a problem here */
           BiddySetTag(r,v);
           r = BiddyManagedIncTag(MNG,r);
           r = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,r,tag,TRUE);
@@ -7156,7 +7236,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
   Biddy_Variable fv;
   Biddy_Edge FF, GG, HH;
   unsigned int cindex;
-  
+
 #ifndef COMPACT
   Biddy_Variable tag,ntag;
 #endif
@@ -7199,7 +7279,6 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
       HH = biddyZero;
     }
   }
-
   else {
     if (((uintptr_t) f) > ((uintptr_t) h)) {
       FF = f;
@@ -7252,6 +7331,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         } else {
           r = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
+          BiddyRefresh(r); /* subnode may be marked as an obsolete node! */
         }
       }
       else if (BiddyIsSmaller(v,fv)) {
@@ -7259,6 +7339,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
           r = biddyZero;
         } else {
           r = f;
+          BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
         }
       } else {
         e = BiddyManagedVarSubset(MNG,BiddyInvCond(BiddyE(f),BiddyGetMark(f)),v,value);
@@ -7279,6 +7360,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
           ntag = biddyVariableTable.table[v].next;
           if (tag == ntag) {
             r = f;
+            BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
             BiddySetTag(r,v);
           } else {
             r = BiddyManagedTaggedFoaNode(MNG,ntag,f,f,v,TRUE);
@@ -7296,6 +7378,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
             e = BiddyE(f);
             if (ntag == BiddyGetTag(e)) {
               r = e;
+              BiddyRefresh(r); /* subnode may be marked as an obsolete node! */
               if (r != biddyZero) {
                 BiddySetTag(r,tag);
               }
@@ -7309,12 +7392,14 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
             r = biddyZero;
           } else {
             r = f;
+            BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
           }
         } else {
           e = BiddyManagedVarSubset(MNG,BiddyE(f),v,value);
           t = BiddyManagedVarSubset(MNG,BiddyT(f),v,value);
           r = BiddyManagedTaggedFoaNode(MNG,fv,e,t,tag,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+          addOp3Cache(biddyOPCache,FF,GG,HH,r,cindex);
         }
       }
     }
@@ -7345,11 +7430,11 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   Biddy_Edge h;
   Biddy_Edge r;
   unsigned int cindex;
-
-#ifndef COMPACT
   Biddy_Edge e, t;
   Biddy_Variable fv;
-  /* Biddy_Variable tag; */
+
+#ifndef COMPACT
+  Biddy_Variable tag;
 #endif
 
   assert( MNG != NULL );
@@ -7368,12 +7453,12 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   r = biddyNull;
 
   /* LOOKING FOR SIMPLE CASE */
-  if (f == biddyZero) return f;
+  if (f == biddyZero) return biddyZero;
 
   h = biddyNull;
 
 #ifndef COMPACT
-  fv = 0;
+  fv = tag = 0;
 #endif
 
   /* h MUST BE COMPATIBLE WITH CUBE */
@@ -7383,10 +7468,19 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
     fv = BiddyV(f);
-    if (BiddyIsSmaller(v,fv)) return f;
+    if (BiddyIsSmaller(v,fv)) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
     h = biddyVariableTable.table[v].element;
   }
   else if (biddyManagerType == BIDDYTYPETZBDD) {
+    fv = BiddyV(f);
+    tag = BiddyGetTag(f);
+    if (BiddyIsSmaller(v,fv) && !BiddyIsSmaller(v,tag)) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
     h = biddyVariableTable.table[v].variable;
   }
 #endif
@@ -7397,7 +7491,23 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   {
 
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-      /* NOT IMPLEMENTED, YET */
+      if ((fv=BiddyV(f)) == v) {
+        r = BiddyManagedOr(MNG,
+                           BiddyInvCond(BiddyE(f),BiddyGetMark(f)),
+                           BiddyInvCond(BiddyT(f),BiddyGetMark(f)));
+        r = BiddyManagedTaggedFoaNode(MNG,v,r,biddyZero,v,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      }
+      else if (BiddyIsSmaller(v,fv)) {
+        r = BiddyManagedTaggedFoaNode(MNG,v,f,biddyZero,v,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      }
+      else {
+        e = BiddyManagedElementAbstract(MNG,BiddyInvCond(BiddyE(f),BiddyGetMark(f)),v);
+        t = BiddyManagedElementAbstract(MNG,BiddyInvCond(BiddyT(f),BiddyGetMark(f)),v);
+        r = BiddyManagedTaggedFoaNode(MNG,fv,e,t,fv,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      }
     }
 
 #ifndef COMPACT
@@ -7412,14 +7522,34 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
         t = BiddyManagedElementAbstract(MNG,BiddyT(f),v);
         r = BiddyManagedTaggedFoaNode(MNG,fv,e,t,fv,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
-        addOp3Cache(biddyEACache,f,biddyZero,h,r,cindex);
       }
     }
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
-      /* NOT IMPLEMENTED, YET */
+
+      if (fv == v) {
+        r = BiddyManagedOr(MNG,BiddyE(f),BiddyT(f));
+        v = BiddyManagedGetNextVariable(MNG,v);
+        if (v == BiddyGetTag(r)) {
+          BiddySetTag(r,tag);
+        } else {
+          r = BiddyManagedTaggedFoaNode(MNG,v,r,r,tag,TRUE);
+          BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+        }
+      } else if (BiddyIsSmaller(v,fv)) {
+        /* the case !BiddyIsSmaller(v,tag) is already solved */
+        r = BiddyManagedTaggedFoaNode(MNG,v,f,biddyZero,v,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      } else {
+        e = BiddyManagedElementAbstract(MNG,BiddyE(f),v);
+        t = BiddyManagedElementAbstract(MNG,BiddyT(f),v);
+        r = BiddyManagedTaggedFoaNode(MNG,fv,e,t,tag,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      }
     }
 #endif
+
+    addOp3Cache(biddyEACache,f,biddyZero,h,r,cindex);
 
   } else {
 
@@ -7494,16 +7624,28 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   }
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
-    if (f == biddyTerminal) return g;
-    if (g == biddyTerminal) return f;
+    if (f == biddyTerminal) {
+      BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
+      return g;
+    }
+    if (g == biddyTerminal) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
   }
   else if (biddyManagerType == BIDDYTYPETZBDD) {
     tagF = BiddyGetTag(f);
     tagG = BiddyGetTag(g);
     topF = BiddyV(f);
     topG = BiddyV(g);
-    if ((topF == 0) && (!BiddyIsSmaller(tagG,tagF))) return g; 
-    if ((topG == 0) && (!BiddyIsSmaller(tagF,tagG))) return f; 
+    if ((topF == 0) && (!BiddyIsSmaller(tagG,tagF))) {
+      BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
+      return g;
+    }
+    if ((topG == 0) && (!BiddyIsSmaller(tagF,tagG))) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
   }
 #endif
 
@@ -7516,7 +7658,7 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     FF = f;
     GG = g;
   }
-  HH = biddyTerminal;
+  HH = biddyZero;
 
   /* IF RESULT IS NOT IN THE CACHE TABLE... */
   cindex = 0;
@@ -7576,15 +7718,13 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
         Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
         Fv = BiddyT(f);
       } else {
-        Fneg_v = f;
-        Fv = Fneg_v; /* used instead of biddyZero to make algorithm shorter and faster! */
+        Fv = Fneg_v = f;
       }
       if (topG == v) {
         Gneg_v = BiddyInvCond(BiddyE(g),BiddyGetMark(g));
         Gv = BiddyT(g);
       } else {
-        Gneg_v = g;
-        Gv = Gneg_v; /* used instead of biddyZero to make algorithm shorter and faster! */
+        Gv = Gneg_v = g;
       }
 
       if (topF == topG) {
@@ -7657,7 +7797,7 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       r = BiddyManagedTaggedFoaNode(MNG,v,e,t,rtag,TRUE);
       BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
-      
+
     }
 #endif
 
@@ -7683,13 +7823,12 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 Biddy_Edge
 BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge cube)
 {
-  Biddy_Edge r;
+  Biddy_Edge e, t, r, Fv, Gv, Fneg_v, Gneg_v, nextcube;
+  Biddy_Variable v, topF, topG;
   Biddy_Edge FF, GG, HH;
   unsigned int cindex;
 
 #ifndef COMPACT
-  Biddy_Edge e, t, Fv, Gv, Fneg_v, Gneg_v, nextcube;
-  Biddy_Variable v, topF, topG;
   /* Biddy_Variable tagF, tagG, rtag; */
 #endif
 
@@ -7698,7 +7837,11 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
   assert( g != NULL );
   assert( cube != NULL );
 
-  assert( cube != biddyZero );
+  assert( (f == biddyZero) ||
+          (g == biddyZero) ||
+          ((f == biddyTerminal) && (g == biddyTerminal)) ||
+          (cube != biddyZero)
+        );
 
   /* IMPLEMENTED FOR OBDD, OBDDC, ZBDD, ZBDDC, AND TZBDD */
   assert(
@@ -7728,13 +7871,22 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
   if (f == biddyZero) return biddyZero;
   if (g == biddyZero) return biddyZero;
 
-#ifndef COMPACT
-  topF = topG = 0;
   v = 0;
-#endif
+  topF = topG = 0;
 
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-    /* NOT IMPLEMENTED, YET */
+    if ((f == biddyTerminal) && (g == biddyTerminal)) return biddyTerminal;
+    topF = BiddyV(f);
+    topG = BiddyV(g);
+    v = BiddyIsSmaller(topF,topG) ? topF : topG;
+    while (BiddyIsSmaller(BiddyV(cube),v)) {
+      r = BiddyInvCond(BiddyT(cube),BiddyGetMark(cube)); /* r is used here as a tmp varaible */
+      if (r != biddyZero) {
+        cube = r;
+      } else {
+        cube = BiddyInvCond(BiddyE(cube),BiddyGetMark(cube));
+      }
+    }
   }
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
@@ -7743,14 +7895,12 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
     topG = BiddyV(g);
     v = BiddyIsSmaller(topF,topG) ? topF : topG;
     while (BiddyIsSmaller(BiddyV(cube),v)) cube = BiddyT(cube);
-    /*
-    if (cube == biddyTerminal) {
-      return BiddyManagedProduct(MNG,f,g);
-    }
-    */
   }
   else if (biddyManagerType == BIDDYTYPETZBDD) {
     /* NOT IMPLEMENTED, YET */
+    topF = BiddyV(f);
+    topG = BiddyV(g);
+    v = BiddyIsSmaller(topF,topG) ? topF : topG;
   }
 #endif
 
@@ -7767,7 +7917,60 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
 
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
 
-      /* NOT IMPLEMENTED, YET */
+      /* LOOKING FOR THE SMALLEST TOP VARIABLE */
+      /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
+      /* already calculated */
+
+      /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
+      /* COMPLEMENTED EDGES MUST BE TRANSFERED */
+      if (topF == v) {
+        Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
+        Fv = BiddyInvCond(BiddyT(f),BiddyGetMark(f));
+      } else {
+        Fneg_v = Fv = f;
+      }
+      if (topG == v) {
+        Gneg_v = BiddyInvCond(BiddyE(g),BiddyGetMark(g));
+        Gv = BiddyInvCond(BiddyT(g),BiddyGetMark(g));
+      } else {
+        Gneg_v = Gv = g;
+      }
+
+      if (v == BiddyV(cube)) {
+        r = BiddyInvCond(BiddyT(cube),BiddyGetMark(cube)); /* r is used here as a tmp variable */
+        if (r != biddyZero) {
+          nextcube = r;
+        } else {
+          nextcube = BiddyInvCond(BiddyE(cube),BiddyGetMark(cube));
+        }
+      } else {
+        nextcube = cube;
+      }
+      if (topF == topG) {
+        e = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gneg_v,nextcube);
+        if (((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) == biddyZero)) && (topG == v)) { /* positive set */
+          t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
+          t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
+        } else if (((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) != biddyZero)) && (topG == v)) { /* negative set */
+          t = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gv,nextcube);
+          t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
+        } else {
+          t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
+          t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fneg_v,Gv,nextcube));
+          t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
+        }
+      } else {
+        e = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gneg_v,nextcube);
+        if ((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) == biddyZero) && (topF == v)) { /* positive set */
+          /* because (topF == v) it is true that topF < topG */
+          t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
+        } else {
+          t = BiddyManagedOr(MNG,e,BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube));
+        }
+      }
+      r = BiddyManagedTaggedFoaNode(MNG,v,e,t,v,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
 
     }
 
@@ -7784,15 +7987,13 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
         Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
         Fv = BiddyT(f);
       } else {
-        Fneg_v = f;
-        Fv = Fneg_v; /* used instead of biddyZero to make algorithm shorter and faster! */
+        Fv = Fneg_v = f;
       }
       if (topG == v) {
         Gneg_v = BiddyInvCond(BiddyE(g),BiddyGetMark(g));
         Gv = BiddyT(g);
       } else {
-        Gneg_v = g;
-        Gv = Gneg_v; /* used instead of biddyZero to make algorithm shorter and faster! */
+        Gv = Gneg_v = g;
       }
 
       if (v == BiddyV(cube)) nextcube = BiddyT(cube); else nextcube = cube;
@@ -7811,7 +8012,8 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
         }
       } else {
         e = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gneg_v,nextcube);
-        if ((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) == biddyZero) && (topG == v)) { /* positive set, only */
+        if ((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) == biddyZero) && (topG == v)) { /* positive set */
+          /* because (topG == v) it is true that topG < topF */
           t = BiddyManagedGetEmptySet(MNG);
         } else {
           t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
@@ -7826,7 +8028,7 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
     else if (biddyManagerType == BIDDYTYPETZBDD) {
 
       /* NOT IMPLEMENTED, YET */
-      
+
     }
 #endif
 
@@ -7854,9 +8056,12 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 {
   Biddy_Edge e, t, r, Fv, Gv, Fneg_v, Gneg_v;
   Biddy_Variable v, topF, topG;
-  /* Biddy_Variable tag; */
   Biddy_Edge FF, GG, HH;
   unsigned int cindex;
+
+#ifndef COMPACT
+  Biddy_Variable tagF, tagG, rtag;
+#endif
 
   assert( MNG != NULL );
   assert( f != NULL );
@@ -7873,7 +8078,24 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 
   if (f == biddyZero) return biddyZero;
   if (g == biddyZero) return biddyZero;
-  if (f == g) return f;
+  if (f == g) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+    return f;
+  }
+
+#ifndef COMPACT
+  tagF = tagG = topF = topG = 0; /* to make compiler happy */
+  if (biddyManagerType == BIDDYTYPETZBDD) {
+    tagF = BiddyGetTag(f);
+    tagG = BiddyGetTag(g);
+    topF = BiddyV(f);
+    topG = BiddyV(g);
+    if ((topF == 0) && ((topG == 0))) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
+  }
+#endif
 
   r = biddyNull;
 
@@ -7964,7 +8186,62 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     }
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
-      /* NOT IMPLEMENTED, YET */
+
+      /* LOOKING FOR THE SMALLEST TAG AND SMALLEST TOP VARIABLE */
+      /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
+      /* tagF = BiddyGetTag(f); */ /* already set */
+      /* tagG = BiddyGetTag(g); */ /* already set */
+      /* topF = BiddyV(f); */ /* already set */
+      /* topG = BiddyV(g); */ /* already set */
+      rtag = BiddyIsSmaller(tagF,topG) ? tagF : topG; /* min(tagF,topG) */
+      v = BiddyIsSmaller(topF,topG) ? topF : topG; /* min(topF,topG) */
+
+      if (BiddyIsSmaller(topG,tagF)) {
+        Fneg_v = Fv = f;
+        Gneg_v = BiddyE(g);
+        Gv = BiddyT(g);
+      } else if (BiddyIsSmaller(topG,topF)) {
+        Fneg_v = f;
+        BiddySetTag(Fneg_v,v);
+        Fneg_v = BiddyManagedIncTag(MNG,Fneg_v);
+        Fv = biddyZero;
+        Gneg_v = BiddyE(g);
+        Gv = biddyZero;
+      } else if (topG == topF) {
+        Fneg_v = BiddyE(f);
+        Fv = BiddyT(f);
+        Gneg_v = BiddyE(g);
+        Gv = BiddyT(g);
+      } else if (BiddyIsSmaller(topF,tagG)) {
+        Fneg_v = BiddyE(f);
+        Fv = BiddyT(f);
+        Gneg_v = Gv = g;
+      } else {
+        Fneg_v = BiddyE(f);
+        Fv = BiddyT(f);
+        Gneg_v = g;
+        BiddySetTag(Gneg_v,v);
+        Gneg_v = BiddyManagedIncTag(MNG,Gneg_v);
+        Gv = Gneg_v;
+      }
+
+      e = BiddyManagedSupset(MNG,Fneg_v,Gneg_v);
+      t = BiddyManagedSupset(MNG,Fv,Gv);
+      /*
+      if (BiddyIsSmaller(topG,tagF)) {
+        t = BiddyManagedOr(MNG,t,e);
+      } else if (topG == topF) {
+        t = BiddyManagedOr(MNG,t,BiddyManagedSupset(MNG,Fv,Gneg_v));
+      }
+      */
+      if (v == topG) {
+        t = BiddyManagedOr(MNG,t,BiddyManagedSupset(MNG,Fv,Gneg_v));
+      }
+
+      r = BiddyManagedTaggedFoaNode(MNG,v,e,t,rtag,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
+
     }
 #endif
 
@@ -7990,14 +8267,13 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 Biddy_Edge
 BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 {
-  Biddy_Edge r;
+  Biddy_Edge e, t, r, Fv, Gv, Fneg_v, Gneg_v;
+  Biddy_Variable v, topF, topG;
   Biddy_Edge FF, GG, HH;
   unsigned int cindex;
 
 #ifndef COMPACT
-  Biddy_Edge e, t, Fv, Gv, Fneg_v, Gneg_v;
-  Biddy_Variable v, topF, topG;
-  /* Biddy_Variable tag; */
+  Biddy_Variable tagF, tagG, rtag;
 #endif
 
   assert( MNG != NULL );
@@ -8015,7 +8291,29 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 
   if (f == biddyZero) return biddyZero;
   if (g == biddyZero) return biddyZero;
-  if (f == g) return f;
+  if (f == g) {
+    BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+    return f;
+  }
+
+#ifndef COMPACT
+  tagF = tagG = topF = topG = 0; /* to make compiler happy */
+  if (biddyManagerType == BIDDYTYPETZBDD) {
+    tagF = BiddyGetTag(f);
+    tagG = BiddyGetTag(g);
+    topF = BiddyV(f);
+    topG = BiddyV(g);
+    if ((topF == 0) && ((topG == 0))) {
+      if (BiddyIsSmaller(tagF,tagG)) {
+        BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+        return f;
+      } else {
+        BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
+        return g;
+      }
+    }
+  }
+#endif
 
   r = biddyNull;
 
@@ -8029,7 +8327,38 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
   {
 
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-      /* NOT IMPLEMENTED, YET */
+
+      /* LOOKING FOR THE SMALLEST TOP VARIABLE */
+      /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
+      topF = BiddyV(f);
+      topG = BiddyV(g);
+      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+
+      /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
+      /* COMPLEMENTED EDGES MUST BE TRANSFERED */
+      if (topF == v) {
+        Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
+        Fv = BiddyInvCond(BiddyT(f),BiddyGetMark(f));
+      } else {
+        Fneg_v = Fv = f;
+      }
+      if (topG == v) {
+        Gneg_v = BiddyInvCond(BiddyE(g),BiddyGetMark(g));
+        Gv = BiddyInvCond(BiddyT(g),BiddyGetMark(g));
+      } else {
+        Gneg_v = Gv = g;
+      }
+
+      e = BiddyManagedSubset(MNG,Fneg_v,Gneg_v);
+      t = BiddyManagedSubset(MNG,Fv,Gv);
+      if (v == topG) {
+        e = BiddyManagedOr(MNG,e,BiddyManagedSubset(MNG,Fneg_v,Gv));
+      }
+
+      r = BiddyManagedTaggedFoaNode(MNG,v,e,t,v,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
+
     }
 
 #ifndef COMPACT
@@ -8076,7 +8405,64 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     }
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
-      /* NOT IMPLEMENTED, YET */
+
+      /* LOOKING FOR THE SMALLEST TAG AND SMALLEST TOP VARIABLE */
+      /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
+      /* tagF = BiddyGetTag(f); */ /* already set */
+      /* tagG = BiddyGetTag(g); */ /* already set */
+      /* topF = BiddyV(f); */ /* already set */
+      /* topG = BiddyV(g); */ /* already set */
+      rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG; /* min(tagF,topG) */
+      v = BiddyIsSmaller(topF,topG) ? topF : topG; /* min(topF,topG) */
+
+      if (BiddyIsSmaller(topG,tagF)) {
+        Fneg_v = Fv = f;
+        Gneg_v = BiddyE(g);
+        Gv = BiddyT(g);
+      } else if (BiddyIsSmaller(topG,topF)) {
+        Fneg_v = f;
+        BiddySetTag(Fneg_v,v);
+        Fneg_v = BiddyManagedIncTag(MNG,Fneg_v);
+        Fv = biddyZero;
+        Gneg_v = BiddyE(g);
+        Gv = BiddyT(g);
+      } else if (topG == topF) {
+        Fneg_v = BiddyE(f);
+        Fv = BiddyT(f);
+        Gneg_v = BiddyE(g);
+        Gv = BiddyT(g);
+      } else if (BiddyIsSmaller(topF,tagG)) {
+        Fneg_v = BiddyE(f);
+        Fv = BiddyT(f);
+        Gneg_v = Gv = g;
+      } else {
+        Fneg_v = BiddyE(f);
+        Fv = biddyZero;
+        Gneg_v = g;
+        BiddySetTag(Gneg_v,v);
+        Gneg_v = BiddyManagedIncTag(MNG,Gneg_v);
+        Gv = biddyZero;
+      }
+
+      e = BiddyManagedSubset(MNG,Fneg_v,Gneg_v);
+      t = BiddyManagedSubset(MNG,Fv,Gv);
+      /*
+      if (BiddyIsSmaller(topG,tagF)) {
+        e = BiddyManagedOr(MNG,e,t);
+      } else if (BiddyIsSmaller(topG,topF)) {
+        e = BiddyManagedOr(MNG,e,BiddyManagedSubset(MNG,Fneg_v,Gv));
+      } else if (topG == topF) {
+        e = BiddyManagedOr(MNG,e,BiddyManagedSubset(MNG,Fneg_v,Gv));
+      }
+      */
+      if (v == topG) {
+        e = BiddyManagedOr(MNG,e,BiddyManagedSubset(MNG,Fneg_v,Gv));
+      }
+
+      r = BiddyManagedTaggedFoaNode(MNG,v,e,t,rtag,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
+
     }
 #endif
 
@@ -8105,7 +8491,10 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
 {
   Biddy_Edge e, t, r, Fv, Fneg_v;
   Biddy_Variable v;
-  /* Biddy_Variable tag; */
+
+#ifndef COMPACT
+  Biddy_Variable tag;
+#endif
 
   assert( MNG != NULL );
   assert( f != NULL );
@@ -8119,7 +8508,7 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
     (biddyManagerType == BIDDYTYPETZBDD)
   );
 
-  /* argument lowest is used only for OBDD and OBDDC */
+  /* argument lowest is not used for ZBDD and ZBDDC */
 
   if (f == biddyZero) return biddyZero;
 
@@ -8127,12 +8516,15 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
 
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
 
-    if (lowest == 0) return f;
+    v = BiddyV(f);
+    if (lowest == 0) {
+      assert( v == 0 );
+      return f;  /* refresh not needed because biddyV(f) is 0 */
+    }
 
     /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
     /* COMPLEMENTED EDGES MUST BE TRANSFERED */
-    v = BiddyV(f);
-    if (v != 0) {
+    if (v == lowest) {
       Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
       Fv = BiddyInvCond(BiddyT(f),BiddyGetMark(f));
     }
@@ -8161,15 +8553,15 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
 
-    /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
-    /* COMPLEMENTED EDGES MUST BE TRANSFERED */
     v = BiddyV(f);
     if (v == 0) {
-      return f;
-    } else {
-      Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
-      Fv = BiddyT(f);
+      return f; /* refresh not needed because biddyV(f) is 0 */
     }
+
+    /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
+    /* COMPLEMENTED EDGES MUST BE TRANSFERED */
+    Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
+    Fv = BiddyT(f);
 
     e = BiddyManagedPermitsym(MNG,Fneg_v,lowest,n); /* lowest is not used */
     if (n == 0) {
@@ -8184,7 +8576,44 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
   }
 
   else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
+
+    v = BiddyV(f);
+    tag = BiddyGetTag(f);
+    if (lowest == 0) {
+      assert( v == 0 );
+      return f;  /* refresh not needed because biddyV(f) is 0 */
+    }
+    if ((tag == lowest) && (v == 0)) {
+      return f;  /* refresh not needed because biddyV(f) is 0 */
+    }
+
+    /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
+    if (tag == lowest) {
+      Fneg_v = BiddyE(f);
+      Fv = BiddyT(f);
+    }
+
+    if (tag == lowest) {
+      assert( v != 0 );
+      e = BiddyManagedPermitsym(MNG,Fneg_v,biddyVariableTable.table[v].next,n);
+      if (n == 0) {
+        t = biddyZero;
+      } else {
+        t = BiddyManagedPermitsym(MNG,Fv,biddyVariableTable.table[v].next,n-1);
+      }
+    } else {
+      v = lowest;
+      e = BiddyManagedPermitsym(MNG,f,biddyVariableTable.table[lowest].next,n);
+      if (n == 0) {
+        t = biddyZero;
+      } else {
+        t = BiddyManagedPermitsym(MNG,f,biddyVariableTable.table[lowest].next,n-1);
+      }
+    }
+
+    r = BiddyManagedTaggedFoaNode(MNG,v,e,t,lowest,TRUE);
+    BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+
   }
 #endif
 
@@ -8201,16 +8630,16 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
 *******************************************************************************/
 
 Biddy_Edge
-BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge f)
+BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
 {
+  Biddy_Edge e, t, Fv, Fneg_v;
+  Biddy_Variable v;
   Biddy_Edge r;
   Biddy_Edge FF, GG, HH;
   unsigned int cindex;
 
 #ifndef COMPACT
-  Biddy_Edge e, t, Fv, Fneg_v;
-  Biddy_Variable v;
-  /* Biddy_Variable tag; */
+  Biddy_Variable tag;
 #endif
 
   assert( MNG != NULL );
@@ -8225,26 +8654,97 @@ BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge f)
     (biddyManagerType == BIDDYTYPETZBDD)
   );
 
-  if (f == biddyZero) return biddyZero;
-  if (f == biddyTerminal) return biddyTerminal;
+#ifndef COMPACT
+  tag = 0;
+#endif
+
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    if (f == biddyZero) return biddyZero;
+    if (f == biddyOne) {
+      BiddyRefresh(support); /* return non-obsolete node even if the parameter is an obsolete node */
+      return support;
+    }
+    if (f == support) {
+      BiddyRefresh(support); /* return non-obsolete node even if the parameter is an obsolete node */
+      return support;
+    }
+  }
+
+#ifndef COMPACT
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    if (BiddyIsTerminal(f)) return f;
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    if (f == biddyZero) return biddyZero;
+    if (f == biddyOne) {
+      BiddyRefresh(support); /* return non-obsolete node even if the parameter is an obsolete node */
+      return support;
+    }
+    if (f == support) {
+      BiddyRefresh(support); /* return non-obsolete node even if the parameter is an obsolete node */
+      return support;
+    }
+    if (((tag = BiddyGetTag(f)) == BiddyV(support)) && (BiddyIsTerminal(f))) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
+  }
+#endif
 
   r = biddyNull;
 
   FF = f;
   GG = biddyNull;
-  HH = biddyNull;
+  HH = biddyOne;
+
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    GG = support;
+  }
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    HH = biddyNull;
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    GG = support;
+  }
 
   /* IF RESULT IS NOT IN THE CACHE TABLE... */
   cindex = 0;
-  if (!findOp3Cache(biddyRCCache,FF,GG,HH,&r,&cindex))
+  if (TRUE || !findOp3Cache(biddyRCCache,FF,GG,HH,&r,&cindex))
   {
 
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-      /* NOT IMPLEMENTED, YET */
+
+      /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
+      /* COMPLEMENTED EDGES MUST BE TRANSFERED */
+
+      if ((v = BiddyV(f)) != BiddyV(support)) {
+        v = BiddyV(support);
+        e = biddyZero;
+        t = BiddyManagedStretch(MNG,BiddyT(support),f);
+      } else {
+        Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
+        Fv = BiddyInvCond(BiddyT(f),BiddyGetMark(f));
+        if (Fneg_v == biddyZero) {
+          e = biddyZero;
+          t = BiddyManagedStretch(MNG,BiddyT(support),Fv);
+        } else {
+          e = BiddyManagedStretch(MNG,BiddyT(support),Fneg_v);
+          t = BiddyManagedStretch(MNG,BiddyT(support),Fv);
+          e = BiddyManagedDiff(MNG,e,BiddyManagedSubset(MNG,e,t));
+        }
+      }
+
+      r = BiddyManagedTaggedFoaNode(MNG,v,e,t,v,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
+
     }
 
 #ifndef COMPACT
     else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+
+      /* argument support is not used for ZBDD and ZBDDC */
+      /* TO DO: by introducing support, the efficency may be improve due to additional simple case */
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -8252,12 +8752,12 @@ BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge f)
       Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
       Fv = BiddyT(f);
 
-      if ((Fneg_v == biddyZero) || (Fneg_v == biddyTerminal) || (Fv == Fneg_v)) {
+      if (BiddyIsTerminal(Fneg_v) || (Fneg_v == Fv)) {
         e = biddyZero;
-        t = BiddyManagedStretch(MNG,Fv);
+        t = BiddyManagedStretch(MNG,support,Fv);
       } else {
-        e = BiddyManagedStretch(MNG,Fneg_v);
-        t = BiddyManagedStretch(MNG,Fv);
+        e = BiddyManagedStretch(MNG,support,Fneg_v);
+        t = BiddyManagedStretch(MNG,support,Fv);
         e = BiddyManagedDiff(MNG,e,BiddyManagedSubset(MNG,e,t));
       }
 
@@ -8268,7 +8768,33 @@ BiddyManagedStretch(Biddy_Manager MNG, Biddy_Edge f)
     }
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
-      /* NOT IMPLEMENTED, YET */
+
+      /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
+      /* COMPLEMENTED EDGES MUST BE TRANSFERED */
+
+      if (tag != BiddyV(support)) {
+        tag = v = BiddyV(support);
+        e = biddyZero;
+        t = BiddyManagedStretch(MNG,BiddyT(support),f);
+      } else {
+        v = BiddyV(f);
+        Fneg_v = BiddyE(f);
+        Fv = BiddyT(f);
+        while (BiddyV(support) != v) support = BiddyT(support);
+        if ((Fneg_v == biddyZero) || (Fneg_v == Fv)) {
+          e = biddyZero;
+          t = BiddyManagedStretch(MNG,BiddyT(support),Fv);
+        } else {
+          e = BiddyManagedStretch(MNG,BiddyT(support),Fneg_v);
+          t = BiddyManagedStretch(MNG,BiddyT(support),Fv);
+          e = BiddyManagedDiff(MNG,e,BiddyManagedSubset(MNG,e,t));
+        }
+      }
+
+      r = BiddyManagedTaggedFoaNode(MNG,v,e,t,tag,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
+
     }
 #endif
 
@@ -8623,7 +9149,6 @@ BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
   Biddy_Edge g,m,r;
   Biddy_Variable v;
   Biddy_Variable vs;
-  /* Biddy_Variable tag; */
 
   assert( MNG != NULL );
   assert( f != NULL );
@@ -8646,7 +9171,7 @@ BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
 
     /* this generates the smallest minterm */
 
-    if (support == biddyTerminal) return biddyOne;
+    if (Biddy_IsTerminal(support)) return biddyOne;
 
     v = BiddyV(f);
     vs = BiddyV(support);
@@ -8654,14 +9179,17 @@ BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
     if (v != vs) {
       m = BiddyManagedExtractMinterm(MNG,BiddyT(support),f);
       r = BiddyManagedTaggedFoaNode(MNG,vs,m,biddyZero,vs,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
     } else {
       g = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
       if (g == biddyZero) {
         m = BiddyManagedExtractMinterm(MNG,BiddyT(support),BiddyInvCond(BiddyT(f),BiddyGetMark(f)));
         r = BiddyManagedTaggedFoaNode(MNG,vs,biddyZero,m,vs,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       } else {
         m = BiddyManagedExtractMinterm(MNG,BiddyT(support),g);
         r = BiddyManagedTaggedFoaNode(MNG,vs,m,biddyZero,vs,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       }
     }
 
@@ -8672,9 +9200,8 @@ BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
 
     /* this generates the smallest minterm */
     /* argument support is not used for ZBDD and ZBDDC */
-    /* argument m is not used for ZBDD and ZBDDC */
 
-    if (f == biddyTerminal) return f;
+    if (Biddy_IsTerminal(f)) return f;
 
     v = BiddyV(f);
 
@@ -8682,6 +9209,7 @@ BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
     if (g == biddyZero) {
       m = BiddyManagedExtractMinterm(MNG,support,BiddyT(f));
       r = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,m,v,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
     } else {
       r = BiddyManagedExtractMinterm(MNG,support,g);
     }
@@ -8689,7 +9217,31 @@ BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
   }
 
   else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
+
+    /* this generates the smallest minterm */
+
+    v = BiddyV(f);
+    vs = BiddyV(support);
+
+    if (Biddy_IsTerminal(f)) {
+      Biddy_SetTag(f,vs);
+      return f;
+    }
+
+    while (BiddyV(support) != v) {
+      support = BiddyT(support);
+    }
+
+    g = BiddyE(f);
+    if (g == biddyZero) {
+        m = BiddyManagedExtractMinterm(MNG,BiddyT(support),BiddyT(f));
+        r = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,m,vs,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+    } else {
+      r = BiddyManagedExtractMinterm(MNG,BiddyT(support),g);
+      Biddy_SetTag(r,vs);
+    }
+
   }
 #endif
 
@@ -9103,7 +9655,10 @@ replaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv,
   /* topv is used for ZBDD and ZBDDC, only */
   assert( MNG != NULL );
   assert( f != NULL );
-  assert( topv != 0);
+  assert( (biddyManagerType == BIDDYTYPEOBDD) ||
+          (biddyManagerType == BIDDYTYPEOBDDC) ||
+          (biddyManagerType == BIDDYTYPETZBDD) ||
+          (topv != 0) );
 
   /* IMPLEMENTED FOR OBDD, OBDDC, ZBDD, ZBDDC, AND TZBDD */
   assert(
@@ -9346,7 +9901,7 @@ exchangeEdges(Biddy_Edge *f, Biddy_Edge *g)
 
 ### Description
 ### Side effects
-	  Deprecated and removed.
+    Deprecated and removed.
 ### More info
 *******************************************************************************/
 
