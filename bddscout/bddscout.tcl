@@ -8,8 +8,8 @@ exec wish "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 624 $]
-#  Date        [$Date: 2020-03-29 20:01:24 +0200 (ned, 29 mar 2020) $]
+#  Revision    [$Revision: 625 $]
+#  Date        [$Date: 2020-05-02 17:17:28 +0200 (sob, 02 maj 2020) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
@@ -242,7 +242,7 @@ lappend auto_path /usr/lib/bddscout
 # Biddy
 # ####################################################################
 
-set BIDDYVERSION "2.0.1"
+set BIDDYVERSION "2.0.2"
 
 set BFCMDLIST [list \
   "bddview_save" \
@@ -337,12 +337,13 @@ if {($tcl_platform(platform) == "windows") || ($tcl_platform(os) == "Darwin")} {
   wm state . zoomed
 }
 
-# we have noticed strange wm deadlocks on Ubuntu - simply press CTRL if BDD Scout is freezed during loading
+# we have noticed strange wm deadlocks on Ubuntu
+# simply press CTRL if BDD Scout is freezed during loading
 # moreover, you can disable splash to prevent these strange wm deadlock
 if { $tcl_platform(platform) == "windows" } {
   set USESPLASH 1
 } else {
-  set USESPLASH 1
+  set USESPLASH 0
 }
 
 set SPLASHTEXT ""
@@ -493,7 +494,7 @@ set inputtype [tk_optionMenu $inputwin.label.menu bddscout__selectedInputType \
      "Tcl command:" \
 ]
 
-frame $inputwin.cmd 
+frame $inputwin.cmd
 set inputcmd [menubutton $inputwin.cmd.menu -text "f()"]
 
 menu $inputcmd.tclcmd -tearoff 0
@@ -1792,7 +1793,7 @@ proc menu_help_about {} {
   text .helpAbout.w -bg $COLORMENU -height 20 -width 100
   .helpAbout.w insert 1.0 "\
   BDD Scout v$BIDDYVERSION\n\
-  \$Date: 2020-03-29 20:01:24 +0200 (ned, 29 mar 2020) $ \n\n\
+  \$Date: 2020-05-02 17:17:28 +0200 (sob, 02 maj 2020) $ \n\n\
   Author: Robert Meolic (robert@meolic.com)\n\n\
   Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\
   Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia\n\n\
@@ -2243,7 +2244,7 @@ proc parseinput { force } {
             bddview_message "NOTE" "Exported as $BDDNAME.tex"
           } else {
             bddview_message "NOTE" "Exported as $ARGS"
-          }          
+          }
           set TRYCMD 1
         #
         # BFCMDLIST

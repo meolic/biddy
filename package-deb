@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 620 $]
-#  Date        [$Date: 2020-03-28 16:40:27 +0100 (sob, 28 mar 2020) $]
+#  Revision    [$Revision: 627 $]
+#  Date        [$Date: 2020-05-02 20:30:15 +0200 (sob, 02 maj 2020) $]
 #
 #  Copyright   [
 #    This file is part of Biddy.
@@ -37,22 +37,15 @@
 # https://wiki.ubuntu.com/PbuilderHowto
 # http://wiki.debian.org/PbuilderTricks
 
-# 1A. If using pdebuild then initialize pbuilder as follows:
-# sudo pbuilder create
-# sudo pbuilder update
+# 1. To use pbuilder-dist you have to initialize/update pbuilder as follows:
+# pbuilder-dist focal create
+# pbuilder-dist focal update
 
-# 1B. If using pbuilder-dist then initialize pbuilder as follows:
-# pbuilder-dist eoan create
-# pbuilder-dist eoan update
-
-# 1C. Update before every building
-# pbuilder-dist eoan update
-
-# We are using biddy in other projects thus we upload the resulting deb files
+# 2. Upload the resulting deb files to repository
 # cd ~/est/biddy/distribution/version-1.X/release-Y/
 # dput libbiddy*.changes
 
-#Create binary release after creation of source release.
+# Create binary release after creation of source release
 # 0. You need dpkg-dev, fakeroot, debhelper, build-essential, pbuilder
 # 1. You need source package, e.g.:
 #      foo_*.debian.tar.gz
@@ -65,7 +58,7 @@
 # 3. Use pbuilder (you need local repository for extra dependencies,
 #    result will be in /var/cache/pbuilder/result/):
 #      pdebuild
-# 4. If you do not have pbuilder, instal all dependencies and then
+# 4. If you do not have pbuilder, install all dependencies and then
 #    (result will be in ../):
 #      dpkg-buildpackage -rfakeroot -b
 
@@ -139,7 +132,7 @@ echo ""
 echo "GENERATING SOURCE PACKAGE FOR $DISTRO"
 dch -M -v "$VERSION-$RELEASE" -D $DISTRO
 cp "debian/changelog" "../../changelog.deb"
-debuild -S -sa -kD22F409B
+debuild -S -sa -kF7FCCB3CD22F409B
 mkdir `pwd`/../$DISTRO
 mkdir `pwd`/../$DISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$DISTRO/source
@@ -148,14 +141,14 @@ mv `pwd`/../*.build `pwd`/../$DISTRO/source
 mv `pwd`/../*.buildinfo `pwd`/../$DISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$DISTRO/source
 
-# create a source distribution for xenial
+# create a source distribution for bionic
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=xenial
+ALTDISTRO=bionic
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
-debuild --no-lintian -S -sa -kD22F409B
+debuild --no-lintian -S -sa -kF7FCCB3CD22F409B
 mkdir `pwd`/../$ALTDISTRO
 mkdir `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
@@ -171,7 +164,7 @@ ALTDISTRO=eoan
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
-debuild --no-lintian -S -sa -kD22F409B
+debuild --no-lintian -S -sa -kF7FCCB3CD22F409B
 mkdir `pwd`/../$ALTDISTRO
 mkdir `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
@@ -189,37 +182,19 @@ echo "************************"
 echo ""
 
 # all target pbuilder environments must already exists and be updated
-# use e.g pbuilder-dist bionic create
-# use e.g pbuilder-dist bionic update
+# use e.g pbuilder-dist focal create
+# use e.g pbuilder-dist focal update
 
 echo "BUILDING FOR YOUR DISTRO: $DISTRO"
 pbuilder-dist $DISTRO build --buildresult `pwd`/$DISTRO `pwd`/$DISTRO/source/*.dsc
-#pushd `pwd`/$DISTRO/source
-#dpkg-source -x *.dsc
-#cd "$NAME-$VERSION"
-#change key if you are not Robert Meolic
-#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
-#popd
 
-ALTDISTRO=xenial
+ALTDISTRO=bionic
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
-#pushd `pwd`/$ALTDISTRO/source
-#dpkg-source -x *.dsc
-#cd "$NAME-$VERSION"
-#change key if you are not Robert Meolic
-#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
-#popd
 
 ALTDISTRO=eoan
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
-#pushd `pwd`/$ALTDISTRO/source
-#dpkg-source -x *.dsc
-#cd "$NAME-$VERSION"
-#change key if you are not Robert Meolic
-#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/..
-#popd
 
 popd
 rm -fr "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"

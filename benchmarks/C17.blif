@@ -1,0 +1,16 @@
+.model C17
+.inputs G1 G2 G3 G4 G5
+.outputs G16 G17
+.names G1 G3 G8
+11 0
+.names G3 G4 G9
+11 0
+.names G2 G9 G12
+11 0
+.names G9 G5 G15
+11 0
+.names G8 G12 G16
+11 0
+.names G12 G15 G17
+11 0
+.end

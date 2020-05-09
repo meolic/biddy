@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 582 $]
-#  Date        [$Date: 2020-02-08 16:18:16 +0100 (sob, 08 feb 2020) $]
+#  Revision    [$Revision: 631 $]
+#  Date        [$Date: 2020-05-09 09:42:48 +0200 (sob, 09 maj 2020) $]
 #
 #  Copyright   [
 #    This file is part of Biddy.
@@ -35,6 +35,7 @@ make clean
 cd ..
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/* -x biddy/*.zip -x biddy/*.pdf -x biddy/*.tmp -x biddy/bin/ -x biddy/doxygen/ -x biddy/biddy-studio/ -x biddy/doc/ -x biddy/test/ -x biddy/biddy-example-* -x biddy/distribution/ x biddy/distribution-bddscout/
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/biddy-example-*.c biddy/biddy-example-*.h biddy/biddy-example-pp-data.csv
+zip -o "biddy/biddy-source-$VERSION.zip" biddy/benchmarks/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/debian/*/*
 zip -o "biddy/biddy-source-$VERSION.zip" biddy/rpm/*

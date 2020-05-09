@@ -15,8 +15,8 @@ Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyMain.c]
-    Revision    [$Revision: 621 $]
-    Date        [$Date: 2020-03-29 10:25:11 +0200 (ned, 29 mar 2020) $]
+    Revision    [$Revision: 625 $]
+    Date        [$Date: 2020-05-02 17:17:28 +0200 (sob, 02 maj 2020) $]
     Authors     [Robert Meolic (robert@meolic.com)]
 
 ### Copyright
@@ -5134,7 +5134,7 @@ BiddyManagedTransferMark(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean mark,
   else if (leftright) {
     /* MAKE COMPILER HAPPY */
   }
-  
+
   return f;
 }
 
@@ -5713,7 +5713,7 @@ BiddyManagedEval(Biddy_Manager MNG, Biddy_Edge f)
       ftop = BiddyV(f);
 
     }
-    
+
 #ifndef COMPACT
     else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
 
@@ -7378,7 +7378,7 @@ BiddyManagedClean(Biddy_Manager MNG)
     BiddyRefresh(biddyVariableTable.table[v].variable);
     BiddyRefresh(biddyVariableTable.table[v].element);
   }
-  
+
   /* all obsolete formulae are labeled as deleted */
   for (v = 2; v < biddyFormulaTable.size; v++) {
     if (biddyFormulaTable.table[v].expiry && (biddyFormulaTable.table[v].expiry < biddySystemAge)) {
@@ -7488,7 +7488,7 @@ BiddyManagedAddFormula(Biddy_Manager MNG, Biddy_String x, Biddy_Edge f, int c)
     printf("BiddyManagedAddFormula: Formula %s\n",x);
   }
   */
-  
+
   /* DEBUGGING */
   /*
   if (!x) {
@@ -8083,7 +8083,7 @@ BiddyManagedGetOrdering(Biddy_Manager MNG)
   }
 
   free(varname);
-  
+
   return result;
 }
 
@@ -8150,7 +8150,7 @@ BiddyManagedSetAlphabeticOrdering(Biddy_Manager MNG)
 
   alphabeticOrdering(MNG,*table);
   BiddySetOrdering(MNG,*table);
-  
+
   free(table);
 }
 
@@ -14554,7 +14554,7 @@ oneSwap(Biddy_Manager MNG, BiddyNode *sup, Biddy_Variable low,
     fprintf(stderr,"oneSwap: Unsupported BDD type!\n");
     return;
   }
-  
+
 #endif
 
 }
@@ -14973,7 +14973,7 @@ constructBDD(Biddy_Manager MNG, int numN, BiddyNodeList *tableN, int id)
     }
 
     tableN[idx].created = TRUE;
-    
+
   } else {
 
     /* DEBUGGING */

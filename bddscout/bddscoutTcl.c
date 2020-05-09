@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutTcl.c]
-  Revision    [$Revision: 608 $]
-  Date        [$Date: 2020-03-10 23:03:33 +0100 (tor, 10 mar 2020) $]
+  Revision    [$Revision: 630 $]
+  Date        [$Date: 2020-05-03 20:12:23 +0200 (ned, 03 maj 2020) $]
   Authors     [Robert Meolic (robert@meolic.com)]
   Description [File bddscoutTcl.c contains definitions of Tcl commands,
                which can be used for manipulating with BDDs from
@@ -1550,7 +1550,7 @@ static int BddscoutParseCubeCmd(ClientData clientData, Tcl_Interp *interp,
   resultname = NULL;
   form = NULL;
   if (strcmp(expr,"")) {
-    
+
     /* trim white space on the end */
     while (expr[0] && expr[strlen(expr)-1]==' ') expr[strlen(expr)-1] = 0;
 
@@ -1604,7 +1604,7 @@ static int BddscoutParseCubeCmd(ClientData clientData, Tcl_Interp *interp,
       } else {
         /* expr includes one word only that is not started with + or - and not followed by symbol = */
         /* trim all spaces on the left and use the rest */
-        printf("BddscoutParseCubeCmd: one word not started with + or -\n");
+        /* printf("BddscoutParseCubeCmd: one word not started with + or -\n"); */
         resultname = strdup("SET1"); /* TO DO: CHOOSE AN UNIQUE NON-EXISTING NAME */
         form = strdup(&expr[n1]);
         tmp = parseCubeSetAlgebraExpr(form);
@@ -1658,7 +1658,7 @@ static int BddscoutParseCubeCmd(ClientData clientData, Tcl_Interp *interp,
 
       if (resultname) free(resultname);
       free(form);
-      
+
     } else  {
 
       Tcl_SetResult(interp, "", TCL_VOLATILE);

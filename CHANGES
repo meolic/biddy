@@ -307,3 +307,8 @@ Changes v2.0.1 versus v1.9.1
 - fixed VarSubset for TZBDD (cache was not used)
 - memory management changed for operations (reused nodes are immediately refreshed)
 - Production Planning example now supports OBDDs
+
+Changes v2.0.2 versus v2.0.1
+- released on May 4, 2020
+- fixed and improved Biddy_Eval1 and Biddy_Eval2
+- added Benchmarks example

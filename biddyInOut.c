@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 621 $]
-    Date        [$Date: 2020-03-29 10:25:11 +0200 (ned, 29 mar 2020) $]
+    Revision    [$Revision: 630 $]
+    Date        [$Date: 2020-05-03 20:12:23 +0200 (ned, 03 maj 2020) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net),
                  Volodymyr Mihav (mihaw.wolodymyr@gmail.com),
@@ -45,7 +45,21 @@ See also: biddy.h, biddyInt.h
 
 #include "biddyInt.h"
 
-/* the following constants and types are used in Biddy_ReadVerilogFile() */
+/* the following constants are used in Biddy_Eval1() and Biddy_Eval2() */
+#define EVAL_SIZE 4096
+#define oNOT 0
+#define oAND 1
+#define oBUTNOT 2
+#define oNOTBUT 4
+#define oXOR 6
+#define oOR 7
+#define oNOR 8
+#define oXNOR 9
+#define oIMPLEFT 11
+#define oIMPRIGHT 13
+#define oNAND 14
+
+/* the following constants are used in Biddy_ReadVerilogFile() */
 #define LINESIZE 999 /* maximum length of each input line read */
 #define BUFSIZE 99999 /* maximum length of a buffer */
 #define INOUTNUM 999 /* maximum number of inputs and outputs */
@@ -55,8 +69,9 @@ See also: biddy.h, biddyInt.h
 #define LINENUM 99999 /* maximum number of lines */
 #define WIRENUM 99999 /* maximum number of wires */
 
-/* recognized Verilog Boolean operators */
-/* some of them are not very standard but they are used in various benchmarks */
+/* the following constant and type are used in Biddy_ReadVerilogFile() */
+/* these are recognized Verilog Boolean operators */
+/* some of them are not common but they are used in some benchmarks */
 /* we are trying to accept everything which is not in direct conflict with the standard */
 /* https://www.xilinx.com/support/documentation/sw_manuals/xilinx11/ite_r_verilog_reserved_words.htm */
 /* http://sutherland-hdl.com/pdfs/verilog_2001_ref_guide.pdf, page 3 */
@@ -86,16 +101,16 @@ static void nextCh(Biddy_String s, int *i, Biddy_String *ch);
 
 static Biddy_Edge ReadBDD(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch);
 
+/* Functions createVariablesFromBTree and createBddFromBTree() are used in Biddy_Eval1() and Biddy_Eval2(). */
+
+static void createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_LookupFunction lf);
+static Biddy_Edge createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i, Biddy_LookupFunction lf);
+
 /* The following functions are used in Biddy_Eval1() and Biddy_Eval1x(). */
 
-static Biddy_Edge evaluate1(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch, Biddy_LookupFunction lf);
-static Biddy_Edge evaluateN(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch, Biddy_Edge g, int op, Biddy_LookupFunction lf);
+static void evaluate1(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_String s, int *i, Biddy_String *ch, Biddy_LookupFunction lf);
+static void evaluateN(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_String s, int *i, Biddy_String *ch, int op, Biddy_LookupFunction lf);
 static int Op(Biddy_String s, int *i, Biddy_String *ch);
-
-/* Functions createVariablesFromBTree and createBddFromBTree() are used in Biddy_Eval2(). */
-
-static void createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree);
-static Biddy_Edge createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i);
 
 /* The following functions are used in Biddy_ReadVerilogFile(). */
 static void parseVerilogFile(FILE *verilogfile, unsigned int *l, BiddyVerilogLine ***lt, unsigned int *n, BiddyVerilogModule ***mt);
@@ -140,6 +155,65 @@ static void WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge
 
 static Biddy_String getname(Biddy_Manager MNG, void *p);
 static Biddy_String getshortname(Biddy_Manager MNG, void *p, int n);
+
+/*----------------------------------------------------------------------------*/
+/* Static functions for debugging                                             */
+/*----------------------------------------------------------------------------*/
+
+/**/
+static void
+printBiddyBTreeContainer(BiddyBTreeContainer *tree)
+{
+  int i;
+  if (tree->availableNode > 0) printf("availableNode=%d\n",tree->availableNode);
+  for (i = tree->availableNode; i >= 0; i--) {
+    printf("[%d]parent=%d,left=%d,right=%d,op=%u",i,
+           tree->tnode[i].parent,
+           tree->tnode[i].left,
+           tree->tnode[i].right,
+           tree->tnode[i].op
+    );
+    if (tree->tnode[i].index != -1) {
+      printf(",index=%d",tree->tnode[i].index);
+    }
+    if (tree->tnode[i].name) {
+      printf(",name=%s\n",tree->tnode[i].name);
+    } else {
+      printf("\n");
+    }
+  }
+}
+
+static void
+printPrefixFromBTree(BiddyBTreeContainer *tree, int i)
+{
+  if (i == -1) return;
+  if (tree->tnode[i].op == 255) {
+    if (tree->tnode[i].name) {
+      printf("%s",tree->tnode[i].name);
+    } else {
+      printf("NULL");
+    }
+    return;
+  }
+  if (tree->tnode[i].op == oNOT) printf("(NOT");
+  else if (tree->tnode[i].op == oAND) printf("(AND ");
+  else if (tree->tnode[i].op == oBUTNOT) printf("(BUTNOT ");
+  else if (tree->tnode[i].op == oNOTBUT) printf("(NOTBUT ");
+  else if (tree->tnode[i].op == oXOR) printf("(XOR ");
+  else if (tree->tnode[i].op == oOR) printf("(OR ");
+  else if (tree->tnode[i].op == oNOR) printf("(NOR ");
+  else if (tree->tnode[i].op == oXNOR) printf("(XNOR ");
+  else if (tree->tnode[i].op == oIMPLEFT) printf("(<= ");
+  else if (tree->tnode[i].op == oIMPRIGHT) printf("(=> ");
+  else if (tree->tnode[i].op == oNAND) printf("(NAND ");
+  else printf("(? ");
+  printPrefixFromBTree(tree,tree->tnode[i].left);
+  printf(" ");
+  printPrefixFromBTree(tree,tree->tnode[i].right);
+  printf(")");
+}
+/**/
 
 /*----------------------------------------------------------------------------*/
 /* Definition of exported functions                                           */
@@ -206,6 +280,8 @@ Biddy_Managed_Eval0(Biddy_Manager MNG, Biddy_String s)
     Parameter lf is a lookup function in the user-defined cache table.
 ### Side effects
     Not reentrant.
+    For ZBDDs and TZBDDs, all used variables must already exist!
+    For ZBDDs and TZBDDs, user-defined cache is not supported!
 ### More info
     Macro Biddy_Eval1x(s,lf) is defined for use with anonymous manager.
     Macros Biddy_Managed_Eval1(s) and Biddy_Eval1(s) are defined for use
@@ -803,6 +879,10 @@ BiddyManagedEval0(Biddy_Manager MNG, Biddy_String s)
 
 ### Description
 ### Side effects
+    BiddyManagedEval1x will always check Biddy's formula table.
+    If (lf != NULL) then user's formula table will be checked, too.
+    User's formula table will be checked before Biddy's formula table.
+    Entries in user's formula should not be obsolete.
 ### More info
     See Biddy_Managed_Eval1x.
 *******************************************************************************/
@@ -810,25 +890,83 @@ BiddyManagedEval0(Biddy_Manager MNG, Biddy_String s)
 Biddy_Edge
 BiddyManagedEval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf)
 {
-  Biddy_Edge sup;
   Biddy_String ch;
   int i;
+  BiddyBTreeContainer *tree;
+  Biddy_Edge fbdd; /* result */
 
   assert( MNG );
+
+  /* DEBUGGING */
+  /*
+  printf("BiddyManagedEval1x: %s\n",s);
+  */
+
+  tree = (BiddyBTreeContainer *) calloc(1, sizeof(BiddyBTreeContainer));
+  if (!tree) return biddyNull;
+  tree->tnode = (BiddyBTreeNode*) malloc(EVAL_SIZE * sizeof(BiddyBTreeNode));
+  if (!tree->tnode) return biddyNull;
+  tree->availableNode = -1;
+  for (i = EVAL_SIZE-1; i >= 0; i--) {
+    tree->tnode[i].name = NULL;
+    tree->tnode[i].op = -1;
+    tree->tnode[i].index = -1; /* not used in Eval1 */
+    tree->tnode[i].left = -1;
+    tree->tnode[i].right = -1;
+    tree->tnode[i].parent = tree->availableNode;
+    tree->availableNode = i;
+  }
 
   ch = (Biddy_String) malloc(255);
 
   i = 0;
   nextCh(s,&i,&ch);
-  sup = evaluate1(MNG,s,&i,&ch,lf);
+
+  evaluate1(MNG,tree,s,&i,&ch,lf);
+
+  tree->tnode[0].parent = 0;
+  tree->tnode[0].right = tree->availableNode;
+  tree->tnode[tree->availableNode].parent = 0;
 
   free(ch);
 
-  if (BiddyIsNull(sup)) {
-    printf("(BiddyManagedEval1x) ERROR: return NULL\n");
+  /*
+  printBiddyBTreeContainer(tree);
+  */
+
+  /*
+  printf("%s\n",s);
+  printPrefixFromBTree(tree,tree->tnode[0].right);
+  printf("\n");
+  */
+
+#ifndef COMPACT
+
+  /* FOR SOME BDD TYPES, IT IS NECESSARY TO CREATE ALL VARIABLES IN ADVANCE */
+  /* createBddFromBTree DOES NOT STORE TMP RESULTS AS FORMULAE AND THUS */
+  /* TMP RESULTS BECOME WRONG IF NEW VARIABLES ARE ADDED ON-THE-FLY */
+
+  if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD))
+  {
+    createVariablesFromBTree(MNG,tree,NULL);
   }
 
-  return sup;
+  if (biddyManagerType == BIDDYTYPETZBDD)
+  {
+    createVariablesFromBTree(MNG,tree,NULL);
+  }
+
+#endif
+
+  fbdd = createBddFromBTree(MNG,tree,tree->tnode[0].right,lf);
+
+  for (i = EVAL_SIZE-1; i >= 0; i--) {
+    if (tree->tnode[i].name) free(tree->tnode[i].name);
+  }
+  free(tree->tnode);
+  free(tree);
+
+  return fbdd;
 }
 
 /***************************************************************************//*!
@@ -840,64 +978,30 @@ BiddyManagedEval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf)
     See Biddy_Managed_Eval2.
 *******************************************************************************/
 
-/* USE THIS FOR DEBUGGING */
 /*
-static void
-printBiddyBTreeContainer(BiddyBTreeContainer *tree)
-{
-  int i;
-  printf("availableNode=%d\n",tree->availableNode);
-    for (i = tree->availableNode; i >= 0; i--) {
-    printf("[%d]parent=%d,left=%d,right=%d,index=%d,op=%u",i,
-           tree->tnode[i].parent,
-           tree->tnode[i].left,
-           tree->tnode[i].right,
-           tree->tnode[i].index,
-           tree->tnode[i].op
-    );
-    if (tree->tnode[i].name) {
-      printf(",name=%s\n",tree->tnode[i].name);
-    } else {
-      printf("\n");
-    }
-  }
-}
-
-static void
-printPrefixFromBTree(BiddyBTreeContainer *tree, int i)
-{
-  if (i == -1) return;
-  if (tree->tnode[i].op == 255) {
-    if (tree->tnode[i].name) {
-      printf("%s",tree->tnode[i].name);
-    } else {
-      printf("NULL");
-    }
-    return;
-  }
-  if (tree->tnode[i].op == 0) printf("(NOT");
-  else if (tree->tnode[i].op == 1) printf("(AND ");
-  else if (tree->tnode[i].op == 2) printf("(BUTNOT ");
-  else if (tree->tnode[i].op == 4) printf("(NOTBUT ");
-  else if (tree->tnode[i].op == 6) printf("(XOR ");
-  else if (tree->tnode[i].op == 7) printf("(OR ");
-  else printf("(? ");
-  printPrefixFromBTree(tree,tree->tnode[i].left);
-  printf(" ");
-  printPrefixFromBTree(tree,tree->tnode[i].right);
-  printf(")");
-}
+boolOperators[] should be compatible with global macros:
+#define oNOT 0
+#define oAND 1
+#define oBUTNOT 2
+#define oNOTBUT 4
+#define oXOR 6
+#define oOR 7
+#define oNOR 8
+#define oXNOR 9
+#define oIMPLEFT 11
+#define oIMPRIGHT 13
+#define oNAND 14
 */
 
 Biddy_Edge
 BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc)
 {
-  /* NOT (~!), AND (&*), OR (|+), XOR (^%) , XNOR(-), IMPLIES (><), NAND (@), NOR (#), BUTNOT (\), AND NOTBUT (/) */
+  /* NOT (~!), AND (&*), BUTNOT (\), NOTBUT (/), XOR (^%), OR (|+), NOR (#), XNOR(-), IMPLIES-LEFT (<), IMPLIES-RIGHT (>), NAND (@) */
   char boolOperators[] = { '~', '&', '\\', ' ', '/', ' ', '^', '|', '#', '-', ' ', '<', ' ', '>', '@', ' ' };
-  long tempPos,currStringPos,currTreePos,oldTreePos; /* tmp variables */
-  long offset; /* this is used for implementation of parenthesis and operator's priority */
+  int tempPos,currStringPos,currTreePos,oldTreePos; /* tmp variables */
+  int offset; /* this is used for implementation of parenthesis and operator's priority */
   char currS;
-  long i,j;
+  int i,j;
   BiddyBTreeContainer *tree;
   Biddy_Edge fbdd; /* result */
   Biddy_String expression;
@@ -907,10 +1011,10 @@ BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc)
   i = 0; j = 0;
   tree = (BiddyBTreeContainer *) calloc(1, sizeof(BiddyBTreeContainer));
   if (!tree) return biddyNull;
-  tree->tnode = (BiddyBTreeNode*) malloc(1024 * sizeof(BiddyBTreeNode));
+  tree->tnode = (BiddyBTreeNode*) malloc(EVAL_SIZE * sizeof(BiddyBTreeNode));
   if (!tree->tnode) return biddyNull;
   tree->availableNode = -1;
-  for (i = 1023; i > 0; i--) {
+  for (i = EVAL_SIZE-1; i > 0; i--) {
     tree->tnode[i].name = NULL;
     tree->tnode[i].parent = tree->availableNode;
     tree->availableNode = i;
@@ -936,7 +1040,7 @@ BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc)
     if (currTreePos != -1) {
       tree->availableNode = tree->tnode[tree->availableNode].parent;
     } else {
-      fprintf(stderr,"ERROR: SOMETHING WRONG WITH tree->availableNode\n");
+      fprintf(stderr,"BiddyManagedEval2: ERROR WITH tree->availableNode\n");
       return biddyNull;
     }
     if (j == 0) {
@@ -999,11 +1103,11 @@ BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc)
           /* printf("ERROR:INVALID USE OF UNARY OPERATOR ~\n"); */
           break;
         }
-        else if ((i < 16) && (boolOperators[i] != '#')) {
+        else if ((i < 16) && (boolOperators[i] != ' ')) {
           tree->tnode[currTreePos].op = (char) i;
           if (i == 1) { tree->tnode[currTreePos].index = offset + 3; }
           else if ((i == 2) || (i == 4)) { tree->tnode[currTreePos].index = offset + 3; }
-          else if ((i == 6) || (i == 7)) { tree->tnode[currTreePos].index = offset + 2; }
+          else if ((i == 6) || (i == 7) || (i == 14)) { tree->tnode[currTreePos].index = offset + 2; }
           else { tree->tnode[currTreePos].index = offset + 1; }
           oldTreePos = tree->tnode[oldTreePos].parent;
           while (tree->tnode[oldTreePos].index >= tree->tnode[currTreePos].index) {
@@ -1027,7 +1131,7 @@ BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc)
   }
 
   if (j == 0) {
-    /* printf("ERROR: INCORRECT REQUEST\n"); */
+    /* printf("ERROR: INCORRECT PARENTHESIS IN THE EXPRESSION\n"); */
     return biddyNull;
   }
 
@@ -1043,14 +1147,27 @@ BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc)
 
   free(expression);
 
+#ifndef COMPACT
+
   /* FOR SOME BDD TYPES, IT IS NECESSARY TO CREATE ALL VARIABLES IN ADVANCE */
   /* createBddFromBTree DOES NOT STORE TMP RESULTS AS FORMULAE AND THUS */
   /* TMP RESULTS BECOME WRONG IF NEW VARIABLES ARE ADDED ON-THE-FLY */
 
-  createVariablesFromBTree(MNG,tree);
-  fbdd = createBddFromBTree(MNG,tree,tree->tnode[0].right);
+  if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD))
+  {
+    createVariablesFromBTree(MNG,tree,NULL);
+  }
 
-  for (i = 1023; i >= 0; i--) {
+  if (biddyManagerType == BIDDYTYPETZBDD)
+  {
+    createVariablesFromBTree(MNG,tree,NULL);
+  }
+
+#endif
+
+  fbdd = createBddFromBTree(MNG,tree,tree->tnode[0].right,NULL);
+
+  for (i = EVAL_SIZE-1; i >= 0; i--) {
     if (tree->tnode[i].name) free(tree->tnode[i].name);
   }
   free(tree->tnode);
@@ -1524,14 +1641,21 @@ BiddyManagedReadVerilogFile(Biddy_Manager MNG, const char filename[],
   s = fopen(filename,"r");
   if (!s) return;
 
-  printf("PARSING FILE %s\n",filename);
+  /* DEBUGGING */
+  /*
+  printf("PARSING VERILOG FILE %s\n",filename);
+  */
+
   c = (BiddyVerilogCircuit *) calloc(1,sizeof(BiddyVerilogCircuit)); /* declare an instance of a circuit */
   c->name = strdup("CIRCUIT"); /* set circuit name */
   parseVerilogFile(s,&linecount,&lt,&modulecount,&mt); /* read all modules from the file */
 
   fclose(s);
 
+  /* DEBUGGING */
+  /*
   printf("TARGET MODULE: %s\n",(mt[0])->name);
+  */
 
   /* DEBUGGING */
   /*
@@ -1916,7 +2040,7 @@ BiddyManagedPrintSOP(Biddy_Manager MNG, Biddy_String *var, const char filename[]
       }
 
       return;
-    
+
     } else if (f == biddyOne) {
 
       if (var) {
@@ -1988,7 +2112,7 @@ BiddyManagedPrintMinterms(Biddy_Manager MNG, Biddy_String *var, const char filen
   Biddy_Boolean OK;
 
   assert( MNG );
-  
+
   /* DEBUGGING */
   /*
   printf("BiddyManagedPrintMinterms STARTED\n");
@@ -2111,7 +2235,7 @@ BiddyManagedWriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,
   Biddy_String name;
 
   assert( MNG );
-  
+
   s = NULL;
 
   /* if (id != -1) use it instead of <...> */
@@ -2324,7 +2448,7 @@ BiddyManagedWriteBddview(Biddy_Manager MNG, const char filename[],
 #endif
 
   assert( MNG );
-  
+
   s = NULL;
 
   if (BiddyIsNull(f)) {
@@ -2580,11 +2704,6 @@ BiddyManagedWriteBddview(Biddy_Manager MNG, const char filename[],
 /*----------------------------------------------------------------------------*/
 
 /* Some of these were implemented long time ago (1995). */
-/* Not comprehensible. */
-
-#define oAND 1
-#define oOR 2
-#define oEXOR 3
 
 static Biddy_Boolean
 charOK(char c)
@@ -2614,40 +2733,36 @@ nextCh(Biddy_String s, int *i, Biddy_String *ch)
   if (c == '(') {
     (*i)++;
     strcpy(*ch,"(");
-    return;
   }
 
-  if (c == ')') {
+  else if (c == ')') {
     (*i)++;
     strcpy(*ch,")");
-    return;
   }
 
-  if (c == '*') {
+  else if (c == '*') {
     (*i)++;
     strcpy(*ch,"*");
-    return;
   }
 
-  if (charOK(c)) {
+  else if (charOK(c)) {
     (*i)++;
     while (charOK(s[*i])) (*i)++;
     c = s[*i];
-
-    /* DEBUGGING */
-    /*
-    printf("%c",c);
-    */
-
     if ( (c == ' ') || (c == '\t') || (c == '\n') || (c == '(') || (c == ')') ) {
       strncpy(*ch, &(s[j]), *i-j);
       (*ch)[*i-j] = 0;
-      return;
     }
   }
 
-  strcpy(*ch,"");
-  return;
+  else {
+    strcpy(*ch,"");
+  }
+
+  /* DEBUGGING */
+  /*
+  printf("nextCh: '%s'\n",*ch);
+  */
 }
 
 static Biddy_Edge
@@ -2720,123 +2835,8 @@ ReadBDD(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch)
   return f;
 }
 
-static Biddy_Edge
-evaluate1(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch,
-          Biddy_LookupFunction lf)
-{
-  unsigned int idx;
-  Biddy_Edge f;
-  int op;
-
-  /* DEBUGGING */
-  /*
-  printf("evaluate1: %s\n",s);
-  printf("evaluate1 i = %d\n",*i);
-  printf("evaluate1 ch = %s\n",*ch);
-  */
-
-  if (!strcmp(*ch,"(")) {
-    nextCh(s,i,ch);
-
-    if (!strcasecmp(*ch, "NOT")) {
-      nextCh(s,i,ch);
-      f = BiddyManagedNot(MNG,evaluate1(MNG,s,i,ch,lf));
-    } else {
-      if ((op = Op(s,i,ch))) {
-        f = evaluateN(MNG,s,i,ch,evaluate1(MNG,s,i,ch,lf),op,lf);
-      } else {
-        f = evaluate1(MNG,s,i,ch,lf);
-      }
-    }
-
-    if (!strcmp(*ch, ")")) nextCh(s,i,ch);
-
-    return f;
-  }
-
-  /* evaluate1 will always check Biddy's formula table */
-  /* if (lf != NULL) then user's formula table will be checked, too */
-  /* user's formula table will be checked before Biddy's formula table */
-  /* entries in user's formula should not be obsolete */
-
-  if (charOK(*ch[0])) {
-    if (!lf) {
-      if (!BiddyManagedFindFormula(MNG,*ch,&idx,&f)) {
-        f = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,*ch,TRUE));
-      }
-    } else {
-      if ((!(lf(*ch,&f))) &&
-          (!BiddyManagedFindFormula(MNG,*ch,&idx,&f))) {
-        f = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,*ch,TRUE));
-      }
-    }
-    nextCh(s,i,ch);
-
-    assert( f != biddyNull );
-
-    return f;
-  }
-
-  return biddyNull;
-}
-
-static Biddy_Edge
-evaluateN(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch,
-          Biddy_Edge g, int op, Biddy_LookupFunction lf)
-{
-  Biddy_Edge f, h;
-
-  /* DEBUGGING */
-  /*
-  printf("evaluateN: %s\n",s);
-  printf("evaluateN i = %d\n",*i);
-  printf("evaluateN ch = %s\n",*ch);
-  */
-
-  h = evaluate1(MNG,s,i,ch,lf);
-  if (!BiddyIsNull(h)) {
-    f = biddyNull;
-    switch (op) {
-            case oAND:  f = BiddyManagedAnd(MNG,g,h);
-                        break;
-            case oOR:  f = BiddyManagedOr(MNG,g,h);
-                        break;
-            case oEXOR:  f = BiddyManagedXor(MNG,g,h);
-    }
-    return evaluateN(MNG,s,i,ch,f,op,lf);
-  }
-  return g;
-}
-
-static int
-Op(Biddy_String s, int *i, Biddy_String *ch)
-{
-
-  /* DEBUGGING */
-  /*
-  printf("Op ch = %s\n",*ch);
-  */
-
-  if (!strcasecmp(*ch, "AND")) {
-    nextCh(s,i,ch);
-    return oAND;
-  }
-
-  if (!strcasecmp(*ch, "OR")) {
-    nextCh(s,i,ch);
-    return oOR;
-  }
-
-  if (!strcasecmp(*ch, "EXOR")) {
-    nextCh(s,i,ch);
-    return oEXOR;
-  }
-
-  return 0;
-}
-
 static void
-createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree)
+createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_LookupFunction lf)
 {
   int i;
   unsigned int idx;
@@ -2847,23 +2847,41 @@ createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree)
     for (i = 0; i <= tree->availableNode; i++) {
       if (tree->tnode[i].op == 255) {
         if (tree->tnode[i].name) {
-          if (!(BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp))) {
-            BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
+          if (!lf) {
+            if (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp))
+            {
+              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE);
+            }
+          } else {
+            if ((!(lf(tree->tnode[i].name,&tmp))) &&
+                (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp)))
+            {
+              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE);
+            }
           }
         }
       }
     }
   }
 
-#ifdef COMPACT
+#ifndef COMPACT
   if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD) ||
       (biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
   {
     for (i = tree->availableNode; i >= 0; i--) {
       if (tree->tnode[i].op == 255) {
         if (tree->tnode[i].name) {
-          if (!(BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp))) {
-            BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
+          if (!lf) {
+            if (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp))
+            {
+              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE);
+            }
+          } else {
+            if ((!(lf(tree->tnode[i].name,&tmp))) &&
+                (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp)))
+            {
+              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE);
+            }
           }
         }
       }
@@ -2873,7 +2891,7 @@ createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree)
 }
 
 static Biddy_Edge
-createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i)
+createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i, Biddy_LookupFunction lf)
 {
   unsigned int idx;
   Biddy_Edge lbdd,rbdd,fbdd;
@@ -2881,12 +2899,24 @@ createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i)
   if (i == -1) return biddyNull;
   if (tree->tnode[i].op == 255) {
     if (tree->tnode[i].name) {
-      if (!strcmp(tree->tnode[i].name,"0")) fbdd = biddyZero;
-      else if (!strcmp(tree->tnode[i].name,"1")) fbdd = biddyOne;
-      else {
-        if (!(BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&fbdd))) {
-          fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
+      if (!strcmp(tree->tnode[i].name,"0")) {
+        fbdd = biddyZero;
+      } else if (!strcmp(tree->tnode[i].name,"1")) {
+        fbdd = biddyOne;
+      } else {
+        if (!lf) {
+          if (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&fbdd))
+          {
+            fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
+          }
+        } else {
+          if ((!(lf(tree->tnode[i].name,&fbdd))) &&
+              (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&fbdd)))
+          {
+            fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
+          }
         }
+        assert( fbdd != biddyNull );
       }
     } else {
       fbdd = biddyNull;
@@ -2904,22 +2934,22 @@ createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i)
 
     return fbdd;
   }
-  lbdd = createBddFromBTree(MNG,tree,tree->tnode[i].left);
-  rbdd = createBddFromBTree(MNG,tree,tree->tnode[i].right);
+  lbdd = createBddFromBTree(MNG,tree,tree->tnode[i].left,lf);
+  rbdd = createBddFromBTree(MNG,tree,tree->tnode[i].right,lf);
 
-  /* NOT (~!), AND (&*), OR (|+), XOR (^%) , XNOR(-), IMPLIES (><), NAND (@), NOR (#), BUTNOT (\), AND NOTBUT (/) ARE IMPLEMENTED */
+  /* NOT (~!), AND (&*), BUTNOT (\), NOTBUT (/), XOR (^%), OR (|+), NOR (#), XNOR(-), IMPLIES-LEFT (<), IMPLIES-RIGHT (>), NAND (@) */
   /* char boolOperators[] = { '~', '&', '\\', ' ', '/', ' ', '^', '|', '#', '-', ' ', '<', ' ', '>', '@', ' ' }; */
-  if (tree->tnode[i].op == 0) fbdd = BiddyManagedNot(MNG,rbdd); /* NOT */
-  else if (tree->tnode[i].op == 1) fbdd = BiddyManagedAnd(MNG,lbdd,rbdd); /* AND */
-  else if (tree->tnode[i].op == 2) fbdd = BiddyManagedGt(MNG,lbdd,rbdd); /* BUTNOT */
-  else if (tree->tnode[i].op == 4) fbdd = BiddyManagedGt(MNG,rbdd,lbdd); /* NOTBUT */
-  else if (tree->tnode[i].op == 6) fbdd = BiddyManagedXor(MNG,lbdd,rbdd); /* XOR */
-  else if (tree->tnode[i].op == 7) fbdd = BiddyManagedOr(MNG,lbdd,rbdd); /* OR */
-  else if (tree->tnode[i].op == 8) fbdd = BiddyManagedNor(MNG,lbdd,rbdd); /* NOR */
-  else if (tree->tnode[i].op == 9) fbdd = BiddyManagedXnor(MNG,lbdd,rbdd); /* XNOR */
-  else if (tree->tnode[i].op == 11) fbdd = BiddyManagedLeq(MNG,rbdd,lbdd); /* IMPLIES <= */
-  else if (tree->tnode[i].op == 13) fbdd = BiddyManagedLeq(MNG,lbdd,rbdd); /* IMPLIES => */
-  else if (tree->tnode[i].op == 14) fbdd = BiddyManagedNand(MNG,lbdd,rbdd); /* NAND */
+  if (tree->tnode[i].op == oNOT) fbdd = BiddyManagedNot(MNG,rbdd); /* NOT */
+  else if (tree->tnode[i].op == oAND) fbdd = BiddyManagedAnd(MNG,lbdd,rbdd); /* AND */
+  else if (tree->tnode[i].op == oBUTNOT) fbdd = BiddyManagedGt(MNG,lbdd,rbdd); /* BUTNOT */
+  else if (tree->tnode[i].op == oNOTBUT) fbdd = BiddyManagedGt(MNG,rbdd,lbdd); /* NOTBUT */
+  else if (tree->tnode[i].op == oXOR) fbdd = BiddyManagedXor(MNG,lbdd,rbdd); /* XOR */
+  else if (tree->tnode[i].op == oOR) fbdd = BiddyManagedOr(MNG,lbdd,rbdd); /* OR */
+  else if (tree->tnode[i].op == oNOR) fbdd = Biddy_Managed_Nor(MNG,lbdd,rbdd); /* NOR is not directly implemented for all BDD types */
+  else if (tree->tnode[i].op == oXNOR) fbdd = Biddy_Managed_Xnor(MNG,lbdd,rbdd); /* XNOR is not directly implemented for all BDD types */
+  else if (tree->tnode[i].op == oIMPLEFT) fbdd = BiddyManagedLeq(MNG,rbdd,lbdd); /* IMPLIES <= */
+  else if (tree->tnode[i].op == oIMPRIGHT) fbdd = BiddyManagedLeq(MNG,lbdd,rbdd); /* IMPLIES => */
+  else if (tree->tnode[i].op == oNAND) fbdd = Biddy_Managed_Nand(MNG,lbdd,rbdd); /* NAND is not directly implemented for all BDD types */
   else fbdd = biddyNull;
 
   /* DEBUGGING */
@@ -2939,6 +2969,177 @@ createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i)
   */
 
   return fbdd;
+}
+
+static void
+evaluate1(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_String s,
+          int *i, Biddy_String *ch, Biddy_LookupFunction lf)
+{
+  int op;
+  int current,left,right;
+
+  /* DEBUGGING */
+  /*
+  printf("evaluate1: i = %d, ch = '%s', s = '%s'\n",*i,*ch,s);
+  */
+
+  if (!strcmp(*ch,"(")) {
+    nextCh(s,i,ch);
+    op = Op(s,i,ch); /* this performs nextCh() */
+
+    if (op == 0) {
+      /* operator NOT */
+      left = -1;
+      evaluate1(MNG,tree,s,i,ch,lf);
+      right = tree->availableNode;
+
+      current = tree->tnode[tree->availableNode].parent;
+      if (current == -1) {
+        printf("evaluate1: BiddyBTreeContainer out of space!\n");
+        exit(1);
+      }
+
+      if (left != -1) tree->tnode[left].parent = current;
+      if (right != -1) tree->tnode[right].parent = current;
+      tree->tnode[current].op = op;
+      tree->tnode[current].left = left;
+      tree->tnode[current].right = right;
+      tree->availableNode = current;
+
+    } else if (op > 0) {
+      /* operators AND, OR, XOR */
+      evaluate1(MNG,tree,s,i,ch,lf);
+      evaluateN(MNG,tree,s,i,ch,op,lf);
+    } else {
+      /* variable or extra open parenthesis */
+      evaluate1(MNG,tree,s,i,ch,lf);
+    }
+
+    if (!strcmp(*ch,")")) {
+      nextCh(s,i,ch);
+    } else {
+      printf("evaluate1: missing closing paranthesis\n");
+    }
+
+    return;
+  }
+
+  if (charOK(*ch[0])) {
+    left = right = -1;
+    current = tree->tnode[tree->availableNode].parent;
+    if (current == -1) {
+      printf("evaluate1: BiddyBTreeContainer out of space!\n");
+      exit(1);
+    }
+
+    tree->tnode[current].op = 255;
+    tree->tnode[current].name = strdup(*ch);
+    tree->tnode[current].left = left;
+    tree->tnode[current].right = right;
+    tree->availableNode = current;
+
+    nextCh(s,i,ch);
+    return;
+  }
+}
+
+static void
+evaluateN(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_String s,
+          int *i, Biddy_String *ch, int op, Biddy_LookupFunction lf)
+{
+  int current,left,right;
+
+  /* DEBUGGING */
+  /*
+  printf("evaluateN: i = %d, ch = '%s', s = '%s'\n",*i,*ch,s);
+  */
+
+  left = tree->availableNode;
+  evaluate1(MNG,tree,s,i,ch,lf);
+  right = tree->availableNode;
+  if (right != left) {
+    current = tree->tnode[tree->availableNode].parent;
+    if (current == -1) {
+      printf("evaluateN: BiddyBTreeContainer out of space!\n");
+      exit(1);
+    }
+
+    if (left != -1) tree->tnode[left].parent = current;
+    if (right != -1) tree->tnode[right].parent = current;
+    tree->tnode[current].op = op;
+    tree->tnode[current].left = left;
+    tree->tnode[current].right = right;
+    tree->availableNode = current;
+
+    evaluateN(MNG,tree,s,i,ch,op,lf);
+  }
+}
+
+/*
+This must be compatible with defined global macros:
+#define oNOT 0
+#define oAND 1
+#define oBUTNOT 2
+#define oNOTBUT 4
+#define oXOR 6
+#define oOR 7
+#define oNOR 8
+#define oXNOR 9
+#define oIMPLEFT 11
+#define oIMPRIGHT 13
+#define oNAND 14
+*/
+
+static int
+Op(Biddy_String s, int *i, Biddy_String *ch)
+{
+
+  /* DEBUGGING */
+  /*
+  printf("Op ch = %s\n",*ch);
+  */
+
+  if (!strcasecmp(*ch, "NOT")) {
+    nextCh(s,i,ch);
+    return oNOT;
+  }
+
+  else if (!strcasecmp(*ch, "AND")) {
+    nextCh(s,i,ch);
+    return oAND;
+  }
+
+  else if (!strcasecmp(*ch, "XOR")) {
+    nextCh(s,i,ch);
+    return oXOR;
+  }
+
+  else if (!strcasecmp(*ch, "EXOR")) {
+    nextCh(s,i,ch);
+    return oXOR;
+  }
+
+  else if (!strcasecmp(*ch, "OR")) {
+    nextCh(s,i,ch);
+    return oOR;
+  }
+
+  else if (!strcasecmp(*ch, "NOR")) {
+    nextCh(s,i,ch);
+    return oNOR;
+  }
+
+  else if (!strcasecmp(*ch, "XNOR")) {
+    nextCh(s,i,ch);
+    return oXNOR;
+  }
+
+  else if (!strcasecmp(*ch, "NAND")) {
+    nextCh(s,i,ch);
+    return oNAND;
+  }
+
+  return -1;
 }
 
 static void
@@ -3494,10 +3695,10 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, BiddyVerilogCircuit *c, Biddy_Str
   for (i = 0; i < c->wirecount; i++) {
 
     /* REPORT PROGRESS */
-    /**/
+    /*
     printf("#%d",i);
     if (i == c->wirecount-1) printf("\n");
-    /**/
+    */
 
     /* DEBUGGING */
     /*
@@ -3669,14 +3870,15 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, BiddyVerilogCircuit *c, Biddy_Str
   }
   */
 
-  /**/
+  /* DEBUGGING */
+  /*
   j = 0;
   for (i = 0; i < c->outputcount; i++) {
     f = getWireByName(c,c->outputs[i])->bdd;
     j = j + BiddyManagedCountNodes(MNG,f);
   }
   printf("The sum of BDD sizes for all outputs: %u\n",j);
-  /**/
+  */
 
 }
 
@@ -4204,7 +4406,7 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
 
   /* if ((!combinationset) && (*maxsize == 0)) return; */ /* output to large, Boolean functions only */
   if (*maxsize == 0) { /* output to large */
-    return FALSE; 
+    return FALSE;
   }
 
   v = BiddyV(f);
@@ -4213,7 +4415,7 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
   /*
   printf("WriteSOP: top = %u (%s), v = %u (%s)\n",top,BiddyManagedGetVariableName(MNG,top),v,BiddyManagedGetVariableName(MNG,v));
   */
-  
+
   /* DEBUGGING */
   /*
   printf("WriteSOP DEBUG:");
@@ -4432,7 +4634,7 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
 #endif
 
   }
-  
+
   return OK;
 }
 
@@ -5051,26 +5253,23 @@ getshortname(Biddy_Manager MNG, void *p, int n)
   return (shortname);
 }
 
-/* CURRENTLY, NOT USED */
-/*
+/*----------------------------------------------------------------------------*/
+/* Unused static functions                                                    */
+/*----------------------------------------------------------------------------*/
+
 static void
-reportOrdering()
+reportOrdering(Biddy_Manager MNG)
 {
   Biddy_Variable var;
 
   printf("Variable ordering:\n");
-  var = BiddyGetLowestVariable();
+  var = BiddyManagedGetLowestVariable(MNG);
   while (var != 0) {
-    printf("(%s)",BiddyGetVariableName(var));
-    var = BiddyGetNextVariable(var);
+    printf("(%s)",BiddyManagedGetVariableName(MNG,var));
+    var = BiddyManagedGetNextVariable(MNG,var);
   }
   printf("\n");
 }
-*/
-
-/*----------------------------------------------------------------------------*/
-/* Unused static functions                                                    */
-/*----------------------------------------------------------------------------*/
 
 static void
 PrintMintermsOBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, Biddy_Boolean negative)

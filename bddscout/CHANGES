@@ -121,3 +121,7 @@ Changes v2.0.1 versus v1.9.1
 - released on Mar 29, 2020
 - improved the input line, if one word is given then variable is added but not formula
 - improved the input line, added the Unate cube set algebra mode
+
+Changes v2.0.2 versus v2.0.1
+- released on May 4, 2020
+- fixed infix parser

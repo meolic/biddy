@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 582 $]
-#  Date        [$Date: 2020-02-08 16:18:16 +0100 (sob, 08 feb 2020) $]
+#  Revision    [$Revision: 631 $]
+#  Date        [$Date: 2020-05-09 09:42:48 +0200 (sob, 09 maj 2020) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
@@ -35,32 +35,21 @@
 # https://wiki.ubuntu.com/PbuilderHowto
 # http://wiki.debian.org/PbuilderTricks
 
-# 1A. If using pdebuild then initialize pbuilder as follows:
-# sudo pbuilder create
-# sudo pbuilder update
-
-# 1B. If using pbuilder-dist then initialize pbuilder as follows:
-# pbuilder-dist xenial create
-# pbuilder-dist xenial update
+# 1. To use pbuilder-dist you have to initialize/update pbuilder as follows:
+# pbuilder-dist focal create
+# pbuilder-dist focal update
 
 # 2. We are using biddy package from Ubuntu ppa.
 # You can check it on https://launchpad.net/~meolic/+archive/ubuntu/biddy
 # To add this ppa to your pbuilder environment, do the following:
-# sudo pbuilder --login --save-after-login
-# OR
-# pbuilder-dist xenial login --save-after-login
+# pbuilder-dist focal login --save-after-login
 # You will get root prompt and then do the following:
 # apt-get install gnupg2 (this seems to be needed for artful, bionic, and laters)
-# apt-get install dirmngr (this seems to be needed for artful, only)
 # apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9018C2C6
 # exit
 
 # 3. You have to get the latest biddy library. Do the following:
-# sudo pbuilder update --override-config --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu xenial main"
-# OR
-# pbuilder-dist xenial update --override-config --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu xenial main"
-# OR
-# Alternatively, you can adapt /etc/pbuilderrc (set at least BINDMOUNTS and OTHERMIRROR)
+# pbuilder-dist focal update --override-config --othermirror "deb http://ppa.launchpad.net/meolic/biddy/ubuntu focal main"
 
 # DO NOT USE (= 1.X) FOR libbiddy IN YOUR control FILE
 # FOR ME, THE PACKAGE IS CORRECTLY BUILDED ONLY IF I USE (>= 1.X)
@@ -166,7 +155,7 @@ echo ""
 echo "GENERATING SOURCE PACKAGE FOR $DISTRO"
 dch -M -v "$VERSION-$RELEASE" -D $DISTRO
 cp "debian/changelog" "../../changelog.deb"
-debuild -d -S -sa -kD22F409B
+debuild -d -S -sa -kF7FCCB3CD22F409B
 mkdir `pwd`/../$DISTRO
 mkdir `pwd`/../$DISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$DISTRO/source/
@@ -178,12 +167,11 @@ cp `pwd`/../*.orig.tar.gz `pwd`/../$DISTRO/source/
 # create a source distribution for xenial
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=xenial
+ALTDISTRO=bionic
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
-#debuild --no-lintian -S -sa -kD22F409B
-debuild -d -S -sa -kD22F409B
+debuild -d -S -sa -kF7FCCB3CD22F409B
 mkdir `pwd`/../$ALTDISTRO
 mkdir `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
@@ -199,8 +187,7 @@ ALTDISTRO=eoan
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
-#debuild --no-lintian -S -sa -kD22F409B
-debuild -d -S -sa -kD22F409B
+debuild -d -S -sa -kF7FCCB3CD22F409B
 mkdir `pwd`/../$ALTDISTRO
 mkdir `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.changes `pwd`/../*.dsc `pwd`/../$ALTDISTRO/source
@@ -223,32 +210,14 @@ echo ""
 
 echo "BUILDING FOR YOUR DISTRO: $DISTRO"
 pbuilder-dist $DISTRO build --buildresult `pwd`/$DISTRO `pwd`/$DISTRO/source/*.dsc
-#pushd `pwd`/$DISTRO/source
-#dpkg-source -x *.dsc
-#cd "$NAME-$VERSION"
-#change key if you are not Robert Meolic
-#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
-#popd
 
-ALTDISTRO=xenial
+ALTDISTRO=bionic
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
-#pushd `pwd`/$ALTDISTRO/source
-#dpkg-source -x *.dsc
-#cd "$NAME-$VERSION"
-#change key if you are not Robert Meolic
-#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
-#popd
 
 ALTDISTRO=eoan
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
-#pushd `pwd`/$ALTDISTRO/source
-#dpkg-source -x *.dsc
-#cd "$NAME-$VERSION"
-#change key if you are not Robert Meolic
-#pdebuild --auto-debsign --debsign-k D22F409B --buildresult `pwd`/.. -- --allow-untrusted
-#popd
 
 popd
 rm -fr "../distribution-bddscout/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
