@@ -1,14 +1,38 @@
-INPUT(G1)
-INPUT(G2)
-INPUT(G3)
-INPUT(G4)
-INPUT(G5)
-OUTPUT(G16)
-OUTPUT(G17)
+# c17
+# 5 inputs
+# 2 outputs
+# 0 inverters
+# 6 gates ( 6 NANDs )
+# includes debugging functions, i.e. (26 == 16) and (37 == 17)
 
-G8 = nand(G1,G3)
-G9 = nand(G3,G4)
-G12 = nand(G2,G9)
-G15 = nand(G9,G5)
-G16 = nand(G8,G12)
-G17 = nand(G12,G15)
+INPUT(1)
+INPUT(2)
+INPUT(3)
+INPUT(4)
+INPUT(5)
+
+OUTPUT(16)
+OUTPUT(17)
+
+OUTPUT(26)
+OUTPUT(37)
+
+8 = nand(1,3)
+9 = nand(3,4)
+12 = nand(2,9)
+15 = nand(9,5)
+16 = nand(8,12)
+17 = nand(12,15)
+
+20 = and(1,3)
+21 = not(3)
+22 = and(2,21)
+23 = not(4)
+24 = and(2,23)
+26 = or(20,24,22)
+
+30 = or(2,5)
+31 = not(3)
+32 = not(4)
+33 = or(31,32)
+37 = and(30,33)

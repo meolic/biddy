@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 618 $]
-    Date        [$Date: 2020-03-28 12:38:59 +0100 (sob, 28 mar 2020) $]
+    Revision    [$Revision: 652 $]
+    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -60,8 +60,11 @@ See also: biddy.h
 /* define ESTPROJECT to use optimal settings for EST */
 #define NOESTPROJECT
 
-/* define COMPREHENSIVE to use settings for larger problems, e.g. dictionary example, pp example */
+/* define COMPREHENSIVE for larger problems, e.g. dictionary, pp, ta, ptask, etc. */
 #define NOCOMPREHENSIVE
+
+/* define PLAIN for more variables with OBDDs and ZBDDs, tagged variants will not be supported */
+#define NOPLAIN
 
 /* EST project */
 #ifdef ESTPROJECT
@@ -93,7 +96,7 @@ See also: biddy.h
 #define LEGACY_DOT
 
 /* refreshing variant during operatins on BDDs (to test the efficiency) */
-/* MACRO USING IS NOT IMPLEMENTED YET */
+/* MACRO NOT IMPLEMENTED YET, VARIANT A IS HARDCODED */
 /* VARIANT B WAS USED FROM 1.6 UNTIL 1.9, VARIANT A IS USED IN 2.0 */
 /* variant A: created and reused nodes are immediately refreshed */
 /* variant B: created nodes are immediately refreshed, */
@@ -101,6 +104,11 @@ See also: biddy.h
 /*   this could be problematic if BDD operations are paralelized on multiple cores */
 /* TO DO: check if sifting and BDD copying is correctly implemented */
 #define REFRESH_VARIANT_A
+
+/* use twodimensional variable ordering matrix (YES or NO) */
+/* twodimensional variable ordering matrix was the only option until 2.0.2 */
+/* in 2.0.3 and later, it is optional and for experimental usage, only */
+#define VARIABLEORDERINGMATRIX_NO
 
 /*----------------------------------------------------------------------------*/
 /* END OF USER SETTINGS                                                       */
@@ -118,17 +126,36 @@ See also: biddy.h
 /* max number of variables - this is hardcoded for better performance */
 /* for optimal space reservation use VARMAX =  32*N */
 /* variable "1" is one of these variables */
-/* for TZBDDs and TZFDDs, the limit is 65536 variables on 64-bit architecture */
-/* if there are more than 32768 variables then some macros in biddy.h must be changed */
-/* BIDDY IS NOT EFFICIENT WITH MANY VARIABLES! */
+/* for tagged variants (TZBDDs, TZFDDs) the limit is 65536 variables on 64-bit architecture */
+/* (but, if there are more than 32768 variables then some macros in biddy.h must be changed) */
 #ifdef LOWMEMORY
-#define BIDDYVARMAX 1024
+#define BIDDYVARMAX 1024 /* default for LOWMEMORY */
 #else
+#ifdef VARIABLEORDERINGMATRIX_YES
 /* #define BIDDYVARMAX 1024 */
 /* #define BIDDYVARMAX 2048 */
-#define BIDDYVARMAX 4096
+#define BIDDYVARMAX 4096 /* default for VARIABLEORDERINGMATRIX_YES */
 /* #define BIDDYVARMAX 6144 */
 /* #define BIDDYVARMAX 8192 */
+/* #define BIDDYVARMAX 12288 */ /* max for 4GB RAM */
+/* #define BIDDYVARMAX 16384 */
+/* #define BIDDYVARMAX 32768 */ /* max for NOPLAIN */
+#else
+#ifdef PLAIN
+/* #define BIDDYVARMAX 1024 */
+/* #define BIDDYVARMAX 4096 */
+/* #define BIDDYVARMAX 65536 */
+#define BIDDYVARMAX 1048576 /* default for VARIABLEORDERINGMATRIX_NO + PLAIN */
+/* #define BIDDYVARMAX 16777216 */
+#else
+/* this is default for Biddy */
+/* #define BIDDYVARMAX 1024 */
+/* #define BIDDYVARMAX 4096 */
+/* #define BIDDYVARMAX 8192 */
+#define BIDDYVARMAX 16384 /* default for VARIABLEORDERINGMATRIX_NO + NOPLAIN */
+/* #define BIDDYVARMAX 32768 */ /* max for NOPLAIN */
+#endif
+#endif
 #endif
 
 /* THE FOLLOWING SIZES ARE unsigned int                            */
@@ -181,12 +208,12 @@ See also: biddy.h
 /* THESE ARE SIZES FOR LARGER PROBLEMS, E.G. DICTIONARY EXAMPLE, PP EXAMPLE */
 #define BIDDYVARIABLETABLESIZE BIDDYVARMAX
 #define BIDDYNODETABLEINITBLOCKSIZE LARGE_SIZE
-#define BIDDYNODETABLELIMITBLOCKSIZE LARGE_SIZE
+#define BIDDYNODETABLELIMITBLOCKSIZE XLARGE_SIZE
 #define BIDDYNODETABLEINITSIZE LARGE_SIZE
 #define BIDDYNODETABLELIMITSIZE HUGE_SIZE
 #define BIDDYOPCACHESIZE XLARGE_SIZE
-#define BIDDYEACACHESIZE XLARGE_SIZE
-#define BIDDYRCCACHESIZE XLARGE_SIZE
+#define BIDDYEACACHESIZE LARGE_SIZE
+#define BIDDYRCCACHESIZE LARGE_SIZE
 #define BIDDYREPLACECACHESIZE SMALL_SIZE
 #elif defined(ESTPROJECT)
 /* THESE ARE SIZES IN EST PROJECT */
@@ -196,14 +223,14 @@ See also: biddy.h
 #define BIDDYNODETABLEINITSIZE LARGE_SIZE
 #define BIDDYNODETABLELIMITSIZE HUGE_SIZE
 #define BIDDYOPCACHESIZE LARGE_SIZE
-#define BIDDYEACACHESIZE SMALL_SIZE
-#define BIDDYRCCACHESIZE SMALL_SIZE
+#define BIDDYEACACHESIZE MEDIUM_SIZE
+#define BIDDYRCCACHESIZE MEDIUM_SIZE
 #define BIDDYREPLACECACHESIZE SMALL_SIZE
 #else
 /* THESE ARE DEFAULT SIZES */
 #define BIDDYVARIABLETABLESIZE BIDDYVARMAX
 #define BIDDYNODETABLEINITBLOCKSIZE MEDIUM_SIZE
-#define BIDDYNODETABLELIMITBLOCKSIZE XLARGE_SIZE
+#define BIDDYNODETABLELIMITBLOCKSIZE LARGE_SIZE
 #define BIDDYNODETABLEINITSIZE SMALL_SIZE
 #define BIDDYNODETABLELIMITSIZE HUGE_SIZE
 #define BIDDYOPCACHESIZE MEDIUM_SIZE
@@ -215,8 +242,7 @@ See also: biddy.h
 /* THE FOLLOWING TRESHOLDS ARE float */
 /* all values are experimentally determined */
 /* gcr=1.67, gcrF=1.20, gcrX=0.91, rr=0.01, rrF=1.45, rrX=0.98 */ /* used in v1.7.1 */
-/* gcr=1.32, gcrF=0.99, gcrX=1.10, rr=0.01, rrF=0.89, rrX=0.91 */ /* used in v1.7.2, v1.7.3, v1.7.4, v1.8.1, v1.8.2, v1.9.1 */
-/* gcr=1.32, gcrF=0.99, gcrX=1.10, rr=0.01, rrF=0.89, rrX=0.91 */ /* used in v2.0.1 */
+/* gcr=1.32, gcrF=0.99, gcrX=1.10, rr=0.01, rrF=0.89, rrX=0.91 */ /* used in v1.7.2 - v2.0.3 */
 
 #define BIDDYNODETABLEGCRATIO 1.32
 #define BIDDYNODETABLEGCRATIOF 0.99
@@ -227,14 +253,11 @@ See also: biddy.h
 
 /* THE FOLLOWING TRESHOLDS ARE float */
 /* all values are experimentally determined */
+/* st=0.95, cst=1.01, sf=3.14 */ /* used in v1.7.1 - v2.0.3 */
 
 #define BIDDYNODETABLESIFTINGTRESHOLD 0.95
 #define BIDDYNODETABLECONVERGESIFTINGTRESHOLD 1.01
 #define BIDDYNODETABLESIFTINGFACTOR 3.14
-
-/* UINTPTR and UINTPTRSIZE are used for BiddyOrdering */
-#define UINTPTR uintptr_t
-#define UINTPTRSIZE (8*sizeof(UINTPTR))
 
 /* the following constants are used in Biddy_ReadVerilogFile */
 #define LINESIZE 999 /* maximum length of each input line read */
@@ -351,14 +374,19 @@ See also: biddy.h
 #define BiddyV(fun) (BiddyN(fun)->v)
 
 /* orderingtable[X,Y]==1 iff variabe X is smaller than variable Y */
-/* IN THE BDD, SMALLER VARIABLES ARE ABOVE THE GREATER ONES */
+/* in the BDD, smaller variables are above greater ones */
 /* GET_ORDER check if variabe X is smaller (topmore) than variable Y */
 /* SET_ORDER set variabe X to be smaller (topmore) than variable Y */
 /* CLEAR_ORDER set variabe X not to be smaller (topmore) than variable Y */
 /* SET_ORDER and CLEAR_ORDER should be used simultaneously */
+/* if VARIABLEORDERINGMATRIX_YES is not defined then the listed macros are not used */
+#define UINTPTR uintptr_t
+#ifdef VARIABLEORDERINGMATRIX_YES
+#define UINTPTRSIZE (8*sizeof(UINTPTR))
 #define GET_ORDER(orderingtable,X,Y) ((orderingtable)[X][Y/UINTPTRSIZE]&(((UINTPTR) 1)<<(Y%UINTPTRSIZE)))!=0
 #define SET_ORDER(orderingtable,X,Y) (orderingtable)[X][Y/UINTPTRSIZE] |= (((UINTPTR) 1)<<(Y%UINTPTRSIZE))
 #define CLEAR_ORDER(orderingtable,X,Y) (orderingtable)[X][Y/UINTPTRSIZE] &= (~(((UINTPTR) 1)<<(Y%UINTPTRSIZE)))
+#endif
 
 /* The name of manager MNG, since Biddy v1.4. */
 #define biddyManagerName ((Biddy_String)(MNG[0]))
@@ -455,9 +483,15 @@ See also: biddy.h
 
 /* System age in manager MNG, since Biddy v1.4. */
 /* this is typecasted to (int*) and dereferenced */
+#ifdef PLAIN
+#define biddySystemAge (*((unsigned short int*)(MNG[15])))
+#define biddySystemAge1 (*((unsigned short int*)(MNG1[15])))
+#define biddySystemAge2 (*((unsigned short int*)(MNG2[15])))
+#else
 #define biddySystemAge (*((unsigned int*)(MNG[15])))
 #define biddySystemAge1 (*((unsigned int*)(MNG1[15])))
 #define biddySystemAge2 (*((unsigned int*)(MNG2[15])))
+#endif
 
 /* Node selector in manager MNG, since Biddy v1.6 */
 /* this is typecasted to (int*) and dereferenced */
@@ -468,21 +502,30 @@ See also: biddy.h
 /* BiddyProlongOne prolonges top node of the given function, since Biddy v1.6 */
 #define BiddyProlongOne(f,c) if((!(c))||(BiddyN(f)->expiry&&(BiddyN(f)->expiry<(c))))BiddyN(f)->expiry=(c)
 
-/* BiddyRefresh make top node of the given function equal to biddySystemAge if it was smaller, manager MNG is assumed, since Biddy v1.7 */
-/* BiddyDefresh make top node of the given function equal to biddySystemAge if it was greater, manager MNG is assumed, since Biddy v1.7 */
+/* BiddyRefresh make top node of the given function equal to biddySystemAge if it was smaller */
+/* BiddyDefresh make top node of the given function equal to biddySystemAge if it was greater */
+/* manager MNG is assumed, since Biddy v1.7 */
 #define BiddyRefresh(f) if(BiddyN(f)->expiry&&(BiddyN(f)->expiry<(biddySystemAge)))BiddyN(f)->expiry=(biddySystemAge)
 #define BiddyDefresh(f) if(BiddyN(f)->expiry&&(BiddyN(f)->expiry>(biddySystemAge)))BiddyN(f)->expiry=(biddySystemAge)
 
-/* BiddyIsSmaller returns TRUE if the first variable is smaller (= lower = previous = above = topmore), manager MNG is assumed, since Biddy v1.7 */
-#define BiddyIsSmaller(fv,gv) GET_ORDER(biddyOrderingTable,fv,gv)
+/* BiddyIsSmaller returns TRUE if the first variable is smaller (= lower = previous = above = topmore) */
+/* manager MNG is assumed, since Biddy v1.7, changed in 2.0.3 */
+#ifdef VARIABLEORDERINGMATRIX_YES
+#define BiddyIsSmaller(table,fv,gv) GET_ORDER(table,fv,gv)
+#else
+#define BiddyIsSmaller(table,fv,gv) (table[fv]<table[gv])
+#endif
 
-/* BiddyIsLowest returns TRUE if the variable is the lowest one (lowest = topmost), manager MNG is assumed, since Biddy v1.7 */
-#define BiddyIsLowest(v) (biddyVariableTable.table[v].prev >= biddyVariableTable.num)
+/* BiddyIsLowest returns TRUE if the variable is the lowest one (lowest = topmost) */
+/* manager MNG is assumed, since Biddy v1.7 */
+#define BiddyIsLowest(v) (biddyVariableTable.table[v].prev>=biddyVariableTable.num)
 
-/* BiddyIsHighest returns TRUE if the variable is the highest one ignoring the terminal node (highest = bottommost), manager MNG is assumed, since Biddy v1.7 */
-#define BiddyIsHighest(v) (biddyVariableTable.table[v].next == 0)
+/* BiddyIsHighest returns TRUE if the variable is the highest one ignoring the terminal node (highest = bottommost) */
+/* manager MNG is assumed, since Biddy v1.7 */
+#define BiddyIsHighest(v) (biddyVariableTable.table[v].next==0)
 
-/* BiddyIsOK is intended for debugging, only, manager MNG is assumed, since Biddy v1.7 */
+/* BiddyIsOK is intended for debugging, only */
+/* manager MNG is assumed, since Biddy v1.7 */
 #define BiddyIsOK(f) (!(BiddyN(f)->expiry) || ((BiddyN(f)->expiry) >= biddySystemAge))
 #define BiddyIsOKK(f) ((!(BiddyN(f)->expiry) || ((BiddyN(f)->expiry) >= biddySystemAge)) && checkFunctionOrdering(MNG,f))
 
@@ -495,9 +538,17 @@ See also: biddy.h
 /*----------------------------------------------------------------------------*/
 
 /* NODE TABLE (UNIQUE TABLE) = a fixed-size hash table with chaining */
-/* TYPE Biddy_Variable IS DEFINED IN biddy.h */
-/* IF Biddy_Variable IS unsigned short int (2B) THEN: */
-/* THE SIZE OF BiddyNode on 32-bit systems is 28 Bytes */
+#ifdef PLAIN
+/* THE SIZE OF BiddyNode on 64-bit systems is 48 Bytes */
+typedef struct BiddyNode {
+  struct BiddyNode *prev, *next; /* !!!MUST BE FIRST AND SECOND */
+  Biddy_Edge f, t; /* f = left = else, t = right = then, !!!MUST BE THIRD AND FOURTH */
+  void *list; /* list of nodes (various purposes) */
+  unsigned short int expiry; /* expiry value */
+  unsigned short int select; /* used to select node */
+  Biddy_Variable v; /* index in variable table */
+} BiddyNode;
+#else
 /* THE SIZE OF BiddyNode on 64-bit systems is 48 Bytes */
 typedef struct BiddyNode {
   struct BiddyNode *prev, *next; /* !!!MUST BE FIRST AND SECOND */
@@ -507,6 +558,7 @@ typedef struct BiddyNode {
   unsigned short int select; /* used to select node */
   Biddy_Variable v; /* index in variable table */
 } BiddyNode;
+#endif
 
 typedef struct {
   BiddyNode **table;
@@ -586,22 +638,28 @@ typedef struct {
   Biddy_Variable size; /* size = Biddy_VARMAX */
   Biddy_Variable num; /* number of all variables, inc. 1 */
   Biddy_Variable numnum; /* number of numbered variables, inc. 1 */
+  Biddy_Variable thelowest; /* the lowest = the topmost variable in global ordering */
 } BiddyVariableTable;
 
-/* ORDERING TABLE = TWO-DIMENSIONAL MATRIX OF BITS */
-/* ordering table is used to define variable ordering. */
-/* constant variable 1 has max order */
-/* USABLE ONLY AS AN IRREFLEXIVE TRANSITIVE RELATION */
+/* ordering table is used to define global variable ordering. */
+/* variables with smaller ordering are above those with greater ordering */
+/* constant variable 1 has max global order */
+#ifdef VARIABLEORDERINGMATRIX_YES
+/* TWO-DIMENSIONAL VARIABLE ORDERING MATRIX IS EXPERIMENTAL, ONLY */
+/* IT IS A MATRIX OF BITS REPRESENTING AN IRREFLEXIVE TRANSITIVE RELATION */
 /* MATRIX'S DIMENSION IN BITS = (VARMAX) x (VARMAX) */
 /* orderingtable[X,Y]==1 iff variabe X is smaller than variable Y */
-/* IN THE BDD, SMALLER VARIABLES ARE ABOVE THE GREATER ONES */
 typedef UINTPTR BiddyOrderingTable[BIDDYVARMAX][1+(BIDDYVARMAX-1)/UINTPTRSIZE];
+#else
+/* orderingtable[X]==0 iff X is the smallest (topmost) variable */
+typedef UINTPTR BiddyOrderingTable[BIDDYVARMAX];
+#endif
 
 /* FORMULA TABLE (FORMULAE TREE) = dynamicaly allocated table */
 /* expiry = 0, deleted = FALSE -> permanently preserved formula */
 /* expiry = 0, deleted = TRUE -> deleted permanently preserved formula */
 /* expiry >= biddySystemAge, deleted = FALSE -> preserved formula */
-/* expiry >= biddySystemAge, deleted = TRUE -> deleted depreserved formula */
+/* expiry >= biddySystemAge, deleted = TRUE -> deleted preserved formula */
 typedef struct {
   Biddy_Edge f;
   Biddy_String name;
@@ -781,6 +839,13 @@ typedef struct {
   Biddy_Boolean created;
 } BiddyNodeList;
 
+/* BiddyFormulaList is used in Biddy_ConstructBDD, since Biddy v2.1 */
+typedef struct {
+  Biddy_String name;
+  int id;
+  Biddy_Edge f;
+} BiddyFormulaList;
+
 /* BiddyXY is used in Biddy_WriteBDDView, since Biddy v1.8 */
 /* this is used to pass node coordinates */
 typedef struct {
@@ -908,11 +973,12 @@ extern Biddy_Boolean BiddyManagedEval(Biddy_Manager MNG, Biddy_Edge f);
 extern double BiddyManagedEvalProbability(Biddy_Manager MNG, Biddy_Edge f);
 extern Biddy_Variable BiddyManagedFoaVariable(Biddy_Manager MNG, Biddy_String x, Biddy_Boolean varelem, Biddy_Boolean complete);
 extern void BiddyManagedChangeVariableName(Biddy_Manager MNG, Biddy_Variable v, Biddy_String x);
-extern Biddy_Variable BiddyManagedAddVariableByName(Biddy_Manager MNG, Biddy_String x, Biddy_Boolean complete);
-#define BiddyManagedAddVariable(MNG) BiddyManagedAddVariableByName(MNG,NULL,TRUE)
-#define BiddyManagedAddVariableEdge(MNG) BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,NULL,TRUE))
-extern Biddy_Variable BiddyManagedAddElementByName(Biddy_Manager MNG, Biddy_String x, Biddy_Boolean complete);
-#define BiddyManagedAddElement(MNG) BiddyManagedAddElementByName(MNG,NULL,TRUE)
+extern Biddy_Variable BiddyManagedAddVariableByName(Biddy_Manager MNG, Biddy_String x);
+#define BiddyManagedAddVariable(MNG) BiddyManagedAddVariableByName(MNG,NULL)
+#define BiddyManagedAddVariableEdge(MNG) BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,NULL))
+extern Biddy_Variable BiddyManagedAddElementByName(Biddy_Manager MNG, Biddy_String x);
+#define BiddyManagedAddElement(MNG) BiddyManagedAddElementByName(MNG,NULL)
+#define BiddyManagedAddElementEdge(MNG) BiddyManagedGetElementEdge(MNG,BiddyManagedAddElementByName(MNG,NULL))
 extern Biddy_Edge BiddyManagedAddVariableBelow(Biddy_Manager MNG, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedAddVariableAbove(Biddy_Manager MNG, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedIncTag(Biddy_Manager MNG, Biddy_Edge f);
@@ -950,7 +1016,7 @@ extern Biddy_Edge BiddyManagedConstructBDD(Biddy_Manager MNG, int numV, Biddy_St
 
 extern void BiddyIncSystemAge(Biddy_Manager MNG);
 extern void BiddyDecSystemAge(Biddy_Manager MNG);
-void BiddyCompactSystemAge(Biddy_Manager MNG);
+extern void BiddyCompactSystemAge(Biddy_Manager MNG);
 extern void BiddyProlongRecursively(Biddy_Manager MNG, Biddy_Edge f, unsigned int c, Biddy_Variable target);
 
 extern Biddy_Variable BiddyCreateLocalInfo(Biddy_Manager MNG, Biddy_Edge f);
@@ -990,7 +1056,8 @@ extern Biddy_Edge BiddyCopyOBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Ed
 extern Biddy_Edge BiddyCopyZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
 extern Biddy_Edge BiddyCopyTZBDD(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
 extern Biddy_Edge BiddyConvertDirect(Biddy_Manager MNG1, Biddy_Manager MNG2, Biddy_Edge f);
-Biddy_Edge BiddyConstructBDD(Biddy_Manager MNG, int numN, BiddyNodeList *tableN);
+extern void BiddyConstructBDD(Biddy_Manager MNG, int numN, BiddyNodeList *tableN, int numF, BiddyFormulaList *tableF);
+
 
 extern void BiddyOPGarbage(Biddy_Manager MNG);
 extern void BiddyOPGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v);
@@ -1048,7 +1115,7 @@ extern Biddy_Edge BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_V
 #define BiddyManagedRemainder(MNG,f,v) BiddyManagedVarSubset(MNG,f,v,FALSE)
 extern Biddy_Edge BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
-extern Biddy_Edge BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge cube);
+extern Biddy_Edge BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge pncube);
 extern Biddy_Edge BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
 extern Biddy_Edge BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g);
 extern Biddy_Edge BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest, unsigned int n);
@@ -1122,29 +1189,29 @@ extern void BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
 /* Prototypes for internal functions defined in biddyInOut.c                  */
 /*----------------------------------------------------------------------------*/
 
-Biddy_String BiddyManagedEval0(Biddy_Manager MNG, Biddy_String s);
-Biddy_Edge BiddyManagedEval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf);
+extern Biddy_String BiddyManagedEval0(Biddy_Manager MNG, Biddy_String s);
+extern Biddy_Edge BiddyManagedEval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf);
 #define BiddyManagedEval1(MNG,s) BiddyManagedEval1x(MNG,s,NULL)
-Biddy_Edge BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc);
-Biddy_String BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],Biddy_String name);
-void BiddyManagedReadVerilogFile(Biddy_Manager MNG, const char filename[],Biddy_String prefix);
-void BiddyManagedPrintBDD(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f, Biddy_String label);
+extern Biddy_Edge BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc);
+extern Biddy_String BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],Biddy_String name);
+extern void BiddyManagedReadVerilogFile(Biddy_Manager MNG, const char filename[],Biddy_String prefix);
+extern void BiddyManagedPrintBDD(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f, Biddy_String label);
 #define BiddyManagedPrintfBDD(MNG,f) BiddyManagedPrintBDD(MNG,NULL,"stdout",f,NULL)
 #define BiddyManagedSprintfBDD(MNG,var,f) BiddyManagedPrintBDD(MNG,var,"",f,NULL)
 #define BiddyManagedWriteBDD(MNG,filename,f,label) BiddyManagedPrintBDD(MNG,NULL,filename,f,label)
-void BiddyManagedPrintTable(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f);
+extern void BiddyManagedPrintTable(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f);
 #define BiddyManagedPrintfTable(MNG,f) BiddyManagedPrintTable(MNG,NULL,"stdout",f)
 #define BiddyManagedSprintfTable(MNG,var,f) BiddyManagedPrintTable(MNG,var,"",f)
 #define BiddyManagedWriteTable(MNG,filename,f) BiddyManagedPrintTable(MNG,NULL,filename,f)
-void BiddyManagedPrintSOP(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f);
+extern void BiddyManagedPrintSOP(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f);
 #define BiddyManagedPrintfSOP(MNG,f) BiddyManagedPrintSOP(MNG,NULL,"stdout",f)
 #define BiddyManagedSprintfSOP(MNG,var,f) BiddyManagedPrintSOP(MNG,var,"",f)
 #define BiddyManagedWriteSOP(MNG,filename,f) BiddyManagedPrintSOP(MNG,NULL,filename,f)
-void BiddyManagedPrintMinterms(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f, Biddy_Boolean negative);
+extern void BiddyManagedPrintMinterms(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f, Biddy_Boolean negative);
 #define BiddyManagedPrintfMinterms(MNG,f,negative) BiddyManagedPrintMinterms(MNG,NULL,"stdout",f,negative)
 #define BiddyManagedSprintfMinterms(MNG,var,f,negative) BiddyManagedPrintMinterms(MNG,var,"",f,negative)
 #define BiddyManagedWriteMinterms(MNG,filename,f,negative) BiddyManagedPrintMinterms(MNG,NULL,filename,f,negative)
-unsigned int BiddyManagedWriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,const char label[], int id, Biddy_Boolean cudd);
-unsigned int BiddyManagedWriteBddview(Biddy_Manager MNG, const char filename[],Biddy_Edge f, const char label[], void *xytable);
+extern unsigned int BiddyManagedWriteDot(Biddy_Manager MNG, const char filename[], Biddy_Edge f,const char label[], int id, Biddy_Boolean cudd);
+extern unsigned int BiddyManagedWriteBddview(Biddy_Manager MNG, const char filename[],Biddy_Edge f, const char label[], void *xytable);
 
 #endif  /* _BIDDYINT */

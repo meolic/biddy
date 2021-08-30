@@ -1,10 +1,10 @@
-/* $Revision: 600 $ */
-/* $Date: 2020-03-02 22:47:10 +0100 (pon, 02 mar 2020) $ */
+/* $Revision: 652 $ */
+/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
 /* This file (biddy-example-dictionary.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v2.0 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v2.0 (and laters) and CUDD v3.0.0 */
 /* This example uses biddy-cudd.h and biddy-cudd.c */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */

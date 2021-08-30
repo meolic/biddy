@@ -1,10 +1,10 @@
-/* $Revision: 558 $ */
-/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
+/* $Revision: 652 $ */
+/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
 /* This file (biddy-example-ta.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.8 */
+/* This example is compatible with Biddy v1.8 and laters */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
 /* gcc -DUNIX -O2 -o biddy-example-ta biddy-example-ta.c -I. -L./bin -lbiddy */
@@ -217,7 +217,7 @@ foaVariable(VARIABLE var, Biddy_Boolean findOnly)
       printf("WARNING (foaVariable): variable %s added!\n",name);
       */
 
-      v = Biddy_FoaVariable(name,FALSE); /* FALSE means addElement */
+      v = Biddy_AddElementByName(name);
       if (var.limit.day) {
         data = (LIMIT *) malloc(sizeof(LIMIT));
         data->task = var.limit.task;
@@ -290,7 +290,7 @@ void createVariables()
     name = variableTable[i].name;
 #endif
     /* printf("(%s)",name); */
-    v = Biddy_FoaVariable(name,FALSE); /* FALSE means addElement */
+    v = Biddy_AddElementByName(name);
     if (variableTable[i].limit.day) {
       data = (LIMIT *) malloc(sizeof(LIMIT));
       data->task = variableTable[i].limit.task;

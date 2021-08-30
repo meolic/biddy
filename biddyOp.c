@@ -14,14 +14,14 @@ Binary Decision Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyOp.c]
-    Revision    [$Revision: 616 $]
-    Date        [$Date: 2020-03-25 00:57:29 +0100 (sre, 25 mar 2020) $]
+    Revision    [$Revision: 652 $]
+    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
     Authors     [Robert Meolic (robert@meolic.com)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -2118,11 +2118,11 @@ Biddy_Managed_Change(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
        function with a literal.
 
 ### Description
-    If (value == FALSE) then calculates (f|_{v=0})*(NOT v).
-    If (value == TRUE) then calculates (f|_{v=1})*v.
+    If (value == FALSE) then calculates (f|_{v=0})*(NOT v) = f*(NOT v).
+    If (value == TRUE) then calculates (f|_{v=1})*v = f*v.
     This is NOT a Coudert and Madre's SubSet operation (which is also called
     a Permission operation and is a counterpart of a SupSet operation).
-    For combination sets, function Subset coincides with functions
+    For combination sets, function VarSubset coincides with functions
     Subset0 and Subset1. Moreover, function Offset (also called Modulo or
     Remainder) is the same as function Subset0, while function Onset (also
     called Division or Quotient) can be calculated as Change(Subset1(f,v),v).
@@ -2371,14 +2371,13 @@ Biddy_Managed_Product(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 
 ### Description
     Selective product is also called Selective multiplication.
-    Combinations are composed only if they agree on variables from cube.
-    This is a non-commutatitve operation.
-    For OBDD, variables that are included as positive literal in
-    Boolean function cube are from positive set, while variables that
-    are included as negative literal are from negative set.
-    For ZBDD, variables that are included as positive literal in
-    Boolean function cube are from positive set, while variables that
-    are don't care variables are from negative set.
+    Combinations are composed only if they agree on all variables from
+    cube. This is a non-commutatitve operation.
+    For OBDD and TZBDD, variables included as positive literals in cube
+    are from positive set, while variables included as negative literals
+    are from negative set.
+    For ZBDD, variables included as positive literals in cube, are from
+    positive set, while don't care variables are from negative set.
     Variables that are from positive set and are presented in g, must
     exist in f, while, viceversa, this is not required.
     Variables that are from negative set and are presented in g, must
@@ -2386,13 +2385,17 @@ Biddy_Managed_Product(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 ### Side effects
     Original BDD is not changed.
     Implemented for OBDD, OBDDC, ZBDD, ZBDDC, and TZBDD.
-    As a consequence of given rules, variables that are don't care
-    variables in Boolean function cube, and are presented in g, may
-    exist in the result in those combinations where they do not exist
-    in f but exists in g.
-    As a consequence of given rules, combinations from f, which are not
-    composed with any combination from g (because they do not agree on
-    any variable with any combination from g) are not included in the result.
+    As a consequence of the given rules, variables that are in negative
+    set and are presented in g, will exist in the result in those
+    combinations where they do not exist in f.
+    As a consequence of the given rules, variables that are in negative
+    set and are not presented in g, will exist in the result in those
+    combinations where they exist in f.
+    As a consequence of the given rules, the result may contain
+    combinations without any variable from positive set.
+    As a consequence of the given rules, combinations from f, which are
+    not composed with any combination from g (because they do not agree
+    on cube with any combination from g) are not included in the result.
     RC Cache is used with parameters (f,g,cube).
     Because the usage of RC Cache coincide with functions Biddy_Restrict and
     Biddy_Compose they should not be used together with Biddy_SelectiveProduct
@@ -2408,7 +2411,7 @@ extern "C" {
 
 Biddy_Edge
 Biddy_Managed_SelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
-                               Biddy_Edge cube)
+                               Biddy_Edge pncube)
 {
   Biddy_Edge r;
 
@@ -2420,44 +2423,41 @@ Biddy_Managed_SelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
 
   assert( BiddyIsOK(f) == TRUE );
   assert( BiddyIsOK(g) == TRUE );
-  assert( BiddyIsOK(cube) == TRUE );
+  assert( BiddyIsOK(pncube) == TRUE );
 
   r = biddyNull;
 
   if (biddyManagerType == BIDDYTYPEOBDD) {
     /* IMPLEMENTED */
-    r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
+    r = BiddyManagedSelectiveProduct(MNG,f,g,pncube);
     /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   } else if (biddyManagerType == BIDDYTYPEOBDDC) {
     /* IMPLEMENTED */
-    r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
+    r = BiddyManagedSelectiveProduct(MNG,f,g,pncube);
     /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   }
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPEZBDD) {
     /* IMPLEMENTED */
     /* TO DO: CHECK THIS OPTIMIZATION
-    if (cube == biddyTerminal) {
+    if (pncube == biddyTerminal) {
       r = BiddyManagedProduct(MNG,f,g);
     }
     */
-    r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
+    r = BiddyManagedSelectiveProduct(MNG,f,g,pncube);
     /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   } else if (biddyManagerType == BIDDYTYPEZBDDC) {
     /* IMPLEMENTED */
     /* TO DO: CHECK THIS OPTIMIZATION
-    if (cube == biddyTerminal) {
+    if (pncube == biddyTerminal) {
       r = BiddyManagedProduct(MNG,f,g);
     }
     */
-    r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
+    r = BiddyManagedSelectiveProduct(MNG,f,g,pncube);
     /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   } else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
-    fprintf(stderr,"Biddy_SelectiveProduct: this BDD type is not supported, yet!\n");
-    return biddyNull;
     /* IMPLEMENTED */
-    r = BiddyManagedSelectiveProduct(MNG,f,g,cube);
+    r = BiddyManagedSelectiveProduct(MNG,f,g,pncube);
     /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedSelectiveProduct */
   } else if (biddyManagerType == BIDDYTYPETZBDDC)
   {
@@ -3655,10 +3655,10 @@ BiddyManagedITE(const Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge 
       topH = BiddyV(h);
 
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
-      if (BiddyIsSmaller(topF,topG)) {
-        v = BiddyIsSmaller(topF,topH) ? topF : topH;
+      if (BiddyIsSmaller(biddyOrderingTable,topF,topG)) {
+        v = BiddyIsSmaller(biddyOrderingTable,topF,topH) ? topF : topH;
       } else {
-        v = BiddyIsSmaller(topH,topG) ? topH : topG;
+        v = BiddyIsSmaller(biddyOrderingTable,topH,topG) ? topH : topG;
       }
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
@@ -3694,10 +3694,10 @@ BiddyManagedITE(const Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge 
       topH = BiddyV(h);
 
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
-      if (BiddyIsSmaller(topF,topG)) {
-        v = BiddyIsSmaller(topF,topH) ? topF : topH;
+      if (BiddyIsSmaller(biddyOrderingTable,topF,topG)) {
+        v = BiddyIsSmaller(biddyOrderingTable,topF,topH) ? topF : topH;
       } else {
-        v = BiddyIsSmaller(topH,topG) ? topH : topG;
+        v = BiddyIsSmaller(biddyOrderingTable,topH,topG) ? topH : topG;
       }
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
@@ -3739,15 +3739,15 @@ BiddyManagedITE(const Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge 
       topH = BiddyV(h);
 
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
-      if (BiddyIsSmaller(tagF,tagG)) {
-        rtag = BiddyIsSmaller(tagF,tagH) ? tagF : tagH;
+      if (BiddyIsSmaller(biddyOrderingTable,tagF,tagG)) {
+        rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagH) ? tagF : tagH;
       } else {
-        rtag = BiddyIsSmaller(tagH,tagG) ? tagH : tagG;
+        rtag = BiddyIsSmaller(biddyOrderingTable,tagH,tagG) ? tagH : tagG;
       }
-      if (BiddyIsSmaller(topF,topG)) {
-        v = BiddyIsSmaller(topF,topH) ? topF : topH;
+      if (BiddyIsSmaller(biddyOrderingTable,topF,topG)) {
+        v = BiddyIsSmaller(biddyOrderingTable,topF,topH) ? topF : topH;
       } else {
-        v = BiddyIsSmaller(topH,topG) ? topH : topG;
+        v = BiddyIsSmaller(biddyOrderingTable,topH,topG) ? topH : topG;
       }
 
       if ((tagF != tagG) || (tagF != tagH)) v = rtag;
@@ -3918,7 +3918,7 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPETZBDD) {
     if (BiddyR(f) == BiddyR(g)) {
-      if (BiddyIsSmaller(BiddyGetTag(f),BiddyGetTag(g))) {
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(f),BiddyGetTag(g))) {
         BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
         return f;
       } else {
@@ -4015,7 +4015,7 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -4046,7 +4046,7 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       /* FOR ZBDD, topF AND topG HAVE BEEN ALREADY CALCULATED */
       /* topF = BiddyV(f); */ /* ALREADY CALCULATED */
       /* topG = BiddyV(g); */ /* ALREADY CALCULATED */
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* THIS CALL IS NOT INTRODUCING NEW NODES */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -4080,16 +4080,16 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       tagG = BiddyGetTag(g);
       topF = BiddyV(f);
       topG = BiddyV(g);
-      rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG;
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagF : tagG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* VARIANT 1 */
       /*
-      if (BiddyIsSmaller(topF,tagG)) {
+      if (BiddyIsSmaller(biddyOrderingTable,topF,tagG)) {
         Fneg_v = BiddyE(f);
         Fv = BiddyT(f);
         Gneg_v = Gv = g;
-      } else if (BiddyIsSmaller(topG,tagF)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,topG,tagF)) {
         Fneg_v = Fv = f;
         Gneg_v = BiddyE(g);
         Gv = BiddyT(g);
@@ -4121,7 +4121,7 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
         Fneg_v = BiddyE(f);
         Fv = BiddyT(f);
       } else {
-        if (BiddyIsSmaller(v,tagF)) {
+        if (BiddyIsSmaller(biddyOrderingTable,v,tagF)) {
           Fneg_v = Fv = f;
         } else {
           Fneg_v = f;
@@ -4134,7 +4134,7 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
         Gneg_v = BiddyE(g);
         Gv = BiddyT(g);
       } else {
-        if (BiddyIsSmaller(v,tagG)) {
+        if (BiddyIsSmaller(biddyOrderingTable,v,tagG)) {
           Gneg_v = Gv = g;
         } else {
           Gneg_v = g;
@@ -4147,7 +4147,7 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
 
       /* VARIANT 3 */
       /**/
-      if (BiddyIsSmaller(v,tagF)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tagF)) {
         Fneg_v = Fv = f;
       } else if (v == topF) {
         Fneg_v = BiddyE(f);
@@ -4158,7 +4158,7 @@ BiddyManagedAnd(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
         Fneg_v = BiddyManagedIncTag(MNG,Fneg_v);
         Fv = biddyZero;
       }
-      if (BiddyIsSmaller(v,tagG)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tagG)) {
         Gneg_v = Gv = g;
       } else if (v == topG) {
         Gneg_v = BiddyE(g);
@@ -4298,7 +4298,7 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
 #ifndef COMPACT
   if (biddyManagerType == BIDDYTYPETZBDD) {
     if (BiddyR(f) == BiddyR(g)) {
-      if (BiddyIsSmaller(BiddyGetTag(f),BiddyGetTag(g))) {
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(f),BiddyGetTag(g))) {
         BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
         return g;
       } else {
@@ -4389,7 +4389,7 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -4418,7 +4418,7 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -4451,7 +4451,7 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
         / * THE SAME TAG * /
         topF = BiddyV(f);
         topG = BiddyV(g);
-        v = BiddyIsSmaller(topF,topG) ? topF : topG;
+        v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
         rtag = tagF;
         w = v;
         if (topF == v) {
@@ -4474,7 +4474,7 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
         }
       } else {
         / * DIFFERENT TAG * /
-        rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG;
+        rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagF : tagG;
         w = rtag;
         if (tagF == rtag) {
           if (BiddyV(f) == rtag) {
@@ -4512,8 +4512,8 @@ BiddyManagedOr(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       tagG = BiddyGetTag(g);
       topF = BiddyV(f);
       topG = BiddyV(g);
-      rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG;
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagF : tagG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
       if (tagF != tagG) v = rtag;
       if (tagF == rtag) {
         if (topF == v) {
@@ -4828,7 +4828,7 @@ BiddyManagedXor(const Biddy_Manager MNG, const Biddy_Edge f,
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -4856,7 +4856,7 @@ BiddyManagedXor(const Biddy_Manager MNG, const Biddy_Edge f,
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -4889,7 +4889,7 @@ BiddyManagedXor(const Biddy_Manager MNG, const Biddy_Edge f,
         / * THE SAME TAG * /
         topF = BiddyV(f);
         topG = BiddyV(g);
-        v = BiddyIsSmaller(topF,topG) ? topF : topG;
+        v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
         rtag = tagF;
         w = v;
         if (topF == v) {
@@ -4912,7 +4912,7 @@ BiddyManagedXor(const Biddy_Manager MNG, const Biddy_Edge f,
         }
       } else {
         / * DIFFERENT TAG * /
-        rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG;
+        rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagF : tagG;
         w = rtag;
         if (tagF == rtag) {
           if (BiddyV(f) == rtag) {
@@ -4950,8 +4950,8 @@ BiddyManagedXor(const Biddy_Manager MNG, const Biddy_Edge f,
       tagG = BiddyGetTag(g);
       topF = BiddyV(f);
       topG = BiddyV(g);
-      rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG;
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagF : tagG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
       if (tagF != tagG) v = rtag;
       if (tagF == rtag) {
         if (topF == v) {
@@ -5158,7 +5158,7 @@ BiddyManagedLeq(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
 #ifndef COMPACT
   if (biddyManagerType == BIDDYTYPETZBDD) {
     if (BiddyR(f) == BiddyR(g)) {
-      if (BiddyIsSmaller(BiddyGetTag(f),BiddyGetTag(g))) {
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(f),BiddyGetTag(g))) {
         return biddyOne;
       }
     }
@@ -5209,7 +5209,7 @@ BiddyManagedLeq(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -5248,8 +5248,8 @@ BiddyManagedLeq(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       tagG = BiddyGetTag(g);
       topF = BiddyV(f);
       topG = BiddyV(g);
-      rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG;
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagF : tagG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       if (tagF != tagG) v = rtag;
       if (tagF == rtag) {
@@ -5402,7 +5402,7 @@ BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
 #ifndef COMPACT
   if (biddyManagerType == BIDDYTYPETZBDD) {
     if (BiddyR(f) == BiddyR(g)) {
-      if (BiddyIsSmaller(BiddyGetTag(f),BiddyGetTag(g))) {
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(f),BiddyGetTag(g))) {
         return biddyZero;
       }
     }
@@ -5439,7 +5439,7 @@ BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
   /* IF RESULT IS NOT IN THE CACHE TABLE... */
   cindex = 0;
   if ((((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD))
-       && BiddyIsSmaller(BiddyV(g),BiddyV(f))
+       && BiddyIsSmaller(biddyOrderingTable,BiddyV(g),BiddyV(f))
       ) || !findOp3Cache(biddyOPCache,FF,GG,HH,&r,&cindex))
   {
 
@@ -5451,7 +5451,7 @@ BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       if (topF == v) {
@@ -5479,7 +5479,7 @@ BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* THIS CALL IS NOT INTRODUCING NEW NODES */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -5514,14 +5514,14 @@ BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
       tagG = BiddyGetTag(g);
       topF = BiddyV(f);
       topG = BiddyV(g);
-      rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG;
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagF : tagG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
-      if (BiddyIsSmaller(tagG,tagF)) v = rtag;
+      if (BiddyIsSmaller(biddyOrderingTable,tagG,tagF)) v = rtag;
 
-      if (BiddyIsSmaller(v,tagF)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tagF)) {
         Fneg_v = Fv = f;
-      } else if (BiddyIsSmaller(v,topF)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,v,topF)) {
         Fneg_v = f;
         BiddySetTag(Fneg_v,v);
         Fneg_v = BiddyManagedIncTag(MNG,Fneg_v);
@@ -5532,9 +5532,9 @@ BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, const Biddy_Edge g)
         Fneg_v = BiddyE(f);
         Fv = BiddyT(f);
       }
-      if (BiddyIsSmaller(v,tagG)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tagG)) {
         Gneg_v = Gv = g;
-      } else if (BiddyIsSmaller(v,topG)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,v,topG)) {
         Gneg_v = g;
         BiddySetTag(Gneg_v,v);
         Gneg_v = BiddyManagedIncTag(MNG,Gneg_v);
@@ -5639,7 +5639,19 @@ BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
 
   FF = f;
   GG = value?biddyZero:biddyOne;
-  HH = biddyVariableTable.table[v].variable;
+  HH = biddyNull;
+
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    HH = biddyVariableTable.table[v].variable;
+  }
+#ifndef COMPACT
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    HH = biddyVariableTable.table[v].element;
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    HH = biddyVariableTable.table[v].variable;
+  }
+#endif
 
   /* IF RESULT IS NOT IN THE CACHE TABLE... */
   /* Result is stored in cache only if recursive calls are needed */
@@ -5658,7 +5670,7 @@ BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
           BiddyRefresh(r); /* subnode may be marked as an obsolete node! */
         }
       }
-      else if (BiddyIsSmaller(v,fv)) {
+      else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         r = f;
         BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       }
@@ -5684,7 +5696,7 @@ BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         }
       }
-      else if (BiddyIsSmaller(v,fv)) {
+      else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         if (value) {
           r = biddyZero;
         } else {
@@ -5703,7 +5715,7 @@ BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
       tag = BiddyGetTag(f);
-      if (BiddyIsSmaller(v,tag)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tag)) {
         r = f;
         BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       } else {
@@ -5728,7 +5740,7 @@ BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
               BiddyRefresh(r); /* FoaNode returns an obsolete node! */
             }
           }
-        } else if (BiddyIsSmaller(v,fv)) {
+        } else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
           if (value) {
             r = biddyZero;
           } else {
@@ -5806,7 +5818,19 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
 
   FF = f;
   GG = g;
-  HH = biddyVariableTable.table[v].variable;
+  HH = biddyNull;
+
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    HH = biddyVariableTable.table[v].variable;
+  }
+#ifndef COMPACT
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    HH = biddyVariableTable.table[v].element;
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    HH = biddyVariableTable.table[v].variable;
+  }
+#endif
 
   /* IF RESULT IS NOT IN THE CACHE TABLE... */
   /* TO DO: CHECK ONLY IF IT IS POSSIBLE TO EXIST IN THE CACHE */
@@ -5818,7 +5842,7 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       if ((fv=BiddyV(f)) == v) {
         r = BiddyInvCond(BiddyManagedITE(MNG,g,BiddyT(f),BiddyE(f)),BiddyGetMark(f));
       }
-      else if (BiddyIsSmaller(v,fv)) {
+      else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         r = f;
         BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       }
@@ -5827,7 +5851,7 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         t = BiddyManagedCompose(MNG,BiddyT(f),g,v);
         /* VARIANT A: USE TRUE FOR THE FIRST CONDITION */
         /* VARIANT B: USE FALSE FOR THE FIRST CONDITION */
-        if (TRUE && BiddyIsSmaller(fv,BiddyV(e)) && BiddyIsSmaller(fv,BiddyV(t))) {
+        if (TRUE && BiddyIsSmaller(biddyOrderingTable,fv,BiddyV(e)) && BiddyIsSmaller(biddyOrderingTable,fv,BiddyV(t))) {
           r = BiddyInvCond(BiddyManagedTaggedFoaNode(MNG,fv,e,t,fv,TRUE),BiddyGetMark(f));
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         } else {
@@ -5851,7 +5875,7 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         r = BiddyManagedITE(MNG,g,t,e);
         addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
       }
-      else if (BiddyIsSmaller(v,fv)) {
+      else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         r = BiddyManagedTaggedFoaNode(MNG,v,f,f,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         r = BiddyManagedITE(MNG,g,biddyZero,r);
@@ -5870,7 +5894,7 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       /* TO DO: Biddy_Replace USE DIFFERENT APPROACH */
       /* TO DO: check if that approach is applicable and more efficient */
       tag = BiddyGetTag(f);
-      if (BiddyIsSmaller(v,tag)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tag)) {
         r = f;
         BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       } else {
@@ -5898,7 +5922,7 @@ BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
           */
           addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
         }
-        else if (BiddyIsSmaller(v,fv)) {
+        else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
           r = BiddyManagedRestrict(MNG,f,v,FALSE);
           r = BiddyManagedITE(MNG,g,biddyZero,r);
           addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
@@ -5986,7 +6010,7 @@ BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   /* h MUST BE COMPATIBLE WITH CUBE */
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
     fv = BiddyV(f);
-    if (BiddyIsSmaller(v,fv)) {
+    if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
       BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
       return f;
     }
@@ -5998,7 +6022,7 @@ BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   }
   else if (biddyManagerType == BIDDYTYPETZBDD) {
     tag = BiddyGetTag(f);
-    if (BiddyIsSmaller(v,tag)) {
+    if (BiddyIsSmaller(biddyOrderingTable,v,tag)) {
       BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
       return f;
     }
@@ -6036,7 +6060,7 @@ BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
         r = BiddyManagedTaggedFoaNode(MNG,v,r,r,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       }
-      else if (BiddyIsSmaller(v,fv)) {
+      else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         r = BiddyManagedTaggedFoaNode(MNG,v,f,f,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       }
@@ -6055,7 +6079,7 @@ BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
           r = BiddyManagedTaggedFoaNode(MNG,v,r,r,tag,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         }
-      } else if (BiddyIsSmaller(v,fv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         if (v == tag) {
           r = BiddyManagedIncTag(MNG,f);
         } else {
@@ -6170,7 +6194,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
       fv = BiddyV(f);
       cv = BiddyV(cube);
-      while (!BiddyIsTerminal(cube) && BiddyIsSmaller(cv,fv)) {
+      while (!BiddyIsTerminal(cube) && BiddyIsSmaller(biddyOrderingTable,cv,fv)) {
         cube = BiddyT(cube);
         cv = BiddyV(cube);
       }
@@ -6202,7 +6226,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
       }
       cv = BiddyV(cube);
       fv = BiddyV(f);
-      if (BiddyIsSmaller(cv,fv)) {
+      if (BiddyIsSmaller(biddyOrderingTable,cv,fv)) {
         r = BiddyManagedExistAbstract(MNG,f,BiddyT(cube));
         r = BiddyManagedTaggedFoaNode(MNG,cv,r,r,cv,TRUE); /* REMOVE THIS LINE TO GET ElementAbstract */
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
@@ -6226,7 +6250,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
     else if (biddyManagerType == BIDDYTYPETZBDD) {
       tag = BiddyGetTag(f);
       cv = BiddyV(cube);
-      while (!BiddyIsTerminal(cube) && BiddyIsSmaller(cv,tag)) {
+      while (!BiddyIsTerminal(cube) && BiddyIsSmaller(biddyOrderingTable,cv,tag)) {
         cube = BiddyT(cube);
         cv = BiddyV(cube);
       }
@@ -6247,7 +6271,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
           r = BiddyManagedIncTag(MNG,f);
           r = BiddyManagedExistAbstract(MNG,r,BiddyT(cube));
         }
-      } else if (BiddyIsSmaller(cv,fv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,cv,fv)) {
         r = f;
         / * BiddyRefresh(r); * / / * return non-obsolete node even if the parameter is an obsolete node * /
         BiddySetTag(r,cv);
@@ -6279,7 +6303,7 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
           r = BiddyManagedTaggedFoaNode(MNG,cv,r,r,tag,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         }
-      } else if (BiddyIsSmaller(cv,fv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,cv,fv)) {
         if (cv == tag) {
           r = BiddyManagedIncTag(MNG,f);
           r = BiddyManagedExistAbstract(MNG,r,BiddyT(cube));
@@ -6411,7 +6435,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
 #ifndef COMPACT
   else if (biddyManagerType == BIDDYTYPETZBDD) {
     if (BiddyR(f) == BiddyR(g)) {
-      if (BiddyIsSmaller(BiddyGetTag(f),BiddyGetTag(g))) {
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(f),BiddyGetTag(g))) {
         return BiddyManagedExistAbstract(MNG,f,cube);
       } else {
         return BiddyManagedExistAbstract(MNG,g,cube);
@@ -6433,13 +6457,13 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
       fv = BiddyV(f);
       gv = BiddyV(g);
-      if (BiddyIsSmaller(fv,gv)) {
+      if (BiddyIsSmaller(biddyOrderingTable,fv,gv)) {
         f0 = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
         f1 = BiddyInvCond(BiddyT(f),BiddyGetMark(f));
         g0 = g;
         g1 = g;
         minv = fv;
-      } else if (BiddyIsSmaller(gv,fv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,gv,fv)) {
         f0 = f;
         f1 = f;
         g0 = BiddyInvCond(BiddyE(g),BiddyGetMark(g));
@@ -6453,7 +6477,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         minv = fv;
       }
       cv = BiddyV(cube);
-      while (BiddyIsSmaller(cv,minv)) {
+      while (BiddyIsSmaller(biddyOrderingTable,cv,minv)) {
         cube = BiddyT(cube);
         cv = BiddyV(cube);
       }
@@ -6485,7 +6509,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
     else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
       fv = BiddyV(f);
       gv = BiddyV(g);
-      minv = BiddyIsSmaller(fv,gv) ? fv : gv;
+      minv = BiddyIsSmaller(biddyOrderingTable,fv,gv) ? fv : gv;
       if (fv != gv) {
         if (fv == minv) {
           if (BiddyGetMark(f)) {
@@ -6506,7 +6530,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         }
       } else {
         cv = BiddyV(cube);
-        if (BiddyIsSmaller(cv,minv)) {
+        if (BiddyIsSmaller(biddyOrderingTable,cv,minv)) {
           r = BiddyManagedAndAbstract(MNG,f,g,BiddyT(cube));
           r = BiddyManagedTaggedFoaNode(MNG,cv,r,r,cv,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
@@ -6537,9 +6561,9 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
     else if (biddyManagerType == BIDDYTYPETZBDD) {
       ftag = BiddyGetTag(f);
       gtag = BiddyGetTag(g);
-      mintag = BiddyIsSmaller(ftag,gtag) ? ftag : gtag;
+      mintag = BiddyIsSmaller(biddyOrderingTable,ftag,gtag) ? ftag : gtag;
       cv = BiddyV(cube);
-      while (BiddyIsSmaller(cv,mintag)) {
+      while (BiddyIsSmaller(biddyOrderingTable,cv,mintag)) {
         cube = BiddyT(cube);
         cv = BiddyV(cube);
       }
@@ -6549,12 +6573,12 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       /*
       fv = BiddyV(f);
       gv = BiddyV(g);
-      minv = BiddyIsSmaller(fv,gv) ? fv : gv;
-      if (BiddyIsSmaller(fv,gtag)) {
+      minv = BiddyIsSmaller(biddyOrderingTable,fv,gv) ? fv : gv;
+      if (BiddyIsSmaller(biddyOrderingTable,fv,gtag)) {
         f0 = BiddyE(f);
         f1 = BiddyT(f);
         g0 = g1 = g;
-      } else if (BiddyIsSmaller(gv,ftag)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,gv,ftag)) {
         f0 = f1 = f;
         g0 = BiddyE(g);
         g1 = BiddyT(g);
@@ -6578,7 +6602,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
           g1 = biddyZero;
         }
       }
-      if (BiddyIsSmaller(minv,cv)) {
+      if (BiddyIsSmaller(biddyOrderingTable,minv,cv)) {
         e = BiddyManagedAndAbstract(MNG,f0,g0,cube);
         t = BiddyManagedAndAbstract(MNG,f1,g1,cube);
       } else {
@@ -6593,7 +6617,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
           BiddyRefresh(r); / * FoaNode returns an obsolete node! * /
           if (r != biddyZero) r = BiddyManagedIncTag(MNG,r);
         }
-      } else if (BiddyIsSmaller(cv,minv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,cv,minv)) {
         r = BiddyManagedTaggedFoaNode(MNG,minv,e,t,cv,TRUE);
         BiddyRefresh(r); / * FoaNode returns an obsolete node! * /
         r = BiddyManagedIncTag(MNG,r);
@@ -6612,8 +6636,8 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       /* VARIANT 2 */
       fv = BiddyV(f);
       gv = BiddyV(g);
-      minv = BiddyIsSmaller(fv,gv) ? fv : gv;
-      if (BiddyIsSmaller(minv,ftag)) {
+      minv = BiddyIsSmaller(biddyOrderingTable,fv,gv) ? fv : gv;
+      if (BiddyIsSmaller(biddyOrderingTable,minv,ftag)) {
         f0 = f1 = f;
       } else if (minv == fv) {
         f0 = BiddyE(f);
@@ -6624,7 +6648,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         f0 = BiddyManagedIncTag(MNG,f0);
         f1 = biddyZero;
       }
-      if (BiddyIsSmaller(minv,gtag)) {
+      if (BiddyIsSmaller(biddyOrderingTable,minv,gtag)) {
         g0 = g1 = g;
       } else if (minv == gv) {
         g0 = BiddyE(g);
@@ -6635,7 +6659,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         g0 = BiddyManagedIncTag(MNG,g0);
         g1 = biddyZero;
       }
-      cgt = BiddyIsSmaller(minv,cv);
+      cgt = BiddyIsSmaller(biddyOrderingTable,minv,cv);
       if (f0 == biddyZero) {
         e = biddyZero;
       } else if (g0 == biddyZero) {
@@ -6661,7 +6685,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
           BiddyRefresh(r); / * FoaNode returns an obsolete node! * /
           if (r != biddyZero) r = BiddyManagedIncTag(MNG,r);
         }
-      } else if (BiddyIsSmaller(cv,minv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,cv,minv)) {
         r = BiddyManagedTaggedFoaNode(MNG,minv,e,t,cv,TRUE);
         BiddyRefresh(r); / * FoaNode returns an obsolete node! * /
         if (r != biddyZero) r = BiddyManagedIncTag(MNG,r);
@@ -6678,7 +6702,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       */
 
       /* VARIANT 2B */
-      if (BiddyIsSmaller(cv,minv)) {
+      if (BiddyIsSmaller(biddyOrderingTable,cv,minv)) {
         r = BiddyManagedTaggedFoaNode(MNG,minv,e,t,cv,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         if (r != biddyZero) r = BiddyManagedIncTag(MNG,r);
@@ -6754,13 +6778,13 @@ BiddyManagedConstrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   fv = BiddyV(f);
   cv = BiddyV(c);
 
-  if (BiddyIsSmaller(fv,cv)) {
+  if (BiddyIsSmaller(biddyOrderingTable,fv,cv)) {
     f0 = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
     f1 = BiddyInvCond(BiddyT(f),BiddyGetMark(f));
     c0 = c;
     c1 = c;
     minv = fv;
-  } else if (BiddyIsSmaller(cv,fv)) {
+  } else if (BiddyIsSmaller(biddyOrderingTable,cv,fv)) {
     f0 = f;
     f1 = f;
     c0 = BiddyInvCond(BiddyE(c),BiddyGetMark(c));
@@ -6834,11 +6858,11 @@ BiddyManagedSimplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   cv = BiddyV(c);
 
   /* SPECIAL CASE: f/~a == f/a */
-  if (BiddyIsSmaller(cv,fv)) {
+  if (BiddyIsSmaller(biddyOrderingTable,cv,fv)) {
     return BiddyManagedSimplify(MNG,f,BiddyManagedE(MNG,c,cv));
   }
 
-  if (BiddyIsSmaller(fv,cv)) {
+  if (BiddyIsSmaller(biddyOrderingTable,fv,cv)) {
     f0 = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
     f1 = BiddyInvCond(BiddyT(f),BiddyGetMark(f));
     c0 = c;
@@ -6935,7 +6959,7 @@ BiddyManagedSupport(Biddy_Manager MNG, Biddy_Edge f)
     s = biddyTerminal; /* this is base set */
     for (v=1;v<biddyVariableTable.num;v++) {
       /* variables above the top variable (which are always all dependent) are not selected, yet */
-      if (BiddyIsSmaller(v,BiddyV(f))) biddyVariableTable.table[v].selected = TRUE;
+      if (BiddyIsSmaller(biddyOrderingTable,v,BiddyV(f))) biddyVariableTable.table[v].selected = TRUE;
       if (biddyVariableTable.table[v].selected == TRUE)
       {
         s = BiddyManagedChange(MNG,s,v);
@@ -6953,7 +6977,7 @@ BiddyManagedSupport(Biddy_Manager MNG, Biddy_Edge f)
     }
     /* variables above the top variable which are equal or greater than the top tag are also dependent */
     v = BiddyGetTag(f);
-    while (BiddyIsSmaller(v,BiddyV(f))) {
+    while (BiddyIsSmaller(biddyOrderingTable,v,BiddyV(f))) {
       s = BiddyManagedAnd(MNG,s,biddyVariableTable.table[v].variable);
       v = biddyVariableTable.table[v].next;
     }
@@ -7131,7 +7155,19 @@ BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
 
   FF = f;
   GG = biddyNull;
-  HH = biddyVariableTable.table[v].variable;
+  HH = biddyNull;
+
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    HH = biddyVariableTable.table[v].variable;
+  }
+#ifndef COMPACT
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    HH = biddyVariableTable.table[v].element;
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    HH = biddyVariableTable.table[v].variable;
+  }
+#endif
 
   /* IF RESULT IS NOT IN THE CACHE TABLE... */
   /* TO DO: CHECK ONLY IF IT IS POSSIBLE TO EXIST IN THE CACHE */
@@ -7146,7 +7182,7 @@ BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
         t = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
         r = BiddyManagedTaggedFoaNode(MNG,v,e,t,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
-      } else if (BiddyIsSmaller(v,fv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         r = f;
         BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       } else {
@@ -7166,7 +7202,7 @@ BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
         t = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
         r = BiddyManagedTaggedFoaNode(MNG,v,e,t,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
-      } else if (BiddyIsSmaller(v,fv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         r = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,f,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       } else {
@@ -7180,7 +7216,7 @@ BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
       tag = BiddyGetTag(f);
-      if (BiddyIsSmaller(v,tag)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tag)) {
         r = f;
         BiddyRefresh(r); /* return non-obsolete node even if the parameter is an obsolete node */
       } else {
@@ -7190,7 +7226,7 @@ BiddyManagedChange(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
           t = BiddyE(f);
           r = BiddyManagedTaggedFoaNode(MNG,v,e,t,tag,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
-        } else if (BiddyIsSmaller(v,fv)) {
+        } else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
           r = f;
           /* BiddyRefresh(r); */ /* f may be an obsolete node but this is not a problem here */
           BiddySetTag(r,v);
@@ -7261,8 +7297,20 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
   FF = biddyNull;
   GG = biddyNull;
   HH = biddyNull;
+  h = biddyNull;
 
-  h = biddyVariableTable.table[v].variable;
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    h = biddyVariableTable.table[v].variable;
+  }
+#ifndef COMPACT
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+    h = biddyVariableTable.table[v].element;
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    h = biddyVariableTable.table[v].variable;
+  }
+#endif
+
   if (!value) {
     h = BiddyManagedNot(MNG,h);
   }
@@ -7306,7 +7354,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         }
       }
-      else if (BiddyIsSmaller(v,fv)) {
+      else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         if (value) {
           r = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,f,v,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
@@ -7334,7 +7382,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
           BiddyRefresh(r); /* subnode may be marked as an obsolete node! */
         }
       }
-      else if (BiddyIsSmaller(v,fv)) {
+      else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         if (value) {
           r = biddyZero;
         } else {
@@ -7352,7 +7400,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
       tag = BiddyGetTag(f);
-      if (BiddyIsSmaller(v,tag)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tag)) {
         if (value) {
           r = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,f,v,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
@@ -7387,7 +7435,7 @@ BiddyManagedVarSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v,
               BiddyRefresh(r); /* FoaNode returns an obsolete node! */
             }
           }
-        } else if (BiddyIsSmaller(v,fv)) {
+        } else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
           if (value) {
             r = biddyZero;
           } else {
@@ -7468,7 +7516,7 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
     fv = BiddyV(f);
-    if (BiddyIsSmaller(v,fv)) {
+    if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
       BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
       return f;
     }
@@ -7477,7 +7525,7 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
   else if (biddyManagerType == BIDDYTYPETZBDD) {
     fv = BiddyV(f);
     tag = BiddyGetTag(f);
-    if (BiddyIsSmaller(v,fv) && !BiddyIsSmaller(v,tag)) {
+    if (BiddyIsSmaller(biddyOrderingTable,v,fv) && !BiddyIsSmaller(biddyOrderingTable,v,tag)) {
       BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
       return f;
     }
@@ -7498,7 +7546,7 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
         r = BiddyManagedTaggedFoaNode(MNG,v,r,biddyZero,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       }
-      else if (BiddyIsSmaller(v,fv)) {
+      else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
         r = BiddyManagedTaggedFoaNode(MNG,v,f,biddyZero,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       }
@@ -7536,8 +7584,8 @@ BiddyManagedElementAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v)
           r = BiddyManagedTaggedFoaNode(MNG,v,r,r,tag,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         }
-      } else if (BiddyIsSmaller(v,fv)) {
-        /* the case !BiddyIsSmaller(v,tag) is already solved */
+      } else if (BiddyIsSmaller(biddyOrderingTable,v,fv)) {
+        /* the case !BiddyIsSmaller(biddyOrderingTable,v,tag) is already solved */
         r = BiddyManagedTaggedFoaNode(MNG,v,f,biddyZero,v,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       } else {
@@ -7621,6 +7669,7 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
     if ((f == biddyOne) && (g == biddyOne)) return biddyOne;
+    /* if ((f == biddyOne) && (g includes empty combination)) return biddyOne; */
   }
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
@@ -7638,11 +7687,11 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     tagG = BiddyGetTag(g);
     topF = BiddyV(f);
     topG = BiddyV(g);
-    if ((topF == 0) && (!BiddyIsSmaller(tagG,tagF))) {
+    if ((topF == 0) && (!BiddyIsSmaller(biddyOrderingTable,tagG,tagF))) {
       BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
       return g;
     }
-    if ((topG == 0) && (!BiddyIsSmaller(tagF,tagG))) {
+    if ((topG == 0) && (!BiddyIsSmaller(biddyOrderingTable,tagF,tagG))) {
       BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
       return f;
     }
@@ -7671,7 +7720,7 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -7695,7 +7744,7 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
         t = BiddyManagedOr(MNG,t,BiddyManagedProduct(MNG,Fv,Gneg_v));
       } else {
         e = BiddyManagedProduct(MNG,Fneg_v,Gneg_v);
-        t = BiddyManagedOr(MNG,e,BiddyManagedProduct(MNG,Fv,Gv));
+        t = BiddyManagedOr(MNG,e,BiddyManagedProduct(MNG,Fv,Gv)); /* e=Product(Fneg_v,G) or e=Product(F,Gneg_v) */
       }
       r = BiddyManagedTaggedFoaNode(MNG,v,e,t,v,TRUE);
       BiddyRefresh(r); /* FoaNode returns an obsolete node! */
@@ -7710,7 +7759,7 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -7750,16 +7799,16 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* tagG = BiddyGetTag(g); */ /* already set */
       /* topF = BiddyV(f); */ /* already set */
       /* topG = BiddyV(g); */ /* already set */
-      rtag = BiddyIsSmaller(tagF,tagG) ? tagG : tagF; /* max tag! */
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
-      if (BiddyIsSmaller(v,rtag)) rtag = v;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagG : tagF; /* max tag! */
+      if (BiddyIsSmaller(biddyOrderingTable,v,rtag)) rtag = v;
 
       /*
       printf("Product: rtag = %u (%s)\n",rtag,BiddyManagedGetVariableName(MNG,rtag));
       printf("Product: v = %u (%s)\n",v,BiddyManagedGetVariableName(MNG,v));
       */
 
-      if (BiddyIsSmaller(v,tagF)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tagF)) {
         Fneg_v = Fv = f;
       } else if (v == topF) {
         Fneg_v = BiddyE(f);
@@ -7770,7 +7819,7 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
         Fneg_v = BiddyManagedIncTag(MNG,Fneg_v);
         Fv = biddyZero;
       }
-      if (BiddyIsSmaller(v,tagG)) {
+      if (BiddyIsSmaller(biddyOrderingTable,v,tagG)) {
         Gneg_v = Gv = g;
       } else if (v == topG) {
         Gneg_v = BiddyE(g);
@@ -7821,7 +7870,7 @@ BiddyManagedProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
 *******************************************************************************/
 
 Biddy_Edge
-BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge cube)
+BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge pncube)
 {
   Biddy_Edge e, t, r, Fv, Gv, Fneg_v, Gneg_v, nextcube;
   Biddy_Variable v, topF, topG;
@@ -7829,18 +7878,18 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
   unsigned int cindex;
 
 #ifndef COMPACT
-  /* Biddy_Variable tagF, tagG, rtag; */
+  Biddy_Variable tagF, tagG, rtag;
 #endif
 
   assert( MNG != NULL );
   assert( f != NULL );
   assert( g != NULL );
-  assert( cube != NULL );
+  assert( pncube != NULL );
 
   assert( (f == biddyZero) ||
           (g == biddyZero) ||
           ((f == biddyTerminal) && (g == biddyTerminal)) ||
-          (cube != biddyZero)
+          (pncube != biddyZero)
         );
 
   /* IMPLEMENTED FOR OBDD, OBDDC, ZBDD, ZBDDC, AND TZBDD */
@@ -7852,20 +7901,25 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
     (biddyManagerType == BIDDYTYPETZBDD)
   );
 
-  /* DEBUGGING */
+  /* DEBUGGING TZBDD */
   /*
-  tagF = BiddyGetTag(f);
-  tagG = BiddyGetTag(g);
-  topF = BiddyV(f);
-  topG = BiddyV(g);
-  printf("\n");
-  if (f == biddyZero) printf("SelectiveProduct: F = 0\n");
-  if (g == biddyZero) printf("SelectiveProduct: G = 0\n");
-  printf("SelectiveProduct: cube = %u (%s)\n",BiddyV(cube),BiddyManagedGetVariableName(MNG,BiddyV(cube)));
-  printf("SelectiveProduct: tagF = %u (%s)\n",tagF,BiddyManagedGetVariableName(MNG,tagF));
-  printf("SelectiveProduct: topF = %u (%s)\n",topF,BiddyManagedGetVariableName(MNG,topF));
-  printf("SelectiveProduct: tagG = %u (%s)\n",tagG,BiddyManagedGetVariableName(MNG,tagG));
-  printf("SelectiveProduct: topG = %u (%s)\n",topG,BiddyManagedGetVariableName(MNG,topG));
+  if (biddyManagerType == BIDDYTYPETZBDD) {
+    tagF = BiddyGetTag(f);
+    tagG = BiddyGetTag(g);
+    topF = BiddyV(f);
+    topG = BiddyV(g);
+    printf("\n");
+    if (f == biddyZero) printf("SelectiveProduct: F = 0\n");
+    else if (g == biddyZero) printf("SelectiveProduct: G = 0\n");
+    else {
+      printf("SelectiveProduct: tagCube = %u (%s)\n",BiddyGetTag(pncube),BiddyManagedGetVariableName(MNG,BiddyGetTag(pncube)));
+      printf("SelectiveProduct: cube = %u (%s)\n",BiddyV(pncube),BiddyManagedGetVariableName(MNG,BiddyV(pncube)));
+      printf("SelectiveProduct: tagF = %u (%s)\n",tagF,BiddyManagedGetVariableName(MNG,tagF));
+      printf("SelectiveProduct: topF = %u (%s)\n",topF,BiddyManagedGetVariableName(MNG,topF));
+      printf("SelectiveProduct: tagG = %u (%s)\n",tagG,BiddyManagedGetVariableName(MNG,tagG));
+      printf("SelectiveProduct: topG = %u (%s)\n",topG,BiddyManagedGetVariableName(MNG,topG));
+    }
+  }
   */
 
   if (f == biddyZero) return biddyZero;
@@ -7874,33 +7928,88 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
   v = 0;
   topF = topG = 0;
 
+#ifndef COMPACT
+  tagF = tagG = rtag = 0;
+#endif
+
   if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
-    if ((f == biddyTerminal) && (g == biddyTerminal)) return biddyTerminal;
+    if ((f == biddyOne) && (g == biddyOne)) return biddyOne;
     topF = BiddyV(f);
     topG = BiddyV(g);
-    v = BiddyIsSmaller(topF,topG) ? topF : topG;
-    while (BiddyIsSmaller(BiddyV(cube),v)) {
-      r = BiddyInvCond(BiddyT(cube),BiddyGetMark(cube)); /* r is used here as a tmp varaible */
+    while (BiddyIsSmaller(biddyOrderingTable,BiddyV(pncube),topF)) {
+      r = BiddyInvCond(BiddyT(pncube),BiddyGetMark(pncube)); /* r is used here as a tmp variable */
       if (r != biddyZero) {
-        cube = r;
+        pncube = r;
       } else {
-        cube = BiddyInvCond(BiddyE(cube),BiddyGetMark(cube));
+        pncube = BiddyInvCond(BiddyE(pncube),BiddyGetMark(pncube));
       }
     }
   }
 #ifndef COMPACT
   else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
-    if ((f == biddyTerminal) && (g == biddyTerminal)) return biddyTerminal;
+    if (g == biddyTerminal) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+    }
     topF = BiddyV(f);
     topG = BiddyV(g);
-    v = BiddyIsSmaller(topF,topG) ? topF : topG;
-    while (BiddyIsSmaller(BiddyV(cube),v)) cube = BiddyT(cube);
+    while (BiddyIsSmaller(biddyOrderingTable,BiddyV(pncube),topG)) pncube = BiddyT(pncube);
   }
   else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* NOT IMPLEMENTED, YET */
+    tagF = BiddyGetTag(f);
+    tagG = BiddyGetTag(g);
     topF = BiddyV(f);
     topG = BiddyV(g);
-    v = BiddyIsSmaller(topF,topG) ? topF : topG;
+    if ((topF == 0) && (topG == 0)) {
+      if (BiddyIsSmaller(biddyOrderingTable,tagF,tagG)) {
+        while (BiddyIsSmaller(biddyOrderingTable,BiddyV(pncube),tagF)) pncube = BiddyT(pncube);
+        while (BiddyIsSmaller(biddyOrderingTable,BiddyV(pncube),tagG) && (BiddyE(pncube) != biddyZero)) pncube = BiddyT(pncube);
+        if (BiddyIsSmaller(biddyOrderingTable,BiddyV(pncube),tagG)) { /* smallest positive >= tagF is smaller as tagG */
+          if (BiddyManagedGetNextVariable(MNG,BiddyV(pncube)) == tagG) { /* smallest positive is previous of tagG */
+            BiddySetTag(g,BiddyV(pncube));
+            return g;
+		  } else {
+            rtag = BiddyV(pncube);
+            v = BiddyManagedGetNextVariable(MNG,rtag);
+            pncube = BiddyT(pncube);
+            /* THIS PART IS OPTIONAL - WE PREFER TO USE IT ALTHOUGH NO REAL DIFFERENCE IS OBSERVED */
+            /**/
+            if (v == BiddyV(pncube)) nextcube = BiddyT(pncube); else nextcube = pncube;
+            BiddySetTag(f,BiddyManagedGetNextVariable(MNG,v));
+            r = BiddyManagedSelectiveProduct(MNG,f,g,nextcube);
+            if ((v == BiddyV(pncube)) && (BiddyE(pncube) == biddyZero)) { // v in positive set
+              r = BiddyManagedTaggedFoaNode(MNG,v,r,biddyZero,rtag,TRUE);
+            } else {
+              r = BiddyManagedTaggedFoaNode(MNG,v,r,r,rtag,TRUE);
+            }
+            BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+            return r;
+            /**/
+		  }
+	    } else {
+          BiddyRefresh(g); /* return non-obsolete node even if the parameter is an obsolete node */
+          return g;
+	    }
+	  } else {
+        BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+        return f;
+	  }
+	} else if ((topG == 0) && !BiddyIsSmaller(biddyOrderingTable,tagF,tagG)) {
+      BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
+      return f;
+	} else {
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagG : tagF; /* max tag! */
+      while (BiddyIsSmaller(biddyOrderingTable,BiddyV(pncube),tagF)) pncube = BiddyT(pncube);
+      if (BiddyIsSmaller(biddyOrderingTable,tagF,tagG) && (BiddyV(pncube) == tagF) && (BiddyE(pncube) == biddyZero)) {
+        rtag = tagF;
+        if ((tagF != topF) && BiddyIsSmaller(biddyOrderingTable,BiddyManagedGetNextVariable(MNG,tagF),tagG)) {
+          v = BiddyManagedGetNextVariable(MNG,tagF);
+        }
+      }
+      if (BiddyIsSmaller(biddyOrderingTable,v,rtag)) rtag = v;
+      while (BiddyIsSmaller(biddyOrderingTable,BiddyV(pncube),v)) pncube = BiddyT(pncube);
+    }
   }
 #endif
 
@@ -7908,7 +8017,7 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
 
   FF = f;
   GG = g;
-  HH = cube;
+  HH = pncube;
 
   /* IF RESULT IS NOT IN THE CACHE TABLE... */
   cindex = 0;
@@ -7919,7 +8028,7 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
 
       /* LOOKING FOR THE SMALLEST TOP VARIABLE */
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
-      /* already calculated */
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -7936,22 +8045,22 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
         Gneg_v = Gv = g;
       }
 
-      if (v == BiddyV(cube)) {
-        r = BiddyInvCond(BiddyT(cube),BiddyGetMark(cube)); /* r is used here as a tmp variable */
+      if (v == BiddyV(pncube)) {
+        r = BiddyInvCond(BiddyT(pncube),BiddyGetMark(pncube)); /* r is used here as a tmp variable */
         if (r != biddyZero) {
           nextcube = r;
         } else {
-          nextcube = BiddyInvCond(BiddyE(cube),BiddyGetMark(cube));
+          nextcube = BiddyInvCond(BiddyE(pncube),BiddyGetMark(pncube));
         }
       } else {
-        nextcube = cube;
+        nextcube = pncube;
       }
       if (topF == topG) {
         e = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gneg_v,nextcube);
-        if (((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) == biddyZero)) && (topG == v)) { /* positive set */
+        if (((v == BiddyV(pncube)) && (BiddyInvCond(BiddyE(pncube),BiddyGetMark(pncube)) == biddyZero))) { /* v in positive set */
           t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
           t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
-        } else if (((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) != biddyZero)) && (topG == v)) { /* negative set */
+        } else if (((v == BiddyV(pncube)) && (BiddyInvCond(BiddyE(pncube),BiddyGetMark(pncube)) != biddyZero))) { /* v in negative set */
           t = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gv,nextcube);
           t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
         } else {
@@ -7961,10 +8070,11 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
         }
       } else {
         e = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gneg_v,nextcube);
-        if ((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) == biddyZero) && (topF == v)) { /* positive set */
-          /* because (topF == v) it is true that topF < topG */
+        if ((topF == v) && (v == BiddyV(pncube)) && (BiddyInvCond(BiddyE(pncube),BiddyGetMark(pncube)) == biddyZero)) {
+          /* topF < topG (because topF == v) and v in positive set */
           t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
         } else {
+          /* all other cases, checking if v is in positive set is not needed */
           t = BiddyManagedOr(MNG,e,BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube));
         }
       }
@@ -7979,7 +8089,7 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
 
       /* LOOKING FOR THE SMALLEST TOP VARIABLE */
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
-      /* already calculated */
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -7996,13 +8106,13 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
         Gv = Gneg_v = g;
       }
 
-      if (v == BiddyV(cube)) nextcube = BiddyT(cube); else nextcube = cube;
+      if (v == BiddyV(pncube)) nextcube = BiddyT(pncube); else nextcube = pncube;
       if (topF == topG) {
         e = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gneg_v,nextcube);
-        if (((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) == biddyZero)) && (topG == v)) { /* positive set */
+        if (((v == BiddyV(pncube)) && (BiddyInvCond(BiddyE(pncube),BiddyGetMark(pncube)) == biddyZero))) { /* v in positive set */
           t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
           t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
-        } else if (((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) != biddyZero)) && (topG == v)) { /* negative set */
+        } else if (((v == BiddyV(pncube)) && (BiddyInvCond(BiddyE(pncube),BiddyGetMark(pncube)) != biddyZero))) { /* v in negative set */
           t = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gv,nextcube);
           t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
         } else {
@@ -8012,10 +8122,11 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
         }
       } else {
         e = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gneg_v,nextcube);
-        if ((v == BiddyV(cube)) && (BiddyInvCond(BiddyE(cube),BiddyGetMark(cube)) == biddyZero) && (topG == v)) { /* positive set */
-          /* because (topG == v) it is true that topG < topF */
+        if ((topG == v) && (v == BiddyV(pncube)) && (BiddyInvCond(BiddyE(pncube),BiddyGetMark(pncube)) == biddyZero)) {
+          /* topG < topF (because topG == v) and v in positive set */
           t = BiddyManagedGetEmptySet(MNG);
         } else {
+          /* all other cases, checking if v is in positive set is not needed */
           t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
         }
       }
@@ -8027,8 +8138,58 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
 
     else if (biddyManagerType == BIDDYTYPETZBDD) {
 
-      /* NOT IMPLEMENTED, YET */
+      /* LOOKING FOR THE SMALLEST TAG AND SMALLEST TOP VARIABLE */
+      /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
+      /* topF = BiddyV(f); */ /* already set */
+      /* topG = BiddyV(g); */ /* already set */
+      /* tagF = BiddyGetTag(f); */ /* already set */
+      /* tagG = BiddyGetTag(g); */ /* already set */
+      /* v  */ /* already set */
+      /* rtag */ /* already set */
 
+      if (BiddyIsSmaller(biddyOrderingTable,v,tagF)) {
+        Fneg_v = Fv = f;
+      } else if (v == topF) {
+        Fneg_v = BiddyE(f);
+        Fv = BiddyT(f);
+      } else {
+        Fneg_v = f;
+        BiddySetTag(Fneg_v,v);
+        Fneg_v = BiddyManagedIncTag(MNG,Fneg_v);
+        Fv = biddyZero;
+      }
+      if (BiddyIsSmaller(biddyOrderingTable,v,tagG)) {
+        Gneg_v = Gv = g;
+      } else if (v == topG) {
+        Gneg_v = BiddyE(g);
+        Gv = BiddyT(g);
+      } else {
+        Gneg_v = g;
+        BiddySetTag(Gneg_v,v);
+        Gneg_v = BiddyManagedIncTag(MNG,Gneg_v);
+        Gv = biddyZero;
+      }
+
+      if (v == BiddyV(pncube)) nextcube = BiddyT(pncube); else nextcube = pncube;
+      e = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gneg_v,nextcube);
+      if ((v == BiddyV(pncube)) && (BiddyE(pncube) == biddyZero)) { // v in positive set
+        /* printf("\nPOSITIVE"); */
+        t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
+        t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
+      } else if ((v != BiddyV(pncube)) && !BiddyIsSmaller(biddyOrderingTable,v,BiddyGetTag(pncube))) { // v in negative set
+        /* printf("\nNEGATIVE"); */
+        t = BiddyManagedSelectiveProduct(MNG,Fneg_v,Gv,nextcube);
+        t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
+      } else {
+        /* printf("\nNEUTRAL"); */
+        t = BiddyManagedSelectiveProduct(MNG,Fv,Gv,nextcube);
+        t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fneg_v,Gv,nextcube));
+        t = BiddyManagedOr(MNG,t,BiddyManagedSelectiveProduct(MNG,Fv,Gneg_v,nextcube));
+      }
+
+      r = BiddyManagedTaggedFoaNode(MNG,v,e,t,rtag,TRUE);
+      BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      addOp3Cache(biddyRCCache,FF,GG,HH,r,cindex);
     }
 #endif
 
@@ -8038,6 +8199,11 @@ BiddyManagedSelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Bidd
     BiddyRefresh(r);
 
   }
+
+  /* DEBUGGING */
+  /*
+  printf("SelectiveProduct: RESULT = %u (%s)\n",BiddyV(r),BiddyManagedGetVariableName(MNG,BiddyV(r)));
+  */
 
   return r;
 }
@@ -8114,7 +8280,7 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -8150,7 +8316,7 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -8193,14 +8359,14 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* tagG = BiddyGetTag(g); */ /* already set */
       /* topF = BiddyV(f); */ /* already set */
       /* topG = BiddyV(g); */ /* already set */
-      rtag = BiddyIsSmaller(tagF,topG) ? tagF : topG; /* min(tagF,topG) */
-      v = BiddyIsSmaller(topF,topG) ? topF : topG; /* min(topF,topG) */
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,topG) ? tagF : topG; /* min(tagF,topG) */
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG; /* min(topF,topG) */
 
-      if (BiddyIsSmaller(topG,tagF)) {
+      if (BiddyIsSmaller(biddyOrderingTable,topG,tagF)) {
         Fneg_v = Fv = f;
         Gneg_v = BiddyE(g);
         Gv = BiddyT(g);
-      } else if (BiddyIsSmaller(topG,topF)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,topG,topF)) {
         Fneg_v = f;
         BiddySetTag(Fneg_v,v);
         Fneg_v = BiddyManagedIncTag(MNG,Fneg_v);
@@ -8212,7 +8378,7 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
         Fv = BiddyT(f);
         Gneg_v = BiddyE(g);
         Gv = BiddyT(g);
-      } else if (BiddyIsSmaller(topF,tagG)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,topF,tagG)) {
         Fneg_v = BiddyE(f);
         Fv = BiddyT(f);
         Gneg_v = Gv = g;
@@ -8228,7 +8394,7 @@ BiddyManagedSupset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       e = BiddyManagedSupset(MNG,Fneg_v,Gneg_v);
       t = BiddyManagedSupset(MNG,Fv,Gv);
       /*
-      if (BiddyIsSmaller(topG,tagF)) {
+      if (BiddyIsSmaller(biddyOrderingTable,topG,tagF)) {
         t = BiddyManagedOr(MNG,t,e);
       } else if (topG == topF) {
         t = BiddyManagedOr(MNG,t,BiddyManagedSupset(MNG,Fv,Gneg_v));
@@ -8304,7 +8470,7 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
     topF = BiddyV(f);
     topG = BiddyV(g);
     if ((topF == 0) && ((topG == 0))) {
-      if (BiddyIsSmaller(tagF,tagG)) {
+      if (BiddyIsSmaller(biddyOrderingTable,tagF,tagG)) {
         BiddyRefresh(f); /* return non-obsolete node even if the parameter is an obsolete node */
         return f;
       } else {
@@ -8332,7 +8498,7 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -8368,7 +8534,7 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* CONSTANT VARIABLE MUST HAVE MAX ORDER */
       topF = BiddyV(f);
       topG = BiddyV(g);
-      v = BiddyIsSmaller(topF,topG) ? topF : topG;
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG;
 
       /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
       /* COMPLEMENTED EDGES MUST BE TRANSFERED */
@@ -8412,14 +8578,14 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       /* tagG = BiddyGetTag(g); */ /* already set */
       /* topF = BiddyV(f); */ /* already set */
       /* topG = BiddyV(g); */ /* already set */
-      rtag = BiddyIsSmaller(tagF,tagG) ? tagF : tagG; /* min(tagF,topG) */
-      v = BiddyIsSmaller(topF,topG) ? topF : topG; /* min(topF,topG) */
+      rtag = BiddyIsSmaller(biddyOrderingTable,tagF,tagG) ? tagF : tagG; /* min(tagF,topG) */
+      v = BiddyIsSmaller(biddyOrderingTable,topF,topG) ? topF : topG; /* min(topF,topG) */
 
-      if (BiddyIsSmaller(topG,tagF)) {
+      if (BiddyIsSmaller(biddyOrderingTable,topG,tagF)) {
         Fneg_v = Fv = f;
         Gneg_v = BiddyE(g);
         Gv = BiddyT(g);
-      } else if (BiddyIsSmaller(topG,topF)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,topG,topF)) {
         Fneg_v = f;
         BiddySetTag(Fneg_v,v);
         Fneg_v = BiddyManagedIncTag(MNG,Fneg_v);
@@ -8431,7 +8597,7 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
         Fv = BiddyT(f);
         Gneg_v = BiddyE(g);
         Gv = BiddyT(g);
-      } else if (BiddyIsSmaller(topF,tagG)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,topF,tagG)) {
         Fneg_v = BiddyE(f);
         Fv = BiddyT(f);
         Gneg_v = Gv = g;
@@ -8447,9 +8613,9 @@ BiddyManagedSubset(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g)
       e = BiddyManagedSubset(MNG,Fneg_v,Gneg_v);
       t = BiddyManagedSubset(MNG,Fv,Gv);
       /*
-      if (BiddyIsSmaller(topG,tagF)) {
+      if (BiddyIsSmaller(biddyOrderingTable,topG,tagF)) {
         e = BiddyManagedOr(MNG,e,t);
-      } else if (BiddyIsSmaller(topG,topF)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,topG,topF)) {
         e = BiddyManagedOr(MNG,e,BiddyManagedSubset(MNG,Fneg_v,Gv));
       } else if (topG == topF) {
         e = BiddyManagedOr(MNG,e,BiddyManagedSubset(MNG,Fneg_v,Gv));
@@ -8522,7 +8688,7 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
       return f;  /* refresh not needed because biddyV(f) is 0 */
     }
 
-    /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
+    /* DETERMINING PARAMETERS FOR RECURSIVE CALLS - NOT ALWAYS NEEDED */
     /* COMPLEMENTED EDGES MUST BE TRANSFERED */
     if (v == lowest) {
       Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
@@ -8563,11 +8729,11 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
     Fneg_v = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
     Fv = BiddyT(f);
 
-    e = BiddyManagedPermitsym(MNG,Fneg_v,lowest,n); /* lowest is not used */
+    e = BiddyManagedPermitsym(MNG,Fneg_v,0,n); /* lowest is not used */
     if (n == 0) {
       t = biddyZero;
     } else {
-      t = BiddyManagedPermitsym(MNG,Fv,lowest,n-1); /* lowest is not used */
+      t = BiddyManagedPermitsym(MNG,Fv,0,n-1); /* lowest is not used */
     }
 
     r = BiddyManagedTaggedFoaNode(MNG,v,e,t,v,TRUE);
@@ -8579,15 +8745,18 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
 
     v = BiddyV(f);
     tag = BiddyGetTag(f);
+    /* not needed */
+    /*
     if (lowest == 0) {
       assert( v == 0 );
-      return f;  /* refresh not needed because biddyV(f) is 0 */
+      return f;
     }
+    */
     if ((tag == lowest) && (v == 0)) {
       return f;  /* refresh not needed because biddyV(f) is 0 */
     }
 
-    /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
+    /* DETERMINING PARAMETERS FOR RECURSIVE CALLS - NOT ALWAYS NEEDED */
     if (tag == lowest) {
       Fneg_v = BiddyE(f);
       Fv = BiddyT(f);
@@ -8603,14 +8772,15 @@ BiddyManagedPermitsym(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable lowest,
       }
     } else {
       v = lowest;
-      e = BiddyManagedPermitsym(MNG,f,biddyVariableTable.table[lowest].next,n);
+      e = BiddyManagedPermitsym(MNG,f,biddyVariableTable.table[v].next,n);
       if (n == 0) {
         t = biddyZero;
       } else {
-        t = BiddyManagedPermitsym(MNG,f,biddyVariableTable.table[lowest].next,n-1);
+        t = BiddyManagedPermitsym(MNG,f,biddyVariableTable.table[v].next,n-1);
       }
     }
 
+    /* result tag = (tag == lowest) keep the same or (else) change to v */
     r = BiddyManagedTaggedFoaNode(MNG,v,e,t,lowest,TRUE);
     BiddyRefresh(r); /* FoaNode returns an obsolete node! */
 
@@ -9323,10 +9493,10 @@ BiddyOPGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v)
   for (j=0; j<=biddyOPCache.size; j++) {
     if (!BiddyIsNull(biddyOPCache.table[j].result)) {
       c = &biddyOPCache.table[j];
-      if ((BiddyIsSmaller(BiddyN(c->f)->v,v)) ||
-          (BiddyIsSmaller(BiddyN(c->g)->v,v)) ||
-          (BiddyIsSmaller(BiddyN(c->h)->v,v)) ||
-          (BiddyIsSmaller(BiddyN(c->result)->v,v)))
+      if ((BiddyIsSmaller(biddyOrderingTable,BiddyN(c->f)->v,v)) ||
+          (BiddyIsSmaller(biddyOrderingTable,BiddyN(c->g)->v,v)) ||
+          (BiddyIsSmaller(biddyOrderingTable,BiddyN(c->h)->v,v)) ||
+          (BiddyIsSmaller(biddyOrderingTable,BiddyN(c->result)->v,v)))
       {
         c->result = biddyNull;
       }
@@ -9427,10 +9597,10 @@ BiddyEAGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v)
   for (j=0; j<=biddyEACache.size; j++) {
     if (!BiddyIsNull(biddyEACache.table[j].result)) {
       c = &biddyEACache.table[j];
-      if ((BiddyIsSmaller(BiddyN(c->f)->v,v)) ||
-          (BiddyIsSmaller(BiddyN(c->g)->v,v)) ||
-          (BiddyIsSmaller(BiddyN(c->h)->v,v)) ||
-          (BiddyIsSmaller(BiddyN(c->result)->v,v)))
+      if ((BiddyIsSmaller(biddyOrderingTable,BiddyN(c->f)->v,v)) ||
+          (BiddyIsSmaller(biddyOrderingTable,BiddyN(c->g)->v,v)) ||
+          (BiddyIsSmaller(biddyOrderingTable,BiddyN(c->h)->v,v)) ||
+          (BiddyIsSmaller(biddyOrderingTable,BiddyN(c->result)->v,v)))
       {
         c->result = biddyNull;
       }
@@ -9516,10 +9686,10 @@ BiddyRCGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v)
   for (j=0; j<=biddyRCCache.size; j++) {
     if (!BiddyIsNull(biddyRCCache.table[j].result)) {
       c = &biddyRCCache.table[j];
-      if ((!BiddyIsNull(c->f) && BiddyIsSmaller(BiddyN(c->f)->v,v)) ||
-          (!BiddyIsNull(c->g) && BiddyIsSmaller(BiddyN(c->g)->v,v)) ||
-          (!BiddyIsNull(c->h) && BiddyIsSmaller(BiddyN(c->h)->v,v)) ||
-          (BiddyIsSmaller(BiddyN(c->result)->v,v)))
+      if ((!BiddyIsNull(c->f) && BiddyIsSmaller(biddyOrderingTable,BiddyN(c->f)->v,v)) ||
+          (!BiddyIsNull(c->g) && BiddyIsSmaller(biddyOrderingTable,BiddyN(c->g)->v,v)) ||
+          (!BiddyIsNull(c->h) && BiddyIsSmaller(biddyOrderingTable,BiddyN(c->h)->v,v)) ||
+          (BiddyIsSmaller(biddyOrderingTable,BiddyN(c->result)->v,v)))
       {
         c->result = biddyNull;
       }
@@ -9604,8 +9774,8 @@ BiddyReplaceGarbageNewVariable(Biddy_Manager MNG, Biddy_Variable v)
   for (j=0; j<=biddyReplaceCache.size; j++) {
     if (!BiddyIsNull(biddyReplaceCache.table[j].result)) {
       c = &biddyReplaceCache.table[j];
-      if ((BiddyIsSmaller(BiddyN(c->f)->v,v)) ||
-          (BiddyIsSmaller(BiddyN(c->result)->v,v)))
+      if ((BiddyIsSmaller(biddyOrderingTable,BiddyN(c->f)->v,v)) ||
+          (BiddyIsSmaller(biddyOrderingTable,BiddyN(c->result)->v,v)))
       {
         c->result = biddyNull;
       }
@@ -9733,7 +9903,7 @@ replaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv,
       /* VARIANT B */
       /* THIS IS NOT AS FAST AS WE WANT IT */
       /*
-      if (BiddyIsSmaller(fv,BiddyV(e)) && BiddyIsSmaller(fv,BiddyV(t))) {
+      if (BiddyIsSmaller(biddyOrderingTable,fv,BiddyV(e)) && BiddyIsSmaller(biddyOrderingTable,fv,BiddyV(t))) {
         r = BiddyManagedTaggedFoaNode(MNG,fv,e,t,fv,TRUE);
         BiddyRefresh(r);
       } else {
@@ -9745,6 +9915,9 @@ replaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv,
 
 #ifndef COMPACT
     else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+
+      fprintf(stderr,"replaceByKeyword is not implemented for ZBDDs, yet");
+      exit(1);
 
       fv = topv;
       if ((r = biddyVariableTable.table[fv].value) != biddyZero) {
@@ -9777,11 +9950,11 @@ replaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv,
 
       }
 
-      if (BiddyIsSmaller(topv, BiddyV(f))) {
+      if (BiddyIsSmaller(biddyOrderingTable,topv, BiddyV(f))) {
         e = BiddyManagedTaggedFoaNode(MNG,topv,f,f,topv,TRUE);
         BiddyRefresh(e); /* FoaNode returns an obsolete node! */
         e = replaceByKeyword(MNG,e,BiddyManagedGetNextVariable(MNG,topv),key);
-        r = BiddyManagedITE(MNG,biddyVariableTable.table[fv].variable,biddyZero,e);
+        r = BiddyManagedITE(MNG,biddyVariableTable.table[fv].variable,biddyZero,e); /* TO DO: variable does not exist! */
         /* DEBUGGING */
         /*
         printf("ZBDD/ZBDDC IS SMALLER: TOP OF FV = %s(%u)\n", BiddyManagedGetVariableName(MNG, BiddyV(biddyVariableTable.table[fv].variable)), BiddyV(biddyVariableTable.table[fv].variable));
@@ -9793,7 +9966,7 @@ replaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv,
         printf("ZBDD/ZBDDC IS SMALLER: TOP RESULT = %s(%u)\n", BiddyManagedGetVariableName(MNG, BiddyV(r)), BiddyV(r));
         BiddyManagedPrintfBDD(MNG, r);
         */
-      } else if (BiddyIsSmaller(BiddyV(f),topv)) {
+      } else if (BiddyIsSmaller(biddyOrderingTable,BiddyV(f),topv)) {
         /* TO DO: I CANNOT FIND THE SOLUTION FOR THIS! */
       } else {
         e = BiddyInvCond(BiddyE(f),BiddyGetMark(f));
@@ -9846,7 +10019,7 @@ replaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable topv,
 
       }
 
-      if (BiddyIsSmaller(BiddyGetTag(f),BiddyV(f))) {
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(f),BiddyV(f))) {
         e = replaceByKeyword(MNG,BiddyManagedIncTag(MNG,f),0,key);
         r = BiddyManagedITE(MNG,biddyVariableTable.table[fv].variable,biddyZero,e);
       } else {
@@ -9924,6 +10097,7 @@ complExchangeEdges(Biddy_Edge *f, Biddy_Edge *g)
 
 ### Description
 ### Side effects
+    Variables from support must be created (not only elements).
 ### More info
 *******************************************************************************/
 
@@ -9943,6 +10117,7 @@ createMinterm(Biddy_Manager MNG, Biddy_Edge support, long long unsigned int n,
 
     one = biddyVariableTable.table[BiddyV(support)].variable;
 
+    assert( one );
     assert( !BiddyIsTerminal(one) );
 
     support = BiddyT(support);

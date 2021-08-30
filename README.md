@@ -780,7 +780,7 @@ combination sets. Improved many functionalities, e.g sifting.
 Many new CUDD-like functions have been added.
 Moreover, bddview and BDD Scout have been significantly improved.
 
-In 2018, Biddy v1.8. was released (there were 2 minor releases).
+In 2018, Biddy v1.8 was released (there were 2 minor releases).
 Added support for 0-sup-BDDs without complemented edges.
 Added several new operations on 0-sup-BDDs that enable us to write
 a very interesting paper "Flexible job shop scheduling using zero-suppressed
@@ -790,12 +790,15 @@ Started BDD Encyclopedia, check it out at
 http://svn.savannah.nongnu.org/viewvc/*checkout*/biddy/bddscout/ENCYCLOPEDIA/bddencyclopedia.html .
 
 In 2019, a short paper in Journal of Open Source Software was published.
-Biddy v1.9 was released which brought an improved format of source code.
+Biddy v1.9 was released which brought an improved source code formatting.
 Copyright changed because Robert Meolic is no longer with University of Maribor.
 
-In 2020, Biddy v2.0. was released that was focused on unate cube set algebra.
-Many internal improvements for Biddy and BDD Scout, especially the more complete
-implementation of features for unate cube set algebra.
+In 2020, Biddy v2.0 was released that was focused on features for unate cube
+set algebra. Many internal improvements for Biddy and BDD Scout.
+
+Biddy v2.1, released in 2021 completed the implementation of all unate cube set
+algebra operations for all BDD types, including TZBDDs. Due to internal changes,
+much more variables are supported and they are more efficiently manipulated.
 
 ### 6. PUBLICATIONS
 ---------------

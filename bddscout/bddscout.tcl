@@ -8,12 +8,12 @@ exec wish "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 625 $]
-#  Date        [$Date: 2020-05-02 17:17:28 +0200 (sob, 02 maj 2020) $]
+#  Revision    [$Revision: 655 $]
+#  Date        [$Date: 2021-08-29 20:10:33 +0200 (ned, 29 avg 2021) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#               Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -148,7 +148,7 @@ exec wish "$0" "$@"
 # proc bddview_export_tex {filename caption document}
 # proc bddview_print {filename}
 #
-# API functions from bddview which should not be used:
+# API functions from bddview which should NOT be used:
 #
 # proc bddview_message - use bddscout_message instead
 # proc bddview_clear - use bddscout_clear instead
@@ -217,8 +217,8 @@ exec wish "$0" "$@"
 #   therefore, constructed BDD may not be identical
 #   to the one being given in the file (e.g. different node number).
 #
-# - If "Export to PNG" and "Export to PDF" create image with wrong
-#   dimensions you should try to change global variable DPI
+# - If "Export to PNG" and/or "Export to PDF" create an image with wrong
+#   dimensions you can try to change the global variable DPI
 
 # ####################################################################
 # Tcl/Tk
@@ -242,7 +242,7 @@ lappend auto_path /usr/lib/bddscout
 # Biddy
 # ####################################################################
 
-set BIDDYVERSION "2.0.2"
+set BIDDYVERSION "2.1.1"
 
 set BFCMDLIST [list \
   "bddview_save" \
@@ -363,7 +363,7 @@ if { $USESPLASH == 1 } {
   pack .splash.f.l -expand 1
   label .splash.f.m1 -text "Copyright (C) 2008, 2019 UM FERI, Maribor, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m1 -fill x -expand 0
-  label .splash.f.m2 -text "Copyright (C) 2019, 2020 Robert Meolic, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
+  label .splash.f.m2 -text "Copyright (C) 2019, 2021 Robert Meolic, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m2 -fill x -expand 0
   label .splash.f.m3 -text "Robert Meolic (robert@meolic.com)" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m3 -fill x -expand 0
@@ -426,7 +426,10 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 } elseif {$OS == "windows"} {
 
   set GHOSTSCRIPT_EXE [lindex [glob -nocomplain "C:/Program Files/gs/*/bin/gswin64c.exe"] 0]
-  set DOT_EXE [lindex [glob -nocomplain "C:/Program Files (x86)/*/bin/dot.exe"] 0]
+  set DOT_EXE [lindex [glob -nocomplain "C:/Program Files/Graphviz/bin/dot.exe"] 0]
+  if {[file executable $DOT_EXE] != 1} {
+    set DOT_EXE [lindex [glob -nocomplain "C:/Program Files (x86)/*/bin/dot.exe"] 0]
+  }
 
   if {[file executable $GHOSTSCRIPT_EXE] != 1} {
     set GHOSTSCRIPT_EXE ""
@@ -448,9 +451,13 @@ if {($OS == "unix") && !($OS1 == "Darwin")} {
 # ####################################################################
 
 set BDDSCOUT_PATH_BIN "[file dirname [info nameofexecutable]]/../lib/bddscout"
-if {[file executable $BDDSCOUT_PATH_BIN] != 1} {
-  set BDDSCOUT_PATH_BIN [pwd]
+if {[file exists "$BDDSCOUT_PATH_BIN/bddscout.tcl"] != 1} {
+  set BDDSCOUT_PATH_BIN "[pwd]/bddscout"
+  if {[file exists "$BDDSCOUT_PATH_BIN/bddscout.tcl"] != 1} {
+    set BDDSCOUT_PATH_BIN [pwd]
+  }
 }
+#bddview_message "BDDSCOUT_PATH_BIN" "$BDDSCOUT_PATH_BIN"
 #puts $BDDSCOUT_PATH_BIN
 set BDDSCOUT_PATH_CREATE "$BDDSCOUT_PATH_BIN/create"
 #puts $BDDSCOUT_PATH_CREATE
@@ -873,11 +880,11 @@ set bddtype [tk_optionMenu $toolbar.type.menu bddscout__selectedBddType \
     "ZBDD with CE" \
     "TZBDD" \
 ]
-$bddtype entryconfigure 0 -command {changetype "BIDDYTYPEOBDD" true}
-$bddtype entryconfigure 1 -command {changetype "BIDDYTYPEOBDDC" true}
-$bddtype entryconfigure 2 -command {changetype "BIDDYTYPEZBDD" true}
-$bddtype entryconfigure 3 -command {changetype "BIDDYTYPEZBDDC" true}
-$bddtype entryconfigure 4 -command {changetype "BIDDYTYPETZBDD" true}
+$bddtype entryconfigure 0 -command {changetype "BIDDYTYPEOBDD"}
+$bddtype entryconfigure 1 -command {changetype "BIDDYTYPEOBDDC"}
+$bddtype entryconfigure 2 -command {changetype "BIDDYTYPEZBDD"}
+$bddtype entryconfigure 3 -command {changetype "BIDDYTYPEZBDDC"}
+$bddtype entryconfigure 4 -command {changetype "BIDDYTYPETZBDD"}
 
 if {($OS == "unix")} {
   $toolbar.type.menu configure -relief flat -bd 0 -fg black -bg $COLORMENU \
@@ -1121,7 +1128,10 @@ proc showentryprobability { x y varname } {
   tkwait window .entryProbability
 
   bddscout_set_probabilities [list $varname $bddscout__entry]
+
+  # is this needed ??
   update_info
+  focusform
 }
 
 # ####################################################################
@@ -1207,6 +1217,8 @@ createCreateMenu
 
 proc menu_file_open {  } {
   global mainwin
+  global selectwin
+  global BDDNAME
   global BDDSCOUT_PATH_EXAMPLES
 
   set filename [tk_getOpenFile -title "Select bddview file" -initialdir "$BDDSCOUT_PATH_EXAMPLES" -parent $mainwin]
@@ -1220,8 +1232,8 @@ proc menu_file_open {  } {
 
 proc menu_file_saveas {  } {
   global mainwin
-  global BDDSCOUT_PATH_EXAMPLES
   global BDDNAME
+  global BDDSCOUT_PATH_EXAMPLES
 
   set filename [tk_getSaveFile -title "Save As" -initialdir "$BDDSCOUT_PATH_EXAMPLES" -initialfile "$BDDNAME.bddview" -parent $mainwin]
   if {[string length $filename] != 0} {
@@ -1250,17 +1262,24 @@ proc menu_file_run_tclscript {  } {
 proc menu_file_read_BDD {  } {
   global mainwin
   global selectwin
+  global ACTIVEBDDTYPE
   global BDDNAME
-  global DOT_EXE
   global BDDSCOUT_PATH_EXAMPLES
 
   set filename [tk_getOpenFile -title "Import BDD" -initialdir "$BDDSCOUT_PATH_EXAMPLES" -parent $mainwin]
   if {[string length $filename] != 0} {
 
-    set bdd [bddscout_read_bdd $filename]
-    set BDDNAME ""
+    # for OBDDs, create and store tmp file for current formula
+    # for ZBDDs and TZBDDs, importing new variables may change all existing formula
+    if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC")} {
+      createTreeItemData $selectwin.browser $BDDNAME
+    } else {
+      clearTreeItemData $selectwin.browser
+    }
+
+    set BDDNAME [bddscout_read_bdd $filename]
     update_info
-    $selectwin.browser selection set $bdd
+    focusform
 
     #remember last path
     set BDDSCOUT_PATH_EXAMPLES [file dirname $filename]
@@ -1271,16 +1290,23 @@ proc menu_file_read_BDD {  } {
 proc menu_file_read_BF {  } {
   global mainwin
   global selectwin
-  global DOT_EXE
+  global BDDNAME
   global BDDSCOUT_PATH_EXAMPLES
 
   set filename [tk_getOpenFile -title "Import Boolean functions" -initialdir "$BDDSCOUT_PATH_EXAMPLES" -parent $mainwin]
   if {[string length $filename] != 0} {
 
-    set bdd [bddscout_read_bf $filename]
-    set BDDNAME ""
+    # for OBDDs, create and store tmp file for current formula
+    # for ZBDDs and TZBDDs, importing new variables may change all existing formula
+    if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC")} {
+      createTreeItemData $selectwin.browser $BDDNAME
+    } else {
+      clearTreeItemData $selectwin.browser
+    }
+
+    set BDDNAME [bddscout_read_bf $filename]
     update_info
-    $selectwin.browser selection set $bdd
+    focusform
 
     #remember last path
     set BDDSCOUT_PATH_EXAMPLES [file dirname $filename]
@@ -1350,6 +1376,7 @@ proc menu_system_info {  } {
 
   button .dialogInfo.f.buttons.update -borderwidth 2 -command {
     update_info
+    focusform
   } -relief raised -text "Update" -width 6
   pack .dialogInfo.f.buttons.update -padx 10 -side left
 
@@ -1490,6 +1517,7 @@ proc menu_options {  } {
     "XMAX" \
     "YMAX" \
     "BDDNAME" \
+    "BDDNAMELIST" \
     "BDDVARIABLES" \
     "BDDNODES" \
     "TERMINALS" \
@@ -1793,10 +1821,10 @@ proc menu_help_about {} {
   text .helpAbout.w -bg $COLORMENU -height 20 -width 100
   .helpAbout.w insert 1.0 "\
   BDD Scout v$BIDDYVERSION\n\
-  \$Date: 2020-05-02 17:17:28 +0200 (sob, 02 maj 2020) $ \n\n\
+  \$Date: 2021-08-29 20:10:33 +0200 (ned, 29 avg 2021) $ \n\n\
   Author: Robert Meolic (robert@meolic.com)\n\n\
   Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\
-  Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia\n\n\
+  Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia\n\n\
   Biddy is free software; you can redistribute it and/or modify it under the terms\n\
   of the GNU General Public License as published by the Free Software Foundation;\n\
   either version 2 of the License, or (at your option) any later version.\n\n\
@@ -1862,6 +1890,9 @@ proc addTree {mylist t root} {
   while { [llength $first] == 1 } {
     set nameX [string map {"&" ".AND."} [join $first]]
     $t insert end $root $nameX -text [join $first] -font [list $FONTFAMILYLABEL 10]
+
+    #puts "DEBUG (addTree): $nameX"
+
     set mylist [lrange $mylist 1 end]
     set first [lindex $mylist 0]
   }
@@ -1909,8 +1940,55 @@ proc createTree {f list} {
 
 }
 
+proc getTreeAsList {t} {
+  set treelist [$t nodes root]
+  #puts "DEBUG (getTree): $treelist"
+  return $treelist
+}
+
+proc setTreeItemData {t n d} {
+  if {[$t exists $n]} {
+    $t itemconfigure $n -data $d
+  } else {
+    puts "WARNING (bddscout.tcl): setTreeItemData <$n> does not exist"
+  }
+}
+
+proc createTreeItemData {t n} {
+  if {(n != "") && [$t exists $n]} {
+    file mkdir "/tmp/bddscout"
+    close [file tempfile tmpname "/tmp/bddscout/${n}_[clock seconds].bddview"]
+    #puts "DEBUG (createTreeItemData): store <$n>, <$tmpname>"
+    bddview_save $tmpname
+    $t itemconfigure $n -data $tmpname
+  } else {
+    puts "WARNING (bddscout.tcl): createTreeItemData <$n> does not exist"
+  }
+}
+
+proc getTreeItemData {t n} {
+  set d ""
+  #puts "DEBUG (getTreeItemData): search for $n"
+  if {[$t exists $n]} {
+    set d [$t itemcget $n -data]
+  } else {
+    puts "WARNING (bddscout.tcl): getTreeItemData <$n> does not exist"
+  }
+  #puts "DEBUG (getTreeItemData): return $d"
+  return $d
+}
+
+proc clearTreeItemData {t} {
+  foreach n [$t nodes root] {
+    #puts "DEBUG (clearTreeItemData): clear <$n>"
+    $t itemconfigure $n -data ""
+  }
+}
+
 # draw graph for the given Boolean formula (BDD) using the current bdd type
-proc drawbdd {fname} {
+# it returns 0 if no new BDD has been created (fname == "")
+# it returns 1 if new BDD has been created (fname != "")
+proc drawbdd { fname } {
   global DOT_EXE
   global STATUSBAR
 
@@ -1921,7 +1999,9 @@ proc drawbdd {fname} {
 
   #puts "DEBUG: drawbdd: <$fname>"
 
+  set redraw 0
   if {$fname != ""} {
+    set redraw 1
     set tmpfile "tmp.bddview"
     set tmpfile [bddscoutWriteBddview $fname $tmpfile $DOT_EXE]
 
@@ -1938,10 +2018,12 @@ proc drawbdd {fname} {
     file delete $tmpfile
   }
 
-  return 1
+  return $redraw
 }
 
 # create Boolean formula (BDD) from the current graph
+# only one BDD is constructed, the one pointed by label specified with variable BDDNAME
+# TO DO: this will change if BiddyManagedConstructBDD returns an array of BDDs
 proc constructBDD { } {
   global ACTIVEBDDTYPE
   global BDDNAME
@@ -1971,6 +2053,11 @@ proc constructBDD { } {
   if {$ACTIVEBDDTYPE == "BIDDYTYPEZBDD"} {set USETAGS false}
   if {$ACTIVEBDDTYPE == "BIDDYTYPEZBDDC"} {set USETAGS false}
   if {$ACTIVEBDDTYPE == "BIDDYTYPETZBDD"} {set USETAGS true}
+
+  #graph is a string representing the result graph
+
+  #the first word in the string is the name of the BDD
+  #while BiddyManagedConstructBDD returns only one BDD, this is used to choose the created formula
 
   set graph $BDDNAME
 
@@ -2007,6 +2094,7 @@ proc constructBDD { } {
         }
       }
     } elseif {$type == "l"} {
+      # puts "constructBDD: label $num $name $type"
       if {[lindex $BDD(n$num) 0] == "i"} {
         if {!$USETAGS} {
           #complemented label: type = 3, r = -1
@@ -2100,80 +2188,106 @@ proc constructBDD { } {
     }
   }
 
-  #DEBUGGING
-  #puts "graph: $graph"
+  #puts "constructBDD graph: $graph"
 
   bddscoutConstruct [llength $BDDVARIABLES] [join $BDDVARIABLES] [expr [llength $graph] -1] [join [join $graph]]
 }
 
-# keep the existing bdd type, change formula
-# this is used by invoking by select formula
-# parameter tree is given by select command, but not used
-# if special characters are used, select command will return list instead of a plain string
-proc changeform { tree fname } {
+# formulae tree $selectwin.browser needs to be refreshed separately, use update_info if needed
+proc focusform {} {
+  global selectwin
   global BDDNAME
+
+  set name $BDDNAME
+  set name [string map {"&" ".AND."} $name]
+  set BDDNAME ""
+  
+  $selectwin.browser selection set $name
+  $selectwin.browser see $BDDNAME
+}
+
+# keep the existing bdd type, changes formula
+# used when clicked in GUI and by "$selectwin.browser selection set $name" statement
+# parameter tree is not used (it is given by "Tree -selectcommand" default behaviour)
+# if special characters are used, select command will use list instead of a plain string
+# changeform will redraw graph but it will use tmp file if it exist
+proc changeform { tree fname } {
+  global selectwin
   global ACTIVEBDDTYPE
+  global BDDNAME
 
-  #puts "DEBUG changeform: fname = <$fname>, BDDNAME = <$BDDNAME>"
+  #puts "DEBUG (changeform): BDDNAME = <$BDDNAME> / change to / fname = <$fname>"
 
+  if {$fname == ""} return
+
+  set fname [string map {".AND." "&" } $fname]
   set fname [lindex $fname 0]
 
-  if {($fname != "") && ($fname != $BDDNAME) && ([bddscoutCheckFormula $ACTIVEBDDTYPE $fname] == 1)} {
+  if {$BDDNAME != $fname} {
+    if {$BDDNAME != ""} {
+      #create and store tmp file for current formula
+      createTreeItemData $selectwin.browser $BDDNAME
+    }
     set BDDNAME $fname
-    if {[drawbdd $fname] == 1 } {
-      update_info
+    if {[bddscoutCheckFormula $ACTIVEBDDTYPE $BDDNAME] == 1} {
+      #puts "DEBUG (changeform): search  $BDDNAME, <$tmpname>"
+      set tmpname [getTreeItemData $selectwin.browser $BDDNAME]
+      if {($tmpname != "") && [file exist $tmpname]} {
+        #reuse tmp file
+        #puts "DEBUG (changeform): tmp file for <$BDDNAME> exists: $tmpname"
+        bddview_open $tmpname
+      } else {
+        #tmp file does not exist
+        #puts "DEBUG (changeform): tmp file for <$BDDNAME> does not exist"
+        drawbdd $fname
+      }
     }
   }
+
+  #puts "DEBUG changeform finished BDDNAME = <$BDDNAME>"
 }
 
-# change bdd type
-# if (show == true) and formula with the same name exist then show it, otherwise do not show anything
+# changes bdd type
 # this is used by invoke command for bdd type
-proc changetype { type show} {
+proc changetype { type } {
   global selectwin
-  global BDDNAME
   global ACTIVEBDDTYPE
+  global BDDNAME
 
-  #puts "DEBUG changetype IN: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
+  # puts "DEBUG changetype IN: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 
-  if {($type != $ACTIVEBDDTYPE) || ($show == true)} {
+  if {$type != $ACTIVEBDDTYPE} {
     bddscoutChangeType $type
     set ACTIVEBDDTYPE $type
-    if {$show == true} {
-      #puts "DEBUG changetype: show = $show, BDDNAME = $BDDNAME"
-      if { ($BDDNAME == "") || ([bddscoutCheckFormula $ACTIVEBDDTYPE $BDDNAME] == 0) } {
-       set BDDNAME "0"
+    clearTreeItemData $selectwin.browser
+    update_info
+    if {$BDDNAME != ""} {
+      if {[bddscoutCheckFormula $ACTIVEBDDTYPE $BDDNAME] == 0} {
+        set BDDNAME "0"
       }
-      set name $BDDNAME
-      set BDDNAME ""
-      update_info
-      $selectwin.browser selection set $name
+      focusform
     }
   }
 
-  #puts "DEBUG changetype OUT: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
+  # puts "DEBUG changetype OUT: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 }
 
-# converttype change bdd type and show formula specified with BDDNAME
-# if type is changed and formula does not exists in new type then the formula is copyied
-# if type is not changed and (fchange == true) then the selected formula is updated
+# converttype changes bdd type and show formula specified with BDDNAME
+# if type is changed and formula does not exists in new type then the formula is constructed
+# if type is not changed and (fchange == true) then the selected formula is redrawn using the last tmp file
 proc converttype { type fchange} {
-  global selectwin
   global bddtype
-  global BDDNAME
   global ACTIVEBDDTYPE
+  global BDDNAME
 
-  #puts "DEBUG converttype IN: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
+  # puts "DEBUG converttype IN: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 
   if {$type == $ACTIVEBDDTYPE} {
     if {$fchange == true} {
       if { [bddscoutCheckFormula $ACTIVEBDDTYPE $BDDNAME] == 0 } {
         puts "Formula $BDDNAME does not exist!"
       } else {
-        set name $BDDNAME
-        set BDDNAME ""
-        update_info
-        $selectwin.browser selection set $name
+        focusform
       }
     }
   } else {
@@ -2187,11 +2301,12 @@ proc converttype { type fchange} {
     if {$type == "BIDDYTYPETZBDD"} {$bddtype invoke 4}
   }
 
-  #puts "DEBUG converttype OUT: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
+  # puts "DEBUG converttype OUT: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 }
 
 proc parseinput { force } {
   global selectwin
+  global ACTIVEBDDTYPE
   global INPUT
   global INPUTTYPE
   global BDDNAME
@@ -2446,18 +2561,28 @@ proc parseinput { force } {
       set INPUT [string map {"\"" ""} $INPUT]
       set name [bddscout_parse_input_infix $INPUT]
 
-      #puts "DEBUG parseinput: <$name>"
+      # puts "DEBUG parseinput: <$name>"
+      # bddscout_parse_input_infix returns _NONAME_FORMULA for unsuccessful calls
 
       if {$name != ""} {
-        if {$name == "_NONAME_FORMULA"} {
-          set bddname "$BDDNAME"
-          set BDDNAME ""
+        # refresh formulae tree $selectwin.browser
+        # for OBDD, remove the current tmp file for the resulting formula, only ...
+        # ... and if not modifying the current formula, then also create and store tmp file for current formula
+        # for ZBDD and TZBDD, remove tmp file for all formulae, adding variables may change them
+        if {$name != "_NONAME_FORMULA"} {
+          if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC")} {
+            if {[$selectwin.browser exists $name]} {
+              setTreeItemData $selectwin.browser $name ""
+            }
+            if {$BDDNAME != $name} {
+              createTreeItemData $selectwin.browser $BDDNAME
+            }
+          } else {
+            clearTreeItemData $selectwin.browser
+          }
           update_info
-          $selectwin.browser selection set $bddname
-        } else {
-          set BDDNAME ""
-          update_info
-          $selectwin.browser selection set $name
+          set BDDNAME $name
+          focusform
         }
       } else {
         set TRYCMD 2
@@ -2467,13 +2592,29 @@ proc parseinput { force } {
 
     # if (INPUTTYPE == 1) and the input was not recognized as a tcl command then go with a Unate cube set algebra
     if {($INPUTTYPE == 1) && ($TRYCMD == 0) && ($force != 0)} {
+
       set force 0
       set INPUT [string map {"\"" ""} $INPUT]
       set name [bddscout_parse_cube $BDDNAME $INPUT]
+
       if {$name != ""} {
-        set BDDNAME ""
+        # refresh formulae tree $selectwin.browser
+        # for OBDD, remove the current tmp file for the resulting formula, only ...
+        # ... and if not modifying the current formula, then also create and store tmp file for current formula
+        # for ZBDD and TZBDD, remove tmp file for all formulae, adding variables may change them
+        if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC")} {
+          if {[$selectwin.browser exists $name]} {
+            setTreeItemData $selectwin.browser $name ""
+          }
+          if {$BDDNAME != $name} {
+            createTreeItemData $selectwin.browser $BDDNAME
+          }
+        } else {
+          clearTreeItemData $selectwin.browser
+        }
         update_info
-        $selectwin.browser selection set $name
+        set BDDNAME $name
+        focusform
       }
     }
 
@@ -2492,14 +2633,12 @@ proc parseinput { force } {
         set result ""
       } else {
         set result [eval $OKINPUT]
-        if {$BDDNAME != ""} {
-          set name $BDDNAME
-          set BDDNAME ""
-          update_info
-          $selectwin.browser selection set $name
-        } else {
-          update_info
-        }
+        # refresh formulae tree $selectwin.browser
+        update_info
+        #is this needed ??
+        #if {$BDDNAME != ""} {
+        #  focusform
+        #}
       }
 
       if {$result != ""} {
@@ -2593,18 +2732,20 @@ proc findData { f list} {
 }
 
 # ###############################################################
-# API: update
+# API: update_info and update_gui
 # ###############################################################
 
-# update list of variables, list of Boolean functions and statistical info
+# update list of variables, list of formulae, and statistical info
 proc update_info {  } {
   global varwin
   global selectwin
   global bddscout__info
   global bddscout__biddyInfo
-  global BDDNAME
 
-  #puts "DEBUG: update_info for <$BDDNAME>"
+  #global BDDNAME
+  #puts "DEBUG (update_info start): BDDNAME = <$BDDNAME>"
+
+  # variables
 
   set listName [bddscout_list_variables_by_order]
   set num [llength $listName]
@@ -2614,17 +2755,36 @@ proc update_info {  } {
     addList $listName $varwin.browser root
   }
 
+  # formulae
+
+  set currentTree [getTreeAsList $selectwin.browser]
   set listName [bddscout_list_formulae_by_name]
   set num [llength $listName]
 
+  #puts "DEBUG (update_info): listName = $listName"
+  #puts "DEBUG (update_info): currentTree = $currentTree"
+
+  # tmpfiles is a dict of tmpfile names
+  set tmpfiles [dict create]
+  foreach n $currentTree {
+    #puts "DEBUG (update_info): currentTreeItem = $n, <[getTreeItemData $selectwin.browser $n]>"
+    dict append tmpfiles $n [getTreeItemData $selectwin.browser $n]
+  }
+
+  # selectwin.browser delete will invoke changeform with fname == ""
   $selectwin.browser delete [$selectwin.browser nodes root]
   if {$num > 0} {
     addTree $listName $selectwin.browser root
   }
 
-  if { $BDDNAME != "" } {
-    $selectwin.browser selection set $BDDNAME
-    $selectwin.browser see $BDDNAME
+  # restore existing tmpfile names
+  foreach n $listName {
+    set d ""
+    if {[dict exists $tmpfiles $n]} {
+      set d [dict get $tmpfiles $n]
+      setTreeItemData $selectwin.browser $n $d
+    }
+    #puts "DEBUG (update_info): listItem = $n, <$d>"
   }
 
   set maxnodes "-"
@@ -2693,9 +2853,10 @@ proc update_info {  } {
 
   set bddscout__biddyInfo [join $list]
 
-  #puts "DEBUG: update_info FINISH"
+  #puts "DEBUG (update_info finish): BDDNAME = <$BDDNAME>"
 }
 
+# update gui colors, fonts, etc.
 proc update_gui {  } {
   global mainwin
   global toolbar
@@ -3177,7 +3338,7 @@ proc browse_formulae_byMintermNumber {  } {
 }
 
 # ####################################################################
-# API
+# API: general functions
 # ####################################################################
 
 proc bddscout_message {text1 text2} {
@@ -3199,29 +3360,31 @@ proc bddscout_clear { } {
   bddscout_exitPkg
   bddscout_initPkg
   set ACTIVEBDDTYPE ""
-  set BDDNAME ""
-  changetype $t true
+  set BDDNAME "0"
+  changetype $t
 }
 
 proc bddscout_show {fname} {
-  global selectwin
   global BDDNAME
 
-  set name $BDDNAME
-  set BDDNAME ""
-  update_info
-  $selectwin.browser selection set $fname
+  set BDDNAME $fname
+  focusform
 }
 
 proc bddscout_open {filename} {
+  global selectwin
+  global ACTIVEBDDTYPE
   global bddtype
   global BDDNAME
+  global BDDNAMELIST
 
   if {([string length $filename] != 0) && [file exists $filename]} {
 
-    #check, if there are coordinates for label and nodes
-    #if coordinates are present (1) then use bddview_open
-    #if coordinates are not present (2) then use biddy_read_bddview
+    #check BDD type, only the first specification is used
+    #check, if there are all needed coordinates for label and nodes
+    #file without coordinates is called an "incomplete" bddview format
+    #if coordinates are present (1) then bddview_open will be used
+    #if coordinates are not present (2) then biddy_read_bddview will be used
 
     set type ""
     set coordinates 0
@@ -3229,8 +3392,8 @@ proc bddscout_open {filename} {
     set code 0
     set code [gets $f line]
     while {$code >= 0} {
-      if {[string range $line 0 3] == "type"} {set type [string trim [string range $line 5 end]]}
-      if {[string range $line 0 4] == "label"} {
+      if {($type == "") && ([string range $line 0 3] == "type")} {set type [string trim [string range $line 5 end]]}
+      if {($coordinates != 2) && ([string range $line 0 4] == "label")} {
         set line [string trimleft [string range $line 6 end]]
         set line [string trim [string range $line [string first " " $line] end]]
         if {[string first " " $line] != -1} {
@@ -3239,9 +3402,11 @@ proc bddscout_open {filename} {
           set coordinates 2
         }
       }
-      if {($type != "") && ($coordinates != 0)} {
+      if {($type != "") && ($coordinates == 2)} {
+        #type is specified and at least some coordinates are missing
         set code -1
       } else {
+        #type is not specified, yet, or not the whole file has been checked for coordinates
         set code [gets $f line]
       }
     }
@@ -3254,46 +3419,71 @@ proc bddscout_open {filename} {
       return 0
     }
 
-    #set type in the background
-    #we cannot invoke new type in the foreground because we do not have new formula, yet
-    if {$type == "ROBDD"} {
-      changetype "BIDDYTYPEOBDD" false
-    } elseif {$type == "ROBDDCE"} {
-      changetype "BIDDYTYPEOBDDC" false
-    } elseif {$type == "ZBDD"} {
-      changetype "BIDDYTYPEZBDD" false
-    } elseif {$type == "ZBDDCE"} {
-      changetype "BIDDYTYPEZBDDC" false
-    } elseif {$type == "TZBDD"} {
-      changetype "BIDDYTYPETZBDD" false
-    } else {
-      #no BDD type or an unknown BDD type - keep the existing type
-    }
-
-    #bddview_open will return bdd type and also set BDDNAME
-    #biddy_read_bddview will only return the name of BDD
-    if {$coordinates == 1} {
-      bddview_open $filename
-      constructBDD
-    } else {
-      set BDDNAME [biddy_read_bddview $filename]
-    }
-
-    update_info
+    set currentbddname $BDDNAME
+    set BDDNAME ""
 
     # use invoke instead of changetype to also change the label of the button
-    if {$type == "ROBDD"} {
-      $bddtype invoke 0
-    } elseif {$type == "ROBDDCE"} {
-      $bddtype invoke 1
-    } elseif {$type == "ZBDD"} {
-      $bddtype invoke 2
-    } elseif {$type == "ZBDDCE"} {
-      $bddtype invoke 3
-    } elseif {$type == "TZBDD"} {
-      $bddtype invoke 4
+    if {(($type == "ROBDD") && ($ACTIVEBDDTYPE != "BIDDYTYPEOBDD")) ||
+        (($type == "ROBDDCE") && ($ACTIVEBDDTYPE != "BIDDYTYPEOBDDC")) ||
+        (($type == "ZBDD") && ($ACTIVEBDDTYPE != "BIDDYTYPEZBDD")) ||
+        (($type == "ZBDDCE") && ($ACTIVEBDDTYPE != "BIDDYTYPEZBDDC")) ||
+        (($type == "TZBDD") && ($ACTIVEBDDTYPE != "BIDDYTYPETZBDD"))
+    } {
+      if {$type == "ROBDD"} {
+        $bddtype invoke 0
+      } elseif {$type == "ROBDDCE"} {
+        $bddtype invoke 1
+      } elseif {$type == "ZBDD"} {
+        $bddtype invoke 2
+      } elseif {$type == "ZBDDCE"} {
+        $bddtype invoke 3
+      } elseif {$type == "TZBDD"} {
+        $bddtype invoke 4
+      } else {
+        #no BDD type or an unknown BDD type - keep the existing type
+      }
     } else {
-      #no BDD type or an unknown BDD type - keep the existing type
+      # for OBDDs, create and store tmp file for current formula
+      # for ZBDDs and TZBDDs, importing new variables may change all existing formula
+      if {($type == "ROBDD") || ($type == "ROBDDCE")} {
+        createTreeItemData $selectwin.browser $currentbddname
+      } else {
+        clearTreeItemData $selectwin.browser
+      }
+    }
+
+    #adapt if BiddyManagedConstructBDD returns an array of BDDs
+    if {$coordinates == 1} {
+      #bddview_open returns bdd type and also set BDDNAME ad BDDNAMELIST
+      #puts "bddview_open $filename"
+      bddview_open $filename
+      set ROOTNAME $BDDNAME
+      #puts "constructBDD: $BDDNAME, $BDDNAMELIST"
+      foreach BDDNAME $BDDNAMELIST {
+        if {[$selectwin.browser exists $BDDNAME]} {
+          setTreeItemData $selectwin.browser $BDDNAME ""
+        }
+        constructBDD
+      }
+      # for OBDDs, create and store tmp file for current formula
+      # for ZBDDs and TZBDDs, importing new variables may change all existing formula
+      set BDDNAME $ROOTNAME
+      update_info
+      #focusform will redraw graph, we do not need this
+      $selectwin.browser see $BDDNAME
+    } else {
+      #biddy_read_bddview returns the list of BDDs
+      #puts "biddy_read_bddview $filename"
+      set BDDNAMELIST [biddy_read_bddview $filename]
+      #puts "biddy_read_bddview returned: $BDDNAME, $BDDNAMELIST"
+      foreach BDDNAME $BDDNAMELIST {
+        if {[$selectwin.browser exists $BDDNAME]} {
+          setTreeItemData $selectwin.browser $BDDNAME ""
+        }
+      }
+      set BDDNAME [lindex [split $BDDNAMELIST] 0]
+      update_info
+      focusform
     }
 
     return 1
@@ -3304,15 +3494,15 @@ proc bddscout_open {filename} {
 
 proc bddscout_change_bddtype { type } {
   if {$type == "ROBDD"} {
-    changetype "BIDDYTYPEOBDD" false
+    changetype "BIDDYTYPEOBDD"
   } elseif {$type == "ROBDDCE"} {
-    changetype "BIDDYTYPEOBDDC" false
+    changetype "BIDDYTYPEOBDDC"
   } elseif {$type == "ZBDD"} {
-    changetype "BIDDYTYPEZBDD" false
+    changetype "BIDDYTYPEZBDD"
   } elseif {$type == "ZBDDCE"} {
-    changetype "BIDDYTYPEZBDDC" false
+    changetype "BIDDYTYPEZBDDC"
   } elseif {$type == "TZBDD"} {
-    changetype "BIDDYTYPETZBDD" false
+    changetype "BIDDYTYPETZBDD"
   } else {
     #no BDD type or an unknown BDD type - keep the existing type
   }
@@ -3335,8 +3525,6 @@ proc bddscout_update {} {
   } else {
     #no BDD type or an unknown BDD type - keep the existing type
   }
-
-  update_info
 }
 
 proc bddscout_copy_formula { fname type1 type2 } {
@@ -3420,17 +3608,16 @@ proc bddscout_swap_with_higher {varname} {
   global BDDNAME
   global BDDVARIABLES
 
-  #puts "DEBUG bddscout_swap_with_higher <$varname>"
-  #puts "DEBUG bddscout_swap_with_higher: <$BDDNAME>"
-  #puts $BDDVARIABLES
+  # puts "DEBUG bddscout_swap_with_higher <$varname>"
+  # puts "DEBUG bddscout_swap_with_higher: <$BDDNAME>"
+  # puts $BDDVARIABLES
 
   if {$varname == ".c."} {set varname "c"}
   set varname [string map {".AND." "&"} $varname]
   biddy_swap_with_higher $varname
-  set name $BDDNAME
-  set BDDNAME ""
+  clearTreeItemData $selectwin.browser
   update_info
-  $selectwin.browser selection set $name
+  focusform
 }
 
 proc bddscout_swap_with_lower {varname} {
@@ -3438,17 +3625,16 @@ proc bddscout_swap_with_lower {varname} {
   global BDDNAME
   global BDDVARIABLES
 
-  #puts "DEBUG bddscout_swap_with_lower <$varname>"
-  #puts "DEBUG bddscout_swap_with_lower: <$BDDNAME>"
-  #puts $BDDVARIABLES
+  # puts "DEBUG bddscout_swap_with_lower <$varname>"
+  # puts "DEBUG bddscout_swap_with_lower: <$BDDNAME>"
+  # puts $BDDVARIABLES
 
   if {$varname == ".c."} {set varname "c"}
   set varname [string map {".AND." "&"} $varname]
   biddy_swap_with_lower $varname
-  set name $BDDNAME
-  set BDDNAME ""
+  clearTreeItemData $selectwin.browser
   update_info
-  $selectwin.browser selection set $name
+  focusform
 }
 
 # ####################################################################
@@ -3482,12 +3668,12 @@ if {[catch {package require bddscoutBDDTRACES} errid]} {
 # Final initialization
 # ####################################################################
 
-update
+#update
 
 # this should be compatible with initialization in bddscout.c */
+set BDDNAME ""
 set ACTIVEBDDTYPE "BIDDYTYPEOBDD"
 
-set BDDNAME ""
 update_info
 
 after 100

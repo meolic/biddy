@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 627 $]
-#  Date        [$Date: 2020-05-02 20:30:15 +0200 (sob, 02 maj 2020) $]
+#  Revision    [$Revision: 656 $]
+#  Date        [$Date: 2021-08-29 22:44:21 +0200 (ned, 29 avg 2021) $]
 #
 #  Copyright   [
 #    This file is part of Biddy.
 #    Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#    Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
+#    Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #    Biddy is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as
@@ -37,13 +37,16 @@
 # https://wiki.ubuntu.com/PbuilderHowto
 # http://wiki.debian.org/PbuilderTricks
 
+# Ubuntu: List of releases
+# https://wiki.ubuntu.com/Releases
+
 # 1. To use pbuilder-dist you have to initialize/update pbuilder as follows:
 # pbuilder-dist focal create
 # pbuilder-dist focal update
 
-# 2. Upload the resulting deb files to repository
-# cd ~/est/biddy/distribution/version-1.X/release-Y/
-# dput libbiddy*.changes
+# 2. Upload the resulting deb files to ppa repository
+# cd ~/biddy/distribution/version-X/release-Y/distro/source
+# dput ppa:meolic/biddy libbiddy*_source.changes
 
 # Create binary release after creation of source release
 # 0. You need dpkg-dev, fakeroot, debhelper, build-essential, pbuilder
@@ -99,7 +102,7 @@ mkdir "distribution/version-$VERSION/release-$RELEASE"
 mkdir "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 mkdir "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
 mkdir "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian/source"
-cp debian/compat "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
+#cp debian/compat "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
 cp debian/control "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
 cp debian/copyright "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
 cp debian/libbiddy1.dirs "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION/debian"
@@ -127,6 +130,9 @@ echo "**************************"
 echo ""
 
 # create a source distribution which match your system
+# lsb_release --short --codename
+# pbuilder-dist focal create
+# pbuilder-dist focal update
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
 echo "GENERATING SOURCE PACKAGE FOR $DISTRO"
@@ -142,6 +148,8 @@ mv `pwd`/../*.buildinfo `pwd`/../$DISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$DISTRO/source
 
 # create a source distribution for bionic
+# pbuilder-dist bionic create
+# pbuilder-dist bionic update
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
 ALTDISTRO=bionic
@@ -157,10 +165,12 @@ mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for eoan
+# create a source distribution for hirsute
+# pbuilder-dist hirsute create
+# pbuilder-dist hirsute update
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=eoan
+ALTDISTRO=hirsute
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -192,7 +202,7 @@ ALTDISTRO=bionic
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 
-ALTDISTRO=eoan
+ALTDISTRO=hirsute
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 

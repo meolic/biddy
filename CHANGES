@@ -311,4 +311,16 @@ Changes v2.0.1 versus v1.9.1
 Changes v2.0.2 versus v2.0.1
 - released on May 4, 2020
 - fixed and improved Biddy_Eval1 and Biddy_Eval2
-- added Benchmarks example
+- added Benchmarks example (manipulation of circuits)
+
+Changes v2.1.1 versus v2.0.2
+- released on Aug 30, 2021
+- added support for bddview format with multiple labels
+- BiddyOrderingTable is now one-dimensional by default
+- thus, much more variables are supported and they are more efficiently manipulated
+- added PLAIN variant - num of variables is unsigned int and tagged BDDs are not supported
+- improved BiddyFoaVariable and optimized variable/element creation
+- improved Biddy_SelectiveProduct
+- Production Planning example now supports TZBDDs
+- added PTask example (Shift Minimization Personnel Task Scheduling problem)
+- improved benchmarks for circuits manipulation

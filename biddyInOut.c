@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 630 $]
-    Date        [$Date: 2020-05-03 20:12:23 +0200 (ned, 03 maj 2020) $]
+    Revision    [$Revision: 652 $]
+    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net),
                  Volodymyr Mihav (mihaw.wolodymyr@gmail.com),
@@ -23,7 +23,7 @@
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -384,17 +384,17 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
 
 /***************************************************************************//*!
 \brief Function Biddy_Managed_ReadBddview reads bddview file and creates
-        a Boolean function.
+       all Boolean functions specified by labels.
 
 ### Description
-    If (name != NULL) then name will be used for the resulting BDD.
-    If (name == NULL) then the resulting BDD will have name given in the file.
-    Resulting BDD will not be preserved.
+    If (name != NULL) then root formula (id = 0) is stored also with this name.
+    Returns the list of all labels (plus the given name if it exists).
+    Resulting BDDs are not preserved.
 ### Side effects
     BiddyManagedConstructBDD is used and thus, if variable ordering in the
     file is not compatible with the active ordering then the result will be
-    wrong!
-    To improve efficiency, only the first "type", "var", and "label" are used.
+    wrong! To improve efficiency, only the first "type" is used. Multiples
+    "var" and "label" are supported.
 ### More info
     Macro Biddy_ReadBddview(filename) is defined for use with anonymous
     manager.
@@ -1195,10 +1195,11 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
   Biddy_String word,word2,line;
   BiddyVariableOrder *tableV;
   BiddyNodeList *tableN;
-  int numV,numN;
-  int i,n,m; /* this must be signed because of the used for loop */
-  Biddy_Boolean typeOK,varOK,labelOK;
-  Biddy_Edge r;
+  BiddyFormulaList *tableF;
+  int numV,numN,numF;
+  int i,n,m; /* this must be signed because they are used in a special "for" loop */
+  Biddy_Boolean typeOK;
+  Biddy_String namelist;
 
 #ifndef COMPACT
   char buffer2[256];
@@ -1214,12 +1215,14 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
 
   numV = 0;
   numN = 0;
+  numF = 0;
   tableV = NULL;
   tableN = NULL;
-
+  tableF = NULL;
   typeOK = FALSE;
-  varOK = FALSE;
-  labelOK = FALSE;
+
+  namelist = NULL;
+  if (name) namelist = strdup(name);
 
   /* PARSE FILE */
 
@@ -1457,7 +1460,7 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
       tableN[n].ltag = tableN[n].rtag = 0;
       tableN[n].f = NULL;
       tableN[n].created = FALSE;
-      numN++;
+      numN = n+1; // more safe than numN++;
       /* printf("NODE: <%u><%s>\n",n,word); */
     }
     else if ((line[0] == 't') && !strncmp(line,"terminal",8)) { /* parsing line with terminal */
@@ -1491,10 +1494,25 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
       tableN[n].ltag = tableN[n].rtag = 0;
       tableN[n].f = NULL;
       tableN[n].created = FALSE;
-      numN++;
+      numN = n+1; // more safe than numN++;
       /* printf("TERMINAL: <%u><%s>\n",n,word); */
     }
-    else if (!typeOK && !strncmp(line,"type",4)) { /* parsing line with type */
+    else if ((line[0] == 'f') && !strncmp(line,"formula",7)) { /* parsing line with formula declaration */
+      /* TESTING, ONLY */
+      /**/
+      line = &line[8];
+      word = NULL;
+      sscanf(line,"%s %u %s",buffer,&n,code);
+      if (buffer[0]=='"') {
+        buffer[strlen(buffer)-1] = 0;
+        word = &buffer[1];
+      } else {
+        word = &buffer[0];
+      }
+      printf("FORMULA: <%s><%u><%s>\n",word,n,code);
+      /**/
+    }
+    else if (!typeOK && (line[0] == 't') && !strncmp(line,"type",4)) { /* parsing line with type */
       typeOK = TRUE;
       line = &line[5];
       /* printf("TYPE: %s\n",line); */
@@ -1509,8 +1527,9 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
         return NULL;
       }
     }
-    else if (!varOK && !strncmp(line,"var",3)) { /* parsing line with variables */
-      varOK = TRUE;
+    /* else if (!varOK && (line[0] == 'v') && !strncmp(line,"var",3)) { */ /* parsing line with variables */
+    else if ((line[0] == 'v') && !strncmp(line,"var",3)) { /* parsing line with variables, multiple var declarations allowed */
+      /* varOK = TRUE; */ /* not needed if multiple vars are allowed */
       line = &line[4];
       word = strtok(line," ");
       while (word) {
@@ -1534,20 +1553,23 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
       if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD))
       {
         for (i=0; i<numV; i++) {
-          BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE);
+          /* BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE); */ /* OLD */
+          BiddyManagedFoaVariable(MNG,tableV[i].name,TRUE,TRUE); /* add variable and element, repair regarding Boolean functions */
         }
       }
 #ifndef COMPACT
       else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD))
       {
         for (i=numV-1; i>=0; i--) {
-          BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE);
+          /* BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE); */
+          BiddyManagedFoaVariable(MNG,tableV[i].name,FALSE,TRUE); /* add variable and element, repair regarding combination sets */
         }
       }
       else if ((biddyManagerType == BIDDYTYPETZBDDC) || (biddyManagerType == BIDDYTYPETZBDD))
       {
         for (i=numV-1; i>=0; i--) {
-          BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE);
+          /* BiddyManagedAddVariableByName(MNG,tableV[i].name,TRUE); */
+          BiddyManagedFoaVariable(MNG,tableV[i].name,TRUE,TRUE); /* add variable and element, repair regarding Boolean functions */
         }
       }
       else {
@@ -1556,8 +1578,9 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
       }
 #endif
     }
-    else if (!labelOK && !strncmp(line,"label",5)) { /* parsing line with label */
-      labelOK = TRUE;
+    /* else if (!labelOK && (line[0] == 'l') && !strncmp(line,"label",5)) { */ /* parsing line with label */
+    else if ((line[0] == 'l') && !strncmp(line,"label",5)) { /* parsing line with label, multiple label declarations allowed */
+      /* labelOK = TRUE; */ /* not needed if multiple var are allowed */
       line = &line[6];
       word = NULL;
       sscanf(line,"%u %s",&n,buffer);
@@ -1581,8 +1604,19 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
       tableN[n].ltag = tableN[n].rtag = 0;
       tableN[n].f = NULL;
       tableN[n].created = FALSE;
-      numN++;
-      if (!name) name = strdup(word); /* only one label is supported */
+      numN = n+1; // more safe than numN++;
+      /* add to formula list */      
+      if (!numF) {
+        tableF = (BiddyFormulaList *) malloc(sizeof(BiddyFormulaList));
+        if (!tableF) return NULL;
+      } else {
+        tableF = (BiddyFormulaList *) realloc(tableF,(numF+1)*sizeof(BiddyFormulaList));
+        if (!tableF) return NULL;
+      }
+      tableF[numF].name = strdup(tableN[n].name);
+      tableF[numF].id = n;
+      tableF[numF].f = biddyNull;
+      numF++;
       /* printf("LABEL: <%u><%s>\n",n,word); */
     }
 
@@ -1603,15 +1637,56 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
   }
   */
 
-  r = BiddyConstructBDD(MNG,numN,tableN);
-  BiddyManagedAddFormula(MNG,name,r,-1);
+  BiddyConstructBDD(MNG,numN,tableN,numF,tableF);
 
-  /* DEBUGGING */
-  /*
-  printf("BDD %s CONSTRUCTED\n",name);
-  */
+  /* all formulae are stored */
+  if (!numF) {
+    fprintf(stderr,"WARNING (BiddyManagedReadBddview): no label\n");
+  } else {
+    for (i=0; i<numF; ++i) {
+      BiddyManagedAddFormula(MNG,tableF[i].name,tableF[i].f,-1);
+      /* printf("BDD %s CONSTRUCTED\n",tableF[i].name); */
+    }
+  }
 
-  return name;
+  /* if parameter name is not null then root formula (id = 0) is stored also with this name */
+  /* TO DO: maybe store only with the given name? */
+  if (name) {
+    for (i=0; i<numF; ++i) {
+      if (tableF[i].id == 0) {
+        BiddyManagedAddFormula(MNG,name,tableF[i].f,-1);
+      }
+    }
+  }
+
+
+  /* create list of all labels */
+  for (i=0; i<numF; ++i) {
+    if (!namelist) {
+      namelist = strdup(tableF[i].name);
+    } else {
+      concat(&namelist," ");
+      concat(&namelist,tableF[i].name);
+    }
+  }
+ 
+  for (i=0; i<numV; ++i) {
+    free(tableV[i].name);
+  }
+  for (i=0; i<numN; ++i) {
+    free(tableN[i].name);
+  }
+  for (i=0; i<numF; ++i) {
+    free(tableF[i].name);
+  }
+
+  free(tableV);
+  free(tableN);
+  free(tableF);
+
+  /* printf("BiddyManagedReadBddview: return %s\n",namelist); */
+
+  return namelist;
 }
 
 /***************************************************************************//*!
@@ -2502,8 +2577,8 @@ BiddyManagedWriteBddview(Biddy_Manager MNG, const char filename[],
 #endif
 
   /* WRITE VARIABLES */
-  /* A conservative approach to list all the existing variables */
-  /* in the manager (and not only the dependent ones) is used. */
+  /* a conservative approach to list all the existing variables in the manager */
+  /* (and not only the dependent ones) is used. */
 
   fprintf(s,"var");
   v = BiddyManagedGetLowestVariable(MNG); /* lowest = topmost */
@@ -2850,13 +2925,13 @@ createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_Loo
           if (!lf) {
             if (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp))
             {
-              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE);
+              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name);
             }
           } else {
             if ((!(lf(tree->tnode[i].name,&tmp))) &&
                 (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp)))
             {
-              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE);
+              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name);
             }
           }
         }
@@ -2874,13 +2949,13 @@ createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_Loo
           if (!lf) {
             if (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp))
             {
-              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE);
+              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name);
             }
           } else {
             if ((!(lf(tree->tnode[i].name,&tmp))) &&
                 (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&tmp)))
             {
-              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE);
+              BiddyManagedAddVariableByName(MNG,tree->tnode[i].name);
             }
           }
         }
@@ -2907,13 +2982,13 @@ createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i, Biddy_Lo
         if (!lf) {
           if (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&fbdd))
           {
-            fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
+            fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name));
           }
         } else {
           if ((!(lf(tree->tnode[i].name,&fbdd))) &&
               (!BiddyManagedFindFormula(MNG,tree->tnode[i].name,&idx,&fbdd)))
           {
-            fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name,TRUE));
+            fbdd = BiddyManagedGetVariableEdge(MNG,BiddyManagedAddVariableByName(MNG,tree->tnode[i].name));
           }
         }
         assert( fbdd != biddyNull );
@@ -3662,10 +3737,10 @@ createBddFromVerilogCircuit(Biddy_Manager MNG, BiddyVerilogCircuit *c, Biddy_Str
   /* create all BDD variables - important for ZBDD and TZBDD */
   for (i = 0; i < c->nodecount; i++) {
     if (!strcmp(c->nodes[i]->type,"input")) {
-      BiddyManagedFoaVariable(MNG,c->nodes[i]->name,TRUE,TRUE);  /* TO DO: add prefix */
+      BiddyManagedAddVariableByName(MNG,c->nodes[i]->name); /* TO DO: add prefix */
     }
     if (!strcmp(c->nodes[i]->type,"extern")) {
-      BiddyManagedFoaVariable(MNG,c->nodes[i]->name,TRUE,TRUE);  /* TO DO: add prefix */
+      BiddyManagedAddVariableByName(MNG,c->nodes[i]->name); /* TO DO: add prefix */
     }
   }
 
@@ -4423,7 +4498,7 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
   printf("\n");
   */
 
-  assert( !(BiddyIsSmaller(BiddyV(f),top)) );
+  assert( !(BiddyIsSmaller(biddyOrderingTable,BiddyV(f),top)) );
 
   if ((top != v) && ((f != biddyZero) || (biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEZBDDC)))
   {
@@ -4446,7 +4521,7 @@ WriteSOP(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f,
       tmp.negative = TRUE; /* negative literal */
       OK = OK && WriteSOP(MNG,var,s,f,biddyVariableTable.table[top].next,mark,&tmp,maxsize,combinationset);
     } else if (biddyManagerType == BIDDYTYPETZBDD) {
-      if (BiddyIsSmaller(top,BiddyGetTag(f))) {
+      if (BiddyIsSmaller(biddyOrderingTable,top,BiddyGetTag(f))) {
         if (combinationset) {
         /* for Boolean functions, don't care variables are not reported */
           tmp.next = l;

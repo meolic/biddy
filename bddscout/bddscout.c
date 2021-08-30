@@ -3,15 +3,15 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.c]
-  Revision    [$Revision: 582 $]
-  Date        [$Date: 2020-02-08 16:18:16 +0100 (sob, 08 feb 2020) $]
+  Revision    [$Revision: 652 $]
+  Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
   Authors     [Robert Meolic (robert@meolic.com)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
                Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-               Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
+               Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as
@@ -439,6 +439,8 @@ BddscoutConstructBDD(int numV, Biddy_String s2, int numN, Biddy_String s4)
   /* the easiest solution is to create new BDD in a tmp manager */
   /* and then copy it to the original one */
   /* TO DO: user should be noticed about the ordering problem */
+
+  /* TO DO: adapt if BiddyManagedConstructBDD returns an array of BDDs */
 
   Biddy_InitMNG(&MNGTMP,Biddy_Managed_GetManagerType(MNGACTIVE));
 

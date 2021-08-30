@@ -1,0 +1,29 @@
+# Robert Meolic, 2021
+# An example of ROBDD - multiple labels
+# Biddy = B * ~i * d * y + B * i * ~d * y + B * i * d
+type ROBDD
+var "B" "i" "d" "y"
+label 0 "Biddy" 58.0 18.0
+label 1 "Test" 166.0 162.0
+node 2 "B" 58.0 90.0
+terminal 3 "0" 28.0 162.0
+node 4 "i" 90.0 162.0
+node 5 "d" 64.0 234.0
+terminal 6 "0" 28.0 306.0
+node 7 "y" 90.0 306.0
+terminal 8 "0" 54.0 378.0
+terminal 9 "1" 126.0 378.0
+node 10 "d" 118.0 234.0
+terminal 11 "1" 154.0 306.0
+connect 0 2 s
+connect 1 10 s
+connect 2 3 l
+connect 2 4 r
+connect 4 5 l
+connect 4 10 r
+connect 5 6 l
+connect 5 7 r
+connect 7 8 l
+connect 7 9 r
+connect 10 7 l
+connect 10 11 r

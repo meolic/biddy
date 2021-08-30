@@ -1,10 +1,10 @@
-/* $Revision: 600 $ */
-/* $Date: 2020-03-02 22:47:10 +0100 (pon, 02 mar 2020) $ */
+/* $Revision: 652 $ */
+/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
 /* This file (biddy-example-dictman.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v2.0 */
+/* This example is compatible with Biddy v2.0 and laters */
 
 /* IF DICTIONARY INCLUDES NULL SYMBOL (I.E. WORDS HAVE DIFFERENT LENGTH) */
 /* THEN DICTIONARY MUST INCLUDE EMPTY WORD. */
@@ -1335,7 +1335,7 @@ readLevenshteinTemplate(unsigned int wordlength, unsigned int dist,
   unsigned int alphabetsize, unsigned int maxwordlength)
 {
   char name[255];
-  Biddy_String bddname;
+  Biddy_String bddnamelist,bddname;
 
   if (Biddy_GetManagerType() == BIDDYTYPEOBDD) {
     sprintf(name,"bddscout/DICTIONARY/levenshtein-template-OBDD-%u-%u/levenshtein-template-OBDD-%u-%u-%u-%u.bddview",
@@ -1357,8 +1357,14 @@ readLevenshteinTemplate(unsigned int wordlength, unsigned int dist,
             alphabetsize,maxwordlength,alphabetsize,maxwordlength,wordlength,dist);
   }
 
-  bddname = Biddy_ReadBddview(name,NULL);
-  if (!bddname) return NULL;
+  bddnamelist = Biddy_ReadBddview(name,NULL);
+  if (bddnamelist) {
+    bddname = strdup(strtok(bddnamelist," "));
+  } else {
+    bddname = NULL;
+  }
+
+  free(bddnamelist);
 
   return bddname;
 }

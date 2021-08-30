@@ -1,10 +1,10 @@
-/* $Revision: 619 $ */
-/* $Date: 2020-03-28 15:19:50 +0100 (sob, 28 mar 2020) $ */
+/* $Revision: 652 $ */
+/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
 /* This file (biddy-example-random.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v2.0 */
+/* This example is compatible with Biddy v2.0 and laters */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
 /* gcc -DUNIX -O2 -o biddy-example-random biddy-example-random.c -I. -L./bin -lbiddy */
@@ -25,11 +25,15 @@
 #define SIZE 8
 #define RATIO 0.5
 
-/* create Boolean function (BOOLEANFUNCTION) or combination set (COMBINATIONSET) */
-#define RANDOMTYPE BOOLEANFUNCTION
-
 /* choose primary BDD type */
-#define BDDTYPE BIDDYTYPEOBDD
+#define BDDTYPE BIDDYTYPEZBDDC
+
+/* create Boolean function (BOOLEANFUNCTION) or combination set (COMBINATIONSET) */
+#if BDDYTPE == BIDDYTYPEOBDD || BDDYTPE == BIDDYTYPEOBDDC
+#define RANDOMTYPE BOOLEANFUNCTION
+#else
+#define RANDOMTYPE COMBINATIONSET
+#endif
 
 #define PRINTCOMBINATIONS(MNG,X) \
 {\
@@ -71,13 +75,14 @@ int main() {
     Biddy_InitMNG(&MNGZBDDC,BIDDYTYPEZBDDC);
     Biddy_InitMNG(&MNGTZBDD,BIDDYTYPETZBDD);
 
-    printf("Using %s...\n",Biddy_GetManagerName());
+    printf("Default manager: %s\n",Biddy_GetManagerName());
 
     second = 0;
 
     /* for OBDDs, support is the most easiest calculated using AddVariable and AND */
     if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC)) {
-      tmp = Biddy_AddVariableEdge();
+      /* printf("Create support for %s...\n",Biddy_GetManagerName()); */
+      tmp = Biddy_GetVariableEdge(Biddy_FoaVariable(NULL,FALSE)); /* add variable and element */
       support = tmp;
       first = Biddy_GetTopVariable(tmp);
       for (v=1; v<SIZE; v++) {
@@ -89,12 +94,14 @@ int main() {
     }
 
     /* for ZBDDs, support is the most easiest calculated using AddElement and CHANGE */
+    /* if you compare the result with OBDDs you can notice the reverse variable ordering */
     if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
-      tmp = Biddy_GetElementEdge(Biddy_AddElement());
+      /* printf("Create support for %s...\n",Biddy_GetManagerName()); */
+      tmp = Biddy_GetElementEdge(Biddy_FoaVariable(NULL,TRUE)); /* add element and variable */
       support = tmp;
       first = Biddy_GetTopVariable(tmp);
       for (v=1; v<SIZE; v++) {
-        tmp = Biddy_GetElementEdge(Biddy_AddElement());
+        tmp = Biddy_AddElementEdge();
         support = Biddy_Change(support,Biddy_GetTopVariable(tmp));
         if (v == 1) second = Biddy_GetTopVariable(tmp);
       }
@@ -102,8 +109,10 @@ int main() {
     }
 
     /* for TZBDDs, the approaches from OBDDs and ZBDDs are both working, using the first one */
+    /* if you compare the result with OBDDs you can notice the reverse variable ordering */
     if ((Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC)) {
-      tmp = Biddy_AddVariableEdge();
+      /* printf("Create support for %s...\n",Biddy_GetManagerName()); */
+      tmp = Biddy_GetElementEdge(Biddy_FoaVariable(NULL,TRUE)); /* add element and variable */
       support = tmp;
       first = Biddy_GetTopVariable(tmp);
       for (v=1; v<SIZE; v++) {
@@ -121,10 +130,15 @@ int main() {
     Biddy_ChangeVariableName(last,"last");
 
     /* initialize all BDD managers */
+    /* printf("Copy domain to ROBDD\n"); */
     Biddy_Copy(MNGOBDD,Biddy_GetConstantZero());
+    /* printf("Copy domain to ROBDDC\n"); */
     Biddy_Copy(MNGOBDDC,Biddy_GetConstantZero());
+    /* printf("Copy domain to ZBDD\n"); */
     Biddy_Copy(MNGZBDD,Biddy_GetConstantZero());
+    /* printf("Copy domain to ZBDDC\n"); */
     Biddy_Copy(MNGZBDDC,Biddy_GetConstantZero());
+    /* printf("Copy domain to TZBDD\n"); */
     Biddy_Copy(MNGTZBDD,Biddy_GetConstantZero());
 
     /* DEBUGGING */
@@ -197,6 +211,66 @@ int main() {
     */
 
     if (POPULATION == -2) exit(1);
+
+    /* ************************************************************* */
+    /* CHECKING COPY OPERATION */
+    /* ************************************************************* */
+
+    /* TRUTH TABLES FOR COPY - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result FOR OBDD:\n");
+      Biddy_Managed_PrintfTable(MNGOBDD,Biddy_Copy(MNGOBDD,result));
+      printf("HERE IS A TRUTH TABLE FOR result FOR OBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGOBDDC,Biddy_Copy(MNGOBDDC,result));
+      printf("HERE IS A TRUTH TABLE FOR result FOR ZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGZBDD,Biddy_Copy(MNGZBDD,result));
+      printf("HERE IS A TRUTH TABLE FOR result FOR ZBDDC:\n");
+      Biddy_Managed_PrintfTable(MNGZBDDC,Biddy_Copy(MNGZBDDC,result));
+      printf("HERE IS A TRUTH TABLE FOR result FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,Biddy_Copy(MNGTZBDD,result));
+    }
+    */
+
+     printf("Copy OBDD <--> OBDDC: ");
+     if ((Biddy_Managed_Copy(MNGOBDDC,MNGOBDD,Biddy_Copy(MNGOBDDC,result)) != Biddy_Copy(MNGOBDD,result))
+       ||(Biddy_Managed_Copy(MNGOBDD,MNGOBDDC,Biddy_Copy(MNGOBDD,result)) != Biddy_Copy(MNGOBDDC,result)))
+     {
+       printf("ERROR!\n");
+       exit(1);
+     } else {
+       printf("OK\n");
+     }
+
+     printf("Copy OBDD <--> ZBDD: ");
+     if ((Biddy_Managed_Copy(MNGZBDD,MNGOBDD,Biddy_Copy(MNGZBDD,result)) != Biddy_Copy(MNGOBDD,result))
+       ||(Biddy_Managed_Copy(MNGOBDD,MNGZBDD,Biddy_Copy(MNGOBDD,result)) != Biddy_Copy(MNGZBDD,result)))
+     {
+       printf("ERROR!\n");
+       exit(1);
+     } else {
+       printf("OK\n");
+     }
+
+     printf("Copy OBDD <--> TZBDD: ");
+     if ((Biddy_Managed_Copy(MNGTZBDD,MNGOBDD,Biddy_Copy(MNGTZBDD,result)) != Biddy_Copy(MNGOBDD,result))
+       ||(Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,Biddy_Copy(MNGOBDD,result)) != Biddy_Copy(MNGTZBDD,result)))
+     {
+       printf("ERROR!\n");
+       exit(1);
+     } else {
+       printf("OK\n");
+     }
+
+     printf("Copy ZBDD <--> TZBDD: ");
+     if ((Biddy_Managed_Copy(MNGTZBDD,MNGZBDD,Biddy_Copy(MNGTZBDD,result)) != Biddy_Copy(MNGZBDD,result))
+       ||(Biddy_Managed_Copy(MNGZBDD,MNGTZBDD,Biddy_Copy(MNGZBDD,result)) != Biddy_Copy(MNGTZBDD,result)))
+     {
+       printf("ERROR!\n");
+       exit(1);
+     } else {
+       printf("OK\n");
+     }
 
     /* ************************************************************* */
     /* START OF TESTING OPERATIONS */
@@ -686,12 +760,12 @@ int main() {
     coresult = NULL;
 
 #if (RANDOMTYPE == BOOLEANFUNCTION)
-    printf("Generating random Boolean function...\n");
+    printf("Generating additional random Boolean function...\n");
     coresult = Biddy_RandomFunction(support,RATIO);
 #endif
 
 #if (RANDOMTYPE == COMBINATIONSET)
-    printf("Generating random combination set...\n");
+    printf("Generating additional random combination set...\n");
     coresult = Biddy_RandomSet(support,RATIO);
 #endif
 
@@ -770,10 +844,13 @@ int main() {
     /* TRUTH TABLE FOR ZBDD - DEBUGGING, ONLY */
     /*
     if (SIZE < 10) {
+      Biddy_Managed_WriteBddview(MNGZBDD,"result.bddview",Biddy_Copy(MNGZBDD,result),"result",NULL);
       printf("HERE IS A TRUTH TABLE FOR result1 FOR ZBDD:\n");
       Biddy_Managed_PrintfTable(MNGZBDD,result1);
+      Biddy_Managed_WriteBddview(MNGZBDD,"result1.bddview",result1,"result1",NULL);
       printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDD:\n");
       Biddy_Managed_PrintfTable(MNGZBDD,result2);
+      Biddy_Managed_WriteBddview(MNGZBDD,"result2.bddview",result2,"result2",NULL);
     }
     */
 
@@ -1384,6 +1461,7 @@ int main() {
       printf("(SELECTIVE PRODUCT - ROBDDC): variable %s (%u)\n",Biddy_Managed_GetVariableName(MNGOBDDC,i),i);
       printf("(SELECTIVE PRODUCT - ZBDD): variable %s (%u)\n",Biddy_Managed_GetVariableName(MNGZBDD,i),i);
       printf("(SELECTIVE PRODUCT - ZBDDC): variable %s (%u)\n",Biddy_Managed_GetVariableName(MNGZBDDC,i),i);
+      printf("(SELECTIVE PRODUCT - TZBDD): variable %s (%u)\n",Biddy_Managed_GetVariableName(MNGTZBDD,i),i);
     }
     */
 
@@ -1392,6 +1470,7 @@ int main() {
     cuberobddc = Biddy_Managed_GetConstantOne(MNGOBDDC);
     cubezbdd = Biddy_Managed_GetBaseSet(MNGZBDD);
     cubezbddc = Biddy_Managed_GetBaseSet(MNGZBDDC);
+    cubetzbdd = Biddy_Managed_GetConstantOne(MNGTZBDD);
 
     /* ALL IN POSITIVE SET */
     /*
@@ -1400,6 +1479,7 @@ int main() {
       cuberobddc = Biddy_Managed_And(MNGOBDDC,cuberobddc,Biddy_Managed_GetVariableEdge(MNGOBDDC,i));
       cubezbdd = Biddy_Managed_Product(MNGZBDD,cubezbdd,Biddy_Managed_GetElementEdge(MNGZBDD,i));
       cubezbddc = Biddy_Managed_Product(MNGZBDDC,cubezbddc,Biddy_Managed_GetElementEdge(MNGZBDDC,i));
+      cubetzbdd = Biddy_Managed_And(MNGTZBDD,cubetzbdd,Biddy_Managed_GetVariableEdge(MNGTZBDD,i));
     }
     */
 
@@ -1410,10 +1490,12 @@ int main() {
       cuberobddc = Biddy_Managed_Gt(MNGOBDDC,cuberobddc,Biddy_Managed_GetVariableEdge(MNGOBDDC,i));
       cubezbdd = Biddy_Managed_E(MNGZBDD,cubezbdd,i);
       cubezbddc = Biddy_Managed_E(MNGZBDDC,cubezbddc,i);
+      cubetzbdd = Biddy_Managed_Gt(MNGTZBDD,cubetzbdd,Biddy_Managed_GetVariableEdge(MNGTZBDD,i));
     }
     */
 
     /* RANDOM POSITIVE SET AND NEGATIVE SET */
+    /**/
     for (i = 1; i <= SIZE; i++) {
       switch (rand()%3) {
         case 0: /* printf("(SELECTIVE PRODUCT): variable %s (%u) NEUTRAL\n",Biddy_Managed_GetVariableName(MNGOBDD,i),i); */
@@ -1423,15 +1505,18 @@ int main() {
                 cuberobddc = Biddy_Managed_And(MNGOBDDC,cuberobddc,Biddy_Managed_GetVariableEdge(MNGOBDDC,i));
                 cubezbdd = Biddy_Managed_Product(MNGZBDD,cubezbdd,Biddy_Managed_GetElementEdge(MNGZBDD,i));
                 cubezbddc = Biddy_Managed_Product(MNGZBDDC,cubezbddc,Biddy_Managed_GetElementEdge(MNGZBDDC,i));
+                cubetzbdd = Biddy_Managed_And(MNGTZBDD,cubetzbdd,Biddy_Managed_GetVariableEdge(MNGTZBDD,i));
         break;
         case 2: /* printf("(SELECTIVE PRODUCT): variable %s (%u) NEGATIVE\n",Biddy_Managed_GetVariableName(MNGOBDD,i),i); */
                 cuberobdd = Biddy_Managed_Gt(MNGOBDD,cuberobdd,Biddy_Managed_GetVariableEdge(MNGOBDD,i));
                 cuberobddc = Biddy_Managed_Gt(MNGOBDDC,cuberobddc,Biddy_Managed_GetVariableEdge(MNGOBDDC,i));
                 cubezbdd = Biddy_Managed_E(MNGZBDD,cubezbdd,i);
                 cubezbddc = Biddy_Managed_E(MNGZBDDC,cubezbddc,i);
+                cubetzbdd = Biddy_Managed_Gt(MNGTZBDD,cubetzbdd,Biddy_Managed_GetVariableEdge(MNGTZBDD,i));
         break;
       }
     }
+    /**/
 
     /* DEBUGGING */
     /*
@@ -1439,6 +1524,114 @@ int main() {
     Biddy_Managed_WriteBddview(MNGOBDDC,"cuberobddc.bddview",cuberobddc,"cuberobddc",NULL);
     Biddy_Managed_WriteBddview(MNGZBDD,"cubezbdd.bddview",cubezbdd,"cubezbdd",NULL);
     Biddy_Managed_WriteBddview(MNGZBDDC,"cubezbddc.bddview",cubezbddc,"cubezbddc",NULL);
+    Biddy_Managed_WriteBddview(MNGTZBDD,"cubetzbdd.bddview",cubetzbdd,"cubetzbdd",NULL);
+    */
+
+    /* DEBUGGING */
+    /*
+    v = Biddy_Managed_GetLowestVariable(MNGOBDD);
+    tmp = cuberobdd;
+    printf("(SELECTIVE PRODUCT)  ROBDD CUBE:");
+    while (v != 0) {
+      if ((v == Biddy_GetTopVariable(tmp)) &&
+           Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp)) == Biddy_Managed_GetConstantZero(MNGOBDD))
+      {
+	    printf(" %s<P>",Biddy_Managed_GetVariableName(MNGOBDD,v));
+        tmp = Biddy_InvCond(Biddy_GetThen(tmp),Biddy_GetMark(tmp));
+	  } else if ((v == Biddy_GetTopVariable(tmp)) &&
+	              Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp)) != Biddy_Managed_GetConstantZero(MNGOBDD))
+	  {
+	    printf(" %s<N>",Biddy_Managed_GetVariableName(MNGOBDD,v));
+        tmp = Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp));
+	  } else {
+	    printf(" %s<->",Biddy_Managed_GetVariableName(MNGOBDD,v));
+	  }
+	  v = Biddy_Managed_GetNextVariable(MNGOBDD,v);
+	}
+	printf("\n");
+
+    v = Biddy_Managed_GetLowestVariable(MNGOBDDC);
+    tmp = cuberobddc;
+    printf("(SELECTIVE PRODUCT) ROBDDC CUBE:");
+    while (v != 0) {
+      if ((v == Biddy_GetTopVariable(tmp)) &&
+           Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp)) == Biddy_Managed_GetConstantZero(MNGOBDDC))
+      {
+	    printf(" %s<P>",Biddy_Managed_GetVariableName(MNGOBDDC,v));
+        tmp = Biddy_InvCond(Biddy_GetThen(tmp),Biddy_GetMark(tmp));
+	  } else if ((v == Biddy_GetTopVariable(tmp)) &&
+	              Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp)) != Biddy_Managed_GetConstantZero(MNGOBDDC))
+	  {
+	    printf(" %s<N>",Biddy_Managed_GetVariableName(MNGOBDDC,v));
+        tmp = Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp));
+	  } else {
+	    printf(" %s<->",Biddy_Managed_GetVariableName(MNGOBDDC,v));
+	  }
+	  v = Biddy_Managed_GetNextVariable(MNGOBDDC,v);
+	}
+	printf("\n");
+
+    v = Biddy_Managed_GetLowestVariable(MNGZBDD);
+    tmp = cubezbdd;
+    printf("(SELECTIVE PRODUCT)   ZBDD CUBE:");
+    while (v != 0) {
+      if ((v == Biddy_GetTopVariable(tmp)) &&
+           Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp)) == Biddy_Managed_GetConstantZero(MNGZBDD))
+      {
+	    printf(" %s<P>",Biddy_Managed_GetVariableName(MNGZBDD,v));
+        tmp = Biddy_GetThen(tmp);
+	  } else if ((v == Biddy_GetTopVariable(tmp)) &&
+	              Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp)) != Biddy_Managed_GetConstantZero(MNGZBDD))
+	  {
+	    printf(" %s<N>",Biddy_Managed_GetVariableName(MNGZBDD,v));
+        tmp = Biddy_GetThen(tmp);
+	  } else {
+	    printf(" %s<->",Biddy_Managed_GetVariableName(MNGZBDD,v));
+	  }
+	  v = Biddy_Managed_GetNextVariable(MNGZBDD,v);
+	}
+	printf("\n");
+
+    v = Biddy_Managed_GetLowestVariable(MNGZBDDC);
+    tmp = cubezbddc;
+    printf("(SELECTIVE PRODUCT)  ZBDDC CUBE:");
+    while (v != 0) {
+      if ((v == Biddy_GetTopVariable(tmp)) &&
+           Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp)) == Biddy_Managed_GetConstantZero(MNGZBDDC))
+      {
+	    printf(" %s<P>",Biddy_Managed_GetVariableName(MNGZBDDC,v));
+        tmp = Biddy_GetThen(tmp);
+	  } else if ((v == Biddy_GetTopVariable(tmp)) &&
+	              Biddy_InvCond(Biddy_GetElse(tmp),Biddy_GetMark(tmp)) != Biddy_Managed_GetConstantZero(MNGZBDDC))
+	  {
+	    printf(" %s<N>",Biddy_Managed_GetVariableName(MNGZBDDC,v));
+        tmp = Biddy_GetThen(tmp);
+	  } else {
+	    printf(" %s<->",Biddy_Managed_GetVariableName(MNGZBDDC,v));
+	  }
+	  v = Biddy_Managed_GetNextVariable(MNGZBDDC,v);
+	}
+	printf("\n");
+
+    v = Biddy_Managed_GetLowestVariable(MNGTZBDD);
+    tmp = cubetzbdd;
+    printf("(SELECTIVE PRODUCT)  TZBDD CUBE:");
+    while (v != 0) {
+      if ((v == Biddy_GetTopVariable(tmp)) &&
+           Biddy_GetElse(tmp) == Biddy_Managed_GetConstantZero(MNGTZBDD))
+      {
+	    printf(" %s<P>",Biddy_Managed_GetVariableName(MNGTZBDD,v));
+	  } else if ((v != Biddy_GetTopVariable(tmp)) &&
+	              !Biddy_Managed_IsSmaller(MNGTZBDD,v,Biddy_GetTag(tmp)))
+	  {
+	    printf(" %s<N>",Biddy_Managed_GetVariableName(MNGTZBDD,v));
+	  } else {
+	    printf(" %s<->",Biddy_Managed_GetVariableName(MNGTZBDD,v));
+	  }
+      if (v == Biddy_GetTopVariable(tmp)) tmp = Biddy_GetThen(tmp);
+	  v = Biddy_Managed_GetNextVariable(MNGTZBDD,v);
+	}
+	printf("\n");
     */
 
     result0 = Biddy_Managed_SelectiveProduct(MNGOBDD,Biddy_Copy(MNGOBDD,result),Biddy_Copy(MNGOBDD,coresult),cuberobdd);
@@ -1503,6 +1696,33 @@ int main() {
       Biddy_Managed_PrintfTable(MNGZBDDC,result1);
       printf("HERE IS A TRUTH TABLE FOR result2 FOR ZBDDC:\n");
       Biddy_Managed_PrintfTable(MNGZBDDC,result2);
+    }
+    */
+
+    result1 = Biddy_Managed_Copy(MNGOBDD,MNGTZBDD,result0);
+    result2 = Biddy_Managed_SelectiveProduct(MNGTZBDD,Biddy_Copy(MNGTZBDD,result),Biddy_Copy(MNGTZBDD,coresult),cubetzbdd);
+    printf("(SELECTIVE PRODUCT) Function result2 (MNGTZBDD) has %.0f minterms/combinations.\n",Biddy_Managed_CountMinterms(MNGTZBDD,result2,SIZE));
+
+    /* BDDs FOR TZBDD - DEBUGGING, ONLY */
+    /*
+    Biddy_Managed_WriteBddview(MNGTZBDD,"result.bddview",Biddy_Copy(MNGTZBDD,result),"result",NULL);
+    Biddy_Managed_WriteBddview(MNGTZBDD,"coresult.bddview",Biddy_Copy(MNGTZBDD,coresult),"coresult",NULL);
+    Biddy_Managed_WriteBddview(MNGTZBDD,"cube.bddview",cubetzbdd,"cube",NULL);
+    Biddy_Managed_WriteBddview(MNGTZBDD,"result1.bddview",result1,"correct",NULL);
+    Biddy_Managed_WriteBddview(MNGTZBDD,"result2.bddview",result2,"calculated",NULL);
+    */
+
+    if (result2 != result1) {
+      printf("ERROR: Operation SelectiveProduct is wrong for MNGOBDD / MNGTZBDD\n");
+    }
+
+    /* TRUTH TABLE FOR TZBDD - DEBUGGING, ONLY */
+    /*
+    if (SIZE < 10) {
+      printf("HERE IS A TRUTH TABLE FOR result1 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result1);
+      printf("HERE IS A TRUTH TABLE FOR result2 FOR TZBDD:\n");
+      Biddy_Managed_PrintfTable(MNGTZBDD,result2);
     }
     */
 
@@ -1588,19 +1808,23 @@ int main() {
 
     /* ************************************************************* */
     /* REPLACE AND ABSTRACTIONS */
-    /* WE NEED extra VARIABLE THUS THESE TESTS ARE AT THE END +/
+    /* WE NEED extra VARIABLE THUS THESE TESTS ARE AT THE END */
+    /* OPERATIONS ON EXTRA VARIABLE REQUIRE THAT VARIABLE AND ELEMENT ARE CREATED */
     /* ************************************************************* */
 
     printf("********* REPLACE AND ABSTRACTIONS *********\n");
 
     if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC)) {
-      tmp = Biddy_AddVariableEdge();
+      /* tmp = Biddy_AddVariableEdge(); */ /* add variable only, not element */
+      tmp = Biddy_GetVariableEdge(Biddy_FoaVariable(NULL,TRUE));
     }
     if ((Biddy_GetManagerType() == BIDDYTYPEZBDD) || (Biddy_GetManagerType() == BIDDYTYPEZBDDC)) {
-      tmp = Biddy_GetElementEdge(Biddy_AddElement());
+      /* tmp = Biddy_AddElementEdge(); */ /* add element only, not variable */
+      tmp = Biddy_GetElementEdge(Biddy_FoaVariable(NULL,FALSE));
     }
     if ((Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC)) {
-      tmp = Biddy_AddVariableEdge();
+      /* tmp = Biddy_AddVariableEdge(); */ /* add variable only, not element */
+      tmp = Biddy_GetVariableEdge(Biddy_FoaVariable(NULL,TRUE));
     }
     extra = Biddy_GetTopVariable(tmp);
 

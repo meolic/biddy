@@ -9,8 +9,8 @@ package require BWidget
 package provide bddview 1.0
 
 # ####################################################################
-# $Revision: 623 $
-# $Date: 2020-03-29 19:47:43 +0200 (ned, 29 mar 2020) $
+# $Revision: 653 $
+# $Date: 2021-08-28 15:12:16 +0200 (sob, 28 avg 2021) $
 #
 # This file (bddview.tcl) is a Tcl/Tk script
 # Author: Robert Meolic (robert@meolic.com)
@@ -42,8 +42,10 @@ package provide bddview 1.0
 # terminal <n> <name> <x> <y>
 # connect <n1> <n2> <class> <tag1> <tag2>
 #
+# node 0 is root, it can be label, node, or terminal
 # "type" is optional, supported BDD types are ROBDD, ROBDDCE, ZBDD, ZBDDCE, TZBDD, TZBDDCE
-# "var" is optional, variables in <variablelist> are separated by space
+# variables in <variablelist> are separated by space
+# "label" and "var" are optional and can be stated multiple times
 # <n>, <n1>, and <n2> are the unique sequence numbers (integer)
 # <name> is function's, variable's, or terminal's name, respectively (string)
 # <x> and <y> are coordinates (float)
@@ -62,14 +64,14 @@ package provide bddview 1.0
 #
 # REMARKS:
 # 1. (0,0) is top left corner.
-# 2. Only one label is supported.
+# 2. Multiple labels are supported, the first label must point to the root node.
 # 3. If <variablelist> is given it determines the ordering of the listed variables.
 # 4. Single line (or inverted single line) must be used to connect a label and a node.
 # 5. Terminal's name must be either 0 or 1.
 # 6. Function's, variable's, and terminal's name can be given with or without
-#    quotation marks (in the last case the name must not include spaces)
+#    quotation marks (in the last case the name must not include spaces).
 # 7. In an "incomplete bddview format" coordinates are omitted,
-#    such format cannot be used with bddview but it can be handled by BDD Scout
+#    such format cannot be used with bddview.tcl but it can be handled by BDD Scout.
 #
 # EXAMPLE (example-robdd.bddview):
 # ---------------------------------------------------
@@ -111,7 +113,7 @@ package provide bddview 1.0
 # proc bddview_print {filename}
 # ####################################################################
 
-set BDDVIEWVERSION "1.3"
+set BDDVIEWVERSION "1.4"
 set TITLE "BDDview v$BDDVIEWVERSION, Robert Meolic"
 set OS $tcl_platform(platform)
 set OS1 $tcl_platform(os)
@@ -540,6 +542,7 @@ set BENDSON 0
 
 #BDD
 set BDDNAME ""
+set BDDNAMELIST ""
 array unset BDD
 set BDDVARIABLES ""
 set BDDNODES ""
@@ -1494,10 +1497,8 @@ proc addLabel {win num label x y} {
     global FONTFAMILYLABEL
     global FONTSIZELABEL
     global COLORBG
-    global BDDNAME
     global BDDNODES
 
-    set BDDNAME $label
     lappend BDDNODES [list $num $label "l"]
 
     set len [string length $label]
@@ -1817,14 +1818,24 @@ proc fixedgenode {win item tags dir a b dx dy} {
 
   if {[lsearch -exact $tags "double"] == -1} {
     set diff [expr sqrt($dy*$dy*$a*$a+$dx*$dx*$b*$b)]
-    set S [expr ($dy*$a)/$diff]
-    set C [expr ($dx*$b)/$diff]
+    if {$diff == 0} {
+      set S 0
+      set C 0
+    } else {
+      set S [expr ($dy*$a)/$diff]
+      set C [expr ($dx*$b)/$diff]
+    }
     set XARROW [expr $XARROW + $dir*$a*$C]
     set YARROW [expr $YARROW - $dir*$b*$S]
   } else {
     set diff [expr sqrt($dy*$dy+$dx*$dx)]
-    set S [expr $dy/$diff]
-    set C [expr $dx/$diff]
+    if {$diff == 0} {
+      set S 0
+      set C 0
+    } else {
+      set S [expr $dy/$diff]
+      set C [expr $dx/$diff]
+    }
     set pa [expr $b*$b*$C*$C-$DOUBLELINE*$DOUBLELINE]
     set pb [expr $a*$b*$S*$C]
     set pd [expr $a*$a*$S*$S+$pa]
@@ -1833,7 +1844,11 @@ proc fixedgenode {win item tags dir a b dx dy} {
       if {([expr $dir*$dx] < 0)&&($pa < 0)&&([expr $dir*$pb] < 0)} {set sign +1}
       if {([expr $dir*$dx] >= 0)&&!(($pa < 0)&&([expr $dir*$pb] < 0))} {set sign +1}
       if {([expr $dy] < 0)&&($pa < 0)&&($pb == 0)} {set sign -1}
-      set angle [expr atan((-$pb+$dir*$DOUBLELINE*sqrt($pd))/$pa)]
+      if {$pa == 0} {
+        set angle 0
+      } else {
+        set angle [expr atan((-$pb+$dir*$DOUBLELINE*sqrt($pd))/$pa)]
+      }
       set XARROW [expr $XARROW + $sign*$a*cos($angle)]
       set YARROW [expr $YARROW + $sign*$b*sin($angle)]
     }
@@ -1842,7 +1857,11 @@ proc fixedgenode {win item tags dir a b dx dy} {
       if {([expr $dir*$dx] < 0)&&($pa < 0)&&([expr $dir*$pb] >= 0)} {set sign +1}
       if {([expr $dir*$dx] >= 0)&&!(($pa < 0)&&([expr $dir*$pb] >= 0))} {set sign +1}
       if {([expr $dy] < 0)&&($pa < 0)&&($pb == 0)} {set sign +1}
-      set angle [expr atan((-$pb-$dir*$DOUBLELINE*sqrt($pd))/$pa)]
+      if {$pa == 0} {
+        set angle 0
+      } else {
+        set angle [expr atan((-$pb-$dir*$DOUBLELINE*sqrt($pd))/$pa)]
+      }
       set XARROW [expr $XARROW + $sign*$a*cos($angle)]
       set YARROW [expr $YARROW + $sign*$b*sin($angle)]
     }
@@ -1947,6 +1966,8 @@ proc fixedges {win} {
   set list [$win find withtag selection]
   $win dtag selection
 
+  #debug_list_all_objects $win
+
   set allitem ""
   while {$list != ""} {
 
@@ -1990,16 +2011,29 @@ proc fixedges {win} {
       }
     }
 
+    # debug
+    #set lt [$win itemcget [$win find withtag "tekst&&$node1"] -text]
+    #set rt [$win itemcget [$win find withtag "tekst&&$node2"] -text]
+    #puts "$lt,$rt"
+
     # edge's start
 
     set point 0
     set edgetag [lsearch -inline $tags "#*"]
-    if {$edgetag != ""} {
-      set edgetag [string range $edgetag 1 end]
-    }
     if {$edgetag == "0"} {
       set edgetag ""
     }
+    if {$edgetag != ""} {
+      set edgetag [string range $edgetag 1 end]
+      set edgetarget [$win itemcget [$win find withtag "tekst&&$node2"] -text]
+      if {$edgetag == $edgetarget} {
+        # if tag is the same as the target node, then do not show it
+        set edgetag ""
+      }
+    }
+
+    # left bend
+    # inverter marks and tags are created on the bend
 
     #do not use bends if they are not required or if the edge is oriented towards up
     #every edge has tag left, right, or both of them (top edge)
@@ -2009,10 +2043,11 @@ proc fixedges {win} {
         ([lsearch -exact $tags "right"] == -1) && ($dy <= 0)} \
     {
       if {($dx == 0)&&($dy == 0)} {set dx 8}
-      #we have check if left node is on the left side
+      #we have checked that left node is on the left side
 
       # VARIANT 1 - simple
       if {$dx > [expr 6*$ZOOM/16]} {
+
       # VARIANT 2 - more complex and compact but not much better
       #set other [$win gettags "[lindex $tags 1]&&right"]
       #set onode [$win bbox [string replace [lindex $other 2] 0 0 "n"]]
@@ -2061,6 +2096,9 @@ proc fixedges {win} {
       }
     }
 
+    # right bend
+    # inverter marks and tags are created on the bend
+
     #do not use bends if they are not required or if the edge is oriented towards up
     #every edge has tag left, right, or both of them (top edge)
     if {($BENDSON == 1) &&
@@ -2069,10 +2107,11 @@ proc fixedges {win} {
         ([lsearch -exact $tags "left"] == -1) && ($dy <= 0)} \
     {
       if {($dx == 0)&&($dy == 0)} {set dx -8}
-      #we have check if right node is on the right side
+      #we have checked that right node is on the right side
 
       # VARIANT 1 - simple
       if {$dx < [expr -6*$ZOOM/16]} {
+
       # VARIANT 2 - more complex and compact but not much better
       #set other [$win gettags "[lindex $tags 1]&&left"]
       #set onode [$win bbox [string replace [lindex $other 2] 0 0 "n"]]
@@ -2154,6 +2193,8 @@ proc fixedges {win} {
     $win coords $item $xarrow1 $yarrow1 $xarrow2 $yarrow2
 
     if {$point == 0} {
+      
+      # there is no bend, inverter mark or tag must be created
 
       if {([lsearch -exact $tags "left"] != -1) &&
           ([lsearch -exact $tags "right"] == -1)} {
@@ -2243,12 +2284,17 @@ proc parsefile {win filename} {
   global BDDVARIABLES
   global LABELOFFSETX
   global LABELOFFSETY
+  global BDDNAME
+  global BDDNAMELIST
 
   set type ""
   set BDDVARIABLES ""
+  set BDDNAME ""
+  set BDDNAMELIST ""
   set LABELOFFSETX 0
   set LABELOFFSETY 0
   set f [open $filename r]
+  set incomplete 0
 
   while {[gets $f line] >= 0} {
     if {($line != "") && ([string index $line 0] != "#")} {
@@ -2281,17 +2327,35 @@ proc parsefile {win filename} {
 
       if {$arg0 == "node"} {
         set arg2 [string map {\" ""} $arg2]
-        addNode $win $arg1 $arg2 $arg3 $arg4
+        if {$i == 5} {
+          addNode $win $arg1 $arg2 $arg3 $arg4
+        } else {
+          addNode $win $arg1 $arg2 0 0
+        }
       }
 
       if {$arg0 == "terminal"} {
         set arg2 [string map {\" ""} $arg2]
-        addTerminal $win $arg1 $arg2 $arg3 $arg4
+        if {$i == 5} {
+          addTerminal $win $arg1 $arg2 $arg3 $arg4
+        } else {
+          addTerminal $win $arg1 $arg2 0 0
+        }
       }
 
       if {$arg0 == "label"} {
         set arg2 [string map {\" ""} $arg2]
-        addLabel $win $arg1 $arg2 $arg3 $arg4
+        if {$i == 5} {
+          addLabel $win $arg1 $arg2 $arg3 $arg4
+        } else {
+          addLabel $win $arg1 $arg2 0 0
+        }         
+        if {$BDDNAME == ""} {
+          set BDDNAME $arg2
+          #puts "parsefile: BDDNAME = $BDDNAME"
+        }
+        set BDDNAMELIST [concat $BDDNAMELIST $arg2]
+        #puts "parsefile: BDDNAMELIST = $BDDNAMELIST"
       }
 
       if {$arg0 == "connect"} {
@@ -2750,6 +2814,7 @@ proc bddview_clear {} {
   global mainwin
 
   global BDDNAME
+  global BDDNAMELIST
   global BDD
   global BDDNODES
   global TERMINALS
@@ -2767,6 +2832,7 @@ proc bddview_clear {} {
   $mainwin delete all
 
   set BDDNAME ""
+  set BDDNAMELIST ""
   array unset BDD
   set BDDNODES ""
   set TERMINALS ""
@@ -2941,6 +3007,35 @@ proc bddview_save {filename} {
         puts $f "node $name \"$t\" $x $y"
       }
     }
+
+    # testing only: print formulae
+    # use the same structure as used for print label connections
+    #foreach item $llist {
+    #  set name [lindex [$mainwin gettags $item] 0]
+    #  set succ [lindex [array get BDD $name] 1]
+    #  set t [$mainwin itemcget $item -text]
+    #  if {[lindex $succ 0] == "i"} {
+    #    set inv "i"
+    #    set succ [lrange $succ 1 end]
+    #  } else {
+    #    set inv ""
+    #  }
+    #  if {[llength $succ] == 1} {
+    #    #label
+    #    set dst [lindex $succ 0]
+    #    puts $f "formula \"$t\" [string range $dst 1 end] s$inv"
+    #  } elseif {[llength $succ] == 2} {
+    #    #label with tag
+    #    set dst [lindex $succ 0]
+    #    set tag [string range [lindex $succ 1] 1 end]
+    #    if {$tag == "0"} {
+    #      set tag "1"
+    #    }
+    #    puts $f "formula \"$t\" [string range $dst 1 end] s$inv \"$tag\""
+    #  } else {
+    #    puts "ERROR (bddview_save): corrupted internal structure"
+    #  }
+    #}
 
     foreach item $llist {
       set name [lindex [$mainwin gettags $item] 0]
@@ -3544,6 +3639,17 @@ proc bddview_print {filename} {
       $mainwin postscript -file $filename -pageanchor nw -pagex 0m -pagey 297.039m -x $x1 -width [expr $x2-$x1] -y $y1 -height [expr $y2-$y1] -pagewidth 209.903m
 
     }
+  }
+}
+
+proc debug_list_all_objects {win} {
+  puts "DEBUG:  list_all_objects for canvas $win"
+  foreach object [$win find withtag all] {
+    set itemparam ""
+    if {[$win type $object] == "text"} {
+      set itemparam [$win itemcget $object -text]
+    }
+    puts "[$win type $object] ${object}:[$win gettag $object]:$itemparam"
   }
 }
 

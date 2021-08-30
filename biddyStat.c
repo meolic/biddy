@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyStat.c]
-    Revision    [$Revision: 617 $]
-    Date        [$Date: 2020-03-27 23:43:46 +0100 (pet, 27 mar 2020) $]
+    Revision    [$Revision: 652 $]
+    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -1638,7 +1638,7 @@ BiddyManagedDependentVariableNumber(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boole
     v = 0;
     for (i=1;i<biddyVariableTable.num;i++) {
       /* variables above the top variable (which are always all dependent) are not selected, yet */
-      if (BiddyIsSmaller(i,BiddyV(f))) biddyVariableTable.table[i].selected = TRUE;
+      if (BiddyIsSmaller(biddyOrderingTable,i,BiddyV(f))) biddyVariableTable.table[i].selected = TRUE;
       if (biddyVariableTable.table[i].selected == TRUE)
       {
         v++;
@@ -1670,7 +1670,7 @@ BiddyManagedDependentVariableNumber(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boole
     }
     /* variables above the top variable which are equal or greater than the top tag are also dependent */
     i = BiddyGetTag(f);
-    while (BiddyIsSmaller(i,BiddyV(f))) {
+    while (BiddyIsSmaller(biddyOrderingTable,i,BiddyV(f))) {
       v++;
       if (select) biddyVariableTable.table[i].selected = TRUE; /* select variable */
       i = biddyVariableTable.table[i].next;
@@ -2015,7 +2015,7 @@ BiddyManagedMinNodes(Biddy_Manager MNG, Biddy_Edge f)
     for (k = 1; k < biddyVariableTable.num; k++) {
       if (biddyVariableTable.table[v].selected == TRUE) {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
+        BiddyManagedAddVariableByName(MNG2,vname);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
       v = biddyVariableTable.table[v].next;
@@ -2029,10 +2029,10 @@ BiddyManagedMinNodes(Biddy_Manager MNG, Biddy_Edge f)
     v = 0;
     for (k = 1; k < biddyVariableTable.num; k++) {
       v = biddyVariableTable.table[v].prev;
-      if (BiddyIsSmaller(v,BiddyV(f)) || (biddyVariableTable.table[v].selected == TRUE))
+      if (BiddyIsSmaller(biddyOrderingTable,v,BiddyV(f)) || (biddyVariableTable.table[v].selected == TRUE))
       {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
+        BiddyManagedAddVariableByName(MNG2,vname);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
     }
@@ -2046,7 +2046,7 @@ BiddyManagedMinNodes(Biddy_Manager MNG, Biddy_Edge f)
       v = biddyVariableTable.table[v].prev;
       if (biddyVariableTable.table[v].selected == TRUE) {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
+        BiddyManagedAddVariableByName(MNG2,vname);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
     }
@@ -2149,7 +2149,7 @@ BiddyManagedMaxNodes(Biddy_Manager MNG, Biddy_Edge f)
     for (k = 1; k < biddyVariableTable.num; k++) {
       if (biddyVariableTable.table[v].selected == TRUE) {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
+        BiddyManagedAddVariableByName(MNG2,vname);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
       v = biddyVariableTable.table[v].next;
@@ -2163,10 +2163,10 @@ BiddyManagedMaxNodes(Biddy_Manager MNG, Biddy_Edge f)
     v = 0;
     for (k = 1; k < biddyVariableTable.num; k++) {
       v = biddyVariableTable.table[v].prev;
-      if (BiddyIsSmaller(v,BiddyV(f)) || (biddyVariableTable.table[v].selected == TRUE))
+      if (BiddyIsSmaller(biddyOrderingTable,v,BiddyV(f)) || (biddyVariableTable.table[v].selected == TRUE))
       {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
+        BiddyManagedAddVariableByName(MNG2,vname);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
     }
@@ -2180,7 +2180,7 @@ BiddyManagedMaxNodes(Biddy_Manager MNG, Biddy_Edge f)
       v = biddyVariableTable.table[v].prev;
       if (biddyVariableTable.table[v].selected == TRUE) {
         vname = BiddyManagedGetVariableName(MNG,v);
-        BiddyManagedAddVariableByName(MNG2,vname,TRUE);
+        BiddyManagedAddVariableByName(MNG2,vname);
         biddyVariableTable.table[v].selected = FALSE; /* deselect variable */
       }
     }
@@ -2336,14 +2336,28 @@ BiddyManagedReadMemoryInUse(Biddy_Manager MNG)
 void
 BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
 {
+  unsigned long long int n;
+  Biddy_Variable v;
   assert( MNG );
 
   /* we have problems with passing stdout between mingw-based main and visual-studio-based dll */
   if (!f) f = stdout;
 
+
+  /* the size of BiddyVariableTable must be calculated */
+  n = 0;
+  n += sizeof(BiddyVariableTable) +
+       biddyVariableTable.size * sizeof(BiddyVariable);
+  /* n += biddyVariableTable.size * sizeof(BiddyLookupVariable); */ /* currently not used */
+  for (v=0; v<biddyVariableTable.num; v++) {
+    if (biddyVariableTable.table[v].name) {
+      n += strlen(biddyVariableTable.table[v].name) + 1;
+    }
+  }
+
   fprintf(f,"**** System parameters ****\n");
   fprintf(f,"BDD TYPE: %s\n",BiddyManagedGetManagerName(MNG));
-  fprintf(f,"UINTPTRSIZE = %u bits\n",(unsigned int) UINTPTRSIZE);
+  fprintf(f,"UINTPTR = %u bits\n",(unsigned int) sizeof(UINTPTR));
   fprintf(f,"sizeof(clock_t): %u bytes\n",(unsigned int)sizeof(clock_t));
   fprintf(f,"sizeof(BiddyNode *): %u bytes\n",(unsigned int)sizeof(BiddyNode *));
   fprintf(f,"sizeof(BiddyNode): %u bytes\n",(unsigned int)sizeof(BiddyNode));
@@ -2362,13 +2376,16 @@ BiddyManagedPrintInfo(Biddy_Manager MNG, FILE *f)
   fprintf(f,"**** Biddy non-modifiable parameters ****\n");
 #ifdef MINGW
   fprintf(f, "Memory in use: %I64u bytes\n",BiddyManagedReadMemoryInUse(MNG));
+  fprintf(f,"Memory in use for BiddyVariableTable: %I64u bytes\n",n);
 #else
   fprintf(f, "Memory in use: %llu bytes\n",BiddyManagedReadMemoryInUse(MNG));
+  fprintf(f,"Memory in use for BiddyVariableTable: %llu bytes\n",n);
 #endif
   fprintf(f,"Number of memory blocks: %u\n",biddyNodeTable.blocknumber);
   fprintf(f,"Number of nodes in the last memory block: %u\n",biddyNodeTable.blocksize);
   fprintf(f,"Number of variables: %u\n",biddyVariableTable.num);
   fprintf(f,"Number of formulae: %u\n",biddyFormulaTable.size);
+  fprintf(f,"Value of biddySystemAge: %u\n",biddySystemAge);
   /* DEBUGGING */
   /*
   {
@@ -2660,8 +2677,8 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
       /* ALREADY VISITED */
       return;
     } else {
-      assert( BiddyIsSmaller(BiddyV(f),BiddyV(BiddyE(f))) );
-      assert( BiddyIsSmaller(BiddyV(f),BiddyV(BiddyT(f))) );
+      assert( BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyE(f))) );
+      assert( BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyT(f))) );
       BiddyManagedSelectNode(MNG,f);
       (*n)++;
       v = BiddyV(f);
@@ -2687,8 +2704,8 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
       }
     } else {
       /* NOT VISITED */
-      assert( BiddyIsSmaller(BiddyV(f),BiddyV(BiddyE(f))) );
-      assert( BiddyIsSmaller(BiddyV(f),BiddyV(BiddyT(f))) );
+      assert( BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyE(f))) );
+      assert( BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyT(f))) );
       BiddyManagedSelectNode(MNG,f);
       BiddySelectNP(f);
       (*n)++;
@@ -2701,7 +2718,7 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
     }
     v = biddyVariableTable.table[v].next;
     w = BiddyV(t); /* for ZBDD, t cannot be biddyZero */
-    if ((e != biddyZero) && BiddyIsSmaller(w,BiddyV(e))) w = BiddyV(e);
+    if ((e != biddyZero) && BiddyIsSmaller(biddyOrderingTable,w,BiddyV(e))) w = BiddyV(e);
     while ((v != 0) && (v != w)) {
       biddyVariableTable.table[v].selected = TRUE;
       v = biddyVariableTable.table[v].next;
@@ -2717,17 +2734,17 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
       return;
     } else {
 
-      assert( (BiddyGetTag(f) == BiddyV(f)) || BiddyIsSmaller(BiddyGetTag(f),BiddyV(f)) );
-      assert( BiddyIsSmaller(BiddyV(f),BiddyV(BiddyE(f))) );
-      assert( BiddyIsSmaller(BiddyV(f),BiddyV(BiddyT(f))) );
-      assert( (BiddyGetTag(BiddyE(f)) == BiddyV(BiddyE(f))) || BiddyIsSmaller(BiddyGetTag(BiddyE(f)),BiddyV(BiddyE(f))) );
-      assert( (BiddyGetTag(BiddyT(f)) == BiddyV(BiddyT(f))) || BiddyIsSmaller(BiddyGetTag(BiddyT(f)),BiddyV(BiddyT(f))) );
+      assert( (BiddyGetTag(f) == BiddyV(f)) || BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(f),BiddyV(f)) );
+      assert( BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyE(f))) );
+      assert( BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyT(f))) );
+      assert( (BiddyGetTag(BiddyE(f)) == BiddyV(BiddyE(f))) || BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(BiddyE(f)),BiddyV(BiddyE(f))) );
+      assert( (BiddyGetTag(BiddyT(f)) == BiddyV(BiddyT(f))) || BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(BiddyT(f)),BiddyV(BiddyT(f))) );
 
       /* DEBUGGING */
       /*
-      if (BiddyIsSmaller(BiddyV(f),BiddyGetTag(f)) ||
-          !BiddyIsSmaller(BiddyV(f),BiddyV(BiddyE(f))) ||
-          !BiddyIsSmaller(BiddyV(f),BiddyV(BiddyT(f))))
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyGetTag(f)) ||
+          !BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyE(f))) ||
+          !BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyT(f))))
       {
         printf("ERROR:");
         printf("<\"%s\",",BiddyManagedGetTopVariableName(MNG,f));
@@ -2740,9 +2757,9 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
         printf("@%u",BiddyN(f)->expiry);
         printf("\n");
       }
-      assert( (BiddyGetTag(f) == BiddyV(f)) || BiddyIsSmaller(BiddyGetTag(f),BiddyV(f)) );
-      assert( BiddyIsSmaller(BiddyV(f),BiddyV(BiddyE(f))) );
-      assert( BiddyIsSmaller(BiddyV(f),BiddyV(BiddyT(f))) );
+      assert( (BiddyGetTag(f) == BiddyV(f)) || BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(f),BiddyV(f)) );
+      assert( BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyE(f))) );
+      assert( BiddyIsSmaller(biddyOrderingTable,BiddyV(f),BiddyV(BiddyT(f))) );
       */
 
       BiddyManagedSelectNode(MNG,f);
@@ -2756,7 +2773,7 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
 
       /* DEBUGGING */
       /*
-      if (BiddyIsSmaller(BiddyV(e),BiddyGetTag(e))) {
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyV(e),BiddyGetTag(e))) {
         printf("ERROR:");
         printf("<\"%s\",",BiddyManagedGetTopVariableName(MNG,f));
         if (!BiddyIsNull(e) && BiddyGetMark(e)) printf("*");
@@ -2768,7 +2785,7 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
         printf("@%u",BiddyN(f)->expiry);
         printf("\n");
       }
-      assert ( (BiddyGetTag(e) == BiddyV(e)) || BiddyIsSmaller(BiddyGetTag(e),BiddyV(e)) );
+      assert ( (BiddyGetTag(e) == BiddyV(e)) || BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(e),BiddyV(e)) );
       */
 
       w = BiddyGetTag(e);
@@ -2779,7 +2796,7 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
 
       /* DEBUGGING */
       /*
-      if (BiddyIsSmaller(BiddyV(t),BiddyGetTag(t))) {
+      if (BiddyIsSmaller(biddyOrderingTable,BiddyV(t),BiddyGetTag(t))) {
         printf("ERROR:");
         printf("<\"%s\",",BiddyManagedGetTopVariableName(MNG,f));
         if (!BiddyIsNull(e) && BiddyGetMark(e)) printf("*");
@@ -2791,7 +2808,7 @@ BiddyNodeVarNumber(Biddy_Manager MNG, Biddy_Edge f, unsigned int *n)
         printf("@%u",BiddyN(f)->expiry);
         printf("\n");
       }
-      assert ( (BiddyGetTag(t) == BiddyV(t)) || BiddyIsSmaller(BiddyGetTag(t),BiddyV(t)) );
+      assert ( (BiddyGetTag(t) == BiddyV(t)) || BiddyIsSmaller(biddyOrderingTable,BiddyGetTag(t),BiddyV(t)) );
       */
 
       w = BiddyGetTag(t);

@@ -1,5 +1,5 @@
-/* $Revision: 558 $ */
-/* $Date: 2019-10-14 09:42:56 +0200 (pon, 14 okt 2019) $ */
+/* $Revision: 652 $ */
+/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
 /* This file (biddy-example-hanoi.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
@@ -12,7 +12,7 @@
 /* The code using CUDD package is copyed from the original */
 /* The code using Biddy package was added by Robert Meolic */
 
-/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v1.8 (and laters) and CUDD v3.0.0 */
 /* This example uses biddy-cudd.h and biddy-cudd.c */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */

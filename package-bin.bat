@@ -1,12 +1,12 @@
 @echo off
 
 REM  Author: Robert Meolic (robert@meolic.com)
-REM  $Revision: 582 $
-REM  $Date: 2020-02-08 16:18:16 +0100 (sob, 08 feb 2020) $
+REM  $Revision: 652 $
+REM  $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $
 REM
 REM  This file is part of Biddy.
 REM  Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-REM  Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
+REM  Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
 REM
 REM  Biddy is free software; you can redistribute it and/or modify
 REM  it under the terms of the GNU General Public License as

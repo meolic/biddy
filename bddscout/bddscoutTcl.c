@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutTcl.c]
-  Revision    [$Revision: 630 $]
-  Date        [$Date: 2020-05-03 20:12:23 +0200 (ned, 03 maj 2020) $]
+  Revision    [$Revision: 652 $]
+  Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
   Authors     [Robert Meolic (robert@meolic.com)]
   Description [File bddscoutTcl.c contains definitions of Tcl commands,
                which can be used for manipulating with BDDs from
@@ -13,7 +13,7 @@
 
   Copyright   [This file is part of Bdd Scout package.
                Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-               Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
+               Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as
@@ -6498,7 +6498,7 @@ BiddyReadBddviewCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   Biddy_Manager MNG;
   Biddy_String s1;
-  Biddy_String name;
+  Biddy_String namelist,tmplist,name;
 
   if (argc != 2) {
     Tcl_SetResult(interp, (char *) "wrong # args", TCL_STATIC);
@@ -6509,17 +6509,23 @@ BiddyReadBddviewCmd(ClientData clientData, Tcl_Interp *interp, int argc,
 
   MNG = Bddscout_GetActiveManager();
 
-  name = (Biddy_String) malloc(127);
-  if (!name) return TCL_ERROR;
+  namelist = Biddy_Managed_ReadBddview(MNG,s1,NULL);
+  /* printf("BiddyReadBddviewCmd: namelist = %s\n",namelist); */
 
-  name = Biddy_Managed_ReadBddview(MNG,s1,NULL);
-  /* ADAPT FORMULA WITH THE SAME NAME IN OTHER MANAGERS */
-  BddscoutSyncFormula(name);
+  /* ADAPT FORMULAE WITH THE SAME NAME IN OTHER MANAGERS */
+  tmplist = strdup(namelist);
+  name = strtok(tmplist," ");
+  while (name) {
+    /* printf("BiddyReadBddviewCmd: name = %s\n",name); */
+    BddscoutSyncFormula(name);
+    name = strtok(NULL," ");
+  }
+  free(tmplist);
 
   free(s1);
 
-  Tcl_SetResult(interp, name, TCL_VOLATILE);
-  free(name);
+  Tcl_SetResult(interp, namelist, TCL_VOLATILE);
+  free(namelist);
 
   return TCL_OK;
 }

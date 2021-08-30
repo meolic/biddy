@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddy.h]
-    Revision    [$Revision: 621 $]
-    Date        [$Date: 2020-03-29 10:25:11 +0200 (ned, 29 mar 2020) $]
+    Revision    [$Revision: 652 $]
+    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -101,7 +101,7 @@ See also: biddyInt.h
 #endif
 
 #ifndef BIDDYVERSION
-#define BIDDYVERSION "2.0.1"
+#define BIDDYVERSION "2.0.3"
 #endif
 
 /*----------------------------------------------------------------------------*/
@@ -301,8 +301,12 @@ typedef void *Biddy_Cache;
 
 /*! \class Biddy_Variable
     \brief Biddy_Variable is used for indices in variable table. */
-/* for tagged graphs this should not be larger than 16 bits */
+/* for tagged graphs this should not be larger than 16 bits = unsigned short int */
+#ifdef PLAIN
+typedef unsigned int Biddy_Variable;
+#else
 typedef unsigned short int Biddy_Variable;
+#endif
 
 /*! \class Biddy_Edge
     \brief Biddy_Edge is a marked edge (i.e. a marked pointer to BiddyNode).
@@ -567,10 +571,10 @@ EXTERN Biddy_Variable Biddy_Managed_FoaVariable(Biddy_Manager MNG, Biddy_String 
 #define Biddy_ChangeVariableName(v,x) Biddy_Managed_ChangeVariableName(NULL,v,x)
 EXTERN void Biddy_Managed_ChangeVariableName(Biddy_Manager MNG, Biddy_Variable v, Biddy_String x);
 
-/* 44 TO DO: join with FoaVariable */
+/* 44 */
 /*! Macro Biddy_AddVariableByName is defined for use with anonymous manager. */
-/*! Macros Biddy_Managed_AddVariable(MNG) and Biddy_AddVariable() are defined for creating numbered variables. */
-/*! Macros Biddy_Managed_AddVariableEdge(MNG) and Biddy_AddVariableEdge() also create numbered variables but return the variable edge. */
+/*! Macros Biddy_Managed_AddVariable and Biddy_AddVariable are defined for creating numbered variables. */
+/*! Macros Biddy_Managed_AddVariableEdge and Biddy_AddVariableEdge also create numbered variables but return the variable edge. */
 #define Biddy_AddVariableByName(x) Biddy_Managed_AddVariableByName(NULL,x)
 EXTERN Biddy_Variable Biddy_Managed_AddVariableByName(Biddy_Manager MNG, Biddy_String x);
 #define Biddy_Managed_AddVariable(MNG) Biddy_Managed_AddVariableByName(MNG,NULL)
@@ -578,12 +582,16 @@ EXTERN Biddy_Variable Biddy_Managed_AddVariableByName(Biddy_Manager MNG, Biddy_S
 #define Biddy_Managed_AddVariableEdge(MNG) Biddy_Managed_GetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,NULL))
 #define Biddy_AddVariableEdge() Biddy_Managed_GetVariableEdge(NULL,Biddy_Managed_AddVariableByName(NULL,NULL))
 
-/* 45 TO DO: join with FoaVariable */
+/* 45 */
 /*! Macro Biddy_AddElementByName is defined for use with anonymous manager. */
+/*! Macros Biddy_Managed_AddElement and Biddy_AddElement are defined for creating numbered elements. */
+/*! Macros Biddy_Managed_AddElementEdge and Biddy_AddElementEdge also create numbered elements but return the element edge. */
 #define Biddy_AddElementByName(x) Biddy_Managed_AddElementByName(NULL,x)
 EXTERN Biddy_Variable Biddy_Managed_AddElementByName(Biddy_Manager MNG, Biddy_String x);
 #define Biddy_Managed_AddElement(MNG) Biddy_Managed_AddElementByName(MNG,NULL)
 #define Biddy_AddElement() Biddy_Managed_AddElementByName(NULL,NULL)
+#define Biddy_Managed_AddElementEdge(MNG) Biddy_Managed_GetElementEdge(MNG,Biddy_Managed_AddElementByName(MNG,NULL))
+#define Biddy_AddElementEdge() Biddy_Managed_GetElementEdge(NULL,Biddy_Managed_AddElementByName(NULL,NULL))
 
 /* 46 */
 /*! Macro Biddy_AddVariableBelow is defined for use with anonymous manager. */
@@ -931,8 +939,8 @@ EXTERN Biddy_Edge Biddy_Managed_Product(Biddy_Manager MNG, Biddy_Edge f, Biddy_E
 
 /* 102 */
 /*! Macro Biddy_SelectiveProduct is defined for use with anonymous manager. */
-#define Biddy_SelectiveProduct(f,g,cube) Biddy_Managed_SelectiveProduct(NULL,f,g,cube)
-EXTERN Biddy_Edge Biddy_Managed_SelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge cube);
+#define Biddy_SelectiveProduct(f,g,pncube) Biddy_Managed_SelectiveProduct(NULL,f,g,pncube)
+EXTERN Biddy_Edge Biddy_Managed_SelectiveProduct(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge pncube);
 
 /* 103 */
 /* This is restriction operation for combination sets. */

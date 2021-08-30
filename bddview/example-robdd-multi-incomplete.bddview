@@ -1,0 +1,29 @@
+# Robert Meolic, 2021
+# An example of ROBDD - multiple labels, incomplete format
+# Biddy = B * ~i * d * y + B * i * ~d * y + B * i * d
+type ROBDD
+var "B" "i" "d" "y"
+label 0 "Biddy"
+label 1 "Test"
+node 2 "B"
+terminal 3 "0"
+node 4 "i"
+node 5 "d"
+terminal 6 "0"
+node 7 "y"
+terminal 8 "0"
+terminal 9 "1"
+node 10 "d"
+terminal 11 "1"
+connect 0 2 s
+connect 1 10 s
+connect 2 3 l
+connect 2 4 r
+connect 4 5 l
+connect 4 10 r
+connect 5 6 l
+connect 5 7 r
+connect 7 8 l
+connect 7 9 r
+connect 10 7 l
+connect 10 11 r

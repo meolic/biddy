@@ -1,10 +1,10 @@
-/* $Revision: 617 $ */
-/* $Date: 2020-03-27 23:43:46 +0100 (pet, 27 mar 2020) $ */
+/* $Revision: 652 $ */
+/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
 /* This file (biddy-example-pp.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v2.0 */
+/* This example is compatible with Biddy v2.0 and laters */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
 /* gcc -DUNIX -O2 -o biddy-example-pp biddy-example-pp.c -I. -L./bin -lbiddy */
@@ -12,47 +12,177 @@
 /* this example is about the production planning problem */
 /* ./biddy-example-pp -h */
 /*
-/* Example ([Takahashi2014]): biddy-example-pp.exe -p 8 -m 8 -c 8 */
-/* Example ([Takahashi2014]): biddy-example-pp.exe -1 -x -p 8 -m 8 -c 8 -b 87 */
-/* Example ([Takahashi2014]): biddy-example-pp.exe -1 -x -p 8 -m 8 -c 8 -b 87 */
-/* Example ([Takahashi2014]): biddy-example-pp.exe -1 -x -p 8 -m 8 -c 8 -l 15 -b 96 */
-/* Example ([Takahashi2014]): biddy-example-pp.exe -1 -x -f -p 8 -m 8 -c 8 -l 15 -b 95 */
+/* Example ([Takahashi2014]): biddy-example-pp.exe -zbddc -p 8 -m 8 -c 8 */
+/* Example ([Takahashi2014]): biddy-example-pp.exe -zbddc -1 -x -p 8 -m 8 -c 8 -b 87 */
+/* Example ([Takahashi2014]): biddy-example-pp.exe -zbddc -1 -x -p 8 -m 8 -c 8 -b 87 */
+/* Example ([Takahashi2014]): biddy-example-pp.exe -zbddc -1 -x -p 8 -m 8 -c 8 -l 15 -b 96 */
+/* Example ([Takahashi2014]): biddy-example-pp.exe -zbddc -1 -x -f -p 8 -m 8 -c 8 -l 15 -b 95 */
 
-/* ./biddy-example-pp -1 -data kacem4x5 -b 32 */
-/* ZBDD - debug mode */
+/* ./biddy-example-pp -zbddc -1 -p 4 -m 4 -c 4 */
+/* ZBDDC / gcc -02 */
+/* ********************* RESULTS AFTER 19 steps*********************\\ */
+/* clock() TIME = 115.28 */
+/* NUMBER OF VARIABLES NEEDED TO FINISH THE CALCULATION: 244 */
+/* 5 ARRANGEMENTS FOUND WITH MAKESPAN = 19 */
+/* MIN NUMBER OF MACHINES = 4, MIN TOTAL MACHINE TIME = 61 */
+/* REPORTING ONE SCHEDULE WITH MAKESPAN = 19, NUMBER OF MACHINES = 4, TOTAL MACHINE TIME = 61 */
+/* (found 2 feasible solutions with the same parameters) */
+/* Number of variables: 260 */
+/* Number of formulae: 974 */
+/* Peak number of BDD nodes: 4344616 */
+/* Garbage collections so far: 69 (node table resizing was used in 4 of them) */
+/* Total time for garbage collections so far: 24.404s */
+/* Number of buckets in Node table: 4194304 */
+/* Used buckets in Node table: 987418 (23.54%) */
+/* Max bucket's size in Node table: 6 */
+/* Avg bucket's size in Node table: 1.139524 */
+
+/* ./biddy-example-pp -tzbdd -1 -p 4 -m 4 -c 4 */
+/* TZBDD / gcc -02 */
+/* ********************* RESULTS AFTER 19 steps*********************\\ */
+/* clock() TIME = 122.73 */
+/* NUMBER OF VARIABLES NEEDED TO FINISH THE CALCULATION: 244 */
+/* 5 ARRANGEMENTS FOUND WITH MAKESPAN = 19 */
+/* MIN NUMBER OF MACHINES = 4, MIN TOTAL MACHINE TIME = 61 */
+/* REPORTING ONE SCHEDULE WITH MAKESPAN = 19, NUMBER OF MACHINES = 4, TOTAL MACHINE TIME = 61 */
+/* (found 2 feasible solutions with the same parameters) */
+/* Number of variables: 260 */
+/* Number of formulae: 1110 */
+/* Peak number of BDD nodes: 3810178 */
+/* Garbage collections so far: 77 (node table resizing was used in 5 of them) */
+/* Total time for garbage collections so far: 23.706s */
+/* Number of buckets in Node table: 4194304 */
+/* Used buckets in Node table: 2503450 (59.69%) */
+/* Max bucket's size in Node table: 9 */
+/* Avg bucket's size in Node table: 1.520323 */
+
+/* ./biddy-example-pp -zbddc -p 8 -m 8 -c 8 */
+/* ZBDDC / gcc -02 */
+/* ... */
+
+/* ./biddy-example-pp -zbddc -1 -data kacem4x5 -b 32 */
+/* ZBDDC / gcc -02 */
 /* ********************* RESULTS AFTER 11 steps*********************\\ */
-/* clock() TIME = 0.58 */
+/* clock() TIME = 0.10 */
+/* NUMBER OF VARIABLES NEEDED TO FINISH THE CALCULATION: 262 */
 /* 6 ARRANGEMENTS FOUND WITH MAKESPAN = 11 AND MAX TOTAL MACHINE TIME = 32 */
 /* MIN NUMBER OF MACHINES = 4, MIN TOTAL MACHINE TIME = 32 */
 /* REPORTING ONE SCHEDULE WITH MAKESPAN = 11, NUMBER OF MACHINES = 4, TOTAL MACHINE TIME = 32 */
 /* (found 2 feasible solutions with the same parameters) */
+/* Number of variables: 280 */
+/* Number of formulae: 2182 */
+/* Peak number of BDD nodes: 262143 */
+/* Garbage collections so far: 1 (node table resizing was used in 1 of them) */
+/* Total time for garbage collections so far: 0.016s */
+/* Number of buckets in Node table: 262144 */
+/* Used buckets in Node table: 86764 (33.10%) */
+/* Max bucket's size in Node table: 5 */
+/* Avg bucket's size in Node table: 1.208819 */
 
-/* ./biddy-example-pp -robdd -1 -data kacem4x5 -b 32 */
-/* ROBDD - debug mode */
+/* ./biddy-example-pp -robddc -1 -data kacem4x5 -b 32 */
+/* ROBDDC / gcc -02 */
 /* ********************* RESULTS AFTER 11 steps*********************\\ */
-/* clock() TIME = 1.79 */
-/* 32 ARRANGEMENTS FOUND WITH MAKESPAN = 11 AND MAX TOTAL MACHINE TIME = 32 */
+/* clock() TIME = 1.74 */
+/* NUMBER OF VARIABLES NEEDED TO FINISH THE CALCULATION: 262 */
+/* 6 ARRANGEMENTS FOUND WITH MAKESPAN = 11 AND MAX TOTAL MACHINE TIME = 32 */
 /* MIN NUMBER OF MACHINES = 4, MIN TOTAL MACHINE TIME = 32 */
 /* REPORTING ONE SCHEDULE WITH MAKESPAN = 11, NUMBER OF MACHINES = 4, TOTAL MACHINE TIME = 32 */
-/* (found 16 feasible solutions with the same parameters) */
+/* (found 2 feasible solutions with the same parameters) */
+/* Number of variables: 280 */
+/* Number of formulae: 2302 */
+/* Peak number of BDD nodes: 3104838 */
+/* Garbage collections so far: 4 (node table resizing was used in 3 of them) */
+/* Total time for garbage collections so far: 1.379s */
+/* Number of buckets in Node table: 4194304 */
+/* Used buckets in Node table: 1150398 (27.43%) */
+/* Max bucket's size in Node table: 6 */
+/* Avg bucket's size in Node table: 1.172219 */
 
-/* ./biddy-example-pp -1 -data kacem8x8 -B */
-/* ZBDD - debug mode */
+
+/* ./biddy-example-pp -zbddc -1 -data kacem8x8 -B */
+/* ZBDDC / gcc -02 */
+/* COMPREHENSIVE PROCESS PLAN */
+/* ZBDD WITH COMPLEMENTED EDGES has 203 nodes (including terminals) and 7137193932337264459776 cubes */
 /* ********************* RESULTS AFTER 16 steps*********************\\ */
-/* clock() TIME = 4.30 */
+/* clock() TIME = 1.64 */
+/* NUMBER OF VARIABLES NEEDED TO FINISH THE CALCULATION: 557 */
 /* 1 ARRANGEMENTS FOUND WITH MAKESPAN = 16 AND MAX TOTAL MACHINE TIME = 73 */
 /* MIN NUMBER OF MACHINES = 8, MIN TOTAL MACHINE TIME = 73 */
 /* REPORTING ONE SCHEDULE WITH MAKESPAN = 16, NUMBER OF MACHINES = 8, TOTAL MACHINE TIME = 73 */
 /* (found 1 feasible solutions with the same parameters) */
+/* Number of variables: 628 */
+/* Number of formulae: 2009 */
+/* Peak number of BDD nodes: 914587 */
+/* Garbage collections so far: 25 (node table resizing was used in 1 of them) */
+/* Total time for garbage collections so far: 3.006s */
+/* Number of buckets in Node table: 1048576 */
+/* Used buckets in Node table: 489962 (46.73%) */
+/* Max bucket's size in Node table: 8 */
+/* Avg bucket's size in Node table: 1.348682 */
 
-/* ./biddy-example-pp -1 -data kacem10x10 -B */
-/* ZBDD - debug mode */
+/* ./biddy-example-pp -tzbdd -1 -data kacem8x8 -B */
+/* TZBDD / gcc -02 */
+/* COMPREHENSIVE PROCESS PLAN */
+/* TAGGED ZBDD has 204 nodes (including terminals) and 7137193932337264459776 cubes */
+/* ********************* RESULTS AFTER 16 steps*********************\\ */
+/* clock() TIME = 1.67 */
+/* NUMBER OF VARIABLES NEEDED TO FINISH THE CALCULATION: 557 */
+/* 1 ARRANGEMENTS FOUND WITH MAKESPAN = 16 AND MAX TOTAL MACHINE TIME = 73 */
+/* MIN NUMBER OF MACHINES = 8, MIN TOTAL MACHINE TIME = 73 */
+/* REPORTING ONE SCHEDULE WITH MAKESPAN = 16, NUMBER OF MACHINES = 8, TOTAL MACHINE TIME = 73 */
+/* (found 1 feasible solutions with the same parameters) */
+/* Number of variables: 628 */
+/* Number of formulae: 851 */
+/* Peak number of BDD nodes: 524286 */
+/* Garbage collections so far: 29 (node table resizing was used in 1 of them) */
+/* Total time for garbage collections so far: 3.005s */
+/* Number of buckets in Node table: 524288 */
+/* Used buckets in Node table: 66657 (12.71%) */
+/* Max bucket's size in Node table: 5 */
+/* Avg bucket's size in Node table: 1.071140 */
+
+/* ./biddy-example-pp -zbddc -1 -data kacem10x10 -B */
+/* ZBDDC / gcc -02 */
+/* COMPREHENSIVE PROCESS PLAN */
+/* ZBDD WITH COMPLEMENTED EDGES has 331 nodes (including terminals) and 999999999999999879147136483328 cubes */
 /* ********************* RESULTS AFTER 8 steps*********************\\ */
-/* clock() TIME = 7193.66 */
+/* clock() TIME = 3356.82 */
+/* NUMBER OF VARIABLES NEEDED TO FINISH THE CALCULATION: 880 */
 /* 1312 ARRANGEMENTS FOUND WITH MAKESPAN = 8 AND MAX TOTAL MACHINE TIME = 41 */
 /* MIN NUMBER OF MACHINES = 9, MIN TOTAL MACHINE TIME = 41 */
 /* REPORTING ONE SCHEDULE WITH MAKESPAN = 8, NUMBER OF MACHINES = 9, TOTAL MACHINE TIME = 41 */
 /* (found 608 feasible solutions with the same parameters) */
+/* Number of variables: 990 */
+/* Number of formulae: 1727 */
+/* Peak number of BDD nodes: 31487317 */
+/* Peak number of live BDD nodes: 31487317 */
+/* Garbage collections so far: ?? */
+/* Total time for garbage collections so far: ?? */
+/* Number of buckets in Node table: 16777216 */
+/* Used buckets in Node table: 13728659 (81.83%) */
+/* Max bucket's size in Node table: 12 */
+/* Avg bucket's size in Node table: 1.222058 */
+
+/* ./biddy-example-pp -tzbdd -1 -data kacem10x10 -B */
+/* TZBDD / gcc -02 */
+/* COMPREHENSIVE PROCESS PLAN */
+/* TAGGED ZBDD has 332 nodes (including terminals) and 999999999999999879147136483328 cubes */
+/* ********************* RESULTS AFTER 8 steps*********************\\ */
+/* clock() TIME = 4842.51 */
+/* NUMBER OF VARIABLES NEEDED TO FINISH THE CALCULATION: 880 */
+/* 1312 ARRANGEMENTS FOUND WITH MAKESPAN = 8 AND MAX TOTAL MACHINE TIME = 41 */
+/* MIN NUMBER OF MACHINES = 9, MIN TOTAL MACHINE TIME = 41 */
+/* REPORTING ONE SCHEDULE WITH MAKESPAN = 8, NUMBER OF MACHINES = 9, TOTAL MACHINE TIME = 41 */
+/* (found 608 feasible solutions with the same parameters) */
+/* Number of variables: 990 */
+/* Number of formulae: 2442 */
+/* Peak number of BDD nodes: 32021755 */
+/* Garbage collections so far: 192 (node table resizing was used in 4 of them) */
+/* Total time for garbage collections so far: 306.296s */
+/* Number of buckets in Node table: 16777216 */
+/* Used buckets in Node table: 11013798 (65.65%) */
+/* Max bucket's size in Node table: 10 */
+/* Avg bucket's size in Node table: 1.523291 */
 
 #include "biddy.h"
 #include "string.h"
@@ -77,7 +207,7 @@
 /* \begin{document} */
 /* ... */
 /* \end{document} */
-#define NOPAPER
+#define PAPER
 #define NOLATEX
 
 /* define INTERNALREPORTS for internal reports - they can be huge! */
@@ -86,11 +216,11 @@
 /* define ONEPASS for calculation which creates the solution in one pass - less efficient */
 #define NOTONEPASS
 
-/* choose VARIANTA (from the old paper), VARIANTB (the most efficient, used for the paper), or VARIANTC (mixed) */
+/* choose VARIANTA (from the older reference), VARIANTB (the most efficient, used for our paper), or VARIANTC (mixed) */
 #define VARIANTB
 
-/* define LIMITSINGLE if you want to limit calculation to a single process */
-/* define LIMITSINGLE and LIMITDOUBLE if you want to limit calculation to two processes */
+/* define LIMITSINGLE if you want to limit calculation to a single process, used for analyze */
+/* define LIMITSINGLE and LIMITDOUBLE if you want to limit calculation to two processes, used for analyze */
 /* example: -DLIMITSINGLE=3 -DLIMITDOUBLE=6 */
 
 enum PPTYPE {NONE, DEFAULT, PERMUTATION, ALTERNATIVE};
@@ -160,13 +290,13 @@ typedef struct GANTT {
 typedef SEQUENCEITEM *PSEQUENCEITEM;
 typedef PART *PPART;
 
-Biddy_Edge permitMakespanZBDD(Biddy_Variable v, Biddy_Edge Fv, Biddy_Edge Fneg_v, unsigned int *partlimits, unsigned int *partlimits2, unsigned int *machinelimits, unsigned int *machinelimits2, LIMIT limit, unsigned int n);
 Biddy_Edge permitMakespanOBDD(Biddy_Variable v, Biddy_Edge f, Biddy_Edge Fv, Biddy_Edge Fneg_v, Biddy_Variable lowest, unsigned int *partlimits, unsigned int *partlimits2, unsigned int *machinelimits, unsigned int *machinelimits2, LIMIT limit, unsigned int n);
-Biddy_Edge permitMakespanTZBDD(Biddy_Edge f, unsigned int *partlimits, unsigned int *machinelimits, unsigned int n); /* not implemented, yet */
+Biddy_Edge permitMakespanZBDD(Biddy_Variable v, Biddy_Edge Fv, Biddy_Edge Fneg_v, unsigned int *partlimits, unsigned int *partlimits2, unsigned int *machinelimits, unsigned int *machinelimits2, LIMIT limit, unsigned int n);
+Biddy_Edge permitMakespanTZBDD(Biddy_Variable v, Biddy_Edge f, Biddy_Edge Fv, Biddy_Edge Fneg_v, Biddy_Variable lowest, unsigned int *partlimits, unsigned int *partlimits2, unsigned int *machinelimits, unsigned int *machinelimits2, LIMIT limit, unsigned int n);
 
 Biddy_Edge permitMachineTimeOBDD(Biddy_Variable v, Biddy_Edge f, Biddy_Edge Fv, Biddy_Edge Fneg_v, Biddy_Variable lowest, LIMIT limit, unsigned int n);
 Biddy_Edge permitMachineTimeZBDD(Biddy_Variable v, Biddy_Edge Fv, Biddy_Edge Fneg_v, LIMIT limit, unsigned int n);
-Biddy_Edge permitMachineTimeTZBDD(Biddy_Edge f, unsigned int n); /* not implemented, yet */
+Biddy_Edge permitMachineTimeTZBDD(Biddy_Variable v, Biddy_Edge f, Biddy_Edge Fv, Biddy_Edge Fneg_v, Biddy_Variable lowest, LIMIT limit, unsigned int n);
 
 /* SYSTEM IS STORED IN THE GLOBAL VARIABLES */
 /* THOROUGHLY disables DYNAMICLIMIT */
@@ -586,7 +716,9 @@ foaVariable(unsigned int s, VARIABLE var, Biddy_Boolean findOnly)
       printf("WARNING (foaVariable): variable %s added!\n",name);
       */
 
-      v = Biddy_FoaVariable(name,FALSE); /* FALSE means addElement */
+      /* v = Biddy_FoaVariable(name,FALSE); */ /* old variant - create element + variables */
+      v = Biddy_AddElementByName(name); /* create only elements */
+
       if (var.limit.part) {
         data = (LIMIT *) malloc(sizeof(LIMIT));
         data->part = var.limit.part;
@@ -720,7 +852,7 @@ findoraddMXvariable(unsigned int i, unsigned int j,
 #endif
 
   /* used for calculation, j must be 1 .. 9 */
-  concatStatic(var.name,"X");
+  concatStatic(var.name,(Biddy_String)"X");
   seq[1] = j + '0';
   concatStatic(var.name,seq);
   concatStatic(var.name,machineTable[i].name);
@@ -765,7 +897,7 @@ findoraddBvariable(unsigned int i, unsigned int j,
 
   /* used for calculation, j must be 1 .. 9 */
   seq[1] = j + '0';
-  concatStatic(var.name,"B");
+  concatStatic(var.name,(Biddy_String)"B");
   concatStatic(var.name,machineTable[i].name);
   concatStatic(var.name,seq);
 
@@ -1073,8 +1205,15 @@ void createVariables()
 #else
     name = variableTable[i].name;
 #endif
-    /* printf("(%s)",name); */
-    v = Biddy_FoaVariable(name,FALSE); /* FALSE means addElement */
+
+    /* TESTING */
+    /*
+    printf("(%s)",name);
+    */
+    
+    /* v = Biddy_FoaVariable(name,FALSE); */ /* old variant - create element + variables */
+    v = Biddy_AddElementByName(name); /* create only elements */
+
     if (variableTable[i].limit.part) {
       data = (LIMIT *) malloc(sizeof(LIMIT));
       data->part = variableTable[i].limit.part;
@@ -1349,10 +1488,10 @@ adaptOrdering(Biddy_String *ordering)
       }
       if (!newvarname) newvarname = varname;
       /* printf("%s\n",newvarname); */
-      if (first) first = FALSE; else concat(&newordering,",");
-      concat(&newordering,"\"");
+      if (first) first = FALSE; else concat(&newordering,(Biddy_String)",");
+      concat(&newordering,(Biddy_String)"\"");
       concat(&newordering,newvarname);
-      concat(&newordering,"\"");
+      concat(&newordering,(Biddy_String)"\"");
     }
     varname = strtok(NULL,"\""); varname = strtok(NULL,"\"");
   }
@@ -1430,16 +1569,18 @@ permitMakespan(Biddy_Edge f, Biddy_Variable lowest, unsigned int *partlimits, un
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
     tag = Biddy_GetTag(f);
+    /* not needed */
+    /*
     if (lowest == 0) {
-      return f;  /* refresh not needed because biddyV(f) is 0 */
+      return f;
     }
+    */
     if ((tag == lowest) && (v == 0)) {
       return f;  /* refresh not needed because biddyV(f) is 0 */
     }
   }
 
   /* LOOKUP IN CACHE TABLE */
-  /**/
   cidx = ((uintptr_t) f << 8);
   for (s = 1; s <= NUMPARTS; s++) cidx = cidx + ((uintptr_t) partlimits[s] << 0);
   if (machinelimits) for (i = 1; i <= NUMMACHINES; i++) cidx = cidx + ((uintptr_t) machinelimits[i] << 0);
@@ -1463,28 +1604,29 @@ permitMakespan(Biddy_Edge f, Biddy_Variable lowest, unsigned int *partlimits, un
       return r;
     }
   }
-  /**/
 
   /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
   /* COMPLEMENTED EDGES MUST BE TRANSFERED */
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
-    w = lowest;
     if (v == lowest) {
       Fneg_v = Biddy_InvCond(Biddy_GetElse(f),Biddy_GetMark(f));
       Fv = Biddy_InvCond(Biddy_GetThen(f),Biddy_GetMark(f));
     }
+    w = lowest;
   }
   else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
-    w = v;
     Fneg_v = Biddy_InvCond(Biddy_GetElse(f),Biddy_GetMark(f));
     Fv = Biddy_GetThen(f);
+    w = v;
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    w = lowest;
     if (tag == lowest) {
       Fneg_v = Biddy_GetElse(f);
       Fv = Biddy_GetThen(f);
+    } else {
+      v = lowest;
     }
+    w = v;
   }
 
   islimited = FALSE;
@@ -1524,7 +1666,7 @@ permitMakespan(Biddy_Edge f, Biddy_Variable lowest, unsigned int *partlimits, un
       r = permitMakespanZBDD(v,Fv,Fneg_v,partlimits,partlimits2,machinelimits,machinelimits2,limit,n);
     }
     else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-      r = Biddy_GetConstantZero(); /* NOT IMPLEMENTED, YET */
+      r = permitMakespanTZBDD(v,f,Fv,Fneg_v,lowest,partlimits,partlimits2,machinelimits,machinelimits2,limit,n);
     }
 
   } else {
@@ -1544,7 +1686,13 @@ permitMakespan(Biddy_Edge f, Biddy_Variable lowest, unsigned int *partlimits, un
       r = Biddy_TaggedFoaNode(v,e,t,v,TRUE);
     }
     else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-      /* ... */
+      if (tag == lowest) {
+        e = permitMakespan(Fneg_v,Biddy_GetNextVariable(v),partlimits,machinelimits,n);
+        t = permitMakespan(Fv,Biddy_GetNextVariable(v),partlimits2,machinelimits2,n);
+        r = Biddy_TaggedFoaNode(v,e,t,lowest,TRUE);
+      } else {
+        r = permitMakespan(f,Biddy_GetNextVariable(v),partlimits,machinelimits,n);
+      }
     }
 
   }
@@ -1553,7 +1701,6 @@ permitMakespan(Biddy_Edge f, Biddy_Variable lowest, unsigned int *partlimits, un
   free(machinelimits2);
 
   /* STORE IN CACHE TABLE */
-  /**/
   p->f = f;
   for (s = 1; s <= NUMPARTS; s++) {
     p->n[s-1] = partlimits[s];
@@ -1566,7 +1713,6 @@ permitMakespan(Biddy_Edge f, Biddy_Variable lowest, unsigned int *partlimits, un
     }
   }
   p->r = r;
-  /**/
 
   return r;
 }
@@ -1578,6 +1724,9 @@ permitMakespanOBDD(Biddy_Variable v, Biddy_Edge f, Biddy_Edge Fv, Biddy_Edge Fne
                    LIMIT limit, unsigned int n)
 {
   Biddy_Edge e, t, r;
+
+  /* n is equal to 0 limit for static variant */
+  /* n is equal to makespan limit for dynamic variant */
 
   if (limit.w) {
     /* this is M-variable */
@@ -1661,10 +1810,57 @@ permitMakespanZBDD(Biddy_Variable v, Biddy_Edge Fv, Biddy_Edge Fneg_v,
 }
 
 Biddy_Edge
-permitMakespanTZBDD(Biddy_Edge f, unsigned int *partlimits, unsigned int *machinelimits, unsigned int n)
+permitMakespanTZBDD(Biddy_Variable v, Biddy_Edge f, Biddy_Edge Fv, Biddy_Edge Fneg_v, Biddy_Variable lowest,
+                    unsigned int *partlimits, unsigned int *partlimits2,
+                    unsigned int *machinelimits, unsigned int *machinelimits2,
+                    LIMIT limit, unsigned int n)
 {
-  printf("WARNING: permitMakespanTZBDD NOT IMPLEMENTED, YET\n");
-  return f;
+  Biddy_Edge e, t, r;
+
+  /* n is equal to 0 limit for static variant */
+  /* n is equal to makespan limit for dynamic variant */
+
+  if (limit.w) {
+    /* this is M-variable */
+    if (Biddy_GetTag(f) == lowest) {
+      e = permitMakespan(Fneg_v,Biddy_GetNextVariable(v),partlimits,machinelimits,n);
+      if ((partlimits2[limit.part] < limit.w) || (machinelimits2 && (machinelimits2[limit.machine] < limit.w))) {
+        t = Biddy_GetConstantZero();
+      } else {
+        partlimits2[limit.part] = partlimits2[limit.part] - limit.w;
+        if (machinelimits2) machinelimits2[limit.machine] = machinelimits2[limit.machine] - limit.w;
+        t = permitMakespan(Fv,Biddy_GetNextVariable(v),partlimits2,machinelimits2,n);
+      }
+    } else {
+      e = permitMakespan(f,Biddy_GetNextVariable(v),partlimits,machinelimits,n);
+      if ((partlimits2[limit.part] < limit.w) || (machinelimits2 && (machinelimits2[limit.machine] < limit.w))) {
+        t = Biddy_GetConstantZero();
+      } else {
+        partlimits2[limit.part] = partlimits2[limit.part] - limit.w;
+        if (machinelimits2) machinelimits2[limit.machine] = machinelimits2[limit.machine] - limit.w;
+        t = permitMakespan(f,Biddy_GetNextVariable(v),partlimits2,machinelimits2,n);
+      }
+    }
+  } else {
+    /* this is MX-variable */
+    if (n != 0) {
+      /* VARIANT A - dynamic machinelimits */
+      if (machinelimits2) machinelimits2[limit.machine] = machinelimits2[limit.machine] + n;
+    } else {
+      /* VARIANT B - static machinelimits */
+      /* machinelimits are already calculated and are static */
+    }
+    if (Biddy_GetTag(f) == lowest) {
+      e = permitMakespan(Fneg_v,Biddy_GetNextVariable(v),partlimits,machinelimits,n);
+      t = permitMakespan(Fv,Biddy_GetNextVariable(v),partlimits2,machinelimits2,n);
+    } else {
+      e = permitMakespan(f,Biddy_GetNextVariable(v),partlimits,machinelimits,n);
+      t = permitMakespan(f,Biddy_GetNextVariable(v),partlimits2,machinelimits2,n);
+    }
+  }
+  r = Biddy_TaggedFoaNode(v,e,t,lowest,TRUE);
+
+  return r;
 }
 
 void
@@ -1782,7 +1978,7 @@ Biddy_Edge
 permitMachineTime(Biddy_Edge f, Biddy_Variable lowest, unsigned int n)
 {
   Biddy_Edge e, t, r, Fv, Fneg_v;
-  Biddy_Variable v,w;
+  Biddy_Variable v, w;
   Biddy_Variable tag;
   Biddy_Boolean OK, islimited;
   LIMIT limit;
@@ -1810,9 +2006,12 @@ permitMachineTime(Biddy_Edge f, Biddy_Variable lowest, unsigned int n)
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
     tag = Biddy_GetTag(f);
+    /* not needed */
+    /*
     if (lowest == 0) {
-      return f;  /* refresh not needed because biddyV(f) is 0 */
+      return f;
     }
+    */
     if ((tag == lowest) && (v == 0)) {
       return f;  /* refresh not needed because biddyV(f) is 0 */
     }
@@ -1836,23 +2035,25 @@ permitMachineTime(Biddy_Edge f, Biddy_Variable lowest, unsigned int n)
   /* DETERMINING PARAMETERS FOR RECURSIVE CALLS */
   /* COMPLEMENTED EDGES MUST BE TRANSFERED */
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
-    w = lowest;
     if (v == lowest) {
       Fneg_v = Biddy_InvCond(Biddy_GetElse(f),Biddy_GetMark(f));
       Fv = Biddy_InvCond(Biddy_GetThen(f),Biddy_GetMark(f));
     }
+    w = lowest;
   }
   else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
-    w = v;
     Fneg_v = Biddy_InvCond(Biddy_GetElse(f),Biddy_GetMark(f));
     Fv = Biddy_GetThen(f);
+    w = v;
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    w = lowest;
     if (tag == lowest) {
       Fneg_v = Biddy_GetElse(f);
       Fv = Biddy_GetThen(f);
+    } else {
+      v = lowest;
     }
+    w = v;
   }
 
   islimited = FALSE;
@@ -1876,7 +2077,7 @@ permitMachineTime(Biddy_Edge f, Biddy_Variable lowest, unsigned int n)
       r = permitMachineTimeZBDD(v,Fv,Fneg_v,limit,n);
     }
     else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-      r = permitMachineTimeTZBDD(f,n);
+      r = permitMachineTimeTZBDD(v,f,Fv,Fneg_v,lowest,limit,n);
     }
 
   } else {
@@ -1896,7 +2097,13 @@ permitMachineTime(Biddy_Edge f, Biddy_Variable lowest, unsigned int n)
       r = Biddy_TaggedFoaNode(v,e,t,v,TRUE);
     }
     else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-      /* ... */
+      if (tag == lowest) {
+        e = permitMachineTime(Fneg_v,Biddy_GetNextVariable(v),n);
+        t = permitMachineTime(Fv,Biddy_GetNextVariable(v),n);
+        r = Biddy_TaggedFoaNode(v,e,t,lowest,TRUE);
+      } else {
+        r = permitMachineTime(f,Biddy_GetNextVariable(v),n);
+      }
     }
 
   }
@@ -1951,10 +2158,28 @@ permitMachineTimeZBDD(Biddy_Variable v, Biddy_Edge Fv, Biddy_Edge Fneg_v, LIMIT 
 }
 
 Biddy_Edge
-permitMachineTimeTZBDD(Biddy_Edge f, unsigned int n)
+permitMachineTimeTZBDD(Biddy_Variable v, Biddy_Edge f, Biddy_Edge Fv, Biddy_Edge Fneg_v, Biddy_Variable lowest, LIMIT limit, unsigned int n)
 {
-  printf("ERROR: permitMachineTimeTZBDD NOT IMPLEMENTED, YET\n");
-  return NULL;
+  Biddy_Edge e, t, r;
+
+  if (Biddy_GetTag(f) == lowest) {
+    e = permitMachineTime(Fneg_v,Biddy_GetNextVariable(v),n);
+    if (n < limit.w) {
+      t = Biddy_GetConstantZero();
+    } else {
+      t = permitMachineTime(Fv,Biddy_GetNextVariable(v),n-limit.w);
+    }
+  } else {
+    e = permitMachineTime(f,Biddy_GetNextVariable(v),n);
+    if (n == 0) {
+      t = Biddy_GetConstantZero();
+    } else {
+      t = permitMachineTime(f,Biddy_GetNextVariable(v),n-limit.w);
+    }
+  }
+  r = Biddy_TaggedFoaNode(v,e,t,lowest,TRUE);
+
+  return r;
 }
 
 void
@@ -1985,12 +2210,15 @@ restrictToMinMachineTime(Biddy_Edge X, unsigned int *i)
 
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
     lowest = Biddy_GetLowestVariable();
+    /* Biddy_WriteBddview("Xobdd.bddview",X,"OBDD",NULL); */ /* DEBUG */
   }
   else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
     lowest = 0;
+    /* Biddy_WriteBddview("Xzbdd.bddview",X,"ZBDD",NULL); */ /* DEBUG */
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
     lowest = Biddy_GetLowestVariable();
+    /* Biddy_WriteBddview("Xtzbdd.bddview",X,"TZBDD",NULL); */ /* DEBUG */
   }
 
   Y = Biddy_GetEmptySet();
@@ -2190,7 +2418,7 @@ void addGanttItem(GANTT *g, unsigned int part, Biddy_String c1, Biddy_String c2,
   g->n = n+1;
   g->content[n] = NULL;
   if (c1) g->content[n] = strdup(c1);
-  if (c1 && c2) concat(&(g->content[n]),"@");
+  if (c1 && c2) concat(&(g->content[n]),(Biddy_String)"@");
   if (c1 && c2) concat(&(g->content[n]),c2);
   g->id[n] = n;
   g->group[n] = strdup(Biddy_GetVariableName(gr));
@@ -2204,11 +2432,11 @@ void addGanttItem(GANTT *g, unsigned int part, Biddy_String c1, Biddy_String c2,
   g->color[n] = strdup("\"background-color:hsl(");
   concatNumber(&(g->color[n]),h);
   if (part < 7) {
-    concat(&(g->color[n]),",80%,80%);\"");
+    concat(&(g->color[n]),(Biddy_String)",80%,80%);\"");
   } else if (part < 13) {
-    concat(&(g->color[n]),",40%,85%);\"");
+    concat(&(g->color[n]),(Biddy_String)",40%,85%);\"");
   } else {
-    concat(&(g->color[n]),",20%,90%);\"");
+    concat(&(g->color[n]),(Biddy_String)",20%,90%);\"");
   }
 
   /* DEBUGGING */
@@ -2236,7 +2464,6 @@ Biddy_Edge feasibleCombinations()
   Biddy_Edge f;
   unsigned int *partlimits;
   unsigned int *machinelimits;
-  Biddy_Variable lowest;
 
   printf("\nPROCESS PLANS\n");
 
@@ -2361,16 +2588,6 @@ Biddy_Edge feasibleCombinations()
 
   /* CALCULATE BDD FOR THE COMPREHENSIVE PROCESS PLANS */
 
-  if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
-    lowest = Biddy_GetLowestVariable();
-  }
-  else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
-    lowest = 0; /* lowest is not needed for ZBDDs */
-  }
-  else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    lowest = Biddy_GetLowestVariable();
-  }
-
   elapsedtime = clock();
 
   X = Biddy_GetBaseSet();
@@ -2401,9 +2618,55 @@ Biddy_Edge feasibleCombinations()
     /* RESTRICT TO THE GIVEN BOUND FOR TOTAL MACHINE TIME */
 
     if (TIMEBOUND) {
-      X = permitMachineTime(X,lowest,TIMEBOUND);
+
+      /*
+      printf("(BEFORE TIMEBOUND) ");
+      printf("%s for X(%u): %u nodes (including terminals), %.0f cubes, ",
+             Biddy_GetManagerName(),s,Biddy_CountNodes(X),Biddy_CountCombinations(X));
+      printf("clock() TIME = %.2f\n",(clock()-elapsedtime)/(1.0*CLOCKS_PER_SEC));
+      */
+
+      /* DEBUGGING */
+      /*
+      if (s == 1) {
+        if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
+          Biddy_WriteBddview("Xobdd.bddview",X,"OBDD",NULL);
+        }
+        else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
+          Biddy_WriteBddview("Xzbdd.bddview",X,"ZBDD",NULL);
+        }
+        else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+          Biddy_WriteBddview("Xtzbdd.bddview",X,"TZBDD",NULL);
+        }
+      }
+      */
+
+      X = permitMachineTime(X,Biddy_GetLowestVariable(),TIMEBOUND); /* lowest is not needed for ZBDDs */
       Biddy_KeepFormula(X);
       Biddy_Clean();
+
+      /*
+      printf("(AFTER TIMEBOUND) ");
+      printf("%s for X(%u): %u nodes (including terminals), %.0f cubes, ",
+             Biddy_GetManagerName(),s,Biddy_CountNodes(X),Biddy_CountCombinations(X));
+      printf("clock() TIME = %.2f\n",(clock()-elapsedtime)/(1.0*CLOCKS_PER_SEC));
+      */
+
+      /* DEBUGGING */
+      /*
+      if (s == 1) {
+        if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
+          Biddy_WriteBddview("Xobdd-out.bddview",X,"OBDD-out",NULL);
+        }
+        else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
+          Biddy_WriteBddview("Xzbdd-out.bddview",X,"ZBDD-out",NULL);
+        }
+        else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+          Biddy_WriteBddview("Xtzbdd.out.bddview",X,"TZBDD-out",NULL);
+        }
+      }
+      */
+
     }
 
     /* RESTRICT TO THE GIVEN BOUND FOR MAKESPAN */
@@ -2421,8 +2684,8 @@ Biddy_Edge feasibleCombinations()
     }
     */
 
-    /* REPORT PARTIAL RESULTS */
     /*
+    printf("(AFTER PRODUCT) ");
     printf("%s for X(%u): %u nodes (including terminals), %.0f cubes, ",
            Biddy_GetManagerName(),s,Biddy_CountNodes(X),Biddy_CountCombinations(X));
     printf("clock() TIME = %.2f\n",(clock()-elapsedtime)/(1.0*CLOCKS_PER_SEC));
@@ -2481,14 +2744,15 @@ Biddy_Edge feasibleCombinations()
 
   elapsedtime = clock();
 
+  /* store local variable - it may become invalid because new variables will be added */
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
-    Biddy_AddFormula("X",X,-1);
+    Biddy_AddFormula((Biddy_String)"X",X,-1);
   }
   else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
     /* NO ACTION IS NEEDED */
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    /* TO DO ... */
+    Biddy_AddFormula((Biddy_String)"X",X,-1);
   }
 
 #ifdef VARIANTA
@@ -2598,19 +2862,19 @@ Biddy_Edge feasibleCombinations()
   }
 #endif
 
+  /* repair local variable - it may be invalid because new variables have been added */
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
     unsigned int idx;
-    Biddy_FindFormula("X",&idx,&X); /* update value of local variable X */
-    Biddy_DeleteFormula("X"); /* this does not remove nodes of formula X */
-    lowest = Biddy_GetLowestVariable();
+    Biddy_FindFormula((Biddy_String)"X",&idx,&X);
+    Biddy_DeleteFormula((Biddy_String)"X"); /* this does not remove nodes of formula X */
   }
   else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
     /* NO ACTION IS NEEDED */
-    lowest = 0; /* lowest is not needed for ZBDDs */
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    /* TO DO ... */
-    lowest = Biddy_GetLowestVariable();
+    unsigned int idx;
+    Biddy_FindFormula((Biddy_String)"X",&idx,&X);
+    Biddy_DeleteFormula((Biddy_String)"X"); /* this does not remove nodes of formula X */
   }
 
   for (s = 1; s <= NUMPARTS; s++) {
@@ -2776,7 +3040,7 @@ Biddy_Edge feasibleCombinations()
     Y = restrictToMinMachineTime(X,&i);
     if (BOUNDINTERVAL) {
       i = i + BOUNDINTERVAL;
-      Y = permitMachineTime(X,lowest,i);
+      Y = permitMachineTime(X,Biddy_GetLowestVariable(),i); /* lowest is not needed for ZBDDs */
     }
     X = Y;
     TIMEBOUND = i;
@@ -2988,14 +3252,15 @@ Biddy_Edge runScheduling(Biddy_Edge X, unsigned int limit, Biddy_Boolean createG
 
   RESULTSIZE = 0;
 
+  /* store local variable - it may become invalid because new variables will be added */
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
-    Biddy_AddFormula("argumentX",X,-1);
+    Biddy_AddFormula((Biddy_String)"argumentX",X,-1);
   }
   else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
     /* NO ACTION IS NEEDED */
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    /* TO DO ... */
+    Biddy_AddFormula((Biddy_String)"argumentX",X,-1);
   }
 
   if (createG) {
@@ -3035,7 +3300,7 @@ Biddy_Edge runScheduling(Biddy_Edge X, unsigned int limit, Biddy_Boolean createG
     tr1cube = Biddy_GetBaseSet();
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    tr1cube = NULL;
+    tr1cube = Biddy_GetConstantOne();
   }
   for (s = 1; s <= NUMPARTS; s++) {
     for (w = 1; w <= NUMOPERATIONS; w++) {
@@ -3070,6 +3335,15 @@ Biddy_Edge runScheduling(Biddy_Edge X, unsigned int limit, Biddy_Boolean createG
                 tr1 = Biddy_Union(tr1,f);
               }
               else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+                f = Biddy_GetBaseSet();
+                g = Biddy_GetVariableEdge(M); tr1cube = Biddy_And(tr1cube,g); f = Biddy_Change(f,M);
+                g = Biddy_GetVariableEdge(v=findWvariable(s,r)); tr1cube = Biddy_And(tr1cube,g); f = Biddy_Change(f,v);
+                g = Biddy_GetVariableEdge(v=findMXvariable(i,j)); tr1cube = Biddy_And(tr1cube,g); f = Biddy_Change(f,v);
+                g = Biddy_GetVariableEdge(v=findBvariable(i,j)); tr1cube = Biddy_Gt(tr1cube,g); f = Biddy_Change(f,v);
+                g = Biddy_GetVariableEdge(v=findRvariable(s,r)); tr1cube = Biddy_Gt(tr1cube,g); f = Biddy_Change(f,v);
+                v = findSvariable(s,r,i,j); f = Biddy_Change(f,v);
+                v = findTvariable(s,operationMatrix[w+i*(1+operationTableSize)]); f = Biddy_Change(f,v);
+                tr1 = Biddy_Union(tr1,f);
               }
             }
           }
@@ -3268,49 +3542,70 @@ Biddy_Edge runScheduling(Biddy_Edge X, unsigned int limit, Biddy_Boolean createG
               if (g != Biddy_GetEmptySet()) {
                 f = Biddy_Diff(f,g);
 
-                /* FOR OBDD and TZBDD, adding a variable will invalidate all the existing functions */
+                /* FOR OBDD and TZBDD, adding new variable will invalidate all the sets (represented by characteristic functions) */
                 /* Biddy is able to automatically repair only variables, elements, and named formula */
-                /* therefore, we store all needed results in the named formulae and then delete these formulae */
+                /* therefore, we store all important local results in the named formulae and then delete these formulae */
 
+                /* store local variables - they may become invalid because new G variables will be added */
                 if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
-                  Biddy_AddFormula("tr1",tr1,-1);
-                  Biddy_AddFormula("tr1cube",tr1cube,-1);
-                  Biddy_AddFormula("f",f,-1);
-                  Biddy_AddFormula("g",g,-1);
-                  Biddy_AddFormula("X",X,-1);
-                  Biddy_AddFormula("Y",Y,-1);
+                  Biddy_AddFormula((Biddy_String)"tr1",tr1,-1);
+                  Biddy_AddFormula((Biddy_String)"tr1cube",tr1cube,-1);
+                  Biddy_AddFormula((Biddy_String)"f",f,-1);
+                  Biddy_AddFormula((Biddy_String)"g",g,-1);
+                  Biddy_AddFormula((Biddy_String)"X",X,-1);
+                  Biddy_AddFormula((Biddy_String)"Y",Y,-1);
                 }
                 else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
                   /* NO ACTION IS NEEDED */
                 }
                 else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-                  /* TO DO ... */
+                  Biddy_AddFormula((Biddy_String)"tr1",tr1,-1);
+                  Biddy_AddFormula((Biddy_String)"tr1cube",tr1cube,-1);
+                  Biddy_AddFormula((Biddy_String)"f",f,-1);
+                  Biddy_AddFormula((Biddy_String)"g",g,-1);
+                  Biddy_AddFormula((Biddy_String)"X",X,-1);
+                  Biddy_AddFormula((Biddy_String)"Y",Y,-1);
                 }
 
                 v = foaGvariable(s,r,count-1); /* -1 because Gantt chart starts with zero */
 
+                /* repair local variables - they may be invalid because new G variables have been added */
                 if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
                   unsigned int idx;
-                  Biddy_FindFormula("tr1",&idx,&tr1); /* update value of local variable tr1 */
-                  Biddy_FindFormula("tr1cube",&idx,&tr1cube); /* update value of local variable tr1cube*/
-                  Biddy_KeepFormulaUntilPurge(tr1);
-                  Biddy_KeepFormulaUntilPurge(tr1cube);
-                  Biddy_FindFormula("f",&idx,&f); /* update value of local variable f */
-                  Biddy_FindFormula("g",&idx,&g); /* update value of local variable g */
-                  Biddy_FindFormula("X",&idx,&X); /* update value of local variable X */
-                  Biddy_FindFormula("Y",&idx,&Y); /* update value of local variable Y */
-                  Biddy_DeleteFormula("tr1"); /* this does not remove nodes of formula tr1 */
-                  Biddy_DeleteFormula("tr1cube"); /* this does not remove nodes of formula tr1cube */
-                  Biddy_DeleteFormula("f"); /* this does not remove nodes of formula f */
-                  Biddy_DeleteFormula("g"); /* this does not remove nodes of formula g */
-                  Biddy_DeleteFormula("X"); /* this does not remove nodes of formula X */
-                  Biddy_DeleteFormula("Y"); /* this does not remove nodes of formula Y */
+                  Biddy_FindFormula((Biddy_String)"tr1",&idx,&tr1); /* update value of local variable tr1 */
+                  Biddy_FindFormula((Biddy_String)"tr1cube",&idx,&tr1cube); /* update value of local variable tr1cube*/
+                  /* Biddy_KeepFormulaUntilPurge(tr1); */ /* repaired local variable should have the same expiry */
+                  /* Biddy_KeepFormulaUntilPurge(tr1cube); */ /* repaired local variable should have the same expiry */
+                  Biddy_FindFormula((Biddy_String)"f",&idx,&f); /* update value of local variable f */
+                  Biddy_FindFormula((Biddy_String)"g",&idx,&g); /* update value of local variable g */
+                  Biddy_FindFormula((Biddy_String)"X",&idx,&X); /* update value of local variable X */
+                  Biddy_FindFormula((Biddy_String)"Y",&idx,&Y); /* update value of local variable Y */
+                  Biddy_DeleteFormula((Biddy_String)"tr1"); /* this does not remove nodes of formula tr1 */
+                  Biddy_DeleteFormula((Biddy_String)"tr1cube"); /* this does not remove nodes of formula tr1cube */
+                  Biddy_DeleteFormula((Biddy_String)"f"); /* this does not remove nodes of formula f */
+                  Biddy_DeleteFormula((Biddy_String)"g"); /* this does not remove nodes of formula g */
+                  Biddy_DeleteFormula((Biddy_String)"X"); /* this does not remove nodes of formula X */
+                  Biddy_DeleteFormula((Biddy_String)"Y"); /* this does not remove nodes of formula Y */
                 }
                 else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
                   /* NO ACTION IS NEEDED */
                 }
                 else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-                  /* TO DO ... */
+                  unsigned int idx;
+                  Biddy_FindFormula((Biddy_String)"tr1",&idx,&tr1); /* update value of local variable tr1 */
+                  Biddy_FindFormula((Biddy_String)"tr1cube",&idx,&tr1cube); /* update value of local variable tr1cube*/
+                  /* Biddy_KeepFormulaUntilPurge(tr1); */ /* repaired local variable should have the same expiry */
+                  /* Biddy_KeepFormulaUntilPurge(tr1cube); */ /* repaired local variable should have the same expiry */
+                  Biddy_FindFormula((Biddy_String)"f",&idx,&f); /* update value of local variable f */
+                  Biddy_FindFormula((Biddy_String)"g",&idx,&g); /* update value of local variable g */
+                  Biddy_FindFormula((Biddy_String)"X",&idx,&X); /* update value of local variable X */
+                  Biddy_FindFormula((Biddy_String)"Y",&idx,&Y); /* update value of local variable Y */
+                  Biddy_DeleteFormula((Biddy_String)"tr1"); /* this does not remove nodes of formula tr1 */
+                  Biddy_DeleteFormula((Biddy_String)"tr1cube"); /* this does not remove nodes of formula tr1cube */
+                  Biddy_DeleteFormula((Biddy_String)"f"); /* this does not remove nodes of formula f */
+                  Biddy_DeleteFormula((Biddy_String)"g"); /* this does not remove nodes of formula g */
+                  Biddy_DeleteFormula((Biddy_String)"X"); /* this does not remove nodes of formula X */
+                  Biddy_DeleteFormula((Biddy_String)"Y"); /* this does not remove nodes of formula Y */
                 }
 
                 g = Biddy_Change(g,v);
@@ -3632,17 +3927,20 @@ Biddy_Edge runScheduling(Biddy_Edge X, unsigned int limit, Biddy_Boolean createG
     if (scheduling) count++;
   }
 
-  /* restore argument X - local variable X my be invalid because new G variables have been added */
+  /* repair argument X - local variable X may be invalid because new G variables have been added */
+  /* X is characteristic function of a set */
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
     unsigned int idx;
-    Biddy_FindFormula("argumentX",&idx,&X); /* update value of local variable solution */
-    Biddy_DeleteFormula("argumentX"); /* this does not remove nodes of formula solution */
+    Biddy_FindFormula((Biddy_String)"argumentX",&idx,&X); /* update value of local variable solution */
+    Biddy_DeleteFormula((Biddy_String)"argumentX"); /* this does not remove nodes of formula solution */
   }
   else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
     /* NO ACTION IS NEEDED */
   }
   else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-    /* TO DO ... */
+    unsigned int idx;
+    Biddy_FindFormula((Biddy_String)"argumentX",&idx,&X); /* update value of local variable solution */
+    Biddy_DeleteFormula((Biddy_String)"argumentX"); /* this does not remove nodes of formula solution */
   }
 
   /* SIFTING ON RESULT */
@@ -3771,7 +4069,7 @@ generateGanttTimevis(const char filename[], Biddy_Edge solution, unsigned int li
       /* NO ACTION IS NEEDED */
     }
     else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-      /* TO DO ... */
+      /* NO ACTION IS NEEDED */
     }
 
     if (Biddy_GetTopVariableChar(f) == 'G') {
@@ -4221,7 +4519,7 @@ int main(int argc, char **argv) {
       printf("-robddc\n");
       printf("-zbdd (DEFAULT)\n");
       printf("-zbddc\n");
-      printf("-tzbdd (NOT IMPLEMENTED, YET)\n");
+      printf("-tzbdd\n");
       printf("\n");
       printf("You can select one of the hardcoded systems:\n");
       printf("-data takahashi (DEFAULT)\n");
@@ -4504,12 +4802,6 @@ int main(int argc, char **argv) {
   Biddy_InitAnonymous(BDDTYPE);
   printf("Using %s ...\n\n",Biddy_GetManagerName());
 
-  if ((BDDTYPE == BIDDYTYPETZBDD) && !FEASIBLEONLY) {
-    Biddy_Exit();
-    printf("Implementation using TZBDDs is not ready, yet\n");
-    exit(0);
-  }
-
   /* permitMakespan cache */
   permitMakespanCache.size = permitMakespanCacheSize;
   permitMakespanCache.table = (PermitMakespanCache *) malloc((permitMakespanCache.size+1) * sizeof(PermitMakespanCache));
@@ -4529,10 +4821,9 @@ int main(int argc, char **argv) {
   /* CREATE ALL VARIABLES BEFORE THE REAL CALCULATION START */
   /* THIS IS REQUIRED FOR OBDDs AND TZBDDs, IT IS OPTIONAL FOR ZBDDs */
   /* THIS IS ALSO REQUIRED IF CUSTOM VARIABLE ORDERING IS NEEDED */
-
-  /* createVariables() uses variableTable created by generateSystem() */
+  
   for (i=1; i<=FACTORYCAPACITY; i++) findoraddFSvariable(i,TRUE,FALSE); /* these variables are used for scheduling */
-  createVariables();
+  createVariables(); /* this uses variableTable created by generateSystem() */
 
   /* APPLY ALPHABETIC ORDERING ORDERING */
   /* this option is not needed if createVariables() creates all variables (only G-variables are not important) */
@@ -4624,9 +4915,9 @@ int main(int argc, char **argv) {
   /* Biddy_WriteBddview("FC.bddview",FC,"FC",NULL); */
 
   /* remove everything except the nodes of formula X */
-  Biddy_AddFormula("X",X,1); /* argument 1 is used to prevent purge from deleting nodes */
+  Biddy_AddFormula((Biddy_String)"X",X,1); /* argument 1 is used to prevent purge from deleting nodes */
   Biddy_Purge();
-  Biddy_DeleteFormula("X"); /* this does not remove nodes of formula X */
+  Biddy_DeleteFormula((Biddy_String)"X"); /* this does not remove nodes of formula X */
   Biddy_Clean();
 
   /**/
@@ -4644,7 +4935,7 @@ int main(int argc, char **argv) {
     reportOrdering();
     */
     printf("\n");
-    Biddy_PrintInfo(NULL);
+    if (VERBOSE) Biddy_PrintInfo(NULL);
     deleteSystem();
     Biddy_Exit();
     return 0;
@@ -4755,8 +5046,8 @@ int main(int argc, char **argv) {
       }
     }
   }
-  Biddy_AddFormula("S1",S1,0);
-  Biddy_AddFormula("S2",S2,0);
+  Biddy_AddFormula((Biddy_String)"S1",S1,0);
+  Biddy_AddFormula((Biddy_String)"S2",S2,0);
 
   /* REPORT ONE OR BOTH SOLUTIONS */
   /* DIFFERENT BDD TYPES HAVE DIFFERENT VARIABLE ORDERING AND Biddy_ExtractMinterm() RETURNS THE SMALLEST MINTERM */
@@ -4779,16 +5070,18 @@ int main(int argc, char **argv) {
       printf("\nGantt chart not created\n");
     }
 
-    /* restore S2 - local variable S2 my be invalid because new G variables have been added */
+    /* repair S2 - local variable S2 my be invalid because new G variables have been added */
+    /* f is characteristic function of a set */
     if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
       unsigned int idx;
-      Biddy_FindFormula("S2",&idx,&S2); /* update value of local variable S2 */
+      Biddy_FindFormula((Biddy_String)"S2",&idx,&S2); /* update value of local variable S2 */
     }
     else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
       /* NO ACTION IS NEEDED */
     }
     else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-      /* TO DO ... */
+      unsigned int idx;
+      Biddy_FindFormula((Biddy_String)"S2",&idx,&S2); /* update value of local variable S2 */
     }
 
     if (S2) {
@@ -4810,16 +5103,30 @@ int main(int argc, char **argv) {
     }
   }
 
+  /* repair S1 - local variable S1 my be invalid because new G variables have been added */
+  /* f is characteristic function of a set */
+  if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
+    unsigned int idx;
+    Biddy_FindFormula((Biddy_String)"S1",&idx,&S1); /* update value of local variable S1 */
+  }
+  else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
+    /* NO ACTION IS NEEDED */
+  }
+  else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
+    unsigned int idx;
+    Biddy_FindFormula((Biddy_String)"S1",&idx,&S1); /* update value of local variable S1 */
+  }
+
   /* IN VERBOSE MODE REPORT ALL INTERESTING FEASIBLE SOLUTIONS */
   if (VERBOSE && S1 && (MINRESULT > 0)) {
     if (S2) {
       S1 = Biddy_Union(S1,S2);
-      Biddy_AddFormula("S1",S1,0);
+      Biddy_AddFormula((Biddy_String)"S1",S1,0);
     }
     k = Biddy_CountCombinations(S1);
     printf("\nREPORTING ONE SCHEDULE FOR ALL %u INTERESTING FEASIBLE SOLUTIONS FOUND IN THIS RUN\n",k);
-    if (k > 132) {
-      k = 132; /* MAX NUMBER OF REPORTED COMBINATIONS */
+    if (k > 100) {
+      k = 100; /* MAX NUMBER OF REPORTED COMBINATIONS */
       printf("(too many cubes, reporting only the first %u of them, starting with those with the minimal number of machines)\n",k);
     }
     j = 0;
@@ -4833,11 +5140,11 @@ int main(int argc, char **argv) {
 
             g = Biddy_ExtractMinterm(f);
             f = Biddy_Diff(f,g);
-            Biddy_AddFormula("f",f,0);
+            Biddy_AddFormula((Biddy_String)"f",f,0);
             j++;
             ganttname = strdup("PP-GanttChart");
             concatNumber(&ganttname,j);
-            concat(&ganttname,".Rmd");
+            concat(&ganttname,(Biddy_String)".Rmd");
 
             if (generateGanttTimevis(ganttname,g,S,FALSE))  /* FALSE because G-variables were removed */
             {
@@ -4847,16 +5154,18 @@ int main(int argc, char **argv) {
             }
             free(ganttname);
 
-            /* restore f - local variable f my be invalid because new G variables have been added */
+            /* repair f - local variable f my be invalid because new G variables have been added */
+            /* f is characteristic function of a set */
             if ((Biddy_GetManagerType() == BIDDYTYPEOBDDC) || (Biddy_GetManagerType() == BIDDYTYPEOBDD)) {
               unsigned int idx;
-              Biddy_FindFormula("f",&idx,&f); /* update value of local variable f */
+              Biddy_FindFormula((Biddy_String)"f",&idx,&f); /* update value of local variable f */
             }
             else if ((Biddy_GetManagerType() == BIDDYTYPEZBDDC) || (Biddy_GetManagerType() == BIDDYTYPEZBDD)) {
               /* NO ACTION IS NEEDED */
             }
             else if (Biddy_GetManagerType() == BIDDYTYPETZBDD) {
-              /* TO DO ... */
+              unsigned int idx;
+              Biddy_FindFormula((Biddy_String)"f",&idx,&f); /* update value of local variable f */
             }
 
           }

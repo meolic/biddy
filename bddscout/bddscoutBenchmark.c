@@ -3,15 +3,15 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscoutBenchmark.c]
-  Revision    [$Revision: 582 $]
-  Date        [$Date: 2020-02-08 16:18:16 +0100 (sob, 08 feb 2020) $]
+  Revision    [$Revision: 652 $]
+  Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
   Authors     [Robert Meolic (robert@meolic.com)]
   Description [File bddscoutBenchmark.c is used for profiling.]
   SeeAlso     []
 
   Copyright   [This file is part of Bdd Scout package.
                Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-               Copyright (C) 2019, 2020 Robert Meolic, SI-2000 Maribor, Slovenia
+               Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as

@@ -1,13 +1,13 @@
 /* $Revision$ */
 /* $Date$ */
-/* This file (biddy-benchmarks.c) is a C file */
+/* This file (biddy-example-benchmarks.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v2.0 */
+/* This example is compatible with Biddy v2.0 and laters */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
-/* gcc -O2 -o biddy-benchmarks biddy-benchmarks.c -I. -L./bin -lbiddy */
+/* gcc -O2 -o biddy-example-benchmarks biddy-example-benchmarks.c -I. -L./bin -lbiddy */
 
 /* this example demonstrates the ability of Biddy to read various benchmark files */
 
@@ -82,11 +82,11 @@ Biddy_Boolean BiddyEqvBdd(Biddy_String name1, Biddy_String name2)
   unsigned int idx;
   Biddy_Boolean OK;
 
-  Biddy_FindFormula(name1,&idx,&bdd1);
-  Biddy_FindFormula(name2,&idx,&bdd2);
+  OK = TRUE;
 
-  OK = FALSE;
-  if (bdd1 == bdd2) OK = TRUE;
+  if (OK) OK = Biddy_FindFormula(name1,&idx,&bdd1);
+  if (OK) OK = Biddy_FindFormula(name2,&idx,&bdd2);
+  if (OK) OK = (bdd1 == bdd2);
 
   return OK;
 }
@@ -117,7 +117,8 @@ void BiddyReadPrefixFormat(const char filename[], Biddy_String prefix)
   len = 0;
   bytes_read = getdelim(&buffer,&len,'\0',infile);
   if (bytes_read == -1) {
-    printf("ERROR: File %s has wrong format!\n",filename);
+    printf("ERROR: File %s cannot be read!\n",filename);
+    free(buffer);
     return;
   }
 
@@ -215,6 +216,45 @@ void BiddyReadPrefixFormat(const char filename[], Biddy_String prefix)
     free(sname);
     free(s);
   }
+
+  free(buffer);
+  fclose(infile);
+}
+
+/* ************************************************************************** */
+/* READ_BENCHFORMAT (TO BE INCLUDED IN THE NEXT VERSION OF BIDDY) */
+/* ************************************************************************** */
+
+void BiddyReadBenchFormat(const char filename[], Biddy_String prefix)
+{
+  FILE *infile;
+  char* buffer;
+  size_t len,index;
+  ssize_t bytes_read;
+  int i,j,par;
+  Biddy_String sname,prefixname,s;
+  Biddy_Edge bdd;
+
+  infile = fopen(filename,"r");
+  if (!infile) {
+    printf("ERROR: File %s does not exists!\n",filename);
+    return;
+  }
+
+  /* this is from */
+  /* https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c */
+  buffer = NULL;
+  len = 0;
+  bytes_read = getdelim(&buffer,&len,'\0',infile);
+  if (bytes_read == -1) {
+    printf("ERROR: File %s has wrong format!\n",filename);
+    return;
+  }
+
+  /* DEBUGGING */
+  /**/
+  printf("%s",buffer);
+  /**/
 
   free(buffer);
   fclose(infile);
@@ -358,15 +398,24 @@ int main(int argc, char **argv) {
   Biddy_String s;
   Biddy_Edge f;
 
+  Biddy_String prefixFile,benchFile,infixFile,vhdlFile;
+  
+  prefixFile = strdup("./benchmarks/c17.be");
+  benchFile = strdup("./benchmarks/c17.bench");
+  infixFile = strdup("./benchmarks/c17.txt");
+  vhdlFile = strdup("./benchmarks/c17.v");
+ 
+  /* ================================================================ */
   /* READ PREFIX FORMAT */
   /* AS USED IN: IMEC-IFIP International Workshop on Applied Formal */
   /* Methods For Correct VLSI Design (L. Claesen, ed.), Houthalen, */
   /* Belgium, pp. 568-569, November 1989. */
+  /* ================================================================ */
 
   Biddy_InitAnonymous(BDDTYPE);
-  printf("BiddyReadPrefixFormat using %s...\n",Biddy_GetManagerName());
+  printf("BiddyReadPrefixFormat %s using %s...\n",prefixFile,Biddy_GetManagerName());
 
-  BiddyReadPrefixFormat("./benchmarks/c17.be",NULL);
+  BiddyReadPrefixFormat(prefixFile,NULL);
   Biddy_SetAlphabeticOrdering();
 
   /* TESTING */
@@ -379,12 +428,41 @@ int main(int argc, char **argv) {
   /* Biddy_PrintInfo(NULL); */
   Biddy_Exit();
 
-  /* READ INFIX FORMAT */
+  /* ================================================================ */
+  /* READ BENCH FORMAT */
+  /* AS USED IN ISCAS89 netlist format */
+  /* Note: Variables started with number are prefixed with letter 'G' */
+  /* See: https://people.engr.ncsu.edu/brglez/CBL/benchmarks/index.html */
+  /* See: http://www.pld.ttu.ee/~maksim/benchmarks */
+  /* See: https://filebox.ece.vt.edu/~mhsiao/iscas89.html */
+  /* See: https://ddd.fit.cvut.cz/prj/Benchmarks/ */
+  /* Atalanta-M 2.0: https://ddd.fit.cvut.cz/prj/Atalanta-M/index.php?page=manual */
+  /* ================================================================ */
 
   Biddy_InitAnonymous(BDDTYPE);
-  printf("BiddyReadInfixFormat using %s...\n",Biddy_GetManagerName());
+  printf("BiddyReadBenchFormat %s using %s...\n",benchFile,Biddy_GetManagerName());
 
-  BiddyReadInfixFormat("./benchmarks/c17.txt",NULL);
+  BiddyReadBenchFormat(benchFile,NULL);
+  Biddy_SetAlphabeticOrdering();
+
+  /* TESTING */
+  /**/
+  if (!BiddyEqvBdd("G16","G26")) printf("ERROR: BiddyReadBenchFormat returns wrong result!\n");
+  if (!BiddyEqvBdd("G17","G37")) printf("ERROR: BiddyReadBenchFormat returns wrong result!\n");
+  /**/
+
+  BiddyReport();
+  /* Biddy_PrintInfo(NULL); */
+  Biddy_Exit();
+
+  /* ================================================================ */
+  /* READ INFIX FORMAT */
+  /* ================================================================ */
+
+  Biddy_InitAnonymous(BDDTYPE);
+  printf("BiddyReadInfixFormat %s using %s...\n",infixFile,Biddy_GetManagerName());
+
+  BiddyReadInfixFormat(infixFile,NULL);
   Biddy_SetAlphabeticOrdering();
 
   /* TESTING */
@@ -397,16 +475,23 @@ int main(int argc, char **argv) {
   /* Biddy_PrintInfo(NULL); */
   Biddy_Exit();
 
+  /* ================================================================ */
   /* READ VHDL FORMAT */
+  /* ================================================================ */
 
   Biddy_InitAnonymous(BDDTYPE);
-  printf("BiddyReadVerilog using %s...\n",Biddy_GetManagerName());
+  printf("BiddyReadVerilog %s using %s...\n",vhdlFile,Biddy_GetManagerName());
 
-  Biddy_ReadVerilogFile("./benchmarks/c17.v",NULL);
+  Biddy_ReadVerilogFile(vhdlFile,NULL);
   Biddy_Purge(); /* delete all temporal functions created by Biddy_ReadVerilogFile */
   Biddy_SetAlphabeticOrdering();
 
   BiddyReport();
   /* Biddy_PrintInfo(NULL); */
   Biddy_Exit();
+  
+  free(prefixFile);
+  free(benchFile);
+  free(infixFile);
+  free(vhdlFile);
 }

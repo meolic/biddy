@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
-  <Product Id="*" Name="Biddy" Language="1033" Version="2.0.2" Manufacturer="Robert Meolic" UpgradeCode="6a7bf51c-3ec1-479e-aa40-4496ff579f36">
+  <Product Id="*" Name="Biddy" Language="1033" Version="2.1.1" Manufacturer="Robert Meolic" UpgradeCode="6a7bf51c-3ec1-479e-aa40-4496ff579f36">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 		<MediaTemplate />
@@ -13,7 +13,7 @@
 	<Fragment>
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLFOLDER" Name="biddy-202" />
+				<Directory Id="INSTALLFOLDER" Name="biddy-211" />
 			</Directory>
 		</Directory>
 	</Fragment>

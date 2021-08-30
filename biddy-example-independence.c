@@ -1,10 +1,10 @@
-/* $Revision: 618 $ */
-/* $Date: 2020-03-28 12:38:59 +0100 (sob, 28 mar 2020) $ */
+/* $Revision: 652 $ */
+/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
 /* This file (biddy-example-independence.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v1.8 and CUDD v3.0.0 */
+/* This example is compatible with Biddy v2.0.3 (and laters) and CUDD v3.0.0 */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
 /* gcc -DNOCONVERGE -DNOPROFILE -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-independence biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -lbiddy */
@@ -435,9 +435,17 @@ int main(int argc, char** argv) {
     }
 
 #ifndef PROFILE
+
+    printf("Time = %.2f\n",(clock()-elapsedtime)/(1.0*CLOCKS_PER_SEC));
+
+    /* DEBUGGING */
+    /*
+    printf("Starting the interactive part... use 'x' to finish the program.\n");
+    */
+
     printf("Resulting function r1/r2 depends on %u/%u variables.\n",n1,n2);
     printf("Resulting function r1/r2 has %.0f/%.0f minterms.\n",Biddy_CountMinterms(r1,n1),Biddy_CountMinterms(r2,n2));
-    printf("System has %u nodes / %lu live nodes.\n",Biddy_NodeTableNum(),Biddy_NodeTableNumLive());
+    printf("System has %u total nodes and %lu live nodes.\n",Biddy_NodeTableNum(),Biddy_NodeTableNumLive());
 #ifdef BIDDY
     printf("%s",Biddy_GetManagerName());
     printf(" for resulting function r1/r2 has %u/%u nodes (%u/%u plain nodes).\n",
@@ -513,6 +521,7 @@ int main(int argc, char** argv) {
   free(userinput);
 
   /* PROFILING */
+#ifdef PROFILE
   memoryinuse = Biddy_ReadMemoryInUse();
 #ifdef MINGW
   printf("%I64u, %u",memoryinuse,Biddy_NodeTableDRTime());
@@ -521,6 +530,7 @@ int main(int argc, char** argv) {
 #endif
   printf(", %u/%u",Biddy_CountNodes(r1),Biddy_CountNodes(r2));
   printf("\n");
+#endif
 
   /* EXIT */
 
