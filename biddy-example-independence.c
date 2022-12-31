@@ -1,10 +1,10 @@
-/* $Revision: 652 $ */
-/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
+/* $Revision: 658 $ */
+/* $Date: 2021-09-12 20:08:44 +0200 (ned, 12 sep 2021) $ */
 /* This file (biddy-example-independence.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
 
-/* This example is compatible with Biddy v2.0.3 (and laters) and CUDD v3.0.0 */
+/* This example is compatible with Biddy v2.0.2 (and laters) and CUDD v3.0.0 */
 
 /* COMPILE WITH (ADD -lgmp IF USING STATIC BIDDY LIBRARY): */
 /* gcc -DNOCONVERGE -DNOPROFILE -DUNIX -DBIDDY -DOBDDC -O2 -o biddy-example-independence biddy-example-independence.c biddy-example-independence-usa.c biddy-example-independence-europe.c -I. -L./bin -lbiddy */

@@ -15,14 +15,14 @@ Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyMain.c]
-    Revision    [$Revision: 655 $]
-    Date        [$Date: 2021-08-29 20:10:33 +0200 (ned, 29 avg 2021) $]
+    Revision    [$Revision: 674 $]
+    Date        [$Date: 2022-12-29 19:49:52 +0100 (čet, 29 dec 2022) $]
     Authors     [Robert Meolic (robert@meolic.com)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -136,7 +136,9 @@ static Biddy_Variable swapWithHigher(Biddy_Manager MNG, Biddy_Variable v, Biddy_
 static Biddy_Variable swapWithLower(Biddy_Manager MNG, Biddy_Variable v, Biddy_Boolean *active);
 static void swapVariables(Biddy_Manager MNG, Biddy_Variable low, Biddy_Variable high, Biddy_Boolean *active);
 static void oneSwap(Biddy_Manager MNG, BiddyNode *sup, Biddy_Variable low, Biddy_Variable high, Biddy_Edge *u0, Biddy_Edge *u1);
+#ifndef COMPACT
 static void oneSwapEdge(Biddy_Manager MNG, Biddy_Edge sup, Biddy_Variable low, Biddy_Variable high, Biddy_Edge *u, Biddy_Boolean *active);
+#endif
 static void nullOrdering(BiddyOrderingTable table);
 static void alphabeticOrdering(Biddy_Manager MNG, BiddyOrderingTable table);
 static void nodeNumberOrdering(Biddy_Manager MNG, Biddy_Edge f, unsigned int *i, BiddyOrderingTable ordering);
@@ -147,10 +149,10 @@ static void debugNode(Biddy_Manager MNG, BiddyNode *node);
 static void debugEdge(Biddy_Manager MNG, Biddy_Edge edge);
 
 /* debugging */
-/**/
+/*
 static void writeORDER(Biddy_Manager MNG);
 static void debugORDERING(Biddy_Manager MNG, BiddyOrderingTable table, Biddy_Variable varnum);
-/**/
+*/
 
 /* currently, not used */
 /*
@@ -8623,7 +8625,7 @@ BiddyManagedSwapWithLower(Biddy_Manager MNG, Biddy_Variable v)
 Biddy_Boolean
 BiddyManagedSifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
 {
-  Biddy_Boolean DEBUGGING = FALSE;
+  /* Biddy_Boolean DEBUGGING = FALSE; */
   Biddy_Boolean status;
   clock_t starttime;
 
@@ -8643,7 +8645,7 @@ BiddyManagedSifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
   */
 
   /* DEBUGGING */
-  /**/
+  /*
   if (DEBUGGING)
   {
   Biddy_Variable n;
@@ -8683,7 +8685,7 @@ BiddyManagedSifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
   }
   printf("========================================\n");
   }
-  /**/
+  */
 
   /* DEBUGGING */
   /*
@@ -8728,7 +8730,7 @@ BiddyManagedSifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
   biddyNodeTable.drtime += clock() - starttime;
 
   /* DEBUGGING */
-  /**/
+  /*
   if (DEBUGGING)
   {
   Biddy_Variable n;
@@ -8756,7 +8758,7 @@ BiddyManagedSifting(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean converge)
   }
   printf("========================================\n");
   }
-  /**/
+  */
 
   /* DEBUGGING */
   /*
@@ -12887,7 +12889,7 @@ BiddySystemReport(Biddy_Manager MNG)
             BiddyManagedGetTopVariableName(MNG,BiddyE(biddyFormulaTable.table[i].f)),
             BiddyManagedGetVariableName(MNG,BiddyGetTag(BiddyT(biddyFormulaTable.table[i].f))),
             BiddyManagedGetTopVariableName(MNG,BiddyT(biddyFormulaTable.table[i].f)));
-          free((void *)1); /* BREAKPOINT */
+          /* free((void*)1); */ /* BREAKPOINT */
         }
 
         /* this will check the structure of the graph */
@@ -12942,7 +12944,7 @@ BiddySystemReport(Biddy_Manager MNG)
 
     if (!sup) {
       fprintf(stderr,"ERROR (BiddySystemReport): Empty list for variable \"%s\"\n",biddyVariableTable.table[v].name);
-      free((void *)1); /* BREAKPOINT */
+      /* free((void*)1); */ /* BREAKPOINT */
     }
 
     if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD) ||
@@ -12955,7 +12957,7 @@ BiddySystemReport(Biddy_Manager MNG)
           sup?BiddyManagedGetTopVariableName(MNG,sup):"NULL",
           sup->f?BiddyManagedGetTopVariableName(MNG,sup->f):"NULL",
           sup->t?BiddyManagedGetTopVariableName(MNG,sup->t):"NULL");
-        free((void *)1); /* BREAKPOINT */
+        /* free((void*)1); */ /* BREAKPOINT */
       }
     }
 
@@ -12969,7 +12971,7 @@ BiddySystemReport(Biddy_Manager MNG)
           sup?BiddyManagedGetTopVariableName(MNG,sup):"NULL",
           sup->f?BiddyManagedGetTopVariableName(MNG,sup->f):"NULL",
           sup->t?BiddyManagedGetTopVariableName(MNG,sup->t):"NULL");
-        free((void *)1); /* BREAKPOINT */
+        /* free((void*)1); */ /* BREAKPOINT */
       }
     }
 #endif
@@ -12984,7 +12986,7 @@ BiddySystemReport(Biddy_Manager MNG)
           sup?BiddyManagedGetTopVariableName(MNG,sup):"NULL",
           sup->f?BiddyManagedGetTopVariableName(MNG,sup->f):"NULL",
           sup->t?BiddyManagedGetTopVariableName(MNG,sup->t):"NULL");
-        free((void *)1); /* BREAKPOINT */
+        /* free((void*)1); */ /* BREAKPOINT */
       }
     }
 #endif
@@ -13000,7 +13002,7 @@ BiddySystemReport(Biddy_Manager MNG)
           sup?BiddyManagedGetTopVariableName(MNG,sup):"NULL",
           sup->f?BiddyManagedGetTopVariableName(MNG,sup->f):"NULL",
           sup->t?BiddyManagedGetTopVariableName(MNG,sup->t):"NULL");
-        free((void *)1); /* BREAKPOINT */
+        /* free((void*)1); */ /* BREAKPOINT */
       }
     }
 #endif
@@ -13030,20 +13032,20 @@ BiddySystemReport(Biddy_Manager MNG)
         tmp?BiddyManagedGetTopVariableName(MNG,BiddyE(tmp)):"NULL",
         tmp?BiddyGetMark(BiddyT(tmp)):0,
         tmp?BiddyManagedGetTopVariableName(MNG,BiddyT(tmp)):"NULL");
-      free((void *)1); /* BREAKPOINT */
+      /* free((void*)1); */ /* BREAKPOINT */
     }
 
     do {
 
       if (!sup) {
         fprintf(stderr,"ERROR (BiddySystemReport): Problem with lastNode for variable \"%s\"\n",biddyVariableTable.table[v].name);
-        free((void *)1); /* BREAKPOINT */
+        /* free((void*)1); */ /* BREAKPOINT */
       }
 
       if (!sup->f || !sup->t) {
         fprintf(stderr,"ERROR (BiddySystemReport): Node with NULL successor \"%s\"\n",biddyVariableTable.table[v].name);
         debugNode(MNG,sup);
-        free((void *)1); /* BREAKPOINT */
+        /* free((void*)1); */ /* BREAKPOINT */
       }
 
       if (sup->v != v) {
@@ -13053,7 +13055,7 @@ BiddySystemReport(Biddy_Manager MNG)
           BiddyManagedGetTopVariableName(MNG,sup),
           BiddyManagedGetTopVariableName(MNG,sup->f),
           BiddyManagedGetTopVariableName(MNG,sup->t));
-        free((void *)1); /* BREAKPOINT */
+        /* free((void*)1); */ /* BREAKPOINT */
       }
 
       if ((sup->f && !BiddyIsSmaller(biddyOrderingTable,v,BiddyV(sup->f))) || (sup->t && !BiddyIsSmaller(biddyOrderingTable,v,BiddyV(sup->t))))
@@ -13065,7 +13067,7 @@ BiddySystemReport(Biddy_Manager MNG)
           BiddyManagedGetTopVariableName(MNG,sup->f),
           BiddyManagedGetTopVariableName(MNG,sup->t),
           sup->expiry);
-        free((void *)1); /* BREAKPOINT */
+        /* free((void*)1); */ /* BREAKPOINT */
       }
 
 #ifndef COMPACT
@@ -13083,7 +13085,7 @@ BiddySystemReport(Biddy_Manager MNG)
             BiddyManagedGetTopVariableName(MNG,sup->f),
             BiddyManagedGetVariableName(MNG,BiddyGetTag(sup->t)),
             BiddyManagedGetTopVariableName(MNG,sup->t));
-          free((void *)1); /* BREAKPOINT */
+          /* free((void*)1); */ /* BREAKPOINT */
         }
       }
 #endif
@@ -13099,7 +13101,7 @@ BiddySystemReport(Biddy_Manager MNG)
             BiddyManagedGetTopVariableName(MNG,sup),
             BiddyManagedGetTopVariableName(MNG,sup->f),
             BiddyManagedGetTopVariableName(MNG,sup->t));
-          free((void *)1); /* BREAKPOINT */
+          /* free((void*)1); */ /* BREAKPOINT */
         }
         sup2 = (BiddyNode *) sup1->next;
         if (sup2) {
@@ -13116,7 +13118,7 @@ BiddySystemReport(Biddy_Manager MNG)
               BiddyManagedGetTopVariableName(MNG,sup2),
               BiddyManagedGetTopVariableName(MNG,sup2->f),sup2->f,
               BiddyManagedGetTopVariableName(MNG,sup2->t),sup2->t);
-            free((void *)1); /* BREAKPOINT */
+            /* free((void*)1); */ /* BREAKPOINT */
           }
         }
       }
@@ -13148,7 +13150,7 @@ BiddySystemReport(Biddy_Manager MNG)
       fprintf(stderr,"ERROR (BiddySystemReport): wrong number of nodes for a variable\n");
       fprintf(stderr,"VARIABLE: variable \"%s\", num=%u, count1=%u\n",
         biddyVariableTable.table[v].name,biddyVariableTable.table[v].num,count1);
-      free((void *)1); /* BREAKPOINT */
+      /* free((void*)1); */ /* BREAKPOINT */
     }
 
 #ifdef SYSTEMREPORTDETAILS
@@ -13169,7 +13171,7 @@ BiddySystemReport(Biddy_Manager MNG)
     fprintf(stderr,"ERROR (BiddySystemReport): total number of nodes (%u by lists) differs from num = %u\n",
             countfortified+countprolonged+countfresh+countobsolete,
             biddyNodeTable.num);
-    free((void *)1); /* BREAKPOINT */
+    /* free((void*)1); */ /* BREAKPOINT */
   }
 
   /* BDD SYSTEM BY NODE TABLE */
@@ -13229,7 +13231,7 @@ BiddySystemReport(Biddy_Manager MNG)
     fprintf(stderr,"ERROR (BiddySystemReport): total number of nodes (%u by table) differs from num = %u\n",
             countfortified+countprolonged+countfresh+countobsolete,
             biddyNodeTable.num);
-    free((void *)1); /* BREAKPOINT */
+    /* free((void*)1); */ /* BREAKPOINT */
   }
 
 }
@@ -13302,12 +13304,12 @@ BiddyFunctionReport(Biddy_Manager MNG, Biddy_Edge f)
   printf("FUNCTION: counted number of nodes: %d, expiry value of top node: %d/%d\n",num,
           ((BiddyNode *) BiddyP(f))->expiry,biddySystemAge);
 
-  /* determine highest (bottommost) variable */
+  /* determine highest (bottommost) variable that is not "1" */
   minvar = maxvar = BiddyV(f);
   stop = FALSE;
   while (!stop) {
     stop = TRUE;
-    for (k=1; k<biddyVariableTable.num; k++) {
+    for (k=1; k<BiddyManagedVariableTableNum(MNG); k++) {
       if (BiddyIsSmaller(*fOrdering,maxvar,k)) {
         maxvar = k;
         stop = FALSE;
@@ -15169,11 +15171,11 @@ oneSwap(Biddy_Manager MNG, BiddyNode *sup, Biddy_Variable low,
 ### More info
 *******************************************************************************/
 
+#ifndef COMPACT
 static void
 oneSwapEdge(Biddy_Manager MNG, Biddy_Edge sup, Biddy_Variable low,
             Biddy_Variable high, Biddy_Edge *u, Biddy_Boolean *active)
 {
-#ifndef COMPACT
 
   Biddy_Edge u0,u1;
 
@@ -15291,14 +15293,8 @@ oneSwapEdge(Biddy_Manager MNG, Biddy_Edge sup, Biddy_Variable low,
     BiddySetTag(*u,high);
 
   }
-
-#else
-  if (MNG || sup || low || high || u || active) {
-    /* MAKE COMPILER HAPPY */
-  }
-#endif
-
 }
+#endif
 
 /*******************************************************************************
 \brief Function nullOrdering.
@@ -15798,7 +15794,7 @@ writeBDD(Biddy_Manager MNG, Biddy_Edge f)
     Currently, not used.
 *******************************************************************************/
 
-/**/
+/*
 static void
 debugORDERING(Biddy_Manager MNG, BiddyOrderingTable table,
               Biddy_Variable varnum)
@@ -15828,7 +15824,7 @@ debugORDERING(Biddy_Manager MNG, BiddyOrderingTable table,
   }
 #endif
 }
-/**/
+*/
 
 /*******************************************************************************
 \brief Function writeORDER.
@@ -15842,7 +15838,7 @@ debugORDERING(Biddy_Manager MNG, BiddyOrderingTable table,
     Currently, not used.
 *******************************************************************************/
 
-/**/
+/*
 static void
 writeORDER(Biddy_Manager MNG)
 {
@@ -15867,7 +15863,7 @@ writeORDER(Biddy_Manager MNG)
   }
   printf("\n");
 }
-/**/
+*/
 
 /*******************************************************************************
 \brief Function warshall.

@@ -126,7 +126,11 @@ Changes v2.0.2 versus v2.0.1
 - released on May 4, 2020
 - fixed infix parser
 
-Changes 2.1.1 versus v2.0.2
+Changes v2.1.1 versus v2.0.2
 - released on Aug 30, 2021
 - added support for bddview format with multiple labels
 - better handling of formulae (remember the corresponding bddview file)
+
+Changes v2.2.1 versus v2.1.1
+- released on Dec 30, 2022
+- upgraded to Visual Studio 2022

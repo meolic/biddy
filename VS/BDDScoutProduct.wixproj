@@ -6,7 +6,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>92b30652-44c4-4ae4-9029-1246265e4a88</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>bddscout-2-1-1-Win</OutputName>
+    <OutputName>bddscout-2-2-1-Win</OutputName>
     <OutputType>Package</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">

@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddy.h]
-    Revision    [$Revision: 652 $]
-    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
+    Revision    [$Revision: 676 $]
+    Date        [$Date: 2022-12-31 13:38:40 +0100 (sob, 31 dec 2022) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -72,7 +72,28 @@ See also: biddyInt.h
 #  endif
 #endif
 
-#if defined(MINGW) || defined(_MSC_VER)
+#ifdef MINGW
+#  ifdef BUILD_BIDDY
+#    undef EXTERN
+#    define EXTERN __declspec (dllexport)
+#    undef DATAEXTERN
+#    define DATAEXTERN extern __declspec (dllexport)
+#  else
+#    ifdef USE_BIDDY
+#      undef EXTERN
+#      define EXTERN __declspec (dllimport)
+#      undef DATAEXTERN
+#      define DATAEXTERN __declspec (dllimport)
+#    else
+#      undef EXTERN
+#      define EXTERN extern
+#      undef DATAEXTERN
+#      define DATAEXTERN extern
+#    endif
+#  endif
+#endif
+
+#ifdef _MSC_VER
 #  ifdef BUILD_BIDDY
 #    undef EXTERN
 #    define EXTERN __declspec (dllexport)
@@ -101,7 +122,7 @@ See also: biddyInt.h
 #endif
 
 #ifndef BIDDYVERSION
-#define BIDDYVERSION "2.0.3"
+#define BIDDYVERSION "2.2.1"
 #endif
 
 /*----------------------------------------------------------------------------*/
@@ -301,7 +322,8 @@ typedef void *Biddy_Cache;
 
 /*! \class Biddy_Variable
     \brief Biddy_Variable is used for indices in variable table. */
-/* for tagged graphs this should not be larger than 16 bits = unsigned short int */
+/* do not used PLAIN for tagged graphs */
+/* for tagged graphs sizeof(Biddy_Variable) must not be larger than 16 bits = unsigned short int */
 #ifdef PLAIN
 typedef unsigned int Biddy_Variable;
 #else
@@ -985,9 +1007,15 @@ EXTERN Biddy_Edge Biddy_Managed_RandomFunction(Biddy_Manager MNG, Biddy_Edge sup
 EXTERN Biddy_Edge Biddy_Managed_RandomSet(Biddy_Manager MNG, Biddy_Edge unit, double ratio);
 
 /* 111 */
-/*! Macro Biddy_ExtractMinterm is defined for use with anonymous manager. */
-#define Biddy_ExtractMinterm(f) Biddy_Managed_ExtractMinterm(NULL,f)
-EXTERN Biddy_Edge Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge f);
+/*! Macro Biddy_ExtractMinterm and Biddy_ExtractMintermWithSupport are defined for use with anonymous manager. */
+#define Biddy_ExtractMinterm(f) Biddy_Managed_ExtractMinterm(NULL,NULL,f)
+#define Biddy_ExtractMintermWithSupport(support,f) Biddy_Managed_ExtractMinterm(NULL,support,f)
+EXTERN Biddy_Edge Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f);
+
+/* 112 */
+/*! Macro Biddy_Dual is defined for use with anonymous manager. */
+#define Biddy_Dual(f,neg) Biddy_Managed_Dual(NULL,f,neg)
+EXTERN Biddy_Edge Biddy_Managed_Dual(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean neg);
 
 #ifdef __cplusplus
 }

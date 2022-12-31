@@ -8,12 +8,12 @@ exec wish "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 655 $]
-#  Date        [$Date: 2021-08-29 20:10:33 +0200 (ned, 29 avg 2021) $]
+#  Revision    [$Revision: 673 $]
+#  Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#               Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -242,7 +242,8 @@ lappend auto_path /usr/lib/bddscout
 # Biddy
 # ####################################################################
 
-set BIDDYVERSION "2.1.1"
+# change BIDDYVERSION in biddy.h, too
+set BIDDYVERSION "2.2.1"
 
 set BFCMDLIST [list \
   "bddview_save" \
@@ -363,7 +364,7 @@ if { $USESPLASH == 1 } {
   pack .splash.f.l -expand 1
   label .splash.f.m1 -text "Copyright (C) 2008, 2019 UM FERI, Maribor, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m1 -fill x -expand 0
-  label .splash.f.m2 -text "Copyright (C) 2019, 2021 Robert Meolic, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
+  label .splash.f.m2 -text "Copyright (C) 2019, 2022 Robert Meolic, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m2 -fill x -expand 0
   label .splash.f.m3 -text "Robert Meolic (robert@meolic.com)" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m3 -fill x -expand 0
@@ -1820,11 +1821,10 @@ proc menu_help_about {} {
 
   text .helpAbout.w -bg $COLORMENU -height 20 -width 100
   .helpAbout.w insert 1.0 "\
-  BDD Scout v$BIDDYVERSION\n\
-  \$Date: 2021-08-29 20:10:33 +0200 (ned, 29 avg 2021) $ \n\n\
+  BDD Scout v$BIDDYVERSION\n\n\
   Author: Robert Meolic (robert@meolic.com)\n\n\
   Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\
-  Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia\n\n\
+  Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia\n\n\
   Biddy is free software; you can redistribute it and/or modify it under the terms\n\
   of the GNU General Public License as published by the Free Software Foundation;\n\
   either version 2 of the License, or (at your option) any later version.\n\n\

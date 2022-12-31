@@ -3,13 +3,13 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 652 $]
-#  Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
+#  Revision    [$Revision: 676 $]
+#  Date        [$Date: 2022-12-31 13:38:40 +0100 (sob, 31 dec 2022) $]
 #
 #  Copyright   [
 #    This file is part of Biddy.
 #    Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#    Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
+#    Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #    Biddy is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as
@@ -36,28 +36,50 @@ MKDIR = mkdir -p
 CP = cp
 RM = rm -f
 GCC = gcc
-AR = ar
+AR = ar v
 
-# use 32-bit version of MPIR
-#MPIRPATH = "/c/Users/Robert/source/repos/mpir32-2.7.2-static"
-#MPIRDLLPATH = "/c/Users/Robert/source/repos/mpir32-2.7.2-dynamic"
+# MPIR (http://mpir.org/)
+# git clone git://github.com/BrianGladman/mpir.git mpir
+# cd mpir
+#  ./autogen.sh
+# ./configure --prefix=/home/rober/mpir-static --disable-shared --enable-static
+# make
+# make install
+# make clean
+# ./configure --prefix=/home/rober/mpir-dynamic --enable-shared --disable-static
+# make
+# make install
 
-# use 64-bit version of MPIR
-MPIRPATH = "/c/Users/Robert/source/repos/mpir-2.7.2-static"
-MPIRDLLPATH = "/c/Users/Robert/source/repos/mpir-2.7.2-dynamic"
+# use 32-bit version of MPIR instead of GMP
+#LIBGMPPATH = "/home/rober"
+#LIBGMPSTATIC = -L"$(LIBGMPPATH)/mpir32-static/lib/" -lmpir
+#LIBGMPDYNAMIC = -L"$(LIBGMPPATH)/mpir32-dynamic/lib" -lmpir.dll
+#LIBGMPDLL = "$(LIBGMPPATH)/mpir32-dynamic/bin/libmpir-23.dll"
 
-LIBGMP = -L$(MPIRPATH)/lib -lmpir
+# use 64-bit version of MPIR instead of GMP
+LIBGMPPATH = "/home/rober"
+LIBGMPSTATIC = -L"$(LIBGMPPATH)/mpir-static/lib/" -lmpir
+LIBGMPDYNAMIC = -L"$(LIBGMPPATH)/mpir-dynamic/lib" -lmpir.dll
+LIBGMPDLL = "$(LIBGMPPATH)/mpir-dynamic/bin/libmpir-23.dll"
+
+# use GMP from MSYS2
+#LIBGMPPATH = /mingw64
+#LIBGMPSTATIC = -L"$(LIBGMPPATH)/lib" -Wl,-Bstatic -lgmp
+#LIBGMPDYNAMIC = -L"$(LIBGMPPATH)/lib" -lgmp.dll
+#LIBGMPDLL = "$(LIBGMPPATH)/bin/libgmp-10.dll"
 
 all: dynamic
 
+# in some previous versions, dynamic Biddy library was staticaly linked with GMP library - cannot reproduce this again !?
 dynamic:
 	@$(MKDIR) $(BINDIR)
 	@$(MAKE) lib \
 	"BIDDYVERSION = $(BIDDYVERSION)" \
 	"LIBNAME = biddy.dll" \
-	"LIBGMP = $(LIBGMP)" \
+	"LIBGMP = $(LIBGMPDYNAMIC)" \
 	"CC = $(GCC) $(CFLAGS) -DNDEBUG -O2 -DMINGW -DBUILD_BIDDY" \
 	"LN = $(GCC) $(CFLAGS) -shared -Wl,--out-implib,biddy.lib -o"
+	@$(CP) $(LIBGMPDLL) $(BINDIR) 
 
 static:
 	@$(MAKE) lib \

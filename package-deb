@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 656 $]
-#  Date        [$Date: 2021-08-29 22:44:21 +0200 (ned, 29 avg 2021) $]
+#  Revision    [$Revision: 673 $]
+#  Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
 #
 #  Copyright   [
 #    This file is part of Biddy.
 #    Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#    Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
+#    Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #    Biddy is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as
@@ -147,12 +147,12 @@ mv `pwd`/../*.build `pwd`/../$DISTRO/source
 mv `pwd`/../*.buildinfo `pwd`/../$DISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$DISTRO/source
 
-# create a source distribution for bionic
-# pbuilder-dist bionic create
-# pbuilder-dist bionic update
+# create a source distribution for jammy
+# pbuilder-dist jammy create
+# pbuilder-dist jammy update
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=bionic
+ALTDISTRO=jammy
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -165,12 +165,12 @@ mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for hirsute
-# pbuilder-dist hirsute create
-# pbuilder-dist hirsute update
+# create a source distribution for kinetic
+# pbuilder-dist kinetic create
+# pbuilder-dist kinetic update
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=hirsute
+ALTDISTRO=kinetic
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -198,11 +198,11 @@ echo ""
 echo "BUILDING FOR YOUR DISTRO: $DISTRO"
 pbuilder-dist $DISTRO build --buildresult `pwd`/$DISTRO `pwd`/$DISTRO/source/*.dsc
 
-ALTDISTRO=bionic
+ALTDISTRO=jammy
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 
-ALTDISTRO=hirsute
+ALTDISTRO=kinetic
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 

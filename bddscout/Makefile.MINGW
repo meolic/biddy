@@ -3,12 +3,12 @@
 # ######################################################################
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 652 $]
-#  Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
+#  Revision    [$Revision: 676 $]
+#  Date        [$Date: 2022-12-31 13:38:40 +0100 (sob, 31 dec 2022) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#               Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -31,42 +31,65 @@ RM = rm -f
 GCC = gcc
 AR = ar
 
-# MSYS2 PATHS FOR 64-BIT TCL/TK
+# MSYS2 PATHS FOR 64-BIT TCL/TK - NOT NEEDED IF ACTIVE TCL IS USED
 # pacman -S mingw-w64-x86_64-tcl
 # pacman -S mingw-w64-x86_64-tk
 #TCLBASE = /mingw64
 
-# MSYS2 PATHS FOR 32-BIT TCL/TK
+# MSYS2 PATHS FOR 32-BIT TCL/TK - NOT NEEDED IF ACTIVE TCL IS USED
 # pacman -S mingw-w64-i686-tcl
 # pacman -S mingw-w64-i686-tk
 #TCLBASE = /mingw64
 
 # ACTIVE TCL PATHS FOR TCL/TK
+# https://www.activestate.com/products/tcl/
 TCLBASE = /c/ActiveTcl
 
 # -ltk should be written before -ltcl
 # USE -ltk$(TCLVERSION)t -ltcl$(TCLVERSION)t IF YOUR ACTIVE TCL HAS tcl86t.dll AND tk86t.dll INSTEAD OF tcl86.dll AND tk86.dll
 TCLVERSION = $(shell echo 'puts $$tcl_version' | "$(TCLBASE)/bin/tclsh" | sed "s/[.]//g")
 TCLINCLUDE = -I\"$(TCLBASE)/include\" -DUSE_TCL_STUBS
-TCLSTUBLIB = -L\"$(TCLBASE)/bin\" -ltclstub$(TCLVERSION)
-TCLTKLIB = -L\"$(TCLBASE)/bin\" -ltk$(TCLVERSION)t -ltcl$(TCLVERSION)t
+TCLSTUBLIB = -L\"$(TCLBASE)/lib\" -ltclstub$(TCLVERSION)
+TCLTKLIB = -L\"$(TCLBASE)/lib\" -ltk$(TCLVERSION)t -ltcl$(TCLVERSION)t
 
-# use 64-bit version of MPIR
-MPIRPATH = "/c/Users/Robert/source/repos/mpir-2.7.2-static"
-MPIRDLLPATH = "/c/Users/Robert/source/repos/mpir-2.7.2-dynamic"
+# MPIR (http://mpir.org/)
+# git clone git://github.com/BrianGladman/mpir.git mpir
+# cd mpir
+#  ./autogen.sh
+# ./configure --prefix=/home/rober/mpir-static --disable-shared --enable-static
+# make
+# make install
+# make clean
+# ./configure --prefix=/home/rober/mpir-dynamic --enable-shared --disable-static
+# make
+# make install
 
-# use 32-bit version of MPIR
-#MPIRPATH = "/c/Users/Robert/source/repos/mpir32-2.7.2-static"
-#MPIRDLLPATH = "/c/Users/Robert/source/repos/mpir32-2.7.2-dynamic"
+# use 32-bit version of MPIR instead of GMP
+#LIBGMPPATH = "/home/rober"
+#LIBGMPSTATIC = -L"$(LIBGMPPATH)/mpir32-static/lib" -lmpir
+#LIBGMPDYNAMIC = -L"$(LIBGMPPATH)/mpir32-dynamic/lib" -lmpir.dll
+#LIBGMPDLL = "$(LIBGMPPATH)/mpir32-dynamic/bin/libmpir-23.dll"
 
-GMPLIB = -L"$(MPIRPATH)/lib" -Wl,-Bdynamic -lmpir
+# use 64-bit version of MPIR instead of GMP
+LIBGMPPATH = "/home/rober"
+LIBGMPSTATIC = -L"$(LIBGMPPATH)/mpir-static/lib" -lmpir
+LIBGMPDYNAMIC = -L"$(LIBGMPPATH)/mpir-dynamic/lib" -lmpir.dll
+LIBGMPDLL = "$(LIBGMPPATH)/mpir-dynamic/bin/libmpir-23.dll"
 
-BDDPATH = /c/Users/Robert/source/repos/biddy/bin
+# use GMP from MSYS2
+#LIBGMPPATH = /mingw64
+#LIBGMPSTATIC = -L"$(LIBGMPPATH)/lib" -Wl,-Bstatic -lgmp
+#LIBGMPDYNAMIC = -L"$(LIBGMPPATH)/lib" -lgmp.dll
+#LIBGMPDLL = "$(LIBGMPPATH)/bin/libgmp-10.dll"
+
+# copy LIBGMPDLL into target folder if dynamicaly linked GMP library is used
+# copy biddy.dll into target folder if dynamicaly linked Biddy library is used
 
 all: local
 
-# used for local testing (../bin must contain static or dynamic linked Biddy library)
-# add -DUSE_BIDDY, clear GMPLIB, and change BIDDYLIB if you want to use dynamically linked Biddy library
+# used for local testing (../bin must contain correctly builded Biddy library)
+# in some previous versions, staticaly linked Biddy library and staticaly linked GMP library was used, cannot reproduce this again !?
+# currently, this is using staticaly linked Biddy library and dynamicaly linked GMP library
 local:
 	@$(MAKE) local -f Makefile \
 	"MAINNAME = bddscout.dll" \
@@ -82,13 +105,16 @@ local:
 	"BIDDYLIBEXT = -L. -lbddscout" \
 	"BDDVIEWDIR = ../bddview" \
 	"BDDSCOUTSTUBLIB = libbddscoutstub.a" \
-	"GMPLIB = $(GMPLIB)" \
+	"GMPLIB = $(LIBGMPDYNAMIC)" \
 	"TCLINCLUDE = $(TCLINCLUDE)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"
-	$(CP) ../bin/*.dll ./bin
+#	$(CP) ../bin/biddy.dll ./bin
+	$(CP) $(LIBGMPDLL) ./bin
 
 # used for packaging
+# in some previous versions, staticaly linked Biddy library and staticaly linked GMP library was used, cannot reproduce this again !?
+# currently, this is using staticaly linked Biddy library and dynamicaly linked GMP library
 package:
 	@$(MAKE) package -f Makefile \
 	"MAINNAME = bddscout.dll" \
@@ -99,7 +125,7 @@ package:
 	"LN = $(GCC) -shared -o" \
 	"AR = $(AR) rcs" \
 	"BDDSCOUTSTUBLIB = libbddscoutstub.a" \
-	"GMPLIB = $(GMPLIB)" \
+	"GMPLIB = $(LIBGMPDYNAMIC)" \
 	"TCLINCLUDE = $(TCLINCLUDE)" \
 	"TCLTKLIB = $(TCLTKLIB)" \
 	"TCLSTUBLIB = $(TCLSTUBLIB)"

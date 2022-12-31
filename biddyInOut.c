@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 652 $]
-    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
+    Revision    [$Revision: 673 $]
+    Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net),
                  Volodymyr Mihav (mihaw.wolodymyr@gmail.com),
@@ -23,7 +23,7 @@
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -103,7 +103,9 @@ static Biddy_Edge ReadBDD(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_Strin
 
 /* Functions createVariablesFromBTree and createBddFromBTree() are used in Biddy_Eval1() and Biddy_Eval2(). */
 
+#ifndef COMPACT
 static void createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_LookupFunction lf);
+#endif
 static Biddy_Edge createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i, Biddy_LookupFunction lf);
 
 /* The following functions are used in Biddy_Eval1() and Biddy_Eval1x(). */
@@ -156,11 +158,17 @@ static void WriteBddviewConnections(Biddy_Manager MNG, FILE *funfile, Biddy_Edge
 static Biddy_String getname(Biddy_Manager MNG, void *p);
 static Biddy_String getshortname(Biddy_Manager MNG, void *p, int n);
 
+/* NOT USED */
+/*
+static void reportOrdering(Biddy_Manager MNG);
+static void PrintMintermsOBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, Biddy_Boolean negative);
+*/
+
 /*----------------------------------------------------------------------------*/
 /* Static functions for debugging                                             */
 /*----------------------------------------------------------------------------*/
 
-/**/
+/*
 static void
 printBiddyBTreeContainer(BiddyBTreeContainer *tree)
 {
@@ -183,7 +191,9 @@ printBiddyBTreeContainer(BiddyBTreeContainer *tree)
     }
   }
 }
+*/
 
+/*
 static void
 printPrefixFromBTree(BiddyBTreeContainer *tree, int i)
 {
@@ -213,7 +223,7 @@ printPrefixFromBTree(BiddyBTreeContainer *tree, int i)
   printPrefixFromBTree(tree,tree->tnode[i].right);
   printf(")");
 }
-/**/
+*/
 
 /*----------------------------------------------------------------------------*/
 /* Definition of exported functions                                           */
@@ -2910,6 +2920,7 @@ ReadBDD(Biddy_Manager MNG, Biddy_String s, int *i, Biddy_String *ch)
   return f;
 }
 
+#ifndef COMPACT
 static void
 createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_LookupFunction lf)
 {
@@ -2964,6 +2975,7 @@ createVariablesFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, Biddy_Loo
   }
 #endif
 }
+#endif
 
 static Biddy_Edge
 createBddFromBTree(Biddy_Manager MNG, BiddyBTreeContainer *tree, int i, Biddy_LookupFunction lf)
@@ -5332,6 +5344,7 @@ getshortname(Biddy_Manager MNG, void *p, int n)
 /* Unused static functions                                                    */
 /*----------------------------------------------------------------------------*/
 
+#if FALSE
 static void
 reportOrdering(Biddy_Manager MNG)
 {
@@ -5345,7 +5358,9 @@ reportOrdering(Biddy_Manager MNG)
   }
   printf("\n");
 }
+#endif
 
+#if FALSE
 static void
 PrintMintermsOBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, Biddy_Boolean negative)
 {
@@ -5490,3 +5505,4 @@ PrintMintermsOBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, B
 
   free(variableTable);
 }
+#endif

@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 652 $]
-    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
+    Revision    [$Revision: 676 $]
+    Date        [$Date: 2022-12-31 13:38:40 +0100 (sob, 31 dec 2022) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -51,23 +51,29 @@ See also: biddy.h
 /* define COMPACT for variant with only ROBDDs */
 #define NOCOMPACT
 
+/* define PLAIN for more variables with OBDDs and ZBDDs, tagged variants will not be supported */
+#define NOPLAIN
+
 /* define GMPFREE for variant without gmp library - it has limited functionality */
 #define NOGMPFREE
 
 /* define LOWMEMORY to use settings which try to lower memory requirements */
 #define NOLOWMEMORY
 
-/* define ESTPROJECT to use optimal settings for EST */
-#define NOESTPROJECT
-
 /* define COMPREHENSIVE for larger problems, e.g. dictionary, pp, ta, ptask, etc. */
 #define NOCOMPREHENSIVE
 
-/* define PLAIN for more variables with OBDDs and ZBDDs, tagged variants will not be supported */
-#define NOPLAIN
+/* define ESTPROJECT to use optimal settings for EST */
+#define NOESTPROJECT
 
 /* EST project */
 #ifdef ESTPROJECT
+#ifndef COMPACT
+#define COMPACT
+#endif
+#ifndef PLAIN
+#define PLAIN
+#endif
 #ifdef GMPFREE
 #undef GMPFREE
 #endif
@@ -107,7 +113,7 @@ See also: biddy.h
 
 /* use twodimensional variable ordering matrix (YES or NO) */
 /* twodimensional variable ordering matrix was the only option until 2.0.2 */
-/* in 2.0.3 and later, it is optional and for experimental usage, only */
+/* in 2.1.1 and later, it is optional and for experimental usage, only */
 #define VARIABLEORDERINGMATRIX_NO
 
 /*----------------------------------------------------------------------------*/
@@ -242,7 +248,7 @@ See also: biddy.h
 /* THE FOLLOWING TRESHOLDS ARE float */
 /* all values are experimentally determined */
 /* gcr=1.67, gcrF=1.20, gcrX=0.91, rr=0.01, rrF=1.45, rrX=0.98 */ /* used in v1.7.1 */
-/* gcr=1.32, gcrF=0.99, gcrX=1.10, rr=0.01, rrF=0.89, rrX=0.91 */ /* used in v1.7.2 - v2.0.3 */
+/* gcr=1.32, gcrF=0.99, gcrX=1.10, rr=0.01, rrF=0.89, rrX=0.91 */ /* used in v1.7.2 - v2.1.1 */
 
 #define BIDDYNODETABLEGCRATIO 1.32
 #define BIDDYNODETABLEGCRATIOF 0.99
@@ -253,7 +259,7 @@ See also: biddy.h
 
 /* THE FOLLOWING TRESHOLDS ARE float */
 /* all values are experimentally determined */
-/* st=0.95, cst=1.01, sf=3.14 */ /* used in v1.7.1 - v2.0.3 */
+/* st=0.95, cst=1.01, sf=3.14 */ /* used in v1.7.1 - v2.1.1 */
 
 #define BIDDYNODETABLESIFTINGTRESHOLD 0.95
 #define BIDDYNODETABLECONVERGESIFTINGTRESHOLD 1.01
@@ -509,7 +515,7 @@ See also: biddy.h
 #define BiddyDefresh(f) if(BiddyN(f)->expiry&&(BiddyN(f)->expiry>(biddySystemAge)))BiddyN(f)->expiry=(biddySystemAge)
 
 /* BiddyIsSmaller returns TRUE if the first variable is smaller (= lower = previous = above = topmore) */
-/* manager MNG is assumed, since Biddy v1.7, changed in 2.0.3 */
+/* manager MNG is assumed, since Biddy v1.7, changed in v2.1.1 */
 #ifdef VARIABLEORDERINGMATRIX_YES
 #define BiddyIsSmaller(table,fv,gv) GET_ORDER(table,fv,gv)
 #else
@@ -1126,6 +1132,7 @@ extern Biddy_Edge BiddyManagedCreateFunction(Biddy_Manager MNG, Biddy_Edge suppo
 extern Biddy_Edge BiddyManagedRandomFunction(Biddy_Manager MNG, Biddy_Edge support, double ratio);
 extern Biddy_Edge BiddyManagedRandomSet(Biddy_Manager MNG, Biddy_Edge unit, double ratio);
 extern Biddy_Edge BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f);
+extern Biddy_Edge BiddyManagedDual(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean neg);
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes for internal functions defined in biddyStat.c                   */

@@ -13,15 +13,15 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyStat.c]
-    Revision    [$Revision: 652 $]
-    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
+    Revision    [$Revision: 674 $]
+    Date        [$Date: 2022-12-29 19:49:52 +0100 (čet, 29 dec 2022) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -1209,6 +1209,7 @@ BiddyManagedSystemStat(Biddy_Manager MNG, unsigned int stat)
 
   if (stat == BIDDYSTATVARIABLETABLENUM) {
     /* returns number of used variables */
+    /* return "unsigned int" even if Biddy_Variable is "unsigned short int" */
     /* variable '1' is included */
     return (unsigned int) biddyVariableTable.num;
   }
@@ -1296,6 +1297,7 @@ unsigned long long int
 BiddyManagedSystemLongStat(Biddy_Manager MNG, unsigned int longstat)
 {
   assert( MNG );
+  assert( longstat || !longstat ); /* make compiler happy */
 
 #ifdef BIDDYEXTENDEDSTATS_YES
 

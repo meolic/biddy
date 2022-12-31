@@ -324,3 +324,9 @@ Changes v2.1.1 versus v2.0.2
 - Production Planning example now supports TZBDDs
 - added PTask example (Shift Minimization Personnel Task Scheduling problem)
 - improved benchmarks for circuits manipulation
+
+Changes v2.2.1 versus v2.1.1
+- released on Dec 30, 2022
+- upgraded to Visual Studio 2022
+- added Biddy_Dual
+- added biddy-bff project, a Sailfish OS native app using Biddy

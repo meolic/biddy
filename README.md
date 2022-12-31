@@ -27,22 +27,27 @@ biddy> make static
 biddy> make clean
 ~~~
 
-**Dependencies** (tested on Ubuntu and Windows 10):
+**Dependencies**
 
-- on GNU/Linux, you need libgmp (https://gmplib.org/)
-- on MS Windows, you need MPIR library (http://mpir.org/)
+- you need libgmp (https://gmplib.org/), this library is already available on GNU/Linux and MSYS2 environments
+- on MS Windows, you can use MPIR library (http://mpir.org/) instead of libgmp from MSYS2
 
-When using Biddy on GNU/Linux, you may have to tell bash about the library:
+Programs builded staticaly with Biddy should run everywhere without any dependency problems.
+
+On GNU/Linux, to run programs builded dynamicaly with Biddy, you may need to set some environment variables, e.g. for bash:
 
 ~~~bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
 ~~~
 
+On MS Windows, programs builded dynamicaly with Biddy will run outside of the MSYS2 environment only, if /mingw64/bin/libgmp-10.dll from MSYS2 is also distributed
+(or the corresponding mpir library that was used for building).
+
 **Tests**:
 
-- create a static Biddy library
-- compile the Hanoi example (notes for building are given in the source code)
-- alternatively, compile any of the other example
+- Create a static Biddy library.
+- Compile the Hanoi example (notes for building are given in the source code).
+- Alternatively, compile any of the other example.
 
 ~~~
 biddy> make static
@@ -55,13 +60,19 @@ There are two **aditional packages** included into Biddy distribution:
 - **bddview** is a pure Tcl/Tk script for visualization of BDDs,
 - **BDD Scout** is a demo application demonstrating the capability of Biddy and bddview.
 
-To create BDD Scout (please, check its dependencies):
+To create BDD Scout:
 
 ~~~
 biddy> make static
 biddy> cd bddscout
 bddscout> make
 ~~~
+
+To run BDD Scout:
+
+- You will need Tcl/Tk + BWidgets to run it.
+- You have to install Graphviz to be able to visualize BDDs created by Biddy.
+- You have to install Ghostscript to be able to export BDDs as PNG images and PDF documents.
 
 Biddy is **free software** maintained by Robert Meolic (robert@meolic.com).
 
@@ -598,50 +609,67 @@ biddy> make clean "BINDIR = ./bin"
 ~~~
 
 On MS Windows, we are using MSYS2.
-We use pacman to prepare the environment:
+We start "MSYS2 MinGW x64" and use pacman to prepare the development environment:
 
 ~~~
 MSYS shell> pacman -Syuu
-MSYS shell> pacman -S mingw-w64-i686-gcc
-MSYS shell> pacman -S mingw-w64-x86_64-gcc
-MSYS shell> pacman -S make
-MSYS shell> pacman -S bison
-MSYS shell> pacman -S gdb
 MSYS shell> pacman -S tar
 MSYS shell> pacman -S subversion
+MSYS shell> pacman -S mingw-w64-x86_64-gcc
+MSYS shell> pacman -S make
+MSYS shell> pacman -S autoconf
+MSYS shell> pacman -S automake
+MSYS shell> pacman -S libtool
+MSYS shell> pacman -S yasm
+MSYS shell> pacman -S texinfo
+MSYS shell> pacman -S bison
+MSYS shell> pacman -S gdb
 ~~~
 
 Alternatively, you can use Visual Studio for building.
 There is a prepared solution consisting of many projects
-(VS/Biddy.sln). You need to adapt include and lib folders.
+(VS/Biddy.sln). You may need to adapt include and lib folders.
 
 ### Dependencies
 
-On GNU/Linux, we are using libgmp (https://gmplib.org/).
+Biddy uses libgmp (https://gmplib.org/).
 
-On MS Windows, we are using MPIR library (http://mpir.org/).
+On MS Windows, MPIR library (http://mpir.org/) can be used instead of libgmp from MSYS2.
 
-### Creating Biddy library as a zip package
+Programs builded staticaly with Biddy should run everywhere without any dependency problems.
 
-~~~
-biddy> ./package-bin
-~~~
-
-You need a zip program.
-
-On MS Windows, you  need 7-Zip (http://7-zip.org/) - and it has a strange
-use of -x! You also   need   file   7zsd_All_x64.sfx  that   you   should 
-download  as part of "7z SFX Tools" from http://7zsfx.info/en/ and put
-in the directory containing 7z.exe.
-
-You install the resulting package by extracting libraries to the
-appropriate directory (may be local, e.g. user's home directory).
-
-When using this package on GNU/Linux, you have to tell bash about the library:
+On GNU/Linux, to run programs builded dynamicaly with Biddy, you may need to set some environment variables, e.g. for bash:
 
 ~~~bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/absolute/path/to/biddy/library
 ~~~
+
+On MS Windows, programs builded dynamicaly with Biddy will run outside of the MSYS2 environment only, if /mingw64/bin/libgmp-10.dll from MSYS2 is also distributed
+(or the corresponding mpir library that was used for building).
+
+### Creating dynamic Biddy library as a zip or a self-extracting exe package
+
+~~~
+biddy> ./package-bin (GNU/Linux)
+biddy> ./package-bin.bat (Win + MSYS2)
+~~~
+
+On GNU/Linux, the packaging script prepares a plain zip file. You only need a zip program.
+
+On MS Windows, the packaging script prepares a self-extracting exe package.
+You  need 7-Zip (http://7-zip.org/) - and it has a strange use of -x!
+You also   need   file  a special sfx file  that  was developed
+as part of "7z SFX Tools". That project is no longer active, the latest
+snapshot is available at:
+http://web.archive.org/web/20160819141806/http://www.7zsfx.info/en/
+
+The required tool itself is now available at:
+https://github.com/chrislake/7zsfxmm/releases/
+
+Download 7zsd_extra_171_3901.7z and extract 7zsd_All_x64.sfx in the directory containing 7z.exe.
+
+You install the resulting package by extracting libraries to the
+appropriate directory (may be local, e.g. user's home directory).
 
 ### Creating zip file with source code of a complete Biddy project
 
@@ -680,15 +708,19 @@ You need complete sources for biddy, bddview, and bddscout,
 Scripts are located in biddy/bddscout.
 
 ~~~
-bddscout> ./package-bin
-bddscout> ./package-tgz
-bddscout> ./package-deb
-bddscout> ./package-rpm
+bddscout> ./package-bin (GNU/Linux)
+bddscout> ./package-tgz (GNU/Linux)
+bddscout> ./package-deb (GNU/Linux)
+bddscout> ./package-rpm (GNU/Linux)
+bddscout> ./package-bin.bat (Win + MSYS2)
 ~~~
 
 package-bin should  create BDD Scout  (staticaly linked with Biddy
 library). The script  will produce a zip  file. You install BDD  Scout
 by simply unzip to the target directory.
+
+package-bin.bat should  create BDD Scout on MS Windows (staticaly linked
+with Biddy library). The script  will produce a self-extracting exe file.
 
 ./package-tgz should  create orig.tar.gz file and prepare directories
 for creating debian  and RPM packages. You can run ./package-tgz only

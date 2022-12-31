@@ -14,14 +14,14 @@ Binary Decision Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyOp.c]
-    Revision    [$Revision: 652 $]
-    Date        [$Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $]
+    Revision    [$Revision: 673 $]
+    Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
     Authors     [Robert Meolic (robert@meolic.com)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -3183,9 +3183,9 @@ extern "C" {
 #endif
 
 Biddy_Edge
-Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge f)
+Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
 {
-  Biddy_Edge support,r;
+  Biddy_Edge r;
   Biddy_Variable v;
 
   assert( f != NULL );
@@ -3196,22 +3196,23 @@ Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge f)
   assert( BiddyIsOK(f) == TRUE );
 
   r = biddyNull;
-  support = biddyNull;
 
   /* create support - not needed for ZBDD and ZBDDC */
   if ((biddyManagerType == BIDDYTYPEOBDD) || (biddyManagerType == BIDDYTYPEOBDDC) ||
       (biddyManagerType == BIDDYTYPETZBDD))
   {
-    support = biddyOne;
-    if (BiddyManagedGetLowestVariable(MNG) != 0) {
-      v = BiddyManagedGetPrevVariable(MNG,0); /* highest (bottommost) variable */
-      while (v != BiddyManagedGetLowestVariable(MNG)) {
+    if (!support) {
+      support = biddyOne;
+      if (BiddyManagedGetLowestVariable(MNG) != 0) {
+        v = BiddyManagedGetPrevVariable(MNG,0); /* highest (bottommost) variable */
+        while (v != BiddyManagedGetLowestVariable(MNG)) {
+          support = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,support,v,TRUE);
+          BiddyRefresh(support); /* FoaNode returns an obsolete node! */
+          v = BiddyManagedGetPrevVariable(MNG,v);
+        }
         support = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,support,v,TRUE);
         BiddyRefresh(support); /* FoaNode returns an obsolete node! */
-        v = BiddyManagedGetPrevVariable(MNG,v);
       }
-      support = BiddyManagedTaggedFoaNode(MNG,v,biddyZero,support,v,TRUE);
-      BiddyRefresh(support); /* FoaNode returns an obsolete node! */
     }
   }
 
@@ -3241,6 +3242,81 @@ Biddy_Managed_ExtractMinterm(Biddy_Manager MNG, Biddy_Edge f)
     return biddyNull;
   } else {
     fprintf(stderr,"Biddy_ExtractMinterm: Unsupported BDD type!\n");
+    return biddyNull;
+  }
+#endif
+
+  return r;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_Dual create dual Boolean function.
+
+### Description
+    Dual of an minterm is a maxterm and vice-versa.
+### Side Effects
+    Implemented for OBDD, only.
+    To DO: Implement for OBDD, OBDDC, ZBDD, ZBDDC, and TZBDD.
+### More Info
+    Macro Biddy_Dual(f,neg) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_Edge
+Biddy_Managed_Dual(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean neg)
+{
+  Biddy_Edge r;
+
+  assert( f != NULL );
+
+  if (!MNG) MNG = biddyAnonymousManager;
+  ZF_LOGI("Biddy_Dual");
+
+  assert( BiddyIsOK(f) == TRUE );
+
+  r = biddyNull;
+
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    /* IMPLEMENTED */
+    r = BiddyManagedDual(MNG,f,neg);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
+  } else if (biddyManagerType == BIDDYTYPEOBDDC) {
+    /* IMPLEMENTED */
+    r = BiddyManagedDual(MNG,f,neg);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
+  }
+#ifndef COMPACT
+  else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* NOT IMPLEMENTED, YET */
+    r = biddyNull;
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
+  } else if (biddyManagerType == BIDDYTYPEZBDDC) {
+    /* NOT IMPLEMENTED, YET */
+    r = biddyNull;
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
+  } else if (biddyManagerType == BIDDYTYPETZBDD) {
+    /* NOT IMPLEMENTED, YET */
+    r = biddyNull;
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAnd */
+  } else if (biddyManagerType == BIDDYTYPETZBDDC)
+  {
+    fprintf(stderr,"Biddy_Dual: this BDD type is not supported, yet!\n");
+    return biddyNull;
+  } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
+              (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
+              (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
+  {
+    fprintf(stderr,"Biddy_Dual: this BDD type is not supported, yet!\n");
+    return biddyNull;
+  } else {
+    fprintf(stderr,"Biddy_Dual: Unsupported BDD type!\n");
     return biddyNull;
   }
 #endif
@@ -9412,6 +9488,66 @@ BiddyManagedExtractMinterm(Biddy_Manager MNG, Biddy_Edge support, Biddy_Edge f)
       Biddy_SetTag(r,vs);
     }
 
+  }
+#endif
+
+  return r;
+}
+
+
+
+/***************************************************************************//*!
+\brief Function BiddyManagedDual.
+
+### Description
+### Side effects
+### More info
+    See Biddy_Managed_Dual.
+*******************************************************************************/
+
+Biddy_Edge
+BiddyManagedDual(Biddy_Manager MNG, Biddy_Edge f, Biddy_Boolean neg)
+{
+  Biddy_Edge e, t;
+  Biddy_Variable v;
+  Biddy_Edge r;
+
+  assert( MNG != NULL );
+  assert( f != NULL );
+
+  /* IMPLEMENTED FOR OBDD, OBDDC, ZBDD, ZBDDC, AND TZBDD */
+  assert(
+    (biddyManagerType == BIDDYTYPEOBDD) ||
+    (biddyManagerType == BIDDYTYPEOBDDC) ||
+    (biddyManagerType == BIDDYTYPEZBDD) ||
+    (biddyManagerType == BIDDYTYPEZBDDC) ||
+    (biddyManagerType == BIDDYTYPETZBDD)
+  );
+
+  r = biddyNull;
+
+  if ((biddyManagerType == BIDDYTYPEOBDDC) || (biddyManagerType == BIDDYTYPEOBDD)) {
+    if (f == biddyZero) r = biddyOne;
+    else if (f == biddyOne) r = biddyZero;
+    else {
+      v = BiddyV(f);
+      e = BiddyManagedDual(MNG,BiddyInvCond(BiddyE(f),BiddyGetMark(f)),neg);
+      t = BiddyManagedDual(MNG,BiddyT(f),neg);
+      if (neg) {
+        r = BiddyManagedTaggedFoaNode(MNG,v,t,e,v,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      } else {
+        r = BiddyManagedTaggedFoaNode(MNG,v,e,t,v,TRUE);
+        BiddyRefresh(r); /* FoaNode returns an obsolete node! */
+      }
+    }
+  }
+
+#ifndef COMPACT
+  else if ((biddyManagerType == BIDDYTYPEZBDDC) || (biddyManagerType == BIDDYTYPEZBDD)) {
+  }
+
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
   }
 #endif
 

@@ -1,12 +1,12 @@
 @echo off
 
 REM  Author: Robert Meolic (robert@meolic.com)
-REM  $Revision: 652 $
-REM  $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $
+REM  $Revision: 676 $
+REM  $Date: 2022-12-31 13:38:40 +0100 (sob, 31 dec 2022) $
 REM
 REM  This file is part of Bdd Scout package.
 REM  Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-REM  Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
+REM  Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
 REM
 REM  Bdd Scout is free software; you can redistribute it and/or modify
 REM  it under the terms of the GNU General Public License as
@@ -31,8 +31,15 @@ SET CFLAGS=
 SET NAME=bddscout
 FOR /F "USEBACKQ" %%T IN (`TYPE VERSION`) DO SET VVERSION=%%T
 SET VERSION=%VVERSION:.=-%
-SET MYZIP="C:\Program Files\7-Zip\7z.exe" a
+
+REM /c/'Program Files'/7-Zip/7z.exe
+SET MYZIP="C:\Program Files\7-Zip\7z.exe"
+
+REM Use this to have an info about the package shown to the user
 SET SFX="C:\Program Files\7-Zip\7zsd_All_x64.sfx"
+
+REM Use this to enable plain self-extracting package (no need to download and use additional software)
+REM SET SFX="C:\Program Files\7-Zip\7z.sfx"
 
 rm -f %NAME%-bin-%VERSION%-Win.zip
 rm -f %NAME%-%VERSION%-Win.zip
@@ -45,7 +52,6 @@ make static "BINDIR = ./bddscout/%NAME%-%VERSION%"
 make clean "BINDIR = ./bddscout/%NAME%-%VERSION%"
 cp biddy.h ./bddscout/%NAME%-%VERSION%
 cp CHANGES ./bddscout/%NAME%-%VERSION%/CHANGES_biddy
-REM cp C:/Users/Robert/Documents/mpir-dll-2.7.2/mpir.dll ./bddscout/%NAME%-%VERSION%
 echo *** Biddy OK.
 
 echo *** Preparing bddview ...
@@ -93,10 +99,10 @@ cp ./scripts/*.tcl %NAME%-%VERSION%/scripts
 cd %NAME%-%VERSION%
 make package -f Makefile.MINGW "CFLAGS = %CFLAGS%" "BIDDYDIR = ." "BIDDYLIB = ." "BIDDYLIBEXT = -L. -lbddscout " "BINDIR = ."
 make clean "BINDIR = ."
-rm -f biddy.h
-rm -f libbiddy.a
+cp C:\msys64\home\rober\mpir-dynamic\bin\libmpir-23.dll .
 
 REM source code is not included in the package
+rm -f biddy.h
 rm -f bddscout.h
 rm -f bddscout.c
 rm -f bddscout.map
@@ -117,9 +123,9 @@ cd ..
 cp COPYING %NAME%-%VERSION%
 echo *** BDD Scout OK.
 
-%MYZIP% %NAME%-%VERSION%-Win.7z %NAME%-%VERSION%\*  -x!%NAME%-%VERSION%\lib*.*
-%MYZIP% %NAME%-%VERSION%-Win.7z IFIP\*
-%MYZIP% %NAME%-%VERSION%-Win.7z BDDTRACES\*
+%MYZIP% a %NAME%-%VERSION%-Win.7z %NAME%-%VERSION%\*
+%MYZIP% a %NAME%-%VERSION%-Win.7z IFIP\*
+%MYZIP% a %NAME%-%VERSION%-Win.7z BDDTRACES\*
 
 echo *** Creating %NAME%-%VERSION%-Win.exe ...
 echo ;!@Install@!UTF-8! > cfg.cfg

@@ -1,12 +1,12 @@
 @echo off
 
 REM  Author: Robert Meolic (robert@meolic.com)
-REM  $Revision: 652 $
-REM  $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $
+REM  $Revision: 673 $
+REM  $Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $
 REM
 REM  This file is part of Biddy.
 REM  Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-REM  Copyright (C) 2019, 2021 Robert Meolic, SI-2000 Maribor, Slovenia
+REM  Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
 REM
 REM  Biddy is free software; you can redistribute it and/or modify
 REM  it under the terms of the GNU General Public License as
@@ -31,8 +31,15 @@ SET CFLAGS=
 SET NAME=biddy
 FOR /F "USEBACKQ" %%T IN (`TYPE VERSION`) DO SET VVERSION=%%T
 SET VERSION=%VVERSION:.=-%
-SET MYZIP="C:\Program Files\7-Zip\7z.exe" a
+
+REM /c/'Program Files'/7-Zip/7z.exe
+SET MYZIP="C:\Program Files\7-Zip\7z.exe"
+
+REM Use this to have an info about the package shown to the user
 SET SFX="C:\Program Files\7-Zip\7zsd_All_x64.sfx"
+
+REM Use this to enable plain self-extracting package (no need to download and use additional software)
+REM SET SFX="C:\Program Files\7-Zip\7z.sfx"
 
 rm -f %NAME%-bin-%VERSION%-Win.7z
 rm -f %NAME%-bin-%VERSION%-Win.exe
@@ -48,13 +55,10 @@ cp COPYING ./%NAME%-%VERSION%/
 cp CHANGES ./%NAME%-%VERSION%/CHANGES
 cp biddy.h ./%NAME%-%VERSION%/
 
-REM mpir.dll IS USED FOR BUILDING WITH Visual Studio, ONLY.
-REM libmpir-16.dll IS USED FOR BUILDING WITH MINGW
-REM libmpir-16.dll IS COPIED TO TARGET FOLDER BY Makefile.MINGW
-REM SET MPIRDLL="C:\Users\Robert\Documents\mpir-dll-2.7.2\mpir.dll"
-REM cp %MPIRDLL% ./%NAME%-%VERSION%/
+REM mpir.dll IS USED FOR BUILDING WITH Visual Studio
+REM /mingw64/bin/libgmp-10.dll from MSYS2 IS USED FOR BUILDING WITH MINGW
 
-%MYZIP% %NAME%-%VERSION%-Win.7z .\%NAME%-%VERSION%\* -x!.\%NAME%-%VERSION%\*.h -x!.\%NAME%-%VERSION%\*.a -x!.\%NAME%-%VERSION%\*.lib
+%MYZIP% a %NAME%-%VERSION%-Win.7z .\%NAME%-%VERSION%\* -x!.\%NAME%-%VERSION%\*.h -x!.\%NAME%-%VERSION%\*.a -x!.\%NAME%-%VERSION%\*.lib
 
 cp biddy-cudd.h biddy-cudd.c ./%NAME%-%VERSION%/
 cp biddy-example-8queens.c ./%NAME%-%VERSION%/
@@ -64,7 +68,7 @@ cp biddy-example-dictionary.c biddy-example-dictman.c biddy-example-dict-common.
 cp biddy-example-bra.c ./%NAME%-%VERSION%/
 cp biddy-example-pp.c biddy-example-pp-data.c biddy-example-pp-data.csv ./%NAME%-%VERSION%/
 
-%MYZIP% %NAME%-dev-%VERSION%-Win.7z .\%NAME%-%VERSION%\*
+%MYZIP% a %NAME%-dev-%VERSION%-Win.7z .\%NAME%-%VERSION%\*
 
 echo "Creating %NAME%-bin-%VERSION%-Win.exe ..."
 
