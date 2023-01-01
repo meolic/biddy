@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 676 $]
-    Date        [$Date: 2022-12-31 13:38:40 +0100 (sob, 31 dec 2022) $]
+    Revision    [$Revision: 677 $]
+    Date        [$Date: 2023-01-01 16:35:01 +0100 (ned, 01 jan 2023) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
@@ -43,6 +43,10 @@ See also: biddy.h
 
 #ifndef _BIDDYINT
 #define _BIDDYINT
+
+/* VISUAL STUDIO - CHECK DLL DEPENDENCIES */
+/* Tools -> Command Line -> Developer Command Prompt */
+/* dumpbin /DEPENDENTS C:\msys64\home\rober\biddy\VS\x64\bddscout.dll */
 
 /*----------------------------------------------------------------------------*/
 /* START OF USER SETTINGS                                                     */

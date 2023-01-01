@@ -4,7 +4,7 @@
   <Product Id="*" Name="BDD Scout" Language="1033" Version="2.2.1" Manufacturer="Robert Meolic" UpgradeCode="79672019-5204-4f68-8012-4b323f6c035d">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate />
+    <MediaTemplate EmbedCab="yes" />
     <Feature Id="MainApplication" Title="BDDScoutProduct" Level="1">
       <ComponentGroupRef Id="ProductShortcut" />
       <ComponentGroupRef Id="ProductComponentsMain" />

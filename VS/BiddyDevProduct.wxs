@@ -4,7 +4,7 @@
   <Product Id="*" Name="Biddy Development Version" Language="1033" Version="2.2.1" Manufacturer="Robert Meolic" UpgradeCode="e2468e66-c155-4dc7-ba15-8a122d5687d7">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate />
+    <MediaTemplate EmbedCab="yes" />
 		<Feature Id="MainApplication" Title="BiddyDevProduct" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
 		</Feature>

@@ -3,8 +3,8 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddscout.h]
-  Revision    [$Revision: 673 $]
-  Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
+  Revision    [$Revision: 677 $]
+  Date        [$Date: 2023-01-01 16:35:01 +0100 (ned, 01 jan 2023) $]
   Authors     [Robert Meolic (robert@meolic.com)]
   Description [The file bddscout.h contains declarations.]
   SeeAlso     []
@@ -63,7 +63,14 @@
 #  define DATAEXTERN extern
 #endif
 
-#if defined(MINGW) || defined(_MSC_VER)
+#ifdef MINGW
+#  undef EXTERN
+#  define EXTERN __declspec (dllexport)
+#  undef DATAEXTERN
+#  define DATAEXTERN extern __declspec (dllexport)
+#endif
+
+#ifdef _MSC_VER
 #  undef EXTERN
 #  define EXTERN __declspec (dllexport)
 #  undef DATAEXTERN
