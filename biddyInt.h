@@ -13,15 +13,16 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInt.h]
-    Revision    [$Revision: 677 $]
-    Date        [$Date: 2023-01-01 16:35:01 +0100 (ned, 01 jan 2023) $]
+    Revision    [$Revision: 692 $]
+    Date        [$Date: 2024-06-30 18:06:54 +0200 (ned, 30 jun 2024) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net)]
 
 ### Copyright
+Biddy_Managed_Eval3(Biddy_Manager MNG, Biddy_String &name, Biddy_String bddlString)
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -1107,13 +1108,17 @@ extern Biddy_Edge BiddyManagedGt(const Biddy_Manager MNG, const Biddy_Edge f, co
 
 extern Biddy_Edge BiddyManagedRestrict(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v, Biddy_Boolean value);
 extern Biddy_Edge BiddyManagedCompose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Variable v);
+extern Biddy_Edge BiddyManagedXYCompose(Biddy_Manager MNG, Biddy_Edge f);
 extern Biddy_Edge BiddyManagedE(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedA(Biddy_Manager MNG, Biddy_Edge f, Biddy_Variable v);
 extern Biddy_Edge BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube);
+extern Biddy_Edge BiddyManagedExistAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge cube);
 extern Biddy_Edge BiddyManagedUnivAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube);
-extern Biddy_Edge BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge cube);
+extern Biddy_Edge BiddyManagedDiffAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube);
+extern Biddy_Edge BiddyManagedYesNoAbstract(Biddy_Manager MNG, Biddy_Boolean type, Biddy_Edge f, Biddy_Edge cube);
 extern Biddy_Edge BiddyManagedConstrain(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c);
 extern Biddy_Edge BiddyManagedSimplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c);
+extern Biddy_Edge BiddyManagedMedian(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h);
 extern Biddy_Edge BiddyManagedSupport(Biddy_Manager MNG, Biddy_Edge f);
 extern Biddy_Edge BiddyManagedReplaceByKeyword(Biddy_Manager MNG, Biddy_Edge f, Biddy_String keyword);
 #define BiddyManagedReplace(MNG,f) BiddyManagedReplaceByKeyword(MNG,f,NULL)
@@ -1204,8 +1209,10 @@ extern Biddy_String BiddyManagedEval0(Biddy_Manager MNG, Biddy_String s);
 extern Biddy_Edge BiddyManagedEval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf);
 #define BiddyManagedEval1(MNG,s) BiddyManagedEval1x(MNG,s,NULL)
 extern Biddy_Edge BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc);
+extern Biddy_Edge BiddyManagedEval3(Biddy_Manager MNG, Biddy_String *name, Biddy_String bddlString);
 extern Biddy_String BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],Biddy_String name);
 extern void BiddyManagedReadVerilogFile(Biddy_Manager MNG, const char filename[],Biddy_String prefix);
+extern Biddy_String BiddyManagedReadBDDLFile(Biddy_Manager MNG, const char filename[]);
 extern void BiddyManagedPrintBDD(Biddy_Manager MNG, Biddy_String *var, const char filename[],Biddy_Edge f, Biddy_String label);
 #define BiddyManagedPrintfBDD(MNG,f) BiddyManagedPrintBDD(MNG,NULL,"stdout",f,NULL)
 #define BiddyManagedSprintfBDD(MNG,var,f) BiddyManagedPrintBDD(MNG,var,"",f,NULL)

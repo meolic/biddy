@@ -1,12 +1,12 @@
 @echo off
 
 REM  Author: Robert Meolic (robert@meolic.com)
-REM  $Revision: 676 $
-REM  $Date: 2022-12-31 13:38:40 +0100 (sob, 31 dec 2022) $
+REM  $Revision: 695 $
+REM  $Date: 2024-07-06 15:11:56 +0200 (sob, 06 jul 2024) $
 REM
 REM  This file is part of Bdd Scout package.
 REM  Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-REM  Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
+REM  Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia
 REM
 REM  Bdd Scout is free software; you can redistribute it and/or modify
 REM  it under the terms of the GNU General Public License as
@@ -29,7 +29,7 @@ REM leave empty for system default
 SET CFLAGS=
 
 SET NAME=bddscout
-FOR /F "USEBACKQ" %%T IN (`TYPE VERSION`) DO SET VVERSION=%%T
+FOR /F "USEBACKQ" %%T IN (`TYPE ..\\VERSION`) DO SET VVERSION=%%T
 SET VERSION=%VVERSION:.=-%
 
 REM /c/'Program Files'/7-Zip/7z.exe

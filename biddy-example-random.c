@@ -1,5 +1,5 @@
-/* $Revision: 652 $ */
-/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
+/* $Revision: 682 $ */
+/* $Date: 2023-10-15 23:14:04 +0200 (ned, 15 okt 2023) $ */
 /* This file (biddy-example-random.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
@@ -1957,7 +1957,7 @@ int main() {
     result1 = Biddy_E(Biddy_Not(result),last);
     result2 = Biddy_And(result0,result1);
     result2 = Biddy_ExistAbstract(result2,cube);
-    result1 = Biddy_AndAbstract(result0,result1,cube);
+    result1 = Biddy_ExistAndAbstract(result0,result1,cube);
 
     printf("After the first user-defined abstraction, function result has %.0f minterms/combinations\n", Biddy_CountMinterms(result1, SIZE));
 
@@ -1967,7 +1967,7 @@ int main() {
 
     result0 = Biddy_A(result,second);
     result1 = Biddy_A(Biddy_Not(result),last);
-    result1 = Biddy_AndAbstract(result0,result1,cube);
+    result1 = Biddy_ExistAndAbstract(result0,result1,cube);
 
     printf("After the second user-defined abstraction, function result has %.0f minterms/combinations\n", Biddy_CountMinterms(result1, SIZE));
 

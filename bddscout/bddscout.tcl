@@ -8,12 +8,12 @@ exec wish "$0" "$@"
 # exec /home/meolic/ActiveTcl/bin/wish "$0" "$@"
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 673 $]
-#  Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
+#  Revision    [$Revision: 694 $]
+#  Date        [$Date: 2024-06-30 20:28:55 +0200 (ned, 30 jun 2024) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#               Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -214,7 +214,7 @@ exec wish "$0" "$@"
 # TRICKY FEATURES:
 #
 # - BDD construction does not preserve variable ordering
-#   therefore, constructed BDD may not be identical
+#   therefore, the constructed BDD may not be identical
 #   to the one being given in the file (e.g. different node number).
 #
 # - If "Export to PNG" and/or "Export to PDF" create an image with wrong
@@ -242,8 +242,11 @@ lappend auto_path /usr/lib/bddscout
 # Biddy
 # ####################################################################
 
-# change BIDDYVERSION in biddy.h, too
-set BIDDYVERSION "2.2.1"
+# on Linux, this file is manipulated from sed in Makefile
+# on Windows, you have to cet this manual
+# in any case, you should not forget to change BIDDYVERSION in biddy.h, too
+set BIDDYVERSION "THEBIDDYVERSION"
+if {$tcl_platform(platform) == "windows"} {set BIDDYVERSION "2.4.1"}
 
 set BFCMDLIST [list \
   "bddview_save" \
@@ -281,6 +284,7 @@ set CACMDLIST [list \
 set BDDLCMDLIST [list \
   "bddview_save" \
   "bddview_export_tex" \
+  "biddy_read_bddl_file" \
 ]
 
 set CMDLIST [list \
@@ -364,7 +368,7 @@ if { $USESPLASH == 1 } {
   pack .splash.f.l -expand 1
   label .splash.f.m1 -text "Copyright (C) 2008, 2019 UM FERI, Maribor, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m1 -fill x -expand 0
-  label .splash.f.m2 -text "Copyright (C) 2019, 2022 Robert Meolic, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
+  label .splash.f.m2 -text "Copyright (C) 2019, 2024 Robert Meolic, Slovenia" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m2 -fill x -expand 0
   label .splash.f.m3 -text "Robert Meolic (robert@meolic.com)" -font [list TkFixedFont 12] -fg BLACK -bg $SPLASHBG
   pack .splash.f.m3 -fill x -expand 0
@@ -496,10 +500,10 @@ if {($OS == "Darwin")} {
 pack propagate $inputwin.label 0
 # variable bddscout__selectedInputType is not used
 set inputtype [tk_optionMenu $inputwin.label.menu bddscout__selectedInputType \
-     "Boolean expression (infix *+!>^- format):" \
-     "Unate cube set algebra (+cube, -cube):" \
-     "Knuth's BDDL command:" \
-     "Tcl command:" \
+     "Boolean expression (infix *+!>^-())" \
+     "Unate cube set algebra (+cube, -cube)" \
+     "Knuth's BDDL command (infix &|~><^_?.)" \
+     "Tcl command" \
 ]
 
 frame $inputwin.cmd
@@ -531,7 +535,7 @@ bind $inputcmd.bftclcmd <MouseWheel> {set bddscout__wheel 1}
 bind $inputcmd.catclcmd <MouseWheel> {set bddscout__wheel 1}
 bind $inputcmd.bddltclcmd <MouseWheel> {set bddscout__wheel 1}
 
-# this is executed when a command is selected
+# this is executed when a command is selected (Boolean expression)
 proc BFONECMD { i } {
   global BFCMDLIST
   global INPUT
@@ -551,7 +555,7 @@ foreach bddscout__cmd $BFCMDLIST {
   incr i
 }
 
-# this is executed when a command is selected
+# this is executed when a command is selected (Unate cube set algebra)
 proc CAONECMD { i } {
   global CACMDLIST
   global INPUT
@@ -571,7 +575,7 @@ foreach bddscout__cmd $CACMDLIST {
   incr i
 }
 
-# this is executed when a command is selected
+# this is executed when a command is selected (Knuth's BDDL command)
 proc BDDLONECMD { i } {
   global BDDLCMDLIST
   global INPUT
@@ -591,7 +595,7 @@ foreach bddscout__cmd $BDDLCMDLIST {
   incr i
 }
 
-# this is executed when a command is selected
+# this is executed when a command is selected (Tcl command)
 proc ONECMD { i } {
   global CMDLIST
   global INPUT
@@ -1159,6 +1163,8 @@ $menubar.file.menu add command -command {menu_file_saveas} -label "Save As"
 $menubar.file.menu add separator
 $menubar.file.menu add command -command {menu_file_read_BF} -label "Import Boolean function"
 $menubar.file.menu add separator
+$menubar.file.menu add command -command {menu_file_read_BDDL} -label "Read BDDL File"
+$menubar.file.menu add separator
 $menubar.file.menu add command -command {export_by_gs $mainwin png png16m} -label "Export to PNG"
 $menubar.file.menu add command -command {export_by_gs $mainwin pdf pdfwrite} -label "Export to PDF"
 $menubar.file.menu add separator
@@ -1279,8 +1285,10 @@ proc menu_file_read_BDD {  } {
     }
 
     set BDDNAME [bddscout_read_bdd $filename]
-    update_info
-    focusform
+    if {[string length $BDDNAME] != 0} {
+      update_info
+      focusform
+    }
 
     #remember last path
     set BDDSCOUT_PATH_EXAMPLES [file dirname $filename]
@@ -1291,6 +1299,7 @@ proc menu_file_read_BDD {  } {
 proc menu_file_read_BF {  } {
   global mainwin
   global selectwin
+  global ACTIVEBDDTYPE
   global BDDNAME
   global BDDSCOUT_PATH_EXAMPLES
 
@@ -1306,8 +1315,41 @@ proc menu_file_read_BF {  } {
     }
 
     set BDDNAME [bddscout_read_bf $filename]
-    update_info
-    focusform
+    if {[string length $BDDNAME] != 0} {
+      update_info
+      focusform
+    }
+
+    #remember last path
+    set BDDSCOUT_PATH_EXAMPLES [file dirname $filename]
+  }
+
+}
+
+proc menu_file_read_BDDL {  } {
+  global mainwin
+  global selectwin
+  global ACTIVEBDDTYPE
+  global BDDNAME
+  global BDDSCOUT_PATH_EXAMPLES
+
+  set filename [tk_getOpenFile -title "Read BDDL file" -initialdir "$BDDSCOUT_PATH_EXAMPLES" -parent $mainwin]
+  if {[string length $filename] != 0} {
+
+    # for OBDDs, create and store tmp file for current formula
+    # for ZBDDs and TZBDDs, importing new variables may change all existing formula
+    if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC")} {
+      createTreeItemData $selectwin.browser $BDDNAME
+    } else {
+      clearTreeItemData $selectwin.browser
+    }
+
+    set BDDNAMELIST [biddy_read_bddl_file $filename]
+    set BDDNAME [lindex [split $BDDNAMELIST] end]
+    if {[string length $BDDNAME] != 0} {
+      update_info
+      focusform
+    }
 
     #remember last path
     set BDDSCOUT_PATH_EXAMPLES [file dirname $filename]
@@ -1789,7 +1831,8 @@ proc menu_help_bddl {} {
 
   .helpBDDL.txt insert 1.0 "\
   Help on Knuth's BDDL\n\n\
-  Not implemented, yet.\n\
+  Using implementation from https://www-cs-faculty.stanford.edu/~knuth/programs/bdd14.w\n\
+  PDF: https://github.com/shreevatsa/knuth-literate-programs/blob/master/programs/bdd14.pdf, pp. 47 - 53 \n\n\
   "
   .helpBDDL.txt configure -state disabled
 
@@ -1824,7 +1867,7 @@ proc menu_help_about {} {
   BDD Scout v$BIDDYVERSION\n\n\
   Author: Robert Meolic (robert@meolic.com)\n\n\
   Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia\n\
-  Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia\n\n\
+  Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia\n\n\
   Biddy is free software; you can redistribute it and/or modify it under the terms\n\
   of the GNU General Public License as published by the Free Software Foundation;\n\
   either version 2 of the License, or (at your option) any later version.\n\n\
@@ -2304,6 +2347,30 @@ proc converttype { type fchange} {
   # puts "DEBUG converttype OUT: type = <$type>, ACTIVEBDDTYPE = <$ACTIVEBDDTYPE>"
 }
 
+proc parseinput_after { name } {
+  global selectwin
+  global ACTIVEBDDTYPE
+  global BDDNAME
+
+  # refresh formulae tree $selectwin.browser
+  # for OBDD, remove the current tmp file for the resulting formula, only ...
+  # ... and if not modifying the current formula, then also create and store tmp file for current formula
+  # for ZBDD and TZBDD, remove tmp file for all formulae, adding variables may change them
+  if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC")} {
+    if {[$selectwin.browser exists $name]} {
+      setTreeItemData $selectwin.browser $name ""
+    }
+    if {$BDDNAME != $name} {
+      createTreeItemData $selectwin.browser $BDDNAME
+    }
+  } else {
+    clearTreeItemData $selectwin.browser
+  }
+  update_info
+  set BDDNAME $name
+  focusform
+}
+
 proc parseinput { force } {
   global selectwin
   global ACTIVEBDDTYPE
@@ -2363,6 +2430,8 @@ proc parseinput { force } {
           set TRYCMD 1
         #
         # BFCMDLIST
+        # these are special tcl commands for BF (Boolean functions)
+        #
         # biddy_print_table, biddy_print_sop, biddy_print_minterms, biddy_dependent_variable_number, biddy_count_minterms,
         # biddy_density_of_function, bddscout_reset_all_values, bddscout_set_values, biddy_eval, biddy_support
         } elseif {$CMD == "biddy_set_alphabetic_ordering"} {
@@ -2397,6 +2466,8 @@ proc parseinput { force } {
           set TRYCMD 1
         #
         # CACMDLIST
+        # these are special tcl commands for CA (cube algebra)
+        #
         # biddy_change, biddy_varsubset, biddy_subset0, biddy_subset1, biddy_quotient,
         # biddy_remainder, biddy_element_abstract, biddy_product, biddy_selective_product, biddy_supset,
         # biddy_subset, biddy_permitsym, biddy_stretch
@@ -2506,7 +2577,7 @@ proc parseinput { force } {
           }
         #
         # BDDLCMDLIST
-        # not implemented, yet
+        # no special tcl commands for BDDL implemented, yet
         #
         # CMDLIST
         # biddy_get_then, biddy_get_else, biddy_count_nodes, biddy_count_nodes_plain, biddy_count_complemented_edges,
@@ -2562,28 +2633,14 @@ proc parseinput { force } {
       set name [bddscout_parse_input_infix $INPUT]
 
       # puts "DEBUG parseinput: <$name>"
-      # bddscout_parse_input_infix returns _NONAME_FORMULA for unsuccessful calls
+      # bddscout_parse_input_infix returns name=="" for unsuccessful calls
 
       if {$name != ""} {
         # refresh formulae tree $selectwin.browser
         # for OBDD, remove the current tmp file for the resulting formula, only ...
         # ... and if not modifying the current formula, then also create and store tmp file for current formula
         # for ZBDD and TZBDD, remove tmp file for all formulae, adding variables may change them
-        if {$name != "_NONAME_FORMULA"} {
-          if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC")} {
-            if {[$selectwin.browser exists $name]} {
-              setTreeItemData $selectwin.browser $name ""
-            }
-            if {$BDDNAME != $name} {
-              createTreeItemData $selectwin.browser $BDDNAME
-            }
-          } else {
-            clearTreeItemData $selectwin.browser
-          }
-          update_info
-          set BDDNAME $name
-          focusform
-        }
+        parseinput_after $name
       } else {
         set TRYCMD 2
       }
@@ -2602,26 +2659,26 @@ proc parseinput { force } {
         # for OBDD, remove the current tmp file for the resulting formula, only ...
         # ... and if not modifying the current formula, then also create and store tmp file for current formula
         # for ZBDD and TZBDD, remove tmp file for all formulae, adding variables may change them
-        if {($ACTIVEBDDTYPE == "BIDDYTYPEOBDD") || ($ACTIVEBDDTYPE == "BIDDYTYPEOBDDC")} {
-          if {[$selectwin.browser exists $name]} {
-            setTreeItemData $selectwin.browser $name ""
-          }
-          if {$BDDNAME != $name} {
-            createTreeItemData $selectwin.browser $BDDNAME
-          }
-        } else {
-          clearTreeItemData $selectwin.browser
-        }
-        update_info
-        set BDDNAME $name
-        focusform
+        parseinput_after $name
       }
     }
 
     # if (INPUTTYPE == 6) and the input was not recognized as a tcl command then go with a Knuth's BDDL command
     if {($INPUTTYPE == 6) && ($TRYCMD == 0) && ($force != 0)} {
+
       set force 0
-      #not implemented, yet
+      set INPUT [string map {"\"" ""} $INPUT]
+      set name [bddscout_parse_bddl $INPUT]
+
+      # bddview_message "Knuth's BDDL command" "<$name> <$INPUT>"
+
+      if {$name != ""} {
+        # refresh formulae tree $selectwin.browser
+        # for OBDD, remove the current tmp file for the resulting formula, only ...
+        # ... and if not modifying the current formula, then also create and store tmp file for current formula
+        # for ZBDD and TZBDD, remove tmp file for all formulae, adding variables may change them
+        parseinput_after $name
+      }
     }
 
     # if the command was recognized as a full tcl command or the execution is forced

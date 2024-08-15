@@ -1,5 +1,5 @@
-/* $Revision: 652 $ */
-/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
+/* $Revision: 682 $ */
+/* $Date: 2023-10-15 23:14:04 +0200 (ned, 15 okt 2023) $ */
 /* This file (biddy-cudd.h) is a C header file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
@@ -126,7 +126,7 @@ DdManager *manager;
 #    define Biddy_Xor(f,g) Cudd_bddXor(manager,f,g)
 #    define Biddy_Xnor(f,g) Cudd_bddXnor(manager,f,g)
 #    define Biddy_Compose(f,g,v) Cudd_bddCompose(manager,f,g,v)
-#    define Biddy_AndAbstract(f,g,c) Cudd_bddAndAbstract(manager,f,g,c)
+#    define Biddy_ExistAndAbstract(f,g,c) Cudd_bddAndAbstract(manager,f,g,c)
 #    define Biddy_VariableTableNum() Cudd_ReadSize(manager)
 #    define Biddy_NodeTableNum() Cudd_ReadKeys(manager)
 #    define Biddy_NodeTableNumLive() Cudd_ReadNodeCount(manager)
@@ -150,7 +150,7 @@ DdManager *manager;
 #    define Biddy_Xor(f,g) 0 /* not implemented */ /* check Extra_zddUnionExor */
 #    define Biddy_Xnor(f,g) 0 /* not implemented */
 #    define Biddy_Compose(f,g,v) 0 /* not implemented */
-#    define Biddy_AndAbstract(f,g,c) 0 /* not implemented */
+#    define Biddy_ExistAndAbstract(f,g,c) 0 /* not implemented */
 #    define Biddy_VariableTableNum() Cudd_ReadZddSize(manager)
 #    define Biddy_NodeTableNum() 0 /* not implemented */
 #    define Biddy_NodeTableNumLive() Cudd_zddReadNodeCount(manager)

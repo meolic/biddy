@@ -832,6 +832,13 @@ Biddy v2.1, released in 2021 completed the implementation of all unate cube set
 algebra operations for all BDD types, including TZBDDs. Due to internal changes,
 much more variables are supported and they are more efficiently manipulated.
 
+Development of core have been slow on next years, no new functionalities in v2.2, and v2.3 was
+not released at all. On the other hand, biddy-bff project started to produce a Sailfish OS
+native mobile app named BFF. It will use Biddy to implement Quine-McCluskey minimization.
+
+In 2024, Biddy v2.4 brought basic parser for Knuth's BDDL. BFF app evolved to the first
+public release.
+
 ### 6. PUBLICATIONS
 ---------------
 

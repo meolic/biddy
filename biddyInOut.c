@@ -13,8 +13,8 @@
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyInOut.c]
-    Revision    [$Revision: 673 $]
-    Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
+    Revision    [$Revision: 692 $]
+    Date        [$Date: 2024-06-30 18:06:54 +0200 (ned, 30 jun 2024) $]
     Authors     [Robert Meolic (robert@meolic.com),
                  Ales Casar (ales@homemade.net),
                  Volodymyr Mihav (mihaw.wolodymyr@gmail.com),
@@ -23,7 +23,7 @@
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -88,6 +88,22 @@ const char* VerilogFileGateName[] = {
   "not", "inv"
 };
 
+/* the following names are used in BDDL parser */
+#define knuth_extsize 1000
+#define knuth_logvarsize 10
+#define knuth_varsize (1<<knuth_logvarsize)
+#define knuth_maxbinop 15
+#define knuth_passblanks for(;*c==' ';c++)
+#define knuth_getk for(k=0;isdigit(*c);c++) k=10*k+*c-'0'
+#define knuth_getkf knuth_getk;if(k>=knuth_extsize){printf("f%d is out of range.\n",k);}
+#define knuth_getkv knuth_getk;if(k>=knuth_varsize) {printf("x%d is out of range.\n",k);}
+#define knuth_checknull(p) if(!p||p==biddyNull) {printf("f%d is null!\n",k);}
+#define knuth_reporterror {printf("Sorry; <%c> confuses me %s%s",*(c-1),"in that command.","\n");goto alldone;}
+int knuth_verbose=-1;
+const char*knuth_binopname[]={"","&",">","!","<","@","^","|","_","A","N","#","Y","$","D","E"};
+const char*knuth_ternopname1[]={"?",".","&","&","@","#","$","%","*","<","-","+","|","/","\\","~"};
+const char*knuth_ternopname2[]={":",".","&","E","@","#","$","%","*","<","-","+","|","/","\\","~"};
+
 /*----------------------------------------------------------------------------*/
 /* Static function prototypes                                                 */
 /*----------------------------------------------------------------------------*/
@@ -132,6 +148,7 @@ static BiddyVerilogWire *getWireById(BiddyVerilogCircuit *c, int id);
 static BiddyVerilogWire *getWireByName(BiddyVerilogCircuit *c, Biddy_String name);
 static Biddy_String trim(Biddy_String source);
 static void concat(char **s1, const char *s2);
+static void concatint(char **s1, const int i);
 
 /* Function WriteBDD() is used in Biddy_PrintBDD() */
 
@@ -163,6 +180,15 @@ static Biddy_String getshortname(Biddy_Manager MNG, void *p, int n);
 static void reportOrdering(Biddy_Manager MNG);
 static void PrintMintermsOBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, Biddy_Boolean negative);
 */
+
+/* The following functions are used in Biddy_Eval3(). */
+
+static Biddy_Edge knuth_projection(Biddy_Manager MNG, int k);
+static Biddy_Edge knuth_f(Biddy_Manager MNG, int k);
+static void knuth_deref(Biddy_Manager MNG, int k);
+static Biddy_Edge knuth_binary_top(Biddy_Manager MNG, int curop, Biddy_Edge f, Biddy_Edge g);
+static Biddy_Edge knuth_ternary_top(Biddy_Manager MNG, int curop, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h);
+static Biddy_Edge knuth_compose_top(Biddy_Manager MNG, Biddy_Edge f);
 
 /*----------------------------------------------------------------------------*/
 /* Static functions for debugging                                             */
@@ -273,7 +299,7 @@ Biddy_Managed_Eval0(Biddy_Manager MNG, Biddy_String s)
 #endif
   else {
     fprintf(stderr,"Biddy_Managed_Eval0: Unsupported BDD type!\n");
-    return 0;
+    return NULL;
   }
 
   return BiddyManagedEval0(MNG,s);
@@ -326,7 +352,7 @@ Biddy_Managed_Eval1x(Biddy_Manager MNG, Biddy_String s, Biddy_LookupFunction lf)
 #endif
   else {
     fprintf(stderr,"Biddy_Managed_Eval1x: Unsupported BDD type!\n");
-    return 0;
+    return biddyNull;
   }
 
   return BiddyManagedEval1x(MNG,s,lf);
@@ -382,10 +408,64 @@ Biddy_Managed_Eval2(Biddy_Manager MNG, Biddy_String boolFunc)
 #endif
   else {
     fprintf(stderr,"Biddy_Managed_Eval2: Unsupported BDD type!\n");
-    return 0;
+    return biddyNull;
   }
 
   return BiddyManagedEval2(MNG,boolFunc);
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_Eval3 evaluates one line of Knuth's BDDL format.
+
+### Description
+    TO DO
+### Side effects
+### More info
+    Original author: Donald E. Knuth
+    Original implementation of this function is on
+    https://www-cs-faculty.stanford.edu/~knuth/programs/bdd14.w
+    Macro Biddy_Eval3(bddlString) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_Edge
+Biddy_Managed_Eval3(Biddy_Manager MNG, Biddy_String *name, Biddy_String bddlString)
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    /* IMPLEMENTED */
+  }
+  else if (biddyManagerType == BIDDYTYPEOBDDC) {
+    /* IMPLEMENTED */
+  }
+#ifndef COMPACT
+  else if (biddyManagerType == BIDDYTYPEZBDD) {
+    fprintf(stderr,"Biddy_Managed_Eval3: this BDD type is not supported, yet!\n");
+    return biddyNull;
+  }
+  else if (biddyManagerType == BIDDYTYPEZBDDC) {
+    fprintf(stderr,"Biddy_Managed_Eval3: this BDD type is not supported, yet!\n");
+    return biddyNull;
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    fprintf(stderr,"Biddy_Managed_Eval3: this BDD type is not supported, yet!\n");
+    return biddyNull;
+  }
+#endif
+  else {
+    fprintf(stderr,"Biddy_Managed_Eval3: Unsupported BDD type!\n");
+    return biddyNull;
+  }
+
+  return BiddyManagedEval3(MNG,name,bddlString);
 }
 
 #ifdef __cplusplus
@@ -439,7 +519,7 @@ Biddy_Managed_ReadBddview(Biddy_Manager MNG, const char filename[],
 #endif
   else {
     fprintf(stderr,"Biddy_Managed_ReadBddview: Unsupported BDD type!\n");
-    return 0;
+    return NULL;
   }
 
   return BiddyManagedReadBddview(MNG,filename,name);
@@ -498,6 +578,62 @@ Biddy_Managed_ReadVerilogFile(Biddy_Manager MNG, const char filename[],
   }
 
   BiddyManagedReadVerilogFile(MNG,filename,prefix);
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_ReadBDDLFile reads Knuth's BDDL commands from
+       file one by one and execute it.
+
+### Description
+    TO DO
+### Side effects
+### More info
+    Original author: Donald E. Knuth
+    Original implementation of this function is on
+    https://www-cs-faculty.stanford.edu/~knuth/programs/bdd14.w
+    Macro Biddy_ReadBDDLFile(filename) is defined for use with
+    anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_String
+Biddy_Managed_ReadBDDLFile(Biddy_Manager MNG, const char filename[])
+{
+  if (!MNG) MNG = biddyAnonymousManager;
+
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    /* IMPLEMENTED */
+  }
+  else if (biddyManagerType == BIDDYTYPEOBDDC) {
+    /* IMPLEMENTED */
+  }
+#ifndef COMPACT
+  else if (biddyManagerType == BIDDYTYPEZBDD) {
+    fprintf(stderr,"Biddy_Managed_ReadBDDLFile: this BDD type is not supported, yet!\n");
+    return NULL;
+  }
+  else if (biddyManagerType == BIDDYTYPEZBDDC) {
+    fprintf(stderr,"Biddy_Managed_ReadBDDLFile: this BDD type is not supported, yet!\n");
+    return NULL;
+  }
+  else if (biddyManagerType == BIDDYTYPETZBDD) {
+    fprintf(stderr,"Biddy_Managed_ReadBDDLFile: this BDD type is not supported, yet!\n");
+    return NULL;
+  }
+#endif
+  else {
+    fprintf(stderr,"Biddy_Managed_ReadBDDLFile: Unsupported BDD type!\n");
+    return NULL;
+  }
+
+  return BiddyManagedReadBDDLFile(MNG,filename);
 }
 
 #ifdef __cplusplus
@@ -1187,6 +1323,225 @@ BiddyManagedEval2(Biddy_Manager MNG, Biddy_String boolFunc)
 }
 
 /***************************************************************************//*!
+\brief Function BiddyManagedEval3.
+
+### Description
+### Side effects
+### More info
+    See Biddy_Managed_Eval3.
+*******************************************************************************/
+
+/*
+=== bdd14.w lines 2399 - 2424 ===
+=== bdd14.c lines 2591 - 2923 ===
+switch (*c++) {
+case '\n':@+if (!infile) printf("(Type `quit' to exit the program.)\n");
+case '#': continue;
+case '!': printf(buf+1);@+continue; / * echo the input line on |stdout| * /
+case 'b': @<Bubble sort to reestablish the natural variable order@>;@+continue;
+case 'C': print_cache();@+continue;
+case 'f': @<Parse and execute an assignment to $f_k$@>;@+continue;
+case 'i': @<Get ready to read a new input file@>;@+continue;
+case 'l': getk;@+leasesonlife=k;@+continue;
+case 'm': @<Print a Mathematica program for a generating function@>;@+continue;
+case 'o': @<Output a function@>;@+continue;
+case 'O': @<Print the current variable ordering@>;@+continue;
+case 'p': @<Print a function or its profile@>;@+continue;
+case 'P': print_base(0,0);@+continue; / * \.P means ``print all'' * /
+case 'q': goto alldone; / * this will exit the program * /
+case 'r': @<Reset the reorder trigger@>;@+continue;
+case 's': @<Swap variable $x_k$ with its predecessor@>;@+continue;
+case 'S': if (isdigit(*c)) @<Sift on variable $x_k$@>@;
+  else siftall();@+continue;
+case 't': @<Reset |tvar|@>;@+continue;
+case 'v': getk;@+verbose=k;@+continue;
+case 'V': verbose=-1;@+continue;
+case 'y': @<Parse and execute an assignment to $y_k$@>;@+continue;
+case '$': show_stats();@+continue;
+default: reporterror;
+}
+*/
+
+Biddy_Edge
+BiddyManagedEval3(Biddy_Manager MNG, Biddy_String *name, Biddy_String bddlString)
+{
+  char *c;
+  char *buf = bddlString;
+  int k,lhs,curop;
+  Biddy_Edge p,q,r;
+
+  curop = 0;
+  p = biddyNull;
+  q = biddyNull;
+  r = biddyNull;
+  *name = NULL;
+
+  for (c=buf;*c==' ';c++); /* pass over initial blanks */
+
+  switch(*c++){
+
+/* bdd14.c:2593 */
+    case'\n':break;
+    case'#':break;
+    case'!':printf("%s\n",buf+1);break;
+    case'b':printf("b\n");break;
+    case'C':printf("C\n");break;
+    case'f':
+    
+      /* printf("(BDDL) f\n"); */ /* DEBUGGING */
+
+      knuth_getkf;lhs=k;
+      knuth_passblanks;
+      if(*c++!='=')knuth_reporterror;
+
+      knuth_passblanks;
+
+      /* printf("(BDDL) <f%d>\n",lhs); */ /* DEBUGGING */
+      /* printf("(BDDL) <%c>\n",*c); */ /* DEBUGGING */
+
+      switch(*c++){
+        case'x':knuth_getkv;p=knuth_projection(MNG,k);break;
+        case'f':knuth_getkf;p=knuth_f(MNG,k);knuth_checknull(p);break;
+        case'c':k=*c++-'0';if((k&-2)==0)p=k?biddyOne:biddyZero;else knuth_reporterror;break;
+        case'~':p=biddyOne;curop=6;goto knuth_second;
+        case'.':knuth_deref(MNG,lhs);break;
+        default:knuth_reporterror;break;
+      }
+
+      knuth_passblanks;
+
+      /* printf("(BDDL) <%c>\n",*c); */ /* DEBUGGING */
+
+      switch(*c++){
+        case'&':curop=1;break;
+        case'>':curop=2;break;
+        case'<':curop=4;break;
+        case'^':curop=6;break;
+        case'|':curop=7;break;
+        case'_':curop=8;break;
+        case'A':curop=9;break;
+        case'N':curop=10;break;
+        case'Y':curop=12;break;
+        case'D':curop=14;break;
+        case'E':curop=15;break;
+        case'?':curop=16;break;
+        case'.':curop=17;break;
+        case'[':curop=0;if(*c++!='y')knuth_reporterror;if(*c++!=']')knuth_reporterror;goto knuth_fourth;
+        case 0:curop=7,q=p,c--;goto knuth_fourth; /* Knuth uses case'\n' */
+        default:knuth_reporterror;break;
+      }
+
+/* bdd14.c:2678 */
+knuth_second:
+      knuth_passblanks;
+
+      /* printf("(BDDL) <%c>\n",*c); */ /* DEBUGGING */
+
+      switch(*c++){
+        case'x':knuth_getkv;q=knuth_projection(MNG,k);break;
+        case'f':knuth_getkf;q=knuth_f(MNG,k);knuth_checknull(q);break;
+        case'c':k=*c++-'0';if((k&-2)==0)q=k?biddyOne:biddyZero;else knuth_reporterror;break;
+        default:knuth_reporterror;break;
+      }
+
+/* bdd14.c:2692 */
+/* knuth_third: */ /* defined but not used in Knuth's implementation */
+      knuth_passblanks;
+
+      if(curop==1&&*c=='&')curop=18; /* AND + AND = AND3 */
+      if(curop==1&&*c=='E')curop=19; /* AND + Ex = AndExists */
+      if(curop<=knuth_maxbinop)r=biddyNull;
+      else{
+        if(*c++!=knuth_ternopname2[curop-16][0])knuth_reporterror;
+        knuth_passblanks;
+
+        /* printf("(BDDL) <%c>\n",*c); */ /* DEBUGGING */
+
+        switch(*c++){
+          case'x':knuth_getkv;r=knuth_projection(MNG,k);break;
+          case'f':knuth_getkf;r=knuth_f(MNG,k);knuth_checknull(r);break;
+          case'c':k=*c++-'0';if((k&-2)==0)r=k?biddyOne:biddyZero;else knuth_reporterror;break;
+          default:knuth_reporterror;break;
+        }
+      }
+
+      /* printf("(BDDL) <%c>\n",*c); */ /* DEBUGGING */
+
+/* bdd14.c:2714 */
+knuth_fourth:
+      knuth_passblanks;
+      if(*c!=0&&*c!='#'){ /* Knuth uses *c!='\n' */
+        c++;
+        knuth_reporterror;
+      }
+
+      if(curop==0)r=knuth_compose_top(MNG,p);
+      else
+        if(curop<=knuth_maxbinop)r=knuth_binary_top(MNG,curop,p,q);
+        else r=knuth_ternary_top(MNG,curop,p,q,r);
+
+      *name = strdup("f");
+      concatint(name,lhs);
+      break; /* case'f' */
+
+    case'i':printf("i\n");break;
+    case'l':printf("l\n");break;
+    case'm':printf("m\n");break;
+    case'o':printf("o\n");break;
+    case'O':printf("O\n");break;
+    case'p':printf("p\n");break;
+    case'P':printf("P\n");break;
+    case'q':printf("q\n");break;
+    case'r':printf("r\n");break;
+    case's':printf("s\n");break;
+    case'S':printf("S\n");break;
+    case't':printf("t\n");break;
+    case'v':printf("v\n");break;
+    case'V':printf("V\n");break;
+    case'y':printf("y\n");
+
+      knuth_passblanks;
+      if(*c++!='=')knuth_reporterror;
+      knuth_passblanks;
+
+      if(*c=='.'){
+        c++;
+      }else{
+        knuth_passblanks;
+        switch(*c++){
+          case'x':printf("yx\n");break;
+          case'f':printf("yf\n");break;
+          case'c':printf("yc\n");break;
+          default:knuth_reporterror;break;
+        }
+      }
+      break; /* case'y' */
+
+    case'$':printf("$\n");break;
+    default:knuth_reporterror;
+
+  } /* switch(*c++) */
+
+/* bdd14.c:2934 */
+alldone:
+
+/* bdd14.c:2937 */
+  /*
+  printf("Job stats:\n");
+  printf("  not implemented, yet\n");
+  */
+
+  /*
+  printf("  %llu mems plus %llu rmems plus %llu zmems\n",mems,rmems,zmems);
+  j= nodeptr-(node*)mem;k= topofmem-pageptr;
+  printf("  %llu bytes of memory (%d nodes, %d pages)\n",((long long)j)*sizeof(node)+((long long)k)*sizeof(page),j,k);
+  */
+
+  /* printf("(BDDL) %s=%p\n",*name,BiddyN(r)); */ /* DEBUGGING */
+  return r;
+}
+
+/***************************************************************************//*!
 \brief Function BiddyManagedReadBddview.
 
 ### Description
@@ -1615,7 +1970,7 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
       tableN[n].f = NULL;
       tableN[n].created = FALSE;
       numN = n+1; // more safe than numN++;
-      /* add to formula list */      
+      /* add to formula list */
       if (!numF) {
         tableF = (BiddyFormulaList *) malloc(sizeof(BiddyFormulaList));
         if (!tableF) return NULL;
@@ -1679,7 +2034,7 @@ BiddyManagedReadBddview(Biddy_Manager MNG, const char filename[],
       concat(&namelist,tableF[i].name);
     }
   }
- 
+
   for (i=0; i<numV; ++i) {
     free(tableV[i].name);
   }
@@ -1794,6 +2149,70 @@ BiddyManagedReadVerilogFile(Biddy_Manager MNG, const char filename[],
 
   free(c->name);
   free(c);
+}
+
+/***************************************************************************//*!
+\brief Function BiddyManagedReadBDDLFile.
+
+### Description
+### Side effects
+### More info
+    See Biddy_Managed_ReadBDDLFile.
+*******************************************************************************/
+
+Biddy_String
+BiddyManagedReadBDDLFile(Biddy_Manager MNG, const char filename[])
+{
+  FILE *s;
+  char linebuf[LINESIZE];
+  Biddy_String name,namelist;
+  Biddy_Edge bdd;
+
+  assert( MNG );
+
+  s = fopen(filename,"r");
+  if (!s) return NULL;
+
+  /* DEBUGGING */
+  /*
+  printf("PARSING BDDL FILE %s\n",filename);
+  */
+
+  namelist = strdup("");
+
+  while (fgets(linebuf,LINESIZE,s) != NULL) {
+    name = NULL;
+    linebuf[strlen(linebuf)-1] = 0;
+    printf("<%s>\n",linebuf); /* DEBUGGING */
+    bdd = BiddyManagedEval3(MNG,&name,linebuf);
+
+    /* some operations, e.g. write output or sifting, do not create new bdd formula */
+    /* these operations returns biddy_null */
+    if (Biddy_IsNull(bdd)) {
+      if (name) free(name);
+      name = NULL;
+    }
+
+    if (name) {
+      BiddyManagedAddFormula(MNG,name,bdd,-1);
+    }
+
+    if (name && bdd && bdd != biddyNull) {
+      if (strlen(namelist) != 0) concat(&namelist," ");
+      concat(&namelist,name);
+    }
+
+    if (name) free(name);
+  }
+
+  fclose(s);
+  
+  if (strlen(namelist) == 0) {
+    free (namelist);
+    namelist = NULL;
+  }
+
+  return namelist;
 }
 
 /***************************************************************************//*!
@@ -4254,6 +4673,19 @@ concat(char **s1, const char *s2)
 }
 
 static void
+concatint(char **s1, const int i)
+{
+   char *s2;
+   s2 = (char *) malloc(255);
+   sprintf(s2,"%d",i);
+   if (s2) {
+     *s1 = (char*) realloc(*s1,strlen(*s1)+strlen(s2)+1+1);
+     strcat(*s1,s2);
+   }
+   free(s2);
+}
+
+static void
 WriteBDD(Biddy_Manager MNG, Biddy_String *var, FILE *s, Biddy_Edge f, unsigned int *line)
 {
   Biddy_Variable v;
@@ -5338,6 +5770,124 @@ getshortname(Biddy_Manager MNG, void *p, int n)
   free(name);
 
   return (shortname);
+}
+
+static Biddy_Edge
+knuth_projection(Biddy_Manager MNG, int k)
+{
+  Biddy_String name;
+  Biddy_Edge r;
+
+  name = (Biddy_String) malloc(16);
+  sprintf(name,"x%d",k);
+  r = BiddyManagedGetVariableEdge(MNG,Biddy_Managed_AddVariableByName(MNG,name));
+  free(name);
+  return r;
+}
+
+static Biddy_Edge
+knuth_f(Biddy_Manager MNG, int k)
+{
+  Biddy_String name;
+  unsigned int idx;
+  Biddy_Edge r;
+
+  name = (Biddy_String) malloc(16);
+  sprintf(name,"f%d",k);
+  BiddyManagedFindFormula(MNG,name,&idx,&r);
+  free(name);
+  return r;
+}
+
+static void
+knuth_deref(Biddy_Manager MNG, int k)
+{
+  Biddy_String name;
+
+  name = (Biddy_String) malloc(16);
+  sprintf(name,"f%d",k);
+  BiddyManagedDeleteFormula(MNG,name);
+  free(name);
+}
+
+/* === bdd14.c lines 1746 - 1775 === */
+/* botsink = this is the sink node for the all-zero function */
+/* topsink = this is the sink node for the all-one function */
+/* Quantifications */
+/* Ex = NOT (f0 NOR f1) */
+/* Ax = NOT (f0 NAND f1) */
+/* Dx = NOT (f0 EQ f1) */
+/* Yx = NOT (f1 IMPL f0) */
+/* Nx = NOT (f0 IMPL f1) */
+static Biddy_Edge
+knuth_binary_top(Biddy_Manager MNG, int curop, Biddy_Edge f, Biddy_Edge g)
+{
+  Biddy_Edge r;
+
+  assert( MNG != NULL );
+  assert( f != NULL );
+  assert( g != NULL );
+  
+  assert( BiddyIsOK(f) == TRUE );
+  assert( BiddyIsOK(g) == TRUE );
+
+  /* if(knuth_verbose&2)printf("beginning to compute <%p> %s <%p>:\n",BiddyN(f),knuth_binopname[curop],BiddyN(g)); */
+  switch(curop){
+    case 1:r=BiddyManagedAnd(MNG,f,g);break;
+    case 2:r=BiddyManagedGt(MNG,f,g);break;
+    case 4:r=BiddyManagedGt(MNG,g,f);break;
+    case 6:r=BiddyManagedXor(MNG,f,g);break;
+    case 7:r=BiddyManagedOr(MNG,f,g);break;
+    case 8:r=BiddyManagedConstrain(MNG,f,g);break; /* Coudert and Madre's constrain function */
+    case 9:r=BiddyManagedUnivAbstract(MNG,f,g);break; /* Ax g.f (universal quantification, for all) */
+    case 10:r=BiddyManagedYesNoAbstract(MNG,FALSE,f,g);break; /* 10: Nx g.f (g is a single variable) */
+    case 12:r=BiddyManagedYesNoAbstract(MNG,TRUE,f,g);break; /* 12: Yx g.f (g is  single variable) */
+    case 14:r=BiddyManagedDiffAbstract(MNG,f,g);break; /* Dx g.f (Boolean difference, df/dg) */
+    case 15:r=BiddyManagedExistAbstract(MNG,f,g);break; /* Ex g.f (existential quantification, exists) */
+    default:fprintf(stderr,"This can't happen!\n");r=biddyNull;break;
+  }
+
+  /* if(knuth_verbose&(1+2))printf(" <%p>=<%p>%s<%p>\n",BiddyN(r),BiddyN(f),knuth_binopname[curop],BiddyN(g)); */
+  return r;
+}
+
+/* === bdd14.c lines 1780 - 1803 === */
+static Biddy_Edge
+knuth_ternary_top(Biddy_Manager MNG, int curop, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
+{
+  Biddy_Edge r;
+
+  /* if(knuth_verbose&2)printf("beginning to compute <%p> %s <%p> %s <%p>:\n",BiddyN(f),knuth_ternopname1[curop-16],BiddyN(g),knuth_ternopname2[curop-16],BiddyN(h)); */
+  switch(curop){
+    case 16:r=BiddyManagedITE(MNG,f,g,h);break; /* mux_rec = if-then-else = BiddyITE */ 
+    case 17:r=BiddyManagedMedian(MNG,f,g,h);break; /* med_rec = median (or majority) operation = BiddyManagedMedian, https://en.wikipedia.org/wiki/Majority_function */
+    case 18:r=BiddyManagedAnd(MNG,BiddyManagedAnd(MNG,f,g),h);break; /* and_and_rec = and-and = AND3 */
+    case 19:r=BiddyManagedExistAndAbstract(MNG,f,g,h);break; /* and_exist_rec = and-exist = BiddyExistAndAbstract */
+    default:fprintf(stderr,"This can't happen!\n");r=biddyNull;break;
+  }
+
+  /* if(knuth_verbose&(1+2))printf(" <%p>=<%p>%s<%p>%s<%p>\n",BiddyN(r),BiddyN(f),knuth_ternopname1[curop-16],BiddyN(g),knuth_ternopname2[curop-16],BiddyN(h)); */
+  return r;
+}
+
+/* === bdd14.c lines 1808 - 1827 === */
+static Biddy_Edge
+knuth_compose_top(Biddy_Manager MNG, Biddy_Edge f)
+{
+  Biddy_Edge r;
+
+  if (BiddyIsTerminal(f)) return f;
+  /* if (knuth_verbose&2) printf("beginning to compute %p[y]:\n",BiddyN(f)); */
+
+  /* r = BiddyManagedXYCompose(f); */
+  /* y functions should be stored as values for x, value is an edge! */
+  /* x with value BiddyNull remains unchanged */
+  /* for Knuth's implementation see function compose_rec at === bdd14.c lines 1708 - 1741 === */
+  printf("BiddyManagedXYCompose not implemented, yet\n");
+  r = f;
+
+  /* if (knuth_verbose&(1+2)) printf(" %p=%p[y]\n",BiddyN(r),BiddyN(f)); */
+  return r;
 }
 
 /*----------------------------------------------------------------------------*/

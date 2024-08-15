@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 673 $]
-#  Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
+#  Revision    [$Revision: 698 $]
+#  Date        [$Date: 2024-07-09 16:35:11 +0200 (tor, 09 jul 2024) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#               Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Biddy is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -23,9 +23,9 @@
 #               Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #               Boston, MA 02110-1301 USA.]
 
-# to change editor fro commit, run 'select-editor'.
+# to change editor used for commit, run 'select-editor'.
 
-VERSION=`sed "" VERSION`
+VERSION=`sed "" ../VERSION`
 NAME="bddscout"
 OS=`uname | sed "s/_.*//;s/[0-9]//g"`
 DISTRO=$(lsb_release --short --codename)

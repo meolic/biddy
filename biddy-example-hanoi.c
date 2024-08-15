@@ -1,5 +1,5 @@
-/* $Revision: 652 $ */
-/* $Date: 2021-08-28 09:52:46 +0200 (sob, 28 avg 2021) $ */
+/* $Revision: 682 $ */
+/* $Date: 2023-10-15 23:14:04 +0200 (ned, 15 okt 2023) $ */
 /* This file (biddy-example-hanoi.c) is a C file */
 /* Author: Robert Meolic (robert@meolic.com) */
 /* This file has been released into the public domain by the author. */
@@ -299,7 +299,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  /* cube of the current state variables, needed by bddAndAbstract */
+  /* cube of the current state variables, needed by Biddy_ExistAndAbstract */
   if ((Biddy_GetManagerType() == BIDDYTYPEOBDD) || (Biddy_GetManagerType() == BIDDYTYPEOBDDC) ||
       (Biddy_GetManagerType() == BIDDYTYPETZBDD) || (Biddy_GetManagerType() == BIDDYTYPETZBDDC))
   {
@@ -532,7 +532,7 @@ Biddy_Edge compute_image(unsigned int size, Biddy_Edge R, Biddy_Edge T,
 
   /* the following Cudd function computes the conjunction of R and T; */
   /* and quantifies out the variables in cube ( the current state variables ) */
-  result = Biddy_AndAbstract(R,T,cube);
+  result = Biddy_ExistAndAbstract(R,T,cube);
   REF(result);
 
   /* DEBUGGING, ONLY */

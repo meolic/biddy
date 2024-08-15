@@ -1,10 +1,10 @@
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 676 $]
-#  Date        [$Date: 2022-12-31 13:38:40 +0100 (sob, 31 dec 2022) $]
+#  Revision    [$Revision: 692 $]
+#  Date        [$Date: 2024-06-30 18:06:54 +0200 (ned, 30 jun 2024) $]
 #
 #  Copyright   [This file is part of Bdd Scout package.
 #               Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#               Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
+#               Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #               Bdd Scout is free software; you can redistribute it and/or modify
 #               it under the terms of the GNU General Public License as
@@ -29,16 +29,21 @@ EXTNAME3 = EXTNAME3
 OS = $(shell uname | sed "s/_.*//;s/[0-9]//g")
 RM = rm -f
 CP = cp
+SED = sed
 MKDIR = mkdir -p
 RMDIR = rmdir
 CD = cd
 
-# default folder (used for purge and clean, only)
+# version tag
+#GETVERSION = $(shell cat ./VERSION) # use VERSION file in bddscout folder
+GETVERSION = $(shell cat ../VERSION) # use VERSION file in biddy folder
+
+# folder used for purge, clean, and cleanall
 BINDIR = ./bin
 
 all: default
 
-# used for local testing
+# used from Makefile.OS to produce local app in ./bin
 local: start $(BINDIR) \
           $(BINDIR)/COPYING \
           $(BINDIR)/bddview.tcl \
@@ -77,7 +82,7 @@ package: start $(BINDIR) $(BINDIR)/$(MAINNAME) $(BINDIR)/$(EXTNAME1) $(BINDIR)/$
 # -----------------------------------------------------------------------
 
 default:
-	@echo "*** DEFAULT BUILDING! ***"
+	@echo "*** DEFAULT BUILDING - CREATES LOCAL APP in ./bin ***"
 	@echo Please, check README to find other options for building BDD Scout.
 	@$(MAKE) --no-print-directory -f Makefile.$(OS)
 
@@ -109,7 +114,8 @@ $(BINDIR)/bddscout.map: ./bddscout.map
 	$(CP) ./bddscout.map $(BINDIR)
 
 $(BINDIR)/bddscout.tcl: ./bddscout.tcl
-	$(CP) ./bddscout.tcl $(BINDIR)
+#	$(CP) ./bddscout.tcl $(BINDIR)
+	$(SED) "s/THEBIDDYVERSION/${GETVERSION}/" ./bddscout.tcl > $(BINDIR)/bddscout.tcl
 
 $(BINDIR)/bddscoutIFIP.tcl: ./bddscoutIFIP.tcl
 	$(CP) ./bddscoutIFIP.tcl $(BINDIR)
@@ -204,9 +210,6 @@ $(BINDIR)/$(EXTNAME3): $(BINDIR)/bddscoutBDDTRACES.o $(BINDIR)/$(BDDSCOUTSTUBLIB
 purge:
 	@$(RM) *~
 	@$(RM) */*~
-	@$(RM) $(BINDIR)/*.tcl
-	@$(RM) -r $(BINDIR)/create
-	@$(RM) -r $(BINDIR)/scripts
 	@$(RM) bddscout*.zip
 
 clean:
@@ -219,3 +222,16 @@ clean:
 	@$(RM) $(BINDIR)/bddscoutStubLib.o
 	@$(RM) $(BINDIR)/libbiddy.a
 	@$(RM) $(BINDIR)/libbddscoutstub.a
+
+cleanall: clean
+	@$(RM) $(BINDIR)/COPYING
+	@$(RM) $(BINDIR)/bddscout
+	@$(RM) $(BINDIR)/bddscout.map
+	@$(RM) $(BINDIR)/example.bf
+	@$(RM) $(BINDIR)/example.bdd
+	@$(RM) $(BINDIR)/*.so
+	@$(RM) $(BINDIR)/*.tcl
+	@$(RM) $(BINDIR)/*.bddview
+	@$(RM) -r $(BINDIR)/create
+	@$(RM) -r $(BINDIR)/scripts
+	

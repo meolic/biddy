@@ -15,14 +15,14 @@ Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyMain.c]
-    Revision    [$Revision: 674 $]
-    Date        [$Date: 2022-12-29 19:49:52 +0100 (čet, 29 dec 2022) $]
+    Revision    [$Revision: 692 $]
+    Date        [$Date: 2024-06-30 18:06:54 +0200 (ned, 30 jun 2024) $]
     Authors     [Robert Meolic (robert@meolic.com)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;

@@ -3,15 +3,15 @@
   Synopsis    [Bdd Scout]
 
   FileName    [bddtraces-CUDD.c]
-  Revision    [$Revision: 673 $]
-  Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
+  Revision    [$Revision: 692 $]
+  Date        [$Date: 2024-06-30 18:06:54 +0200 (ned, 30 jun 2024) $]
   Authors     [Robert Meolic (robert@meolic.com)]
   Description []
   SeeAlso     [bddscout.h]
 
   Copyright   [This file is part of Bdd Scout package.
                Copyright (C) 2008, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-               Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
+               Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia
 
                Bdd Scout is free software; you can redistribute it and/or modify
                it under the terms of the GNU General Public License as
@@ -1194,9 +1194,9 @@ BddscoutRunBddTrace(FILE *f)
 
               /* DEBUGGING */
               /*
-              printf("Biddy_Managed_AndAbstract: Function f has %u nodes.\n",Cudd_DagSize(bdd2));
-              printf("Biddy_Managed_AndAbstract: Function g has %u nodes.\n",Cudd_DagSize(bdd3));
-              printf("Biddy_Managed_AndAbstract: Function cube has %u nodes.\n",Cudd_DagSize(bdd1));
+              printf("Cudd_bddAndAbstract: Function f has %u nodes.\n",Cudd_DagSize(bdd2));
+              printf("Cudd_bddAndAbstract: Function g has %u nodes.\n",Cudd_DagSize(bdd3));
+              printf("Cudd_bddAndAbstract: Function cube has %u nodes.\n",Cudd_DagSize(bdd1));
               exit(1);
               */
 

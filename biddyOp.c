@@ -14,14 +14,14 @@ Binary Decision Diagrams.
                  implemented. Variable swapping and sifting are implemented.]
 
     FileName    [biddyOp.c]
-    Revision    [$Revision: 673 $]
-    Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
+    Revision    [$Revision: 692 $]
+    Date        [$Date: 2024-06-30 18:06:54 +0200 (ned, 30 jun 2024) $]
     Authors     [Robert Meolic (robert@meolic.com)]
 
 ### Copyright
 
 Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia.
-Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia.
+Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia.
 
 Biddy is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
@@ -1163,6 +1163,45 @@ Biddy_Managed_Compose(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
 #endif
 
 /***************************************************************************//*!
+\brief Function Biddy_Managed_XYCompose calculates a Knuth's style composition.
+       All variables (x) are substituted with the predefined functions (y).
+
+### Description
+### Side effects
+    Original BDD is not changed.
+    Not implemented, yet.
+### More info
+    Macro Biddy_XYCompose(f) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_Edge
+Biddy_Managed_XYCompose(Biddy_Manager MNG, Biddy_Edge f)
+{
+  Biddy_Edge r;
+
+  assert( f != NULL );
+
+  if (!MNG) MNG = biddyAnonymousManager;
+  ZF_LOGI("Biddy_XYCompose");
+
+  assert( BiddyIsOK(f) == TRUE );
+
+  r = biddyNull;
+
+  /* NOT IMPLEMENTED, YET */
+
+  return r;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
 \brief Function Biddy_Managed_E calculates an existential quantification of
        Boolean function.
 
@@ -1468,6 +1507,86 @@ Biddy_Managed_ExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
 #endif
 
 /***************************************************************************//*!
+\brief Function Biddy_Managed_ExistAndAbstract calculates the AND of two BDDs and
+       simultaneously existentially abstracts the variables in cube.
+
+### Description
+### Side effects
+    Original BDD is not changed.
+    Implemented for OBDD, OBDDC, ZBDD, ZBDDC, and TZBDD.
+### More info
+    Macro Biddy_ExistAndAbstract(f,g,cube) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_Edge
+Biddy_Managed_ExistAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
+                               Biddy_Edge cube)
+{
+  Biddy_Edge r;
+
+  assert( f != NULL );
+  assert( g != NULL );
+  assert( cube != NULL );
+
+  if (!MNG) MNG = biddyAnonymousManager;
+  ZF_LOGI("Biddy_ExistAndAbstract");
+
+  assert( BiddyIsOK(f) == TRUE );
+  assert( BiddyIsOK(g) == TRUE );
+  assert( BiddyIsOK(cube) == TRUE );
+
+  r = biddyNull;
+
+  if (biddyManagerType == BIDDYTYPEOBDD) {
+    /* IMPLEMENTED */
+    r = BiddyManagedExistAndAbstract(MNG,f,g,cube);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAndAbstract */
+  } else if (biddyManagerType == BIDDYTYPEOBDDC) {
+    /* IMPLEMENTED */
+    r = BiddyManagedExistAndAbstract(MNG,f,g,cube);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAndAbstract */
+  }
+#ifndef COMPACT
+  else if (biddyManagerType == BIDDYTYPEZBDD) {
+    /* IMPLEMENTED */
+    r = BiddyManagedExistAndAbstract(MNG,f,g,cube);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAndAbstract */
+  } else if (biddyManagerType == BIDDYTYPEZBDDC) {
+    /* IMPLEMENTED */
+    r = BiddyManagedExistAndAbstract(MNG,f,g,cube);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAndAbstract */
+  } else if (biddyManagerType == BIDDYTYPETZBDD) {
+    /* IMPLEMENTED */
+    r = BiddyManagedExistAndAbstract(MNG,f,g,cube);
+    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedExistAndAbstract */
+  } else if (biddyManagerType == BIDDYTYPETZBDDC)
+  {
+    fprintf(stderr,"Biddy_ExistAndAbstract: this BDD type is not supported, yet!\n");
+    return biddyNull;
+  } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
+              (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
+              (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
+  {
+    fprintf(stderr,"Biddy_ExistAndAbstract: this BDD type is not supported, yet!\n");
+    return biddyNull;
+  } else {
+    fprintf(stderr,"Biddy_ExistAndAbstract: Unsupported BDD type!\n");
+    return biddyNull;
+  }
+#endif
+
+  return r;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//*!
 \brief Function Biddy_Managed_UnivAbstract universally abstracts all the
        variables in cube from f.
 
@@ -1546,15 +1665,15 @@ Biddy_Managed_UnivAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
 #endif
 
 /***************************************************************************//*!
-\brief Function Biddy_Managed_AndAbstract calculates the AND of two BDDs and
-       simultaneously (existentially) abstracts the variables in cube.
+\brief Function Biddy_Managed_DiffAbstract calculates Boolean difference
+       df/dcube.
 
 ### Description
 ### Side effects
     Original BDD is not changed.
-    Implemented for OBDD, OBDDC, ZBDD, ZBDDC, and TZBDD.
+    Not implemented, yet.
 ### More info
-    Macro Biddy_AndAbstract(f,g,cube) is defined for use with anonymous manager.
+    Macro Biddy_DiffAbstract(f,cube) is defined for use with anonymous manager.
 *******************************************************************************/
 
 #ifdef __cplusplus
@@ -1562,61 +1681,64 @@ extern "C" {
 #endif
 
 Biddy_Edge
-Biddy_Managed_AndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
-                          Biddy_Edge cube)
+Biddy_Managed_DiffAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
 {
   Biddy_Edge r;
 
   assert( f != NULL );
-  assert( g != NULL );
   assert( cube != NULL );
 
   if (!MNG) MNG = biddyAnonymousManager;
-  ZF_LOGI("Biddy_AndAbstract");
+  ZF_LOGI("Biddy_DiffAbstract");
 
   assert( BiddyIsOK(f) == TRUE );
-  assert( BiddyIsOK(g) == TRUE );
   assert( BiddyIsOK(cube) == TRUE );
 
   r = biddyNull;
 
-  if (biddyManagerType == BIDDYTYPEOBDD) {
-    /* IMPLEMENTED */
-    r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
-  } else if (biddyManagerType == BIDDYTYPEOBDDC) {
-    /* IMPLEMENTED */
-    r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
-  }
-#ifndef COMPACT
-  else if (biddyManagerType == BIDDYTYPEZBDD) {
-    /* IMPLEMENTED */
-    r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
-  } else if (biddyManagerType == BIDDYTYPEZBDDC) {
-    /* IMPLEMENTED */
-    r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
-  } else if (biddyManagerType == BIDDYTYPETZBDD) {
-    /* IMPLEMENTED */
-    r = BiddyManagedAndAbstract(MNG,f,g,cube);
-    /* BiddyRefresh(r); */ /* TESTING */ /* not always refreshed by BiddyManagedAndAbstract */
-  } else if (biddyManagerType == BIDDYTYPETZBDDC)
-  {
-    fprintf(stderr,"Biddy_AndAbstract: this BDD type is not supported, yet!\n");
-    return biddyNull;
-  } else if ((biddyManagerType == BIDDYTYPEOFDDC) || (biddyManagerType == BIDDYTYPEOFDD) ||
-              (biddyManagerType == BIDDYTYPEZFDDC) || (biddyManagerType == BIDDYTYPEZFDD) ||
-              (biddyManagerType == BIDDYTYPETZFDDC) || (biddyManagerType == BIDDYTYPETZFDD))
-  {
-    fprintf(stderr,"Biddy_AndAbstract: this BDD type is not supported, yet!\n");
-    return biddyNull;
-  } else {
-    fprintf(stderr,"Biddy_AndAbstract: Unsupported BDD type!\n");
-    return biddyNull;
-  }
+  /* NOT IMPLEMENTED, YET */
+
+  return r;
+}
+
+#ifdef __cplusplus
+}
 #endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_YesNoAbstract calculates Knuth's yes-no
+       quantification on f.
+
+### Description
+### Side effects
+    Original BDD is not changed.
+    The operation is meaningful only, if cube consists of exactly one variable.
+    Not implemented, yet.
+### More info
+    Macro Biddy_YesNoAbstract(f,cube) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_Edge
+Biddy_Managed_YesNoAbstract(Biddy_Manager MNG, Biddy_Boolean type, Biddy_Edge f, Biddy_Edge cube)
+{
+  Biddy_Edge r;
+
+  assert( f != NULL );
+  assert( cube != NULL );
+
+  if (!MNG) MNG = biddyAnonymousManager;
+  if (type) ZF_LOGI("Biddy_YesAbstract"); else ZF_LOGI("Biddy_NoAbstract");
+
+  assert( BiddyIsOK(f) == TRUE );
+  assert( BiddyIsOK(cube) == TRUE );
+
+  r = biddyNull;
+
+  /* NOT IMPLEMENTED, YET */
 
   return r;
 }
@@ -1804,6 +1926,45 @@ Biddy_Managed_Simplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
 #ifdef __cplusplus
 }
 #endif
+
+/***************************************************************************//*!
+\brief Function Biddy_Managed_Median calculates median (or majority) operation.
+
+### Description
+    https://en.wikipedia.org/wiki/Majority_function
+### Side effects
+    Original BDD is not changed.
+    Not implemented, yet.
+### More info
+    Macro Biddy_Median(f,g,h) is defined for use with anonymous manager.
+*******************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Biddy_Edge
+Biddy_Managed_Median(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
+{
+  Biddy_Edge r;
+
+  assert( f != NULL );
+  assert( g != NULL );
+  assert( h != NULL );
+
+  if (!MNG) MNG = biddyAnonymousManager;
+  ZF_LOGI("Biddy_Median");
+
+  assert( BiddyIsOK(f) == TRUE );
+  assert( BiddyIsOK(g) == TRUE );
+  assert( BiddyIsOK(h) == TRUE );
+
+  r = biddyNull;
+
+  /* NOT IMPLEMENTED, YET */
+
+  return r;
+}
 
 /***************************************************************************//*!
 \brief Function Biddy_Managed_Support calculates a product of all dependent
@@ -6421,47 +6582,17 @@ BiddyManagedExistAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
 }
 
 /***************************************************************************//*!
-\brief Function BiddyManagedUnivAbstract.
+\brief Function BiddyManagedExistAndAbstract.
 
 ### Description
 ### Side effects
 ### More info
-    See Biddy_Managed_UnivAbstract.
+    See Biddy_Managed_ExistAndAbstract.
 *******************************************************************************/
 
 Biddy_Edge
-BiddyManagedUnivAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
-{
-  Biddy_Edge r;
-
-  assert( MNG != NULL );
-  assert( f != NULL );
-  assert( cube != NULL );
-
-  /* IMPLEMENTED FOR OBDDC, ONLY */
-  assert( biddyManagerType == BIDDYTYPEOBDDC );
-
-  /* LOOKING FOR SIMPLE CASE */
-  if (BiddyIsTerminal(f)) return f;
-
-  /* PROCEED BY CALCULATING NOT (EX cube NOT f) */
-  r = BiddyInv(BiddyManagedExistAbstract(MNG,BiddyInv(f),cube));
-
-  return r;
-}
-
-/***************************************************************************//*!
-\brief Function BiddyManagedAndAbstract.
-
-### Description
-### Side effects
-### More info
-    See Biddy_Managed_AndAbstract.
-*******************************************************************************/
-
-Biddy_Edge
-BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
-                        Biddy_Edge cube)
+BiddyManagedExistAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
+                             Biddy_Edge cube)
 {
   Biddy_Edge f0,f1,g0,g1;
   Biddy_Edge e, t, r;
@@ -6562,7 +6693,7 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         /* Tricky optimizations are from: */
         /* B. Yang et al. A Performance Study of BDD-Based Model Checking. 1998. */
         /* http://fmv.jku.at/papers/YangEtAl-FMCAD98.pdf */
-        e = BiddyManagedAndAbstract(MNG,f0,g0,BiddyT(cube));
+        e = BiddyManagedExistAndAbstract(MNG,f0,g0,BiddyT(cube));
         if (e == biddyOne) return biddyOne;
         if ((e == f1) || (e == g1)) {
           r = e;
@@ -6570,12 +6701,12 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         } else {
           if (e == BiddyInv(f1)) f1 = biddyOne; /* this is useful only for OBDDC, but not wrong for OBDD */
           if (e == BiddyInv(g1)) g1 = biddyOne; /* this is useful only for OBDDC, but not wrong for OBDD */
-          t = BiddyManagedAndAbstract(MNG,f1,g1,BiddyT(cube));
+          t = BiddyManagedExistAndAbstract(MNG,f1,g1,BiddyT(cube));
           r = BiddyManagedOr(MNG,e,t);
         }
       } else {
-        e = BiddyManagedAndAbstract(MNG,f0,g0,cube);
-        t = BiddyManagedAndAbstract(MNG,f1,g1,cube);
+        e = BiddyManagedExistAndAbstract(MNG,f0,g0,cube);
+        t = BiddyManagedExistAndAbstract(MNG,f1,g1,cube);
         r = BiddyManagedTaggedFoaNode(MNG,minv,e,t,minv,TRUE);
         BiddyRefresh(r); /* FoaNode returns an obsolete node! */
       }
@@ -6589,25 +6720,25 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       if (fv != gv) {
         if (fv == minv) {
           if (BiddyGetMark(f)) {
-            r = BiddyManagedAndAbstract(MNG,BiddyInv(BiddyE(f)),g,cube);
+            r = BiddyManagedExistAndAbstract(MNG,BiddyInv(BiddyE(f)),g,cube);
             /* return r; */ /* WE ARE CASHING THIS */
           } else {
-            r = BiddyManagedAndAbstract(MNG,BiddyE(f),g,cube);
+            r = BiddyManagedExistAndAbstract(MNG,BiddyE(f),g,cube);
             /* return r; */ /* WE ARE CASHING THIS */
           }
         } else {
           if (BiddyGetMark(g)) {
-            r = BiddyManagedAndAbstract(MNG,f,BiddyInv(BiddyE(g)),cube);
+            r = BiddyManagedExistAndAbstract(MNG,f,BiddyInv(BiddyE(g)),cube);
             /* return r; */ /* WE ARE CASHING THIS */
           } else {
-            r = BiddyManagedAndAbstract(MNG,f,BiddyE(g),cube);
+            r = BiddyManagedExistAndAbstract(MNG,f,BiddyE(g),cube);
             /* return r; */ /* WE ARE CASHING THIS */
           }
         }
       } else {
         cv = BiddyV(cube);
         if (BiddyIsSmaller(biddyOrderingTable,cv,minv)) {
-          r = BiddyManagedAndAbstract(MNG,f,g,BiddyT(cube));
+          r = BiddyManagedExistAndAbstract(MNG,f,g,BiddyT(cube));
           r = BiddyManagedTaggedFoaNode(MNG,cv,r,r,cv,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         }
@@ -6616,8 +6747,8 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
           f1 = BiddyT(f);
           g0 = BiddyInvCond(BiddyE(g),BiddyGetMark(g));
           g1 = BiddyT(g);
-          e = BiddyManagedAndAbstract(MNG,f0,g0,BiddyT(cube));
-          t = BiddyManagedAndAbstract(MNG,f1,g1,BiddyT(cube));
+          e = BiddyManagedExistAndAbstract(MNG,f0,g0,BiddyT(cube));
+          t = BiddyManagedExistAndAbstract(MNG,f1,g1,BiddyT(cube));
           r = BiddyManagedOr(MNG,e,t);
           r = BiddyManagedTaggedFoaNode(MNG,cv,r,r,cv,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
@@ -6626,8 +6757,8 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
           f1 = BiddyT(f);
           g0 = BiddyInvCond(BiddyE(g),BiddyGetMark(g));
           g1 = BiddyT(g);
-          e = BiddyManagedAndAbstract(MNG,f0,g0,cube);
-          t = BiddyManagedAndAbstract(MNG,f1,g1,cube);
+          e = BiddyManagedExistAndAbstract(MNG,f0,g0,cube);
+          t = BiddyManagedExistAndAbstract(MNG,f1,g1,cube);
           r = BiddyManagedTaggedFoaNode(MNG,minv,e,t,minv,TRUE);
           BiddyRefresh(r); /* FoaNode returns an obsolete node! */
         }
@@ -6679,11 +6810,11 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
         }
       }
       if (BiddyIsSmaller(biddyOrderingTable,minv,cv)) {
-        e = BiddyManagedAndAbstract(MNG,f0,g0,cube);
-        t = BiddyManagedAndAbstract(MNG,f1,g1,cube);
+        e = BiddyManagedExistAndAbstract(MNG,f0,g0,cube);
+        t = BiddyManagedExistAndAbstract(MNG,f1,g1,cube);
       } else {
-        e = BiddyManagedAndAbstract(MNG,f0,g0,BiddyT(cube));
-        t = BiddyManagedAndAbstract(MNG,f1,g1,BiddyT(cube));
+        e = BiddyManagedExistAndAbstract(MNG,f0,g0,BiddyT(cube));
+        t = BiddyManagedExistAndAbstract(MNG,f1,g1,BiddyT(cube));
       }
       if (cv == mintag) {
         if (minv == mintag) {
@@ -6741,14 +6872,14 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
       } else if (g0 == biddyZero) {
         e = biddyZero;
       } else {
-        e = BiddyManagedAndAbstract(MNG,f0,g0,cgt?cube:BiddyT(cube));
+        e = BiddyManagedExistAndAbstract(MNG,f0,g0,cgt?cube:BiddyT(cube));
       }
       if (f1 == biddyZero) {
         t = biddyZero;
       } else if (g1 == biddyZero) {
         t = biddyZero;
       } else {
-        t = BiddyManagedAndAbstract(MNG,f1,g1,cgt?cube:BiddyT(cube));
+        t = BiddyManagedExistAndAbstract(MNG,f1,g1,cgt?cube:BiddyT(cube));
       }
 
       /* VARIANT 2A */
@@ -6809,6 +6940,90 @@ BiddyManagedAndAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g,
     BiddyRefresh(r);
 
   }
+
+  return r;
+}
+
+/***************************************************************************//*!
+\brief Function BiddyManagedUnivAbstract.
+
+### Description
+### Side effects
+### More info
+    See Biddy_Managed_UnivAbstract.
+*******************************************************************************/
+
+Biddy_Edge
+BiddyManagedUnivAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
+{
+  Biddy_Edge r;
+
+  assert( MNG != NULL );
+  assert( f != NULL );
+  assert( cube != NULL );
+
+  /* IMPLEMENTED FOR OBDDC, ONLY */
+  assert( biddyManagerType == BIDDYTYPEOBDDC );
+
+  /* LOOKING FOR SIMPLE CASE */
+  if (BiddyIsTerminal(f)) return f;
+
+  /* PROCEED BY CALCULATING NOT (EX cube NOT f) */
+  r = BiddyInv(BiddyManagedExistAbstract(MNG,BiddyInv(f),cube));
+
+  return r;
+}
+
+/***************************************************************************//*!
+\brief Function BiddyManagedDiffAbstract.
+
+### Description
+### Side effects
+### More info
+    See Biddy_Managed_DiffAbstract.
+*******************************************************************************/
+
+Biddy_Edge
+BiddyManagedDiffAbstract(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge cube)
+{
+  Biddy_Edge r;
+
+  assert( MNG != NULL );
+  assert( f != NULL );
+  assert( cube != NULL );
+
+  /* IMPLEMENTED FOR OBDDC, ONLY */
+  assert( biddyManagerType == BIDDYTYPEOBDDC );
+
+  /* NOT IMPLEMENTED, YET */
+  r = biddyNull;
+
+  return r;
+}
+
+/***************************************************************************//*!
+\brief Function BiddyManagedYesNoAbstract.
+
+### Description
+### Side effects
+### More info
+    See Biddy_Managed_YesNoAbstract.
+*******************************************************************************/
+
+Biddy_Edge
+BiddyManagedYesNoAbstract(Biddy_Manager MNG, Biddy_Boolean type, Biddy_Edge f, Biddy_Edge cube)
+{
+  Biddy_Edge r;
+
+  assert( MNG != NULL );
+  assert( f != NULL );
+  assert( cube != NULL );
+
+  /* IMPLEMENTED FOR OBDDC, ONLY */
+  assert( biddyManagerType == BIDDYTYPEOBDDC );
+
+  /* NOT IMPLEMENTED, YET */
+  r = biddyNull;
 
   return r;
 }
@@ -6958,6 +7173,34 @@ BiddyManagedSimplify(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge c)
   e = BiddyManagedSimplify(MNG,f0,c0);
   t = BiddyManagedSimplify(MNG,f1,c1);
   r = BiddyManagedITE(MNG,biddyVariableTable.table[minv].variable,t,e);
+
+  return r;
+}
+
+/***************************************************************************//*!
+\brief Function BiddyManagedMedian.
+
+### Description
+### Side effects
+### More info
+    See Biddy_Managed_Median.
+*******************************************************************************/
+
+Biddy_Edge
+BiddyManagedMedian(Biddy_Manager MNG, Biddy_Edge f, Biddy_Edge g, Biddy_Edge h)
+{
+  Biddy_Edge r;
+
+  assert( MNG != NULL );
+  assert( f != NULL );
+  assert( g != NULL );
+  assert( h != NULL );
+
+  /* IMPLEMENTED FOR OBDDC, ONLY */
+  assert( biddyManagerType == BIDDYTYPEOBDDC );
+
+  /* NOT IMPLEMENTED, YET */
+  r = biddyNull;
 
   return r;
 }

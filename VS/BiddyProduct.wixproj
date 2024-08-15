@@ -6,7 +6,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>e55c3143-cd54-431a-adb8-f537cb12dd4d</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>biddy-2-2-1-Win</OutputName>
+    <OutputName>biddy-2-4-1-Win</OutputName>
     <OutputType>Package</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">

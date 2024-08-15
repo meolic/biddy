@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #  Authors     [Robert Meolic (robert@meolic.com)]
-#  Revision    [$Revision: 673 $]
-#  Date        [$Date: 2022-12-29 15:08:11 +0100 (čet, 29 dec 2022) $]
+#  Revision    [$Revision: 693 $]
+#  Date        [$Date: 2024-06-30 18:48:57 +0200 (ned, 30 jun 2024) $]
 #
 #  Copyright   [
 #    This file is part of Biddy.
 #    Copyright (C) 2006, 2019 UM FERI, Koroska cesta 46, SI-2000 Maribor, Slovenia
-#    Copyright (C) 2019, 2022 Robert Meolic, SI-2000 Maribor, Slovenia
+#    Copyright (C) 2019, 2024 Robert Meolic, SI-2000 Maribor, Slovenia
 #
 #    Biddy is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as
@@ -129,10 +129,12 @@ echo "used to mantain Ubuntu PPA"
 echo "**************************"
 echo ""
 
-# create a source distribution which match your system
+# create a source distribution which match the current default (focal, 20.04 LTS)
 # lsb_release --short --codename
 # pbuilder-dist focal create
 # pbuilder-dist focal update
+# remove development environnment for focal
+# pbuilder-dist focal clean
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
 echo "GENERATING SOURCE PACKAGE FOR $DISTRO"
@@ -147,9 +149,11 @@ mv `pwd`/../*.build `pwd`/../$DISTRO/source
 mv `pwd`/../*.buildinfo `pwd`/../$DISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$DISTRO/source
 
-# create a source distribution for jammy
+# create a source distribution for jammy (22.04 LTS)
 # pbuilder-dist jammy create
 # pbuilder-dist jammy update
+# remove development environnment for jammy
+# pbuilder-dist jammy clean
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
 ALTDISTRO=jammy
@@ -165,12 +169,14 @@ mv `pwd`/../*.build `pwd`/../$ALTDISTRO/source
 mv `pwd`/../*.buildinfo `pwd`/../$ALTDISTRO/source
 cp `pwd`/../*.orig.tar.gz `pwd`/../$ALTDISTRO/source
 
-# create a source distribution for kinetic
-# pbuilder-dist kinetic create
-# pbuilder-dist kinetic update
+# create a source distribution for noble (24.04 LTS)
+# pbuilder-dist noble create
+# pbuilder-dist noble update
+# remove development environnment for noble
+# pbuilder-dist noble clean
 # it will be builded in "distribution/version-$VERSION/release-$RELEASE/$NAME-$VERSION"
 # change key (debuild -k) if you are not Robert Meolic
-ALTDISTRO=kinetic
+ALTDISTRO=noble
 echo "GENERATING SOURCE PACKAGE FOR $ALTDISTRO"
 cp "../../changelog.deb" "debian/changelog"
 dch -M -l"~$ALTDISTRO" -D $ALTDISTRO
@@ -192,8 +198,6 @@ echo "************************"
 echo ""
 
 # all target pbuilder environments must already exists and be updated
-# use e.g pbuilder-dist focal create
-# use e.g pbuilder-dist focal update
 
 echo "BUILDING FOR YOUR DISTRO: $DISTRO"
 pbuilder-dist $DISTRO build --buildresult `pwd`/$DISTRO `pwd`/$DISTRO/source/*.dsc
@@ -202,7 +206,7 @@ ALTDISTRO=jammy
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 
-ALTDISTRO=kinetic
+ALTDISTRO=noble
 echo "BUILDING FOR $ALTDISTRO"
 pbuilder-dist $ALTDISTRO build --buildresult `pwd`/$ALTDISTRO `pwd`/$ALTDISTRO/source/*.dsc
 
